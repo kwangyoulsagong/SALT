@@ -159,3 +159,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 해설 조회 · 쿼리 키 | 충족 | `endpoints.ts` · `queryKeys.ts` · `coachApi.ts` · `useSymbolExplanation.ts` · check-types · lint |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 옛 엔드포인트 소비처 | 충족 | `coachApi.forecast` · `useSymbolForecast` 소비처 grep 0 뒤 삭제 |

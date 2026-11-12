@@ -336,6 +336,7 @@ type ExplainResult =
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coachReport.routes.ts` 에 경로 `GET /api/coach/check`(Swagger 포함). 기존 경로 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — FR-50 · FR-58 해설 요청 DTO — `explainCoachSchema`(POST 본문) → `explanationQuerySchema`(GET 쿼리, 종목 · 관점뿐 그대로). `POST /explain` 삭제(제거 = 404) |
 | 2026-11-11 | **F017 v2 단계 3 정리**(`feat/f017-s3-explain-always`) — FR-62~64 LLM 비용 상한 — 사용자별 상한(`userCalls` · env `LLM_USER_DAILY_CALL_LIMIT`) **삭제**, 서버 전체 시도 · 토큰만. 해설이 배치 하나가 돼 사람마다 셀 일이 없다. 상한에 닿으면 다음 회차(화면은 이전 해설 · 사실표 문장) |
+| 2026-11-11 | F017 v2 단계 5 — 코치 리포트 라우터에 `GET /api/coach/scenario` + Swagger(주인 `SRV-REQ-053` FR-5) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — `ModeCoach` 응답 `renderable` · `blockedReason` 삭제 · `observations` · `caveats` · FR-50 해설 `facts_unavailable` 만 · Swagger 정정
   - `salt-server/src/coach/application/GetSymbolCoach.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

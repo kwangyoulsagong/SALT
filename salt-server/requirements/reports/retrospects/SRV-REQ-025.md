@@ -282,3 +282,7 @@ Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 �
 
 - 이 REQ 의 파일에 등급 칸 · 줄을 더하기만 했다(`salt-server/src/coach/application/GetSymbolCoach.ts`). 주인 판단은 F017 REQ 에 있다 — 여기 적는 것은 "이 파일이 왜 바뀌었나"를 6개월 뒤 찾게 하기 위해서다
 - 문제 · 액션 없음
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+- 문제 없음 — 라우터 머리 주석 주인

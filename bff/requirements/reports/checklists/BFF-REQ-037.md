@@ -47,3 +47,17 @@
 - 변경: 주요 사건 뷰모델에 국내 종류 4 · `scope` · `region`(옛 응답은 `market` · `us`)(`BFF-REQ-043` FR-1 · 2)
 - 검증: `app-events.test.ts` 국내 3건 추가 통과
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 전망 경로 회귀 | 충족 | `app-forecast.test.ts` 그대로 통과 · 새 `scenario.test.ts` 7 |
+| 남은 소비처 | 기록 | `/api/app/coach/forecast` 를 부르는 화면은 0(시나리오 카드로 교체). 경로 삭제는 서버 `getForecast` 도구 소비 확인 뒤 — 범위 밖 |
+
+## 2026-11-12 `/coach/forecast` 경로 삭제
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 소비처 0 확인 | 충족 | FE · 모바일 · BFF 다른 경로 · 서버 코치 도구 · 해설 grep 0 |
+| 검증 | 충족 | 서버 tsc · lint · build · test 1223 · BFF build · test 447 · 404 통과 · 5xx 규칙은 시나리오 · 사건 테스트가 지킴 · 실호출 404(경로 없음) |

@@ -37,3 +37,7 @@
 
 - 이 REQ 의 파일에 등급 칸 · 줄을 더하기만 했다(`salt-forecast/src/salt_forecast/store/tables.py`). 주인 판단은 F017 REQ 에 있다 — 여기 적는 것은 "이 파일이 왜 바뀌었나"를 6개월 뒤 찾게 하기 위해서다
 - 문제 · 액션 없음
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+- 문제 없음 — 선언 파일 하나에 모든 표가 있어 걸렸다

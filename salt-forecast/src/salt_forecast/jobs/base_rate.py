@@ -11,6 +11,7 @@ import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
 from salt_forecast.scoring.base_rate import MarketRun, render_report, run_crypto, run_kr
@@ -73,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 rows += save_run(eng, key, as_of, now, run.market, run.window, run.stats, run.triggers)
         if not args.no_report:
-            path = REPORTS / f"base-rate-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"base-rate-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, runs), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return rows

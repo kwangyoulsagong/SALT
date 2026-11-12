@@ -70,3 +70,9 @@
 | 이 REQ 에 걸린 몫 | 반영 | `salt-forecast/ops/daily.sh` — 매일 배치 순서에 `judgment_tier`(점검 채점 뒤 · 1초). 뉴스 매시 경로는 그대로. 주인 `FC-REQ-028` FR-6 |
 | 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
 | 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 뉴스 매시 단계 영향 | 충족 | 별도 `due` 게이트 · 실패해도 다음 단계 진행(`|| echo`) |

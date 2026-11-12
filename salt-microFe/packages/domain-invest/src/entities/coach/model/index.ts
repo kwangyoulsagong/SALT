@@ -1,6 +1,6 @@
 export * from "./messages";
 export * from "./types";
-export * from "./forecastMessages";
+export * from "./scenarioMessages";
 export * from "./eventMessages";
 export * from "./positioningMessages";
 export * from "./riskMessages";

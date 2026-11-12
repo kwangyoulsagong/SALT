@@ -8,6 +8,7 @@ import type {
   TradeCheckStatus,
 } from "./policy/tradeCheck";
 import type { JudgmentTierRow } from "./policy/judgmentTier";
+import type { ScenarioMarket, ShortHorizonCellRow, ShortHorizonPredictionRow } from "./policy/shortHorizon";
 
 import type {
   BehaviorFinding,
@@ -17,7 +18,6 @@ import type {
   EventCardRow,
   PositioningRow,
   SignalReactionRow,
-  ForecastCardRow,
   GaugeKind,
   GaugeTrackStats,
   JudgmentCase,
@@ -680,13 +680,10 @@ export interface CoachGenerationLogStore {
 export type Clock = () => Date;
 
 /**
- * 가격 전망 읽기 — `forecast.v_forecast_card` 뷰만(F008 · `salt-forecast/.claude/rules/db-contract.md` §4).
+ * 전망 계약 뷰 읽기 — `forecast.v_*` 뷰만(F008 · `salt-forecast/.claude/rules/db-contract.md` §4). `v_forecast_card` 는 2026-11-12 부터 안 읽는다.
  * 쓰기 주인은 `salt-forecast`(Python)이다. 심볼은 코치 모양(`BTC`)이고 번역은 구현이 한다.
  */
 export interface ForecastReader {
-  cards(symbol: string): Promise<ForecastCardRow[]>;
-  /** 전망이 쓴 일봉 종가(오래된 → 최근). 차트의 과거 선 — `forecast.v_daily_close` */
-  recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]>;
   /** 앞으로 35일 거시 일정 × 기간별 최신 반응 통계 — `forecast.v_event_card` (FC-REQ-005) */
   eventCards(symbol: string): Promise<EventCardRow[]>;
   /**
@@ -899,6 +896,17 @@ export interface BaseRateReader {
  */
 export interface JudgmentTierReader {
   latest(): Promise<JudgmentTierRow[]>;
+}
+
+/**
+ * 단타 방향 확률(F017 v2 단계 5 · `SRV-REQ-053` FR-5) — 예측 뷰 `forecast.v_short_horizon_cell` · `v_short_horizon_card` 읽기.
+ * 요청 경로는 저장값만 — 시험 · 예측 계산 0. 뷰가 없거나 실패하면 던진다 — 유스케이스가 `not_tested` 로 받는다
+ */
+export interface ShortHorizonReader {
+  /** 시장의 칸(지평 셋) 최신 시험 */
+  cells(market: ScenarioMarket): Promise<ShortHorizonCellRow[]>;
+  /** 한 종목의 지평별 최신 예측. 코치 심볼(`BTC` · `005930`)로 묻는다 */
+  predictions(symbol: string, market: ScenarioMarket): Promise<ShortHorizonPredictionRow[]>;
 }
 
 /** 점검 원장 한 줄 — 사용자 열 0(종목 · 조건 · 기준 봉 단위). 같은 줄이면 처음 것만 남는다(나중 채점은 첫 점검 가격 기준) */

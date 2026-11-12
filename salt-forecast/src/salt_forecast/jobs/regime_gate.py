@@ -14,6 +14,7 @@ import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.scoring.regime_gate import render_report, run
 from salt_forecast.store.db import engine
@@ -73,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
                 )  # fmt: skip
         log.info("판정", extra={"fields": {"job": JOB, "adopted": out.adopted}})
         if not args.no_report:
-            path = REPORTS / f"regime-gate-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"regime-gate-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, out), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return len(out.gates)

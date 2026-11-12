@@ -11,6 +11,7 @@ if "$UV" run --frozen python -m salt_forecast.jobs.due --job news --hours 0.75 >
   echo "[$(date -u +%FT%TZ)] news 시작"
   "$UV" run --frozen --group nlp python -m salt_forecast.jobs.news || echo "[$(date -u +%FT%TZ)] news 실패"
 fi
+# 단타 방향 확률 매시 예측은 여기가 아니라 ops/live.sh(launchd forecast-live, 매시 2분) — 정각 기준이어야 해서(FC-REQ-028 FR-1)
 # 운영 점검은 매시(FC-REQ-018) — 일일 작업이 건너뛰어도 "왜 안 돌았나"가 남아야 한다. 막지 않는다
 if "$UV" run --frozen python -m salt_forecast.jobs.due --job ops_monitor --hours 0.75 >/dev/null; then
   "$UV" run --frozen python -m salt_forecast.jobs.ops_monitor || echo "[$(date -u +%FT%TZ)] ops_monitor 실패"
@@ -40,6 +41,9 @@ for step in "${steps[@]}"; do
   echo "[$(date -u +%FT%TZ)] ${step} 시작"
   "$UV" run --frozen python -m "salt_forecast.jobs.${step}" || { echo "[$(date -u +%FT%TZ)] ${step} 실패"; rc=1; }
 done
+# 단타 방향 확률 전진 시험(short-direction@3)은 매일 — 마지막 적합 · 판정 날짜면 판정. 전 이력 walk-forward 약 2분 — 인자가 있어 루프 밖
+echo "[$(date -u +%FT%TZ)] short_direction test 시작"
+"$UV" run --frozen python -m salt_forecast.jobs.short_direction test || { echo "[$(date -u +%FT%TZ)] short_direction test 실패"; rc=1; }
 if [[ $weekly_check_report == 1 ]]; then
   "$UV" run --frozen python -m salt_forecast.jobs.trade_check_score --report || rc=1
 fi

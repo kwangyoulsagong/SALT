@@ -73,6 +73,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0 |
 | 2026-10-29 | F009 슬라이스 9 — **변경 없음.** `salt-server` `ManageRiskBudget` 파일 머리가 국면 라벨 근거로 이 REQ 를 가리킨다. 그 파일에 흔들림 몫 · 국내 이름 조회가 붙었을 뿐 `marketRegime()` 읽기 · `market` 응답 · `forecast.market_regime` 무변경. 예측 코드 · DB 무변경 |
 | 2026-10-29 | 전수 조사 정정 — 삼중 장벽 재설정 닫힘 조건을 `FC-REQ-011` 결정과 맞춤 |
 | 2026-10-29 | 전수 조사 정정 — "`ops/daily.sh` 마지막 단계" → 단계(실제 순서는 `steps`) |

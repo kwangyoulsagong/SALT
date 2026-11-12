@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.models.engine import BASELINE, HORIZONS
 from salt_forecast.models.registry import PRODUCTION
@@ -66,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
             print(report)
             return len(pairs)
         REPORTS.mkdir(exist_ok=True)
-        (REPORTS / f"gate-audit-{now.date()}.md").write_text(report, encoding="utf-8")
+        (REPORTS / f"gate-audit-{report_day(now)}.md").write_text(report, encoding="utf-8")
         return len(pairs)
 
     return run_job(JOB, args, body)

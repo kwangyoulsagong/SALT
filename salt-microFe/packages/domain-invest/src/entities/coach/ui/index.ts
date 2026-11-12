@@ -11,7 +11,7 @@ export { ZoneSummary } from "./ZoneSummary";
 export { ExitPlanList } from "./ExitPlanList";
 export { RecommendationCard } from "./RecommendationCard";
 export { ReportRiskList } from "./ReportRiskList";
-export { ForecastCard } from "./ForecastCard";
+export { DirectionScenarioCard } from "./DirectionScenarioCard";
 export { EventsCard } from "./EventsCard";
 export { PositioningCard } from "./PositioningCard";
 export { CoachDisclosure } from "./CoachDisclosure";

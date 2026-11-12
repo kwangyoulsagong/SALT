@@ -14,5 +14,7 @@ router.get("/preview", appAICoachController.preview);
 router.get("/detail", appAICoachController.detail);
 // 사기 전 · 팔기 전 점검(F017 v2 단계 2 · `BFF-REQ-052` FR-3) — 서버 `/api/coach/check`
 router.get("/check", appAICoachController.tradeCheck);
+// 시나리오 카드 — 단타 방향 확률, 소유자 전용(F017 v2 단계 5 · `BFF-REQ-052` FR-4) — 서버 `/api/coach/scenario`
+router.get("/scenario", appAICoachController.scenario);
 
 export default router;

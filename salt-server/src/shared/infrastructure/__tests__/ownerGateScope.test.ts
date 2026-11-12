@@ -11,7 +11,8 @@ import { describe, it } from "node:test";
  * `ADR-003` 소유자 전용)에만 남겼다. 규칙을 문서에 적기만 하면 새 유스케이스가 "국내는 소유자만"을 다시 들고 들어온다 — 여기서 센다.
  *
  * 허용 자리:
- * - `GetSymbolForecast` · `GetSymbolEvents` · `GetSymbolPositioning` — 전망 읽기(접근 판정)
+ * - `GetSymbolEvents` · `GetSymbolPositioning` — 전망 읽기(접근 판정). ~~`GetSymbolForecast`~~ 2026-11-12 삭제(주간 변동 범위 — 화면 소비처 0)
+ * - `GetSymbolScenario` — 단타 방향 확률(시나리오 카드, F017 v2 단계 5 — 확률이라 전망과 같은 소유자 전용, 사용자 11-10 *"소유자로 해야지"*)
  * - ~~`explainRouting` — 해설 LLM 을 로컬 CLI 로 보낼지~~ 2026-11-11 뺐다 — 해설이 배치 하나라 사람으로 고르지 않는다(`SRV-REQ-053` FR-3)
  * 테스트 파일은 세지 않는다(판정 함수 자체를 재는 곳이 있다).
  */
@@ -19,9 +20,9 @@ const SRC = path.resolve(__dirname, "../../..");
 const SELF = path.resolve(__filename);
 
 const ALLOWED_OWNER_CALLS = [
-  "coach/application/GetSymbolForecast.ts",
   "coach/application/GetSymbolEvents.ts",
   "coach/application/GetSymbolPositioning.ts",
+  "coach/application/GetSymbolScenario.ts",
 ];
 
 const files = (dir: string, withTests: boolean): string[] =>
@@ -34,7 +35,7 @@ const files = (dir: string, withTests: boolean): string[] =>
 const relative = (file: string) => path.relative(SRC, file).split(path.sep).join("/");
 
 describe("소유자 판정 범위 — 전망만(ADR-011)", () => {
-  it("isForecastOwner( 를 부르는 곳은 전망 읽기 셋뿐", () => {
+  it("isForecastOwner( 를 부르는 곳은 전망 읽기 셋뿐(시나리오 포함)", () => {
     const callers = files(SRC, false)
       .filter((file) => /\bisForecastOwner\(/.test(readFileSync(file, "utf8")))
       .map(relative)

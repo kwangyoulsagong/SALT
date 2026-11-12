@@ -1,0 +1,114 @@
+# 사전등록 — 단타 방향 확률 (F017 v2 단계 5 · FC-REQ-028 FR-1 · FR-4 · 리서치 2026-11-10-ai-coach-scenario §3)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 피처 · 모델 · 창 · 비용 · 통과 기준을 바꾸려면 새 키(`short-direction@2`).
+#
+# 왜: 시나리오 카드는 "다음 1시간 · 4시간 · 1일 오를 확률"을 말한다. 확률은 판단이다 — 그래서 실력 시험을 넘은 칸만 말한다.
+# 시험을 못 넘은 칸은 "지금은 방향이 안 보여요 — {이유}"(화면 · 계약은 막히지 않는다, FEATURE-017 FR-4).
+# 선례: meta-model@2(코인 7일 확률, 2026-09-29)는 BSS CI 가 0 을 포함해 채택 안 함. 단타는 그보다 어렵다고 본다 — 통과를 기대하지 않는다.
+
+key = "short-direction@1"
+registered = 2026-11-11
+
+[question]
+text = """
+가격 · 거래대금만으로 만든 작은 로지스틱 모델(기후값 오프셋 + 피처 7)이 지평 h 의 오를 확률을
+기후값(학습 창 오른 비율 = '늘 오른다'의 확률판)과 직전 방향 모델보다 잘 맞히는가(BSS) · 말한 확률이 실제와 맞는가(ECE) ·
+확신 구간(p ≥ 0.55 또는 ≤ 0.45)에서 늘 오른다보다 많이 맞히는가 · 비용 뒤에도 남는가.
+"""
+
+[cells]
+tested = ["crypto:1h", "crypto:4h", "crypto:24h", "kr:1d"]
+not_tested = """
+kr:1h · kr:4h — 국내 장중 이력이 5분봉 2026-10-13 ~ 55종목뿐(서로 다른 거래일 < 30). 시험하지 않고 화면 사유 'insufficient_history'.
+5분봉 거래일 ≥ 120(약 2027-05)이면 short-direction@2 로 같은 형식을 등록한다
+"""
+family = "Holm 가족 = tested 네 칸"
+
+[protocol.crypto]
+source = "forecast.price_bar upbit 1h(원화 마켓, 2024-11-01 ~). available_at = 봉 시작 + 1시간. 체결 없는 시간은 봉이 없다(채우지 않는다)"
+grid = "매시 정각 t(직전 봉 마감). 피처는 available_at <= t 봉만"
+universe = """
+매일 00:00 UTC 에 다시 고른다 — 직전 720시간 봉 ≥ 600개 이고 직전 720시간 거래대금(종가 × 거래량 합) 상위 50.
+선택 방식: 원천이 지금 상장된 원화 마켓만 준다(폐지 종목 1시간봉 없음) — 생존 편향을 리포트에 적는다
+"""
+sigma = "σ_t = 직전 168개 1시간 로그수익(t 포함)의 표본 표준편차(ddof 1). 168개 미만이면 그 행 없음"
+label = "y = 1[ln(C_{t+h} / C_t) > 0], h ∈ {1, 4, 24} 시간. t+h 봉이 없으면 라벨 없음(채우지 않는다)"
+cost = "왕복 0.15%(수수료 0.05% × 2 + 스프레드 근사 0.05% — base-rate@1 과 같은 값)"
+
+[protocol.kr]
+source = "forecast.price_bar kis 1d(수정주가, 2021-10 ~). available_at = 그 거래일 16:00 KST. 격자 = 거래일"
+universe = "kr-universe@1(scoring/rule_ic_kr.kr_universe) 중 그날 20일 평균 거래대금 상위 200"
+breaks = "domain/kr_breaks — 피처 창 [t−21, t] 에 끊김이면 그 행 없음, 라벨 창 (t, t+1] 에 끊김이면 라벨 없음(base-rate@1 과 같다)"
+sigma = "σ_t = 직전 20개 일 로그수익(t 포함) 표준편차(ddof 1)"
+label = "y = 1[ln(C_{t+1} / C_t) > 0] — 다음 거래일 종가까지"
+cost = "base-rate@1 cost_kr 그대로(수수료 0.0186% × 2 + 매도일 거래세 + 반 틱 × 2)"
+
+[features]
+# 이름 · 정의는 domain/short_direction.py 한 곳. 각 값은 [−5, 5] 로 자르고 학습 창에서만 표준화한다
+crypto = [
+  "r1_z      = ln(C_t / C_{t−1}) / σ",
+  "r4_z      = ln(C_t / C_{t−4}) / (σ·√4)",
+  "r24_z     = ln(C_t / C_{t−24}) / (σ·√24)",
+  "day_z     = ln(C_t / O_day) / (σ·√k) — O_day = 그날 00:00 UTC(09:00 KST) 봉 시가, k = 그 뒤 지난 시간 수(≥ 1). 일중 모멘텀",
+  "value_z   = ln(직전 1시간 거래대금 / 직전 24시간 평균 거래대금) — 0 이면 행 없음",
+  "btc_r1_z  = BTC 의 r1_z(BTC 자신이면 같은 값)",
+  "rs24_z    = (ln(C_t / C_{t−24}) − BTC 같은 값) / (σ·√24)",
+]
+kr = [
+  "r1_z      = ln(C_t / C_{t−1}) / σ",
+  "r5_z      = ln(C_t / C_{t−5}) / (σ·√5)",
+  "r20_z     = ln(C_t / C_{t−20}) / (σ·√20)",
+  "gap_z     = ln(O_t / C_{t−1}) / σ",
+  "value_z   = ln(거래대금_t / 직전 20일 평균, 오늘 제외)",
+  "clv       = (C_t − L_t) / (H_t − L_t) − 0.5(H = L 이면 0)",
+  "mkt_r1_z  = 그날 대상 종목 r1_z 의 중앙값(시장 몫)",
+]
+
+[model]
+form = "logit p = logit(b) + w · x, b = 학습 창 오른 비율(기후값, [0.5/n, 1 − 0.5/n] 로 자름). 절편 없음 — 평균은 b 가 맡는다"
+fit = "domain/logistic.fit_logistic, L2 λ = 1.0, 오프셋 logit(b)"
+persistence = "같은 형태, 피처 하나 = sign(직전 h 수익)(crypto: r_h, kr: r1) — '직전 방향' 기준"
+calibration = "Beta 보정(domain/prob_calibration.beta_fit) — 직전 60일(국내 60거래일) OOS 예측 풀, 풀 ≥ 2,000행일 때만. 미만이면 보정 없이"
+variants = "칸마다 1(이 형태 하나). 하이퍼파라미터 탐색 없음"
+
+[walk_forward]
+crypto = "재학습 7일마다 · 학습 창 직전 365일(최소 180일) · 엠바고 = h + 24시간(학습 라벨 끝 < 예측 시각 − 24시간)"
+kr = "재학습 20거래일마다 · 학습 창 직전 750거래일(최소 500) · 엠바고 = 1 + 5거래일"
+evaluate = "보정이 처음 가능한 날부터 라벨이 있는 마지막 행까지 전부(OOS). 평가 행 = 모든 격자 행(겹치는 라벨) — 대신 날짜 블록 부트스트랩"
+bootstrap = "날짜 이동 블록(crypto 7일 · kr 10거래일) · 2,000회 · seed 20261111"
+
+[metrics]
+bss = "BSS = 1 − Brier(p) / Brier(b) — 기준 기후값. CI = 날짜 블록 부트스트랩. 단측 p = 부트스트랩에서 BSS ≤ 0 비율"
+bss_persistence = "1 − Brier(p) / Brier(직전 방향 모델) — 점추정"
+ece = "10 구간 ECE(최종 p)"
+reliability = "10% 구간마다 (말한 평균, 실제 비율, 행 수) — 리포트 표"
+confident = "확신 구간 p ≥ 0.55(오름) 또는 p ≤ 0.45(내림). 적중 = 말한 쪽과 실제 부호가 같음. 늘 오른다 = 같은 행에서 y = 1 비율. 차이 CI = 날짜 블록 부트스트랩"
+net = "확신 '오름' 행의 평균 (ln 수익 − 왕복 비용) — 비용 뒤 남는가(점추정 + CI)"
+shuffle = "날짜 안 라벨 셔플 1회 → 같은 walk-forward → BSS CI 가 0 을 포함해야 한다. 아니면 결과 무효(판정 전 원인)"
+
+[decision]
+pass = """
+칸마다 전부: (1) BSS Holm 통과(단측 p, α 0.05, 가족 네 칸) 그리고 BSS CI 하한 > 0 (2) 직전 방향 대비 BSS > 0
+(3) ECE ≤ 0.03 (4) 확신 행 ≥ 300 그리고 (확신 적중 − 늘 오른다) CI 하한 > 0 (5) 확신 '오름' 비용 뒤 평균 > 0 (6) 셔플 점검 통과
+"""
+blocked_reasons = """
+통과 못 한 칸의 화면 사유 — 처음 걸린 것 하나: shuffle_failed > no_skill(1 · 2) > miscalibrated(3) > no_edge_confident(4) > cost(5).
+시험 안 한 칸 insufficient_history. 종목이 그 칸 유니버스 밖이면 outside_universe. 예측 기준 시각 + h 가 지났으면 stale
+"""
+quantiles = """
+통과한 칸만: 직전 365일(국내 250거래일) OOS 행의 표준화 수익 z = r_h / (σ·√h) 를 보정 p 3구간(< 0.45 · 0.45~0.55 · > 0.55)으로 나눠
+q10 · q50 · q90. 라이브 분위 = z 분위 × 지금 σ·√h(비대칭은 데이터가 정한다). 무효선 = 기준 가격 × exp(q10)
+"""
+live = """
+통과한 칸만 매시(국내는 거래일 16:00 뒤 한 번) 예측을 short_horizon_prediction 에 쓴다. 성적 표시는 과거 검산(OOS) 확신 행 —
+라이브 확신 행 ≥ 300 이 되면 라이브로 바꾸고 출처를 칸에 적는다(합산 0). 라이브 확신 행 ≥ 300 이고 (적중 − 늘 오른다) CI 상한 < 0 이면
+그 칸 소등 live_underperforms — 재점등은 새 키로만
+"""
+
+[exploratory]
+# 판정에 쓰지 않는다
+items = [
+  "피처별 계수 부호 · 크기(마지막 학습 창)",
+  "보정 없는 p 의 ECE · BSS",
+  "확신 문턱 0.60 · 0.40 의 행 수 · 적중",
+]

@@ -126,18 +126,22 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
-   * /api/coach/forecast:
+   * /api/coach/scenario:
    *   get:
-   *     summary: 가격 변동 범위 (소유자 전용) — F008
+   *     summary: 시나리오 카드 — 다음 1시간 · 4시간 · 1일 오를 확률 (소유자 전용) — F017 v2 단계 5
    *     description: |
-   *       `salt-forecast` 가 채점한 기간별(1 · 2 · 3 · 4주) **90% 가격 범위**와 보유 기준 평가금액 변화 범위.
+   *       `salt-forecast` 가 시험한 단타 방향 확률(사전등록 `short-direction@1`). 변동 범위(대칭) 카드 자리를 대신한다.
    *
    *       - **소유자 계정만.** 아니면 404 — 존재 자체를 알리지 않는다(`ADR-003`)
-   *       - 기간마다 `renderable` · `blockedReason` 이 **항상** 있다. 채점 이력 · 기준 대비 · 빗나간 사례 중
-   *         하나라도 없으면 범위를 싣지 않는다(`failure_cases_missing` 등). 여전히 200
-   *       - `trackRecord.kind` 가 `backtest` 면 화면은 "백테스트" 라벨을 붙인다(라이브 52주 전)
-   *       - 커버리지는 폭 · 기준 폭과 **한 묶음**이다. 방향(`direction`)은 기준을 이긴 기간에만 있다
-   *       - 한 점 목표가 · 명령형 매매 지시 필드는 없다
+   *       - 지평은 **늘 셋**(`1h` · `4h` · `1d`). 시험(사전등록 · 정화된 기간 나눔 · 비용 차감 · 다중검정 · 보정도)을 넘은 칸만
+   *         `renderable: true` 와 `pUp` · `range` · `invalidation` 을 싣는다. 아니면 그 셋은 `null` 이고 `blockedReason` 하나
+   *       - 사전등록 `short-direction@2` — 시험을 넘어도 등록 뒤 라이브 성적(확신 300 · 늘 오른다보다 나음)이 증명되기 전엔 `awaiting_live`
+   *       - `blockedReason`: `no_skill` · `miscalibrated` · `no_edge_confident` · `cost` · `placebo_failed`(시험) · `awaiting_live` ·
+   *         `insufficient_history`(국내 1h · 4h — 장중 이력 부족) · `live_underperforms` · `outside_universe`(시험한 범위 밖 종목) ·
+   *         `stale`(예측 만료 · 시험 3일 넘음) · `not_tested`(시험 행 없음)
+   *       - `track` 은 막혀도 싣는다(시험 성적 — 확신 구간 p ≥ 0.55 · ≤ 0.45 에서 말한 수 · 맞힌 수 · 같은 때 늘 오른다가 맞은 수).
+   *         `origin` 은 `backtest` | `live` 하나 — 합치지 않는다
+   *       - `range` 는 기준 가격 대비 %(하위 10 · 중앙 · 상위 10). 한 점 목표가 · 매매 지시 필드는 없다
    *     tags: [Coach Report]
    *     security:
    *       - bearerAuth: []
@@ -146,9 +150,48 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         name: symbol
    *         required: true
    *         schema: { type: string, example: BTC }
+   *         description: 코인 심볼(`BTC`) 또는 국내 종목 코드(`005930`)
    *     responses:
    *       200:
-   *         description: 기간 4개. 막힌 기간은 범위 없이 사유만
+   *         description: 지평 셋. 막힌 지평은 확률 없이 사유와 시험 성적만
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     market: { type: string, enum: [crypto, kr] }
+   *                     disclaimer: { type: string }
+   *                     horizons:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           horizon: { type: string, enum: ["1h", "4h", "1d"] }
+   *                           horizonLabel: { type: string }
+   *                           renderable: { type: boolean }
+   *                           blockedReason: { type: string, nullable: true }
+   *                           pUp: { type: number, nullable: true, description: "0~1" }
+   *                           range: { type: object, nullable: true, properties: { lowPct: { type: number }, midPct: { type: number }, highPct: { type: number } } }
+   *                           invalidation: { type: number, nullable: true }
+   *                           refPrice: { type: number, nullable: true }
+   *                           asOf: { type: string, format: date-time, nullable: true }
+   *                           expiresAt: { type: string, format: date-time, nullable: true }
+   *                           track:
+   *                             type: object
+   *                             nullable: true
+   *                             properties:
+   *                               origin: { type: string, enum: [backtest, live] }
+   *                               calls: { type: integer }
+   *                               hits: { type: integer }
+   *                               alwaysUpHits: { type: integer }
+   *                               window: { type: object, nullable: true, properties: { from: { type: string }, to: { type: string } } }
+   *                               misses: { type: array, items: { type: object, properties: { asOf: { type: string }, symbol: { type: string }, pUp: { type: number }, realizedPct: { type: number } } } }
    *       400:
    *         description: 심볼 형식 오류
    *       401:
@@ -156,7 +199,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       404:
    *         description: 소유자가 아니다
    */
-  router.get("/forecast", controller.getForecast);
+  router.get("/scenario", controller.getScenario);
 
   /**
    * @swagger

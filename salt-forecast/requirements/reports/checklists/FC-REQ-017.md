@@ -31,3 +31,9 @@
 - 변경: `.env.example` 에 `FORECAST_KR_EVENT_SYMBOLS` 안내 한 줄(같은 파일 — 내용은 `FC-REQ-021` FR-6)
 - 검증: 변경 없음 — 설정 이름만
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-12 리포트 이름 날짜
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |

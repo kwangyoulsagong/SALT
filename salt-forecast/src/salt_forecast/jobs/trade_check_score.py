@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.domain.trade_check import Outcome, score
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs.rule_ic import REPORTS  # pyright: ignore[reportPrivateUsage]
@@ -64,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
                 "표본이 적을 땐 두 비율 차이를 실력 · 결함으로 읽지 않는다 —"
                 " 같은 날 몰림(종목 여럿이 같은 날 같은 조건) 때문에 유효 표본은 채점 수보다 훨씬 작다.",
             ]
-            path = REPORTS / f"short-horizon-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"short-horizon-{report_day(as_of)}.md"
             path.write_text("\n".join(lines) + "\n", encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return written

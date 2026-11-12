@@ -3,7 +3,7 @@ export * from "./endpoints";
 export * from "./queryKeys";
 export * from "./useSymbolCoach";
 export * from "./useCoachReport";
-export * from "./useSymbolForecast";
+export * from "./useSymbolScenario";
 export * from "./useSymbolEvents";
 export * from "./useSymbolPositioning";
 export * from "./useRiskBudget";

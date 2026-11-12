@@ -24,3 +24,7 @@
 
 - 닿은 것: `domain/panel.py` `Panel.open` 선택 열(기본 None — 기존 생성자 그대로) · `scoring/rule_ic_kr.py` 생성자 맞춤. `rule-ic-kr@1` 결과 불변(테스트 통과)
 - 문제 · 액션: 없음 — 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043`
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+- 1시간 격자를 새로 짜지 않고 기존 패널에 간격 하나를 열었다 — 라벨 · 롤링 함수를 그대로 쓴다

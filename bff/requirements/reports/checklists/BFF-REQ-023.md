@@ -152,3 +152,10 @@ BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
 | 이 REQ 에 걸린 몫 | 반영 | `bff/src/services/symbol-coach.viewmodel.ts` — 모드 뷰모델에 `tier` · `tierBasis`(`toTier` — 모르는 값 · 옛 서버면 참고). 주인 판단은 `BFF-REQ-052` FR-1 — 이 REQ 의 기존 계약(판단 · 성적 · 사례)은 그대로 |
 | 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
 | 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |
+
+## 2026-11-12 `/coach/forecast` 경로 삭제
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 소비처 0 확인 | 충족 | FE · 모바일 · BFF 다른 경로 · 서버 코치 도구 · 해설 grep 0 |
+| 검증 | 충족 | 서버 tsc · lint · build · test 1223 · BFF build · test 447 · 404 통과 · 5xx 규칙은 시나리오 · 사건 테스트가 지킴 · 실호출 404(경로 없음) |

@@ -21,6 +21,7 @@ import { OutboxDecisionChangeNotifier } from "./coach/infrastructure/OutboxDecis
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
 import { PrismaBaseRateReader, PrismaTradeCheckLedger } from "./coach/infrastructure/PrismaBaseRateReader";
 import { PrismaJudgmentTierReader } from "./coach/infrastructure/PrismaJudgmentTierReader";
+import { PrismaShortHorizonReader } from "./coach/infrastructure/PrismaShortHorizonReader";
 import { PrismaExplanationSnapshotStore } from "./coach/infrastructure/PrismaExplanationSnapshotStore";
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
@@ -308,6 +309,7 @@ const coach = createCoachApplication({
   forecasts: new PrismaForecastReader(),
   baseRates: new PrismaBaseRateReader(),
   judgmentTiers: new PrismaJudgmentTierReader(),
+  shortHorizons: new PrismaShortHorizonReader(),
   tradeCheckLedger: new PrismaTradeCheckLedger(),
   tradePlans: new PrismaTradePlanStore(),
   decisionOutcomes: new PrismaDecisionOutcomeStore(),

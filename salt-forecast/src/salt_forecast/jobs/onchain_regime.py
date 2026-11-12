@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.ingest.coinmetrics import SOURCE
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs.target_weight import register_prereg
@@ -43,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         }
         log.info("판정", extra={"fields": fields})
         if not args.no_report:
-            path = REPORTS / f"onchain-regime-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"onchain-regime-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, out), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return out.primary.weeks

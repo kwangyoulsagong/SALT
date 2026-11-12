@@ -200,3 +200,14 @@ class KrxSessions:
         """now 이전에 시작한 마지막 거래일 — 매일 작업의 as_of."""
         i = int(np.searchsorted(self.sessions, now, side="right")) - 1
         return int(self.sessions[i]) if i >= 0 else None
+
+
+def report_day(t: datetime) -> str:
+    """리포트 파일 이름의 날짜 — 실행 시각의 **KST 날짜**(사람이 사는 날).
+
+    UTC 날짜로 이름을 지으면 매일 배치가 KST 09:00 전에 돌 때(맥이 깨는 아침) 전날 오후 회차와 같은 이름이 돼
+    커밋된 근거 리포트를 덮는다(2026-11-12 base-rate · judgment-tier 11-11 리포트가 덮임).
+    """
+    if t.tzinfo is None:
+        raise ValueError("naive datetime")
+    return (t.astimezone(UTC) + timedelta(hours=9)).date().isoformat()

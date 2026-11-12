@@ -38,6 +38,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 ## Changelog
 
+- 2026-11-12: `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만)
 - 2026-10-23: F011 5e — 국내 상태 사유 4개를 `KNOWN_RANGE_REASONS` 에(`FC-REQ-020` FR-9). 없으면 "표본이 쌓이는 중"으로 접힌다
 
 | 날짜 | 변경 |
@@ -53,6 +54,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `macroEvents.ts` 종류 표 `EVENT_KIND_META`(지역 · 범위) · 자산군별 지역 · 계약 위반 행 버림 · 종목 사건 → 시장 일정 순(`SRV-REQ-041` FR-1~3) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coachTools.controller.ts` 에 `getTradeCheck` 핸들러. 기존 핸들러 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — FR-8 해설 스트림 · FR-16 `COACH_EXPLAIN_LLM` — 스트림 경로 **은퇴**(해설은 배치가 미리 만든다, `SRV-REQ-053` FR-3). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않고 화면은 사실표 문장 |
+| 2026-11-11 | F017 v2 단계 5 — `coachTools.controller` 에 `getScenario`(전망과 같은 소유자 판정 · 404). `/api/coach/forecast` 는 그대로(화면 소비처 0 — `FE-REQ-064` FR-4) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — 해설은 판단 꼬리표로 막지 않는다(`ExplainBlockedReason` = `facts_unavailable` 하나)
   - `salt-server/src/coach/application/ExplainCoachDecision.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

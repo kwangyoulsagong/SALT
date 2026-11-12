@@ -134,12 +134,12 @@ export class CoachToolsController {
   };
 
   /**
-   * 가격 전망 — 소유자만(아니면 404). F008 `SRV-REQ-037` · `ADR-003`.
+   * 시나리오 카드 — 단타 방향 확률, 소유자만(아니면 404). F017 v2 단계 5 `SRV-REQ-053` FR-5.
    */
-  getForecast = async (req: Request, res: Response, next: NextFunction) => {
+  getScenario = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = forecastQuerySchema.parse(req.query);
-      const result = await this.useCases.getSymbolForecast.execute(
+      const result = await this.useCases.getSymbolScenario.execute(
         { userId: req.user!.userId, email: req.user!.email },
         query.symbol
       );

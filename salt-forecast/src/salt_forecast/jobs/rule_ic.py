@@ -13,6 +13,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.scoring.rule_ic import Primary, Protocol, render_report, run
 from salt_forecast.store.db import engine
@@ -91,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
                                       "n": r.n_dates, "verdict": r.verdict}},
                 )  # fmt: skip
         if not args.no_report:
-            path = REPORTS / f"rule-ic-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"rule-ic-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, out), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return rows

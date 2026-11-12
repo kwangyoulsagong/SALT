@@ -100,7 +100,7 @@ export type SignalPerformanceQueryDto = z.infer<
   typeof signalPerformanceQuerySchema
 >;
 
-/** `GET /api/coach/forecast` (F008 `SRV-REQ-037`). 심볼은 코치 모양(`BTC`) */
+/** 소유자 전용 종목 조회(시나리오 · 주요 사건 · 쏠림)의 심볼 — 코치 모양(`BTC`). 옛 `/forecast` 는 2026-11-12 삭제 */
 export const forecastQuerySchema = z.object({
   symbol: z
     .string()

@@ -39,3 +39,13 @@
 | `EXPLAIN (ANALYZE, BUFFERS)` 서버 읽기 | 충족 | `v_judgment_tier` — `judgment_tier_pkey` Index Scan → Sort → Unique · 4행 · 0.45ms |
 | `EXPLAIN` 배치 읽기 | 충족 | `v_judgment_outcome_export` — 원장 Seq Scan 163,157행 · 67ms. 매일 한 번 전부 읽는다(필터가 거의 안 거름) — 인덱스 불필요 |
 | 정정 | 기록 | 1회차 체크리스트 · Changelog 에 `EXPLAIN` 을 돌리지 않고 '한 문장'이라고만 적었다 — 실측으로 바꿈 |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 마이그레이션 | 충족 | 목적 1(단타 확률) · 추가만 · 롤백 SQL 실제 실행 2회 · `prisma migrate deploy` |
+| CHECK | 충족 | 분위 순서 · 0≤p≤1 · 통과면 사유 없음 / 못 넘으면 사유 있음 · 만료 > 기준 |
+| 계약 대조 | 충족 | `test_schema_contract`(실 DB) · 저장 테스트 2(재실행 행 수 · 최신만 · 끝 봉 없으면 다음 실행 · 한 줄 한 번 · 만료 renderable false) |
+| EXPLAIN | 충족 | 칸 뷰 2.5ms · 종목 뷰 0.3ms 인덱스 스캔 |
+| `DB-REQ-036` 주인 표 | 충족 | Changelog 행 — 주인 forecast · 서버 뷰 SELECT 만 · public 직접 읽기 추가 0 |
