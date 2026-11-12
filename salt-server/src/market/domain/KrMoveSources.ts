@@ -46,6 +46,14 @@ export const KR_NEWS_MAX_PAGES = 5;
  * "같은 종류 과거 반응"은 1년 표본이 있어야 선다 — 30일이면 공시 종류마다 수십 건뿐이다. 하루 약 1,400행(관련 종목 있는 것만) → 56만 행
  */
 export const KR_NEWS_RETENTION_DAYS = 400;
+/**
+ * 신선도("마지막 수집")는 **매분 수집**만 센다 — 백필이 넣는 옛 제목도 받은 시각이 '지금'이라 그대로 max 를 내면 매분 수집이 멈춰도
+ * "방금 수집"으로 보인다(2026-11-12 확인 2회차). 매분 수집은 게시 뒤 곧 받는다(실측 p50 1.6분 · p99 35분), 백필은 며칠 뒤 —
+ * 게시 뒤 이만큼 안에 받은 행만 센다. 찾는 범위는 게시 시각 인덱스로 최근 `KR_NEWS_FRESHNESS_WINDOW_DAYS` 일(표 전체를 훑지 않는다 — 400일 = 56만 행)
+ */
+export const KR_NEWS_LIVE_LAG_MS = 86_400_000;
+export const KR_NEWS_FRESHNESS_WINDOW_DAYS = 8;
+
 /** 과거 제목 백필 목표(F017 단계 6) — 원천이 1년 전 쪽도 준다(2026-11-12 실측 2025-11-03 15:00 쪽 40건) */
 export const KR_NEWS_BACKFILL_DAYS = 365;
 
