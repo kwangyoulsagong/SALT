@@ -170,3 +170,8 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 닿은 것: `coach/domain/model.ts` `CoachQuote` 에 선택 필드 `openPrice?`(국내 시가 — 점검 시가 갭 조건 K3). 표 · 열 변경 0
 - 문제 · 액션: 없음 — 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028`
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+- 짝 — `app.ts` 라우터 등록 둘 삭제. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
+- Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로

@@ -158,3 +158,17 @@
 - [x] `SymbolNewsItem` 에 `imageUrl` · `symbols`(선택 칸) — market 종목 뉴스가 코인 뉴스 BFF 경로의 upstream 이 되며 카드 이미지 · 측정 태그의 관련 종목 수에 쓴다
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 짝 — portfolio 포트 `distinctUserIds` · API `ledgerOwnerIds` | build · test · 서버 회차 대상 5명 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

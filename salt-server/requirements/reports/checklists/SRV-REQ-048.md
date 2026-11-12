@@ -57,3 +57,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FR-8 · 9 — Kotlin 계정 · 토큰 · JWKS · `UserRegistered` · Express 리소스 서버 전환 | `./gradlew check` 274 · Express 1286 · BFF 457 · 실스택 · 실화면 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| Prisma 마이그레이션 적용(승인 대기) · HS 삭제 2026-11-27 | 되돌리기 어려운 DB 작업 · 이중 기간 | 승인 즉시 · 2026-11-27 |

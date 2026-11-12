@@ -20,7 +20,7 @@ BFF 는 Node 로 남고(`ADR-006`), 서버 이전의 **안전장치**가 된다.
 | FR-2 | 골든 JSON — BFF 가 부르는 서버 API 전부의 요청/응답 녹화 도구. 시간 · ID 같은 변동 필드 정규화 규칙 |
 | FR-3 | 그림자 실행 — `shadow` 경로는 legacy 응답을 돌려주고 같은 요청을 platform 에 비동기로 보내 차이를 기록(쓰기 경로는 그림자 금지 — 읽기만) |
 | FR-4 | 차이 리포트 — 경로별 일치율 · 첫 차이 필드. 1주 무차이가 스위치 조건 |
-| FR-5 | 이중 토큰 검증 — S3 기간 옛 HS · 새 RS(JWKS) 모두 받음. JWKS 캐시 · 키 교체 |
+| FR-5 | 이중 토큰 검증 — S3 기간 옛 HS · 새 RS(JWKS) 모두 받음. JWKS 캐시 · 키 교체. ✅ **2026-11-12(서버 S3b)** — 검증은 서버 둘(플랫폼 · Express)이 하고 BFF 는 토큰을 해석하지 않는다(`bff-architecture.md` §6). BFF 몫 = 라우팅 `/auth` · `/users/profile` → platform(코드 무변경) |
 | FR-6 | 서비스 주소 — 서비스별 base URL(Compose 이름). S0~S2 는 전부 같은 platform 주소 |
 | FR-7 | 추적 ID 생성 · 전달(OpenTelemetry) — **2026-11-03: W3C `traceparent` 생성 · 잇기 · 전달**(AsyncLocalStorage, 요청마다). OpenTelemetry SDK 로 BFF span 을 내보내는 건 수집처가 정해질 때(`OPS-001`) |
 | FR-8 | S7 — 동면 410 응답을 BFF 로 옮긴다 |
@@ -51,3 +51,4 @@ BFF 는 Node 로 남고(`ADR-006`), 서버 이전의 **안전장치**가 된다.
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 라우팅 표에 `/content` → platform 한 줄(금융 팁 `/api/app/tips`). 스위치 · 그림자 동작 무변경 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 라우팅 표 `/notifications` → platform |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 라우팅 표 `/identity` → platform `066ba971` |
+| 2026-11-12 | 서버 S3b(`MONEY-S3b-identity-accounts`): FR-5 — 라우팅 표 `/auth` · `/users/profile` → platform · 표 시험에 일곱 경로 · 웹 세션 갱신(쿠키)이 새 RS 를 받는 것 실화면 확인 |

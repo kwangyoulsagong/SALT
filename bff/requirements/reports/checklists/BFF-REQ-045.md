@@ -60,3 +60,17 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `config/server-routes.json` 한 줄 · 실스택(BFF → 플랫폼 identity 200)
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FR-5 — 라우팅 `/auth` · `/users/profile` → platform | BFF build · test 457 · 표 시험 일곱 경로 · 실화면 쿠키 갱신 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

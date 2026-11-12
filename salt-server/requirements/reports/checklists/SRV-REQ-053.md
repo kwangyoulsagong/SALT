@@ -157,3 +157,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 해설이 하루 270 회에서 멈춘다 — 지금 실측(하루 300)에선 해설 생성 30회가 줄어든다. 하루 LLM 시도 수 관찰(11-13 예정)과 같이 본다 | 아래 회고 | 다음 카드 날 배치 로그 |
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 짝 — 워커 사람마다 배치 대상 교체 | 서버 회차 로그(복기 · 준수 판정 users 5 · 실패 0) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

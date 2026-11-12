@@ -24,14 +24,14 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-5 | 알림 — 도메인별 설정 기본 꺼짐. notification 은 이벤트(~~`GoalReached` · `MonthClosed` · `JudgmentPublished`~~ **정정 2026-11-06(S2c)** `savings.GoalReached` · `household.FixedCostIncreased` · `coach.DecisionChanged` — MonthClosed 는 사용자가 한 일이라 빼고 · 코치는 판단 변화)를 구독만, 설정 꺼진 도메인 0건. ✅ **done 2026-11-06**(Kotlin `services/notification` · 설정 주인 notification · Express 은퇴) | FR-4 |
 | FR-6 | 민감 정보 분류 공개 — `data_classification` 을 읽어 "LLM 에 보내는 필드" 목록 API | FR-5 |
 | FR-7 | 도메인 사용 계측 — 주간 활성 · 재개율 · 카드 클릭(금액 0, 사용자 해시) | FR-6 |
-| FR-8 | JWKS — identity 가 RS256 발급 · `/.well-known/jwks.json`. 이중 검증 기간(옛 HS + 새 RS) 2주, 끝나면 HS 제거. 초대 코드 시도 제한 · 감사 로그 그대로 | S3 |
-| FR-9 | `UserRegistered` 발행 → savings · household · content 초기 상태 | — |
+| FR-8 | JWKS — identity 가 RS256 발급 · `/.well-known/jwks.json`. 이중 검증 기간(옛 HS + 새 RS) 2주, 끝나면 HS 제거. 초대 코드 시도 제한 · 감사 로그 그대로. ✅ **구현 2026-11-12(S3b)** — Kotlin 계정 · 토큰 · JWKS(접근 · 갱신 · 게스트 = 같은 키 · 다른 `aud`) · 판정 `DualTokenVerifier`(플랫폼) = `TokenVerifier`(Express 리소스 서버) · 옛 HS 끝 2026-11-26T15:00Z(설정 하나) · 시도 제한 셋 · 감사 앞 4자 그대로 · Express `auth` · `modules/user` 삭제. **남은 것: HS 코드 · 비밀 삭제 2026-11-27** | S3 |
+| FR-9 | `UserRegistered` 발행 → savings · household · content 초기 상태. ✅ **발행 2026-11-12(S3b)** — 점유 · 생성과 같은 트랜잭션(계약 `contracts/events/identity.UserRegistered.json`, 개인 정보 0). **정정** 구독자 0 — 세 서비스는 첫 요청에 상태를 만들어 초기 상태가 필요 없다 | — |
 
 ## Acceptance Criteria
 
 - [x] 투자 미선택 사용자 온보딩에 투자 질문 0(E2E) — 2026-11-06 S3a(`ShellPrefsSpec` · 종단 테스트 · 실화면 네 길)
 - [ ] 내보내기 zip 에 모든 도메인 기록 존재(임시 사용자 실스택)
-- [ ] 이중 검증 기간 옛 · 새 토큰 모두 통과, 종료 후 옛 토큰 401
+- [x] 이중 검증 기간 옛 · 새 토큰 모두 통과, 종료 후 옛 토큰 401 — 2026-11-12 S3b(경계 표 두 벌 · 실스택 옛 HS 통과). 실제 종료 실측은 2026-11-27
 - [x] 알림 설정 없는 사용자 발송 0 — 2026-11-06 S2c(종단 테스트 · 실스택)
 
 ## 계약 영향
@@ -51,3 +51,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/domain/ports.ts` 에 걸린 몫: 포트 `JudgmentTierReader` 추가. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-11 | F017 v2 단계 5 — `coach/domain/ports.ts` 에 `ShortHorizonReader` 포트(머리 주석 주인) |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): coach `domain/ports.ts`(머리 주인) — 포트 셋(`MoveCardReader` · `MoveSummaryStore` · `MoveSummaryWriter`) · 사용량 `purpose` 에 `move_summary` 추가. 알림 · identity 몫 변경 0 |
+| 2026-11-12 | **서버 S3b**(`MONEY-S3b-identity-accounts`, 루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md`) — FR-8 · 9 구현 · 로컬 운영 적용(Flyway V2 · 가져오기 대조 5 · 6 · 6 · BFF 라우팅 둘). 수용 기준 3 충족. 남은 것: Prisma 마이그레이션 적용(승인 대기) · HS 삭제(11-27) · FR-3 · 4 · 6 · 7(S3c) |

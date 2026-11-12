@@ -78,3 +78,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 짝 — coach 의존 `coachedUsers` · `listCoachedUsers` | build · test · 레이어 훅 사후 실행 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

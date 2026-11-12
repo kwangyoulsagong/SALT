@@ -187,3 +187,4 @@ created: 2026-09-09
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/auth/domain/errors.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
   - `salt-server/src/auth/presentation/auth.controller.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+| 2026-11-12 | 서버 S3b(`MONEY-S3b-identity-accounts`): 초대 확인 · 수락 규칙(정원 미노출 · 403 넷 · 코드 정규화 · `register` 404 · 시도 제한)을 Kotlin identity 로 그대로 옮김 — `InviteAcceptanceSpec` 8(옛 경계 여덟) · 종단 테스트. 옛 Express `auth` 삭제 |

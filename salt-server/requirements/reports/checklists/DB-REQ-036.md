@@ -72,3 +72,17 @@
 - [x] 예측의 public 읽기를 export 뷰 둘로 더했다(`v_kr_news_title_export` · `v_news_article_export`) — FR-3 직접 읽기 목록은 늘리지 않음. S5 에 market 스키마로 옮길 때 이 뷰 이름만 옮긴다
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| B1 FK 18 끊기 마이그레이션 · B5 코치 배치 대상(`users` 읽기 0) | Prisma generate · build · test |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 마이그레이션 적용(승인 대기) · B5 프로젝션 S6 | 되돌리기 어려운 DB 작업 · 이중 기간 | 승인 즉시 · 2026-11-27 |

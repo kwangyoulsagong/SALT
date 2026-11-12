@@ -22,7 +22,7 @@ Express 쪽(`salt-server/src`)은 기존 규칙 그대로다. 같은 뜻의 규�
 | 스케줄 · 락 | `@Scheduled` + ShedLock(DB 락) |
 | 외부 호출 | Resilience4j — 재시도 · 서킷 · 레이트 리미터 |
 | LLM | Spring AI — `CoachExplainer` 포트 뒤에만 |
-| 인증 | 리소스 서버(JWT). S3 전 공용 HS, S3 뒤 identity JWKS(`SRV-REQ-048`) |
+| 인증 | 리소스 서버(JWT) — identity RS256(`aud` 로 접근 · 갱신 · 게스트 가름) + 옛 HS 이중 기간 · 판정 `support/web` `DualTokenVerifier` 한 곳(S3b 2026-11-12, `SRV-REQ-048`). 공개 경로는 `Authorization` 을 읽지 않는다(Express 와 같다) |
 | 메시징 | RabbitMQ + 트랜잭셔널 아웃박스(`SRV-REQ-044`) |
 | 테스트 | JUnit 5 · Kotest · Testcontainers(Postgres · RabbitMQ) |
 | 관측 | Micrometer + OpenTelemetry · JSON 로그 |

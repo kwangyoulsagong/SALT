@@ -53,3 +53,8 @@
 ## 2026-11-12 — F017 단계 6 덧붙임
 
 - 이 REQ 의 코드에 측정 태그 칸을 더했다(덧붙임 — 없거나 실패면 이전과 같은 화면). 새 교훈은 주인 REQ(`SRV-REQ-053` 회고)에
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+- B1 FK 18 끊기 마이그레이션 · B5 코치 배치 대상(`users` 읽기 0). 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
+- Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로

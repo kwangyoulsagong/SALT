@@ -30,7 +30,7 @@ globs: salt-server/**, salt-platform/**
 | `household` | Kotlin `services/household`(2026-11-04 가계부 S1a — 새로 태어남) | `household` | S1 | `SRV-REQ-046` |
 | `content` | Kotlin `services/content`(2026-11-05 금융 팁 S2a — 새로 태어남 · 첫 서비스 간 구독자) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | ~~`notification`~~ Kotlin `services/notification`(2026-11-06 S2c — 첫 기존 컨텍스트 이전 · 옛 Express 삭제 `33e949e8`). 설정 주인 · 구독만 | `notification` | S2 | `SRV-REQ-048` |
-| `identity` | Kotlin `services/identity`(2026-11-06 S3a — 셸 설정: 도메인 선택 · 온보딩 끝 · 홈 배치. Express `onboarding` 은퇴 `7f2ba1ed`) · `auth` · `modules/user` 는 S3b 까지 Express | `identity` | S3 | `SRV-REQ-048` |
+| `identity` | Kotlin `services/identity`(2026-11-06 S3a 셸 설정 · **2026-11-12 S3b 계정 · 초대 코드 · RS256 발급 · JWKS** — Express `auth` · `modules/user` 삭제. Express 는 검증만) | `identity` | S3 | `SRV-REQ-048` |
 | `portfolio` | `portfolio` | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
 | `market` | `market` · `news` + 수집 워커 | `market` | S5 | `SRV-REQ-049` FR-2 · 3 |
 | `coach` | `coach` · `modules/investment-insight` — 발행 창구만 Kotlin(`coach.outbox` Flyway · 행은 Express, 2026-11-06 S2c) | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
@@ -95,7 +95,7 @@ salt-platform/
 
 - 응답 포맷 · 에러 바디 · `ErrorKind` → HTTP 매핑은 **Express 와 같은 모양**(`SRV-REQ-043` FR-6). 골든 JSON 차이 0 이 합격 기준
 - BFF 는 Node 유지. 서비스 주소 · 라우팅(`legacy` | `platform` | `shadow`)은 BFF 설정 한 곳(`BFF-REQ-045`) — 서버 코드에 다른 서비스 주소를 박지 않는다
-- 추적 ID 는 BFF 가 만들고 서비스가 이어받는다(OpenTelemetry). 인증은 S3 전까지 공용 HS, S3 뒤 JWKS(`SRV-REQ-048`)
+- 추적 ID 는 BFF 가 만들고 서비스가 이어받는다(OpenTelemetry). 인증은 identity RS256 · JWKS(S3b 2026-11-12) + 옛 HS 이중 기간(끝 시각 설정 하나, `SRV-REQ-048` FR-8)
 
 ## 7. 경로를 옮기는 절차 — 스트랭글러 (`ADR-006` §1 · `BFF-REQ-045`)
 

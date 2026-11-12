@@ -55,3 +55,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-05 | 금융 팁 S2d 확인 2회차 — 서비스 간 통신 표에 한 줄: **남의 값으로 계산하는 읽기 = BFF 가 원천을 읽어 계산 서비스에 사실로**(계산 쪽 저장 · 로그 0 · 못 읽은 원천은 unknown · 민감 값은 이벤트 대신 이 길). 규칙 `salt-server/.claude/rules/msa-services.md` §5 · `bff/.claude/rules/bff-architecture.md` §5. 첫 예 금융 팁 내 숫자 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-4 새 이벤트 `coach.DecisionChanged`(14번째 — 13종 목록 밖, 옛 signal_update 원인) · **첫 Express 발행** — `coach.outbox` 는 Kotlin Flyway, 행은 Express, 릴레이는 플랫폼(svc_coach). 쓰기 시점 스키마 검증을 지나지 않아 Express 테스트가 계약 파일과 맞춘다. 첫 notification 구독 셋 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음 — identity 는 S3a 발행 0(아웃박스 표만 · `UserRegistered` 는 S3b FR-9) |
+| 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 플랫폼 `application.yml`(머리 주인) — identity 설정 · 공개 경로 여섯 · 옛 HS 끝 시각. 이벤트 `identity.UserRegistered` 첫 발행(계약 파일 · 스키마 검사 · 아웃박스 같은 트랜잭션) |
