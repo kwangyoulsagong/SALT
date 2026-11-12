@@ -21,7 +21,7 @@ import {
   LOCAL_SYSTEM_INSTRUCTION,
   NEWS_SUMMARY_MAX,
 } from "./explanationPrompt";
-import { findOnPath, runCli, safeStderr, type CliOutcome } from "./localCliProcess";
+import { findOnPath, localCliArgs, runCli, safeStderr, type CliOutcome } from "./localCliProcess";
 
 /**
  * 로컬 CLI 해설 — Claude Code(`claude`) · Codex(`codex`) (`SRV-REQ-050`).
@@ -93,40 +93,7 @@ export class LocalCliCoachExplainer implements CoachExplainer {
   }
 
   private args(dir: string): string[] {
-    const model = this.options.model;
-    if (this.provider === "local_claude") {
-      return [
-        "-p",
-        "--output-format",
-        "stream-json",
-        "--include-partial-messages",
-        "--verbose",
-        "--system-prompt",
-        LOCAL_SYSTEM_INSTRUCTION,
-        "--tools",
-        "",
-        "--setting-sources",
-        "",
-        "--strict-mcp-config",
-        "--no-session-persistence",
-        ...(model ? ["--model", model] : []),
-      ];
-    }
-    return [
-      "exec",
-      "--sandbox",
-      "read-only",
-      "--skip-git-repo-check",
-      "--ephemeral",
-      "--ignore-user-config",
-      "--ignore-rules",
-      "-o",
-      join(dir, "last.txt"),
-      "-C",
-      dir,
-      ...(model ? ["-m", model] : []),
-      "-",
-    ];
+    return localCliArgs({ provider: this.provider, dir, system: LOCAL_SYSTEM_INSTRUCTION, model: this.options.model, stream: true });
   }
 
   async explain(

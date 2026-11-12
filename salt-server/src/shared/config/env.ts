@@ -188,6 +188,11 @@ const envSchema = z.object({
    */
   COACH_EXPLAIN_LLM: z.enum(["on", "off"]).default("on"),
   /**
+   * 오늘 등락 한 줄(③ — F016 단계 D · `SRV-REQ-052` FR-7 · `ADR-009` §4). `off` 면 배치 0 · 읽기 `disabled` — ①②(분해 · 사실)는 그대로.
+   * 켜는 조건이 아니라 끄는 스위치다(2026-11-06 사용자 결정 — 품질은 쓰면서 잰다, `FC-REQ-027`)
+   */
+  MOVE_SUMMARY: z.enum(["on", "off"]).default("on"),
+  /**
    * 다듬기 로컬 CLI(`SRV-REQ-050` FR-2) — `auto` 는 PATH 에서 `claude` → `codex`. `off` 면 전부 Gemini.
    * 배포 컨테이너엔 CLI 가 없어 감지 실패 → Gemini(`OPS-001`)
    */

@@ -12,6 +12,9 @@ import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
 import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
 import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
+import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
+import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
+import { PrismaMoveSummaryStore } from "./coach/infrastructure/PrismaMoveSummaryStore";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
 import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
 import { PrismaCoachGenerationLogStore } from "./coach/infrastructure/PrismaCoachGenerationLogStore";
@@ -252,6 +255,8 @@ const llmUsage = new PrismaLlmUsageStore();
  * 기동 로그 한 줄: 버전 · 경로만(계정 · 토큰 0)
  */
 const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage));
+/** 오늘 등락 한 줄(F016 단계 D) — 해설과 같은 로컬 CLI → Gemini. 감지 결과를 같이 꽂는다 */
+const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL });
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
@@ -262,6 +267,7 @@ if (env.COACH_EXPLAIN_LLM === "on") {
       explainer.useLocal(
         new LocalCliCoachExplainer(found.provider, found.bin, llmUsage, { model: env.COACH_LLM_LOCAL_MODEL })
       );
+      moveSummaryWriter.useLocal({ provider: found.provider, bin: found.bin });
       logger.info(`해설 로컬 CLI ${found.provider} ${found.version} (${found.bin})`);
     })
     .catch((error: unknown) => logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`));
@@ -306,6 +312,15 @@ const coach = createCoachApplication({
     env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
   ),
   tracked: new TrackedAssetAdapter(market.api, portfolio.api),
+  // 오늘 등락 한 줄(③) — 재료는 market 카드(공개 API), 문장 · 스냅샷은 coach(`SRV-REQ-052`). `MOVE_SUMMARY=off` 면 배치 0 · 읽기 disabled
+  moveSummary: {
+    cards: new MoveCardAdapter(market.api),
+    store: new PrismaMoveSummaryStore(),
+    writer: moveSummaryWriter,
+    names: async (symbols) => new Map((await market.api.assetLabels(symbols)).map((l) => [l.symbol, l.name])),
+    // 해설 LLM 을 끄면 이것도 — LLM 두 길을 따로 켜 두는 경우가 없다
+    enabled: env.MOVE_SUMMARY === "on" && env.COACH_EXPLAIN_LLM === "on",
+  },
   gauges: new PrismaGaugeTrackStore(),
   generationLogs: new PrismaCoachGenerationLogStore(),
   regenerateCooldownSeconds: env.COACH_REGENERATE_COOLDOWN_SECONDS,

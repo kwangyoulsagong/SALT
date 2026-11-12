@@ -2,9 +2,11 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
+import { MoveCardNotFoundError } from "../domain";
 import {
   coachFeedbackSchema,
   explanationQuerySchema,
+  moveSummaryQuerySchema,
   generateCoachSchema,
   getCoachQuerySchema,
   updateCoachProfileSchema,
@@ -116,6 +118,18 @@ export class AICoachController {
       const { symbol, mode } = explanationQuerySchema.parse(req.query);
       const result = await this.useCases.getSymbolExplanation.execute(symbol, mode);
       return ResponseUtil.success(res, result, "AI Coach Explanation Success");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 오늘 등락 한 줄(③) — 저장값과 지금 카드 대조만, LLM 0(F016 단계 D). 시장 경로와 같은 읽는 사람(게스트 포함) */
+  moveSummary = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { asset, symbol } = moveSummaryQuerySchema.parse(req.query);
+      const result = await this.useCases.getMoveSummary.execute(asset, symbol);
+      if (!result) throw new MoveCardNotFoundError(symbol);
+      return ResponseUtil.success(res, result, "Move Summary Success");
     } catch (error) {
       next(error);
     }

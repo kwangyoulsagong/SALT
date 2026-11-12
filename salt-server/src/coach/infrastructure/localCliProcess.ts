@@ -137,3 +137,48 @@ export const safeStderr = (stderr: string): string =>
     .replace(/(sk-[A-Za-z0-9_-]{8,}|eyJ[A-Za-z0-9_-]{10,}|[A-Za-z0-9_-]{32,})/g, "***")
     .replace(/\s+/g, " ")
     .trim();
+
+/**
+ * 격리 인자(FR-5) — 해설 · 오늘 등락 한 줄(F016 단계 D)이 같은 것을 쓴다. 도구 0 · 사용자 설정 · MCP · 규칙 안 읽음 · 세션 저장 0.
+ * Claude 는 `stream` 이면 토큰 스트림(`stream-json`), 아니면 끝에 한 번(`text`). Codex 는 `-o` 파일로 마지막 답을 받는다
+ */
+export const localCliArgs = (input: {
+  provider: "local_claude" | "local_codex";
+  dir: string;
+  system: string;
+  model?: string;
+  stream: boolean;
+}): string[] => {
+  const { model } = input;
+  if (input.provider === "local_claude") {
+    return [
+      "-p",
+      "--output-format",
+      ...(input.stream ? ["stream-json", "--include-partial-messages", "--verbose"] : ["text"]),
+      "--system-prompt",
+      input.system,
+      "--tools",
+      "",
+      "--setting-sources",
+      "",
+      "--strict-mcp-config",
+      "--no-session-persistence",
+      ...(model ? ["--model", model] : []),
+    ];
+  }
+  return [
+    "exec",
+    "--sandbox",
+    "read-only",
+    "--skip-git-repo-check",
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "-o",
+    join(input.dir, "last.txt"),
+    "-C",
+    input.dir,
+    ...(model ? ["-m", model] : []),
+    "-",
+  ];
+};

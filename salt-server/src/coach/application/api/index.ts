@@ -25,6 +25,9 @@ import type {
   JudgmentTierReader,
   ShortHorizonReader,
   TradeCheckLedger,
+  MoveCardReader,
+  MoveSummaryStore,
+  MoveSummaryWriter,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -37,6 +40,9 @@ import { CheckTradeSize } from "../CheckTradeSize";
 import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
+import { GenerateMoveSummaries } from "../GenerateMoveSummaries";
+import { GetMoveSummary } from "../GetMoveSummary";
+import { MoveSummaryDemand } from "../lib/moveSummaryDemand";
 import { GetSymbolExplanation } from "../GetSymbolExplanation";
 import { ExplanationDemand } from "../lib/explanationDemand";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
@@ -104,6 +110,16 @@ export interface CoachDependencies {
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
   recommendations: RecommendationSnapshotStore;
   tracked: TrackedAssetProbe;
+  /**
+   * 오늘 등락 한 줄(F016 단계 D). 없으면 꺼짐(`disabled`) — 테스트 조립 · `MOVE_SUMMARY=off`
+   */
+  moveSummary?: {
+    cards: MoveCardReader;
+    store: MoveSummaryStore;
+    writer: MoveSummaryWriter;
+    names: (symbols: string[]) => Promise<Map<string, string>>;
+    enabled: boolean;
+  };
   gauges: GaugeTrackStore;
   generationLogs: CoachGenerationLogStore;
   /** 수동 재생성 쿨다운(초). **설정값**이다(`SRV-REQ-024` FR-82) — env 에서 온다 */
@@ -146,6 +162,10 @@ export interface CoachUseCases {
   getSymbolExplanation: GetSymbolExplanation;
   /** 해설 스냅샷 배치 — 워커가 부른다. 지문이 바뀐 종목만 LLM(FR-3 ②) */
   generateExplanationSnapshots: GenerateExplanationSnapshots;
+  /** 오늘 등락 한 줄(③) 읽기 — 저장값과 지금 카드 대조만, LLM 0(F016 단계 D · `SRV-REQ-052`) */
+  getMoveSummary: GetMoveSummary;
+  /** 오늘 등락 한 줄 배치 — 해설 배치 뒤 같은 LLM 워커 */
+  generateMoveSummaries: GenerateMoveSummaries;
   analyzeNewsSentiment: AnalyzeNewsSentiment;
   analyzeTradingBehavior: AnalyzeTradingBehavior;
   getBehaviorCoach: GetBehaviorCoach;
@@ -240,6 +260,14 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     backtestJudgments: deps.backtestJudgments ?? null,
   };
   const explanationDemand = new ExplanationDemand();
+  const moveSummaryDemand = new MoveSummaryDemand();
+  const moveSummary = deps.moveSummary ?? {
+    cards: { card: async () => null },
+    store: { day: async () => ({ current: null, latestOk: null, attempts: 0 }), save: async () => false },
+    writer: { write: async () => Promise.reject(new Error("오늘 등락 한 줄 꺼짐")) },
+    names: async () => new Map<string, string>(),
+    enabled: false,
+  };
 
   const useCases: CoachUseCases = {
     reportTriadGaps: new ReportTriadGaps(),
@@ -279,6 +307,14 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       limits: deps.llmLimits,
       // 없으면 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않는다 — 화면은 사실표 문장
       llmEnabled: deps.llmEnabled !== false,
+    }),
+    getMoveSummary: new GetMoveSummary({ ...moveSummary, demand: moveSummaryDemand }),
+    generateMoveSummaries: new GenerateMoveSummaries({
+      ...moveSummary,
+      tracked: deps.tracked,
+      demand: moveSummaryDemand,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
     }),
     analyzeNewsSentiment,
     analyzeTradingBehavior,

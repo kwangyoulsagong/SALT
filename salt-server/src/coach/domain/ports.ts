@@ -9,6 +9,7 @@ import type {
 } from "./policy/tradeCheck";
 import type { JudgmentTierRow } from "./policy/judgmentTier";
 import type { ScenarioMarket, ShortHorizonCellRow, ShortHorizonPredictionRow } from "./policy/shortHorizon";
+import type { MoveAsset, MoveCard, MoveSummaryPromptFact, StoredMoveSummary } from "./policy/moveSummary";
 
 import type {
   BehaviorFinding,
@@ -440,8 +441,8 @@ export interface LlmCallRecord {
   userId: string | null;
   /** 어느 공급자의 시도인가(`SRV-REQ-050` FR-9). 토큰 상한은 `gemini` 만 센다 */
   provider: ExplainProvider;
-  /** 어느 기능의 호출인가 — 지금은 `coach_explain` 하나 */
-  purpose: "coach_explain";
+  /** 어느 기능의 호출인가 — 해설(`coach_explain`) · 오늘 등락 한 줄(`move_summary`, F016 단계 D) */
+  purpose: "coach_explain" | "move_summary";
   model: string;
   requestedAt: Date;
   durationMs: number;
@@ -929,4 +930,53 @@ export interface TradeCheckRecord {
 export interface TradeCheckLedger {
   /** `ON CONFLICT DO NOTHING` — 요청 경로의 쓰기 한 문장 */
   record(entry: TradeCheckRecord): Promise<void>;
+}
+
+// ==================== 오늘 등락 한 줄(③ — F016 단계 D · `SRV-REQ-052`) ====================
+
+/** market 의 "오늘 왜 움직였나" 카드(① · ②)를 coach 말로 — ACL(`MoveCardAdapter`). 없는 종목 · 꺼진 국내면 `null` */
+export interface MoveCardReader {
+  card(asset: MoveAsset, symbol: string): Promise<MoveCard | null>;
+}
+
+/** 시도 한 건 — 실패도 남긴다(같은 지문 LLM 1회 · 하루 상한 · 품질 감사). 원문 0 */
+export interface MoveSummaryRecord extends StoredMoveSummary {
+  asset: MoveAsset;
+  symbol: string;
+  date: string;
+  factCount: number;
+  rejections: string[];
+  provider: ExplainProvider;
+  model: string | null;
+  promptVersion: string;
+  verifierVersion: string;
+}
+
+export interface MoveSummaryStore {
+  /** 지금 지문의 시도 · 그날 최근 성공본 · 그날 시도 수 — 한 번에(인덱스 하나) */
+  day(asset: MoveAsset, symbol: string, date: string, fingerprint: string): Promise<{
+    current: StoredMoveSummary | null;
+    latestOk: StoredMoveSummary | null;
+    attempts: number;
+  }>;
+  /** 같은 (자산, 종목, 거래일, 지문)이 있으면 아무것도 하지 않는다(ON CONFLICT DO NOTHING) */
+  save(record: MoveSummaryRecord): Promise<boolean>;
+}
+
+/** LLM 에 넘기는 것 — 번호 붙은 사실과 분해 모양(숫자 0 — 문장에 분해 숫자를 넣지 않는다) */
+export interface MoveSummaryPrompt {
+  asset: MoveAsset;
+  name: string;
+  direction: "up" | "down";
+  /** 몫 중 무엇이 큰가 — 숫자 대신 말로(문장이 숫자를 옮기지 않게) */
+  dominant: "idio" | "market" | "sector";
+  facts: MoveSummaryPromptFact[];
+}
+
+/**
+ * 한 줄 생성 Port (LLM) — **트랜잭션 밖에서만**. 로컬 CLI → Gemini 라우팅은 구현이 한다(`SRV-REQ-050`).
+ * 문장 원문만 돌려준다 — 검사는 유스케이스가 `verifyMoveSummary` 로
+ */
+export interface MoveSummaryWriter {
+  write(prompt: MoveSummaryPrompt, options: { geminiAllowed: boolean }): Promise<{ text: string; provider: ExplainProvider; model: string | null }>;
 }
