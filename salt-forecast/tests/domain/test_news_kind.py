@@ -31,3 +31,15 @@ def test_사례가_모든_종류를_한_번은_맞힌다() -> None:
 def test_모르는_시장은_예외() -> None:
     with pytest.raises(ValueError):
         classify(DICT, "us", "news", 1, "x")
+
+
+def test_서버_사전_계약이_등록과_같다() -> None:
+    """contracts/news-kind/dict-*.json = 매일 배치가 forecast.news_kind_dict 에 쓰는 모양.
+
+    서버 테스트가 이 파일로 같은 사례를 돈다.
+    """
+    from salt_forecast.jobs.news_reaction import server_dict
+
+    spec = tomllib.loads(PREREG.read_text())
+    contract = json.loads((ROOT / "contracts" / "news-kind" / "dict-news-reaction-1.json").read_text())
+    assert contract == {"prereg_key": spec["key"], **server_dict(spec)}
