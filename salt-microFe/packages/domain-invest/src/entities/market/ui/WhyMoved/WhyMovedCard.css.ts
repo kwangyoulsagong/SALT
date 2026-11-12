@@ -195,11 +195,12 @@ export const citeChip = style({
   textDecoration: "none",
   selectors: { "&:hover": { background: "rgba(2,32,71,.09)" } },
 });
+/** AI 생성 표시 — 같은 카드 캡션과 같은 크기 · 색(`tertiary` 12px 는 대비 미달 — axe 2026-11-12) */
 export const aiLabel = style({
   margin: 0,
-  fontSize: "12px",
-  lineHeight: "16px",
-  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  color: vars.colors.text.lightGray,
 });
 /** 인용 칩이 가리킨 사실 줄 — 잠깐 바탕색(앵커 :target) */
 export const factTarget = style({
