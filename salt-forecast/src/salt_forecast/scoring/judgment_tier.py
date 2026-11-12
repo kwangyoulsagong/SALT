@@ -55,7 +55,7 @@ def run(
 
     # Holm 가족 = spread 가 정의된 라이브 칸(승격에 세는 행 기준)
     family = [c for c in cells if promote_stat[c].p is not None]
-    adjusted = dict(zip(family, holm([promote_stat[c].p or 1.0 for c in family]), strict=True))
+    adjusted = dict(zip(family, holm([p for c in family if (p := promote_stat[c].p) is not None]), strict=True))
 
     out: list[CellRun] = []
     for m, md in cells:
