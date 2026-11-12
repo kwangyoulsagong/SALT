@@ -1,9 +1,10 @@
 /**
  * 뉴스 프리뷰 뷰모델 매핑 — **순수 함수**.
  *
- * 여기에는 import 가 없다. 판정(무엇을 내보내고 무엇을 버리나)을 네트워크 없이
+ * 네트워크 import 가 없다(순수 매퍼만 — 측정 태그 `news-tag.viewmodel`). 판정(무엇을 내보내고 무엇을 버리나)을 네트워크 없이
  * 검증하기 위한 조건이다 (`watchlist.viewmodel.ts` 와 같은 이유).
  */
+import { toNewsTagVM, type NewsTagVM } from "./news-tag.viewmodel";
 
 /**
  * 프리뷰 카드 한 장 (`BFF-REQ-007` FR-31~34).
@@ -22,6 +23,8 @@ export interface NewsPreviewVM {
   publishedAt: string;
   /** 서버가 주면 전달하고 없으면 생략한다. **BFF 가 만들지 않는다** (FR-34) */
   viewCount?: number;
+  /** 측정 태그(F017 단계 6 · `BFF-REQ-052` FR-5) — 종류를 못 맞히거나 모르는 라벨이면 null */
+  tag: NewsTagVM | null;
 }
 
 export interface ServerNewsArticle {
@@ -35,6 +38,8 @@ export interface ServerNewsArticle {
   viewCount?: number;
   /** 서버 목록이 전문을 실어 보내면 **여기서 끊는다.** 카드로 넘어가지 않는다 */
   content?: string | null;
+  /** 측정 태그 — 서버 모양 그대로 받고 `toNewsTagVM` 이 거른다 */
+  tag?: unknown;
 }
 
 const toIso = (value: string | Date): string =>
@@ -60,4 +65,5 @@ export const toNewsPreviewViewModels = (
     ...(typeof article.viewCount === "number"
       ? { viewCount: article.viewCount }
       : {}),
+    tag: toNewsTagVM(article.tag),
   }));
