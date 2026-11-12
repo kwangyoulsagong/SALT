@@ -48,3 +48,23 @@
 | 옛 HS 종료 실측(서명 맞는 옛 토큰 401) | 끝 시각이 11-27 | 2026-11-27 — HS 코드 · 비밀 삭제와 같이 |
 | Smart Buy Zones `global` 행이 실제로 쓰이는 것 | 적용 뒤 16:20 회차는 실패 0(`✅ Investment insights generated successfully`)이지만 후보가 없어 `global` 행 0 — FK 는 이제 없어 막을 것이 없다 | 후보가 생기는 회차(`investment_insights` user_id='global' 행) |
 
+## 확인 2회차(2026-11-12, 사용자 "파이프라인 검증 및 버그 검증 다함?")
+
+첫 보고에서 빠졌던 것을 돌렸다. 새 결함 0.
+
+| 무엇 | 결과 |
+|---|---|
+| 변이 — Express `TokenVerifier`(scratchpad 사본으로 되돌림) | 5/5 잡힘: HS 끝 시각 무시 · aud 확인 빼기 · 옛 HS aud 허용 · 만료 게스트 문구 · unavailable→invalid |
+| 변이 — Kotlin `DualTokenVerifier` · `InviteAcceptance` | 6/6 잡힘(테스트 실패 — 컴파일 오류 아님 확인): HS 끝 무시 · aud 빼기 · 옛 HS aud 허용 · 만료 정각 통과 · 정원 먼저 · quota 노출 |
+| 새 쿼리 `EXPLAIN (ANALYZE, BUFFERS)` | `DISTINCT user_id` 거래 1.1ms · 계획 ∪ 결과 0.04ms(몇 행 표라 순차 스캔) |
+| 요청 제한 실측(플랫폼 직접) | 30번째까지 200 · 31번째 429 `{"success":false,"message":"Too Many Requests"}`(옛 본문 그대로) |
+| 소유자 판정(RS 토큰 — 로컬 서명 키로 시험 발급) | 시나리오 코인 · 국내: 소유자 200 · 비소유자 404 `COACH_FORECAST_NOT_AVAILABLE` |
+| 국내 실시간 스트림(BFF WS) | RS 사람 · RS 게스트 구독 성공 · 위조 토큰 `KR_STOCK_AUTH_REQUIRED`(기존 동작) |
+| 로그아웃 게스트 화면(실화면) | `/investments` 100행 · `/investments/BTC` 시세 · 차트 · 사람 칸 잠금 · 게스트 쿠키 RS256 · 4xx 0 · 콘솔 오류 0 |
+| identity 가 꺼졌을 때 | 플랫폼 68초 내림 → Express 는 받아 둔 키로 계속 200 · 다시 올린 뒤 200 |
+
+| 본 것 | 판단 |
+|---|---|
+| 상세 머리 "시세 기준 13:50"(지금 16:25) | 결함 아님 — Next fetch 캐시 30초 재검증의 첫 요청이 옛 항목. 다시 열면 16:28 → 16:30 |
+| 플랫폼이 꺼졌을 때 로그인 500 | 이번 변경 전에도 플랫폼 경로(저축 · 가계부)가 같은 처리 — BFF 연결 거부 처리(`backend-integration.md` "실패 처리")는 S0 몫 그대로. 운영은 상시 launchd |
+

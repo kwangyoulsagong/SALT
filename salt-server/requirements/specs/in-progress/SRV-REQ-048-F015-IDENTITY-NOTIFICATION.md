@@ -53,3 +53,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): coach `domain/ports.ts`(머리 주인) — 포트 셋(`MoveCardReader` · `MoveSummaryStore` · `MoveSummaryWriter`) · 사용량 `purpose` 에 `move_summary` 추가. 알림 · identity 몫 변경 0 |
 | 2026-11-12 | **서버 S3b**(`MONEY-S3b-identity-accounts`, 루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md`) — FR-8 · 9 구현 · 로컬 운영 적용(Flyway V2 · 가져오기 대조 5 · 6 · 6 · BFF 라우팅 둘). 수용 기준 3 충족. 남은 것: Prisma 마이그레이션 적용(승인 대기) · HS 삭제(11-27) · FR-3 · 4 · 6 · 7(S3c) |
 | 2026-11-12 | 서버 S3b 마이그레이션 적용(사용자 승인) · 새 가입자 Express 쓰기 확인. FR-8 남은 것: HS 삭제(2026-11-27) |
+| 2026-11-12 | 서버 S3b 확인 2회차(루트 체크리스트) — 새 결함 0 |

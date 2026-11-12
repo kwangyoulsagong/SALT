@@ -1095,3 +1095,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-12 | F016 단계 D 확인 2회차 · 마무리 — 결함 다섯 고침 · `ADR-009` §5 영향 둘 반영(§6 공통 기준 4 에 설명 3종 · FE `i18n-policy` 원인 단정어) |
 | 2026-11-12 | **서버 S3b 구현**(`MONEY-S3b-identity-accounts`) — `SRV-REQ-048` FR-8 · 9 · `DB-REQ-040` FR-1 · 5(수용 기준 충족) · `DB-REQ-036` B1 · B5 · `BFF-REQ-045` FR-5 · 짝 `SRV-REQ-009` · `SRV-REQ-044` · `SRV-REQ-053` · `SRV-REQ-056` · `DB-REQ-017` · `DB-REQ-033` · `DB-REQ-043`. 규칙 `auth-security` · `msa-services` · `kotlin-platform` · `server-architecture` 갱신. 로컬 운영: Flyway V2 · 가져오기 적용, Prisma 마이그레이션 승인 대기 |
 | 2026-11-12 | 서버 S3b 마이그레이션 적용(사용자 승인) — 사용자 FK 0 · 옛 표 셋 삭제 · 새 가입자 Express 쓰기 확인 |
+| 2026-11-12 | 서버 S3b 확인 2회차 — 변이 11/11 · 실스택 넷 · 새 결함 0 |
