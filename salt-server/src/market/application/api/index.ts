@@ -574,7 +574,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       undefined,
       deps.move
     ),
-    getCryptoWhyMoved: new GetCryptoWhyMoved(deps.assets, deps.news, deps.move),
+    getCryptoWhyMoved: new GetCryptoWhyMoved(deps.assets, deps.news, deps.move, undefined, tagNews),
     getMarketSummary: new GetMarketSummary(
       deps.assets,
       deps.exchange,
