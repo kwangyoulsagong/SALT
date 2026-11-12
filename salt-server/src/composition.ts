@@ -63,6 +63,7 @@ import { PrismaWatchlistRepository } from "./market/infrastructure/PrismaWatchli
 import { HeldAssetsAdapter } from "./market/infrastructure/HeldAssetsAdapter";
 import { PrismaWhaleTransactionRepository } from "./market/infrastructure/PrismaWhaleTransactionRepository";
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
+import { PrismaNewsTagReader } from "./market/infrastructure/PrismaNewsTagReader";
 import { ArticleBodyAdapter } from "./market/infrastructure/ArticleBodyAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
@@ -218,6 +219,8 @@ const market = createMarketApplication({
     universeSnapshots: new PrismaUniverseSnapshotStore(),
     heldCryptoSymbols: () => portfolio.api.heldSymbols("crypto"),
   },
+  // 소식 측정 태그(F017 단계 6) — 예측 뷰 셋
+  newsTags: new PrismaNewsTagReader(),
   move: {
     betas: new PrismaMoveBetaReader(),
     warnings: new PrismaCryptoWarningReader(),

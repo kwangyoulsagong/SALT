@@ -490,7 +490,8 @@ describe("읽기 — 오늘 소식 · 장중 수급(읽는 사람 누구나 · �
   it("오늘 소식 — KST 00:00 뒤 · 본문 · 링크 칸 없음", async () => {
     const r = await new GetKrStockNews(deps() as never).execute("005930");
     assert.deepEqual(asked.at(-1), { code: "005930", since: "2026-11-05T15:00:00.000Z" });
-    assert.deepEqual(Object.keys(r.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "title"]);
+    assert.deepEqual(Object.keys(r.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "tag", "title"]);
+    assert.equal(r.items[0]!.tag, null); // 조립에 태그가 없으면 null(F017 단계 6)
     // 관련 종목 칩(FE-REQ-065) — 이름 · 등락률 서버 값, 시세 없으면 null(0 으로 채우지 않는다)
     assert.deepEqual(r.items[0]!.related, [{ code: "005930", name: "삼성전자", changeRate: -1.2 }, { code: "000660", name: "SK하이닉스", changeRate: null }]);
     assert.equal(r.collectedAt, "2026-11-06T02:42:00.000Z");

@@ -167,6 +167,10 @@ export interface SymbolNewsItem {
   source: string;
   sentiment?: string | null;
   publishedAt: Date;
+  /** 대표 이미지(목록 카드) — 없으면 null */
+  imageUrl?: string | null;
+  /** 원천 심볼 태그(측정 태그가 묶음 기사를 거를 때 센다 — F017 단계 6) */
+  symbols?: string[];
 }
 
 /** 자산 한 줄의 시세. 코치·주문 전 계산이 현재가와 신선도를 본다. */

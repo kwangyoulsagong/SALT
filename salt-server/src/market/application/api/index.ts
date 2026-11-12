@@ -1,6 +1,6 @@
 import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
-import type { KrArticleBodyPort, MarketScheduleReader, PriceFillMarkStore, UniverseSnapshotStore } from "../../domain";
+import type { KrArticleBodyPort, MarketScheduleReader, NewsTagReader, PriceFillMarkStore, UniverseSnapshotStore } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
 import type {
   KrProviderHealthPort,
@@ -51,6 +51,7 @@ import {
   CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
+import { TagNews } from "../TagNews";
 import { SearchAssets } from "../SearchAssets";
 import { ReadRisingSectors, ReadSearchRelated, SearchResultGroups } from "../SearchExtras";
 import { ResolveKrStockLogos } from "../ResolveKrStockLogos";
@@ -284,6 +285,8 @@ export interface MarketDependencies {
   tracking: { held: HoldingProbe; limit: number };
   /** 오늘 왜 움직였나(F016 단계 C) — 예측 배치 β · σ 뷰 · 코인 경보 스냅샷 · 카드 문턱(설정) */
   move: MoveDependencies;
+  /** 소식 측정 태그(F017 단계 6 · `SRV-REQ-053` FR-6) — 예측 뷰 셋(사전 · 서술 · 선반영). 국내 소식 · 코인 종목 뉴스가 같이 쓴다 */
+  newsTags: NewsTagReader;
   /** 수집 따라잡기 · 추적 목록 스냅샷(`SRV-REQ-057` FR-2 · 7, `DB-REQ-044`) — 코인 보유는 `portfolio` 의 사실이라 조립 지점이 넣는다 */
   collection: {
     fillMarks: PriceFillMarkStore;
@@ -392,7 +395,8 @@ const createKrStockUseCases = (
   deps: KrStockDependencies,
   schedule: MarketScheduleReader,
   move: MoveDependencies,
-  snapshots: UniverseSnapshotStore
+  snapshots: UniverseSnapshotStore,
+  tagNews: TagNews
 ): KrStockUseCases => {
   const universe = new ResolveKrStockUniverse(deps.store, deps.held, deps.universeTopN);
   const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
@@ -420,6 +424,7 @@ const createKrStockUseCases = (
     moveSources: deps.moveSources,
     move,
     articleBody: deps.articleBody,
+    tagNews,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -520,6 +525,7 @@ export interface MarketUseCases {
 }
 
 export const createMarketApplication = (deps: MarketDependencies) => {
+  const tagNews = new TagNews(deps.newsTags);
   // 국내 주식 관심 종목 — 키가 없으면 `null`(담을 수 없고 목록에서도 빠진다, F011 슬라이스 3)
   const krWatchlist = deps.krStock
     ? { store: deps.krStock.store, logoDevToken: deps.krStock.logoDevToken }
@@ -549,7 +555,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     ),
     getSentimentHistory: new GetSentimentHistory(deps.sentiments),
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
-    getSymbolNews: new GetSymbolNews(deps.news),
+    getSymbolNews: new GetSymbolNews(deps.news, tagNews),
     addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange, krWatchlist, deps.tracking),
     // 관심 목록이 자산 표를 함께 읽는다 — 행에 가격이 없거나 오래된 심볼을 보정한다
     // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
@@ -611,7 +617,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.indicators,
       krUniverse ? () => krUniverse.execute() : null
     ),
-    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule, deps.move, deps.collection.universeSnapshots) : null,
+    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule, deps.move, deps.collection.universeSnapshots, tagNews) : null,
     getKrMarketSchedule: new GetKrMarketSchedule(deps.schedule),
   };
 
