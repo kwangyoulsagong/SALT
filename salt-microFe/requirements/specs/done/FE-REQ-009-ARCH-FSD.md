@@ -320,5 +320,6 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-10 | 페이지 슬라이스 레지스트리에 `portfolio`(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `f193c6aa` |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `layer-rules.cjs` 에 feature 슬라이스 `check-trade-odds` 등록. 레이어 규칙 무변경. 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053` |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FSD 레지스트리(`layer-rules.cjs`)에 기능 슬라이스 둘(`export-my-data` · `delete-account`). 이 REQ 몫 기능 변경 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/model/tabs.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

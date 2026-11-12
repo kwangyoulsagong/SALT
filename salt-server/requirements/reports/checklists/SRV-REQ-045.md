@@ -155,3 +155,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | status 전체 시간 | 이번 실행 4분 24초 — 맥 부하 평균 300+ 시각(psql 하나 16초). 부하 4 에선 1.5초였다(F017 단계 6) | 부하가 내려간 때 한 번 |
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름) | `MyDataEndToEndTest` · `./gradlew check` 통과 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

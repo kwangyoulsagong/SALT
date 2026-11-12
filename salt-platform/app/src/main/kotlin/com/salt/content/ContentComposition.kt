@@ -1,5 +1,7 @@
 package com.salt.content
 
+import com.salt.content.infrastructure.ContentUserRows
+import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
 import com.salt.content.api.ContentWorker
 import com.salt.content.api.HouseholdEventsListener
@@ -152,6 +154,11 @@ class ContentComposition {
 
     @Bean
     fun contentSavingsEventsListener(record: RecordSignal, jsonMapper: JsonMapper): SavingsEventsListener = SavingsEventsListener(record, jsonMapper)
+
+    /** 내 데이터 — 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c). 경로는 앱 하나(`MyDataController`) */
+    @Bean
+    fun contentPersonalData(@Qualifier("contentDatabase") database: ServiceDatabase): PersonalData =
+        PersonalData(ContentUserRows.of(database.dsl), database.transactionManager)
 
     companion object {
         const val SCHEMA = "content"

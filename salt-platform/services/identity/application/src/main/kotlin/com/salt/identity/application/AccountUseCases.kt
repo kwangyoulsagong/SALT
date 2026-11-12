@@ -109,10 +109,14 @@ class Login(private val accounts: AccountStore, private val hasher: PasswordHash
     }
 }
 
-/** 접근 토큰 재발급 — 갱신 토큰이 틀리거나 만료면 401 `Invalid refresh token` */
-class RefreshSession(private val tokens: TokenIssuer) {
+/**
+ * 접근 토큰 재발급 — 갱신 토큰이 틀리거나 만료면 401 `Invalid refresh token`.
+ * **계정이 없으면 같은 401**(서버 S3c) — 갱신 토큰은 서명만 보면 7일 동안 살아 있다. 지운 계정이 새 접근 토큰을 받으면 지운 것이 아니다.
+ */
+class RefreshSession(private val tokens: TokenIssuer, private val accounts: AccountStore) {
     fun execute(refreshToken: String): String {
         val subject = tokens.readRefresh(refreshToken) ?: throw SessionExpired()
+        accounts.findById(subject.userId) ?: throw SessionExpired()
         return tokens.issueAccess(subject)
     }
 }

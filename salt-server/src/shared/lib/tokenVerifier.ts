@@ -18,6 +18,8 @@ import { env } from "../config/env";
 export const TOKEN_ISSUER = "salt-identity";
 export const AUDIENCE_API = "salt-api";
 export const AUDIENCE_GUEST = "salt-guest";
+/** 계정 삭제 허가(서버 S3c) — 비밀번호를 다시 확인한 뒤 identity 가 내주는 5분 토큰. 사람 · 시장 경로를 지나지 못한다 */
+export const AUDIENCE_ERASE = "salt-erase";
 
 export interface TokenPerson {
   userId: string;
@@ -137,6 +139,29 @@ export class TokenVerifier {
       return claims.kind === "guest" ? { kind: "guest", legacy: false } : { kind: "invalid" };
     } catch (error) {
       return expired(error) ? { kind: "expired" } : { kind: "invalid" };
+    }
+  }
+
+  /**
+   * 지우기 허가(`X-Salt-Erase`) — RS256 · `aud` salt-erase 만. 옛 HS 는 받지 않는다(허가는 S3c 에 처음 생겼다).
+   * 같은 판정을 플랫폼 `EraseGrants`(Kotlin)가 돈다. 통과면 그 사람, 아니면 null(만료 · 서명 · 받는 쪽 — 이유를 가르지 않는다)
+   */
+  async eraseGrant(token: string): Promise<TokenPerson | null> {
+    const decoded = jwt.decode(token, { complete: true });
+    if (!decoded || typeof decoded.payload === "string" || decoded.header.alg !== "RS256" || !decoded.header.kid) return null;
+    const key = await this.keys.key(decoded.header.kid);
+    if (!key || key === "unavailable") return null;
+    try {
+      const claims = jwt.verify(token, key, {
+        algorithms: ["RS256"],
+        issuer: TOKEN_ISSUER,
+        audience: AUDIENCE_ERASE,
+        clockTimestamp: Math.floor(this.now() / 1000),
+      }) as jwt.JwtPayload;
+      const check = this.personOf(claims, false);
+      return check.kind === "person" ? check.person : null;
+    } catch {
+      return null;
     }
   }
 

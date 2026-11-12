@@ -152,3 +152,4 @@ EXPLAIN(사람 장부 2만 행 · 명세서 2천 행 넣고 롤백): 사람별 �
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 이 REQ 에 걸린 몫: `household.FixedCostIncreased` 계약 설명의 "구독 예정" 정정(금융 팁 S2b — S2a 는 저축 두 이벤트만). 필드 · 스키마 무변경 |
 | 2026-11-05 | 금융 팁 S2b(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `household.FixedCostIncreased` 계약 설명의 구독 예정 칸 ~~금융 팁 S2b~~ → 금융 팁 S2d. 필드 · 스키마 무변경 (`a1938bb2`) |
 | 2026-11-05 | 금융 팁 S2d(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: `household.FixedCostIncreased` 계약 설명 "구독 예정" → **구독**(content, category = housing 만 · 금액 읽지 않음) · `contracts/events/README.md` 구독자 칸. 필드 · 스키마 무변경 (`1a85dd2b`) |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): Flyway V9 — 발행 원장 `landing_issued` 트리거에 계정 삭제 예외 하나(`salt.erase` 켠 DELETE 만, UPDATE 는 그대로 막음). 이 REQ 몫 기능 변경 0 |

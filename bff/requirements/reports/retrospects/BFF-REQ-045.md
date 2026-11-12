@@ -51,3 +51,8 @@
 
 - FR-5 — 라우팅 `/auth` · `/users/profile` → platform. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
 - Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+- 이 REQ 몫 기능 변경 0 — 라우팅 표에 platform 경로 셋(`/coach/me/data` · `/ping/me/data` · `/notification/me/data` — 가장 긴 머리가 이긴다, `/coach` 는 legacy 그대로)
+- 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터

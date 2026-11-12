@@ -155,3 +155,17 @@
 - 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) · 종단 고정비 증가 구독(실 RabbitMQ) — 슬라이스 체크리스트
 - 미검증: 없음(이 몫 안)
 - 몫(둘째): 계약 무변경 · 새 소비자 — BFF 내 숫자가 노동시간 설정(FR-15) 급여를 읽는다(켜 둔 것만). 실화면 월 400만 → 총급여 어림 맞아요 · 월세 17%
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 가계부 조립에 `PersonalData` 빈 · `HouseholdUserRows`(표 20 · 연쇄 아닌 FK 순서) | `MyDataEndToEndTest` · 변이(표 하나 빼면 깸) · `./gradlew check` |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

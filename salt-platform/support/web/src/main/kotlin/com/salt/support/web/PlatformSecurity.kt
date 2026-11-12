@@ -66,6 +66,9 @@ class PlatformSecurity(private val properties: AuthProperties) : WebMvcConfigure
     }
 
     @Bean
+    fun eraseGrants(trusted: TrustedKeys, clock: Clock): EraseGrants = EraseGrants(trusted, clock)
+
+    @Bean
     fun securityFilterChain(
         http: HttpSecurity,
         jsonMapper: JsonMapper,

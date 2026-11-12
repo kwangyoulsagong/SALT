@@ -11,7 +11,8 @@
     "@repo/zone/no-cross-zone-link": "error",
     "@repo/fsd/layers": "error",
     "@repo/fsd/no-render-read": "error",
-    "@repo/fsd/no-client-enum-export": "error"
+    "@repo/fsd/no-client-enum-export": "error",
+    "@repo/fsd/danger-only-irreversible": "error"
   },
   "ignorePatterns": [
     "next-env.d.ts",

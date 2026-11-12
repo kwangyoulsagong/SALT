@@ -21,7 +21,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-2 | 홈 — 카드 순서 · 숨김 편집. 기본 순서 저축 → 가계부 → 투자 → 팁. 카드별 Suspense 경계, 실패 카드만 `degraded` | FR-2 |
 | FR-3 | `FE-REQ-048`(홈 데스크톱) 배치를 카드 계약 위로 다시 읽는다 — 요약 타일 값은 카드 `primary/secondary` 에서 | FR-2 |
 | FR-4 | 온보딩 — 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝. 첫 입력 폼은 해당 zone 화면으로 이동(`CrossZoneLink` + 돌아오기). 투자 미선택이면 투자 질문 0 | FR-1 |
-| FR-5 | 내 데이터 — 내보내기 요청 · 상태 · 받기, 계정 삭제(재인증 · 삭제 범위 표시) | FR-3 |
+| FR-5 | 내 데이터 — 내보내기 ~~요청 · 상태 ·~~ 받기, 계정 삭제(재인증 · 삭제 범위 표시). ✅ **done 2026-11-12(S3c)** — 셸 `/settings` 패널 둘: `features/export-my-data`(누르면 zip 저장 — 요청 · 상태 단계는 없다, 서버가 저장하지 않는다) · `features/delete-account`(비밀번호 다시 · 지워지는 범위 · 지운 행 수는 서버 `total` · 지운 뒤 세션 쿠키 지움 → 결과 한 줄 + 처음 화면으로) | FR-3 |
 | FR-6 | 알림 설정 — 도메인별 켬/끔, 기본 꺼짐. ✅ 2026-11-06 S2c(셸 `/settings` — 로그아웃이면 패널 없음) | FR-4 |
 | FR-7 | 개인정보 — LLM 에 보내는 필드 목록 화면(서버 API) | FR-5 |
 | FR-8 | 문구 — "연결 · 연동" 0, 칭찬 · 재촉 0 | 정책 |
@@ -43,6 +43,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 - [x] 셸 코드에 `domain-*` import 0(lint · 훅)
 - [x] 홈 카드 하나 강제 실패 시 나머지 표시 — 실화면(Playwright 로 투자 카드만 degraded): 투자 "지금은 불러오지 못했어요", 0원 표시 없음
 - [x] 온보딩 경로 3종 E2E — 2026-11-06 S3a 실화면(모으기 · 쓰는 돈 · 투자 + 둘 고르기 — 각 첫 기록 화면 도착)
+- [x] 계정 삭제 실화면 — 2026-11-12 S3c(내려받기 · 틀린 비밀번호 안내 · 지움 → 쿠키 0 · 처음 화면 · 390 · 1440)
 - [x] 금지 문구 grep 0(카드 문구 · `entities/home` 문구)
 
 ## 계약 영향
@@ -65,3 +66,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S2c 확인 2회차 — 알림 줄 설명 대비(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-4 · FR-2 편집 done. 고침 — 설정 패널(알림 · 홈 배치)이 저장 중 누른 것을 버리던 것(`scope` 로 차례 저장). 커밋 `c1baa77a` |
 | 2026-11-06 | 서버 S3a 확인 2회차 — 결함: 만료 세션 `/onboarding` 이 "불러오는 중"에 머묾 → 401 = 세션 없음 · 초대 단계 `698da12b`. 실패 경로 넷 · 만료 세션 셋 실화면 |
+| 2026-11-12 | 서버 S3c(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FR-5 done — 내려받기 · 계정 지우기 패널. FR-7(LLM 전송 필드 화면)은 S3d |
+| 2026-11-12 | S3c 확인 2회차 — 새 패널 대비 미달 셋 고침(설명 글자색 · 버튼 `primary`) · 로딩 · 실패 상태 실화면. 공용 버튼 변형 대비는 사용자 결정 |
+| 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
+| 2026-11-12 | 로그아웃 빨강 뺌 · lint `danger-only-irreversible`(빨강은 되돌릴 수 없는 일에만) — 같은 브랜치 |

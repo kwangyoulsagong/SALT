@@ -213,3 +213,8 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 
 - 닿은 것: `layer-rules.cjs` 에 feature 슬라이스 `check-trade-odds` 등록. 레이어 규칙 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053`
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+- 이 REQ 몫 기능 변경 0 — FSD 레지스트리(`layer-rules.cjs`)에 기능 슬라이스 둘(`export-my-data` · `delete-account`)
+- 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터

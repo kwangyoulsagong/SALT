@@ -82,3 +82,4 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | MONEY-S1b — `38823672` 종단 테스트(머리) 카운터 방식. 저장 무변경 |
 | 2026-11-03 | MONEY-S1b — `97c839f3` 종단 테스트(머리) 필터 순서. 저장 무변경 |
 | 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`) — FR-2 — Flyway `V3__deposit_source_ref.sql`: `deposit.source_ref uuid`(가계부 아낀 돈 id — FK 없음, 서비스 간 조인 0) · CHECK 출처가 있으면 `saved_by_challenge` · 유일 인덱스 `deposit_source_ref_key`(NULL 은 서로 안 부딪힘). 로컬 운영 DB 적용(`savings` 2 → 3)(`8d0e2723`) |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): Flyway V4 — 발행 원장 `projection_issued` 트리거에 계정 삭제 예외 하나(`salt.erase` 켠 DELETE 만, UPDATE 는 그대로 막음). 이 REQ 몫 기능 변경 0 |

@@ -71,3 +71,4 @@ created: 2026-09-22
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — `domain-household/.eslintrc.json` 이 axios · motion 금지 import 규칙을 저축에서 그대로 복사(`df45ae7d`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/web-shared/src/api/index.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: zone · 도메인 `.eslintrc.json` 10곳(머리 주인 — `no-restricted-imports`)에 규칙 한 줄 `@repo/fsd/no-client-enum-export`. axios · motion 금지 무변경 |
+| 2026-11-12 | 서버 S3c 브랜치(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): lint 설정에 `@repo/fsd/danger-only-irreversible` 를 켰다(zone 다섯 · 패키지 다섯) — 빨강은 바로 위 주석에 되돌릴 수 없는 이유가 있을 때만 |

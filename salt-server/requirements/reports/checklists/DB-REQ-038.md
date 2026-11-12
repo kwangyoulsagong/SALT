@@ -104,3 +104,17 @@
 - 몫: `household.FixedCostIncreased` 계약 설명 · README 구독자 칸 — "구독 예정" → 구독(content, 주거만). 필드 · 스키마 무변경
 - 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) · 종단 고정비 증가 구독(실 RabbitMQ) — 슬라이스 체크리스트
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| Flyway V9 — 발행 원장 `landing_issued` 트리거에 계정 삭제 예외 하나(`salt.erase` 켠 DELETE 만, UPDATE 는 그대로 막음) | `MyDataEndToEndTest` · 로컬 운영 DB V9 적용 · 실스택 착지 1행 지움 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

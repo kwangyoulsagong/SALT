@@ -1,4 +1,5 @@
 import express, { Application, Request, Response, NextFunction } from "express";
+import { createMyDataRouter } from "./composition.mydata";
 import cors from "cors";
 import helmet from "helmet";
 import { errorMiddleware } from "./shared/presentation/errorMiddleware";
@@ -74,6 +75,8 @@ app.use(healthRouter);
 app.use([...DORMANT_PATHS], goneMiddleware);
 
 // API Routes
+// 내 데이터(서버 S3c) — `/api/investment` 라우터보다 먼저(같은 머리)
+app.use("/api/investment/me/data", createMyDataRouter());
 app.use("/api/investment", contextRouters.investment);
 app.use("/api/portfolio", contextRouters.portfolio);
 app.use("/api/news", contextRouters.news);

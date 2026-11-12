@@ -1,5 +1,7 @@
 package com.salt.ping
 
+import com.salt.ping.infrastructure.PingUserRows
+import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
 import com.salt.ping.api.PingRecordedListener
 import com.salt.ping.application.EchoPingRecorded
@@ -58,6 +60,11 @@ class PingComposition {
     @Bean
     fun pingRecordedListener(echo: EchoPingRecorded, jsonMapper: JsonMapper, traceParent: TraceParent): PingRecordedListener =
         PingRecordedListener(echo, jsonMapper, traceParent)
+
+    /** 내 데이터 — 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c). 경로는 앱 하나(`MyDataController`) */
+    @Bean
+    fun pingPersonalData(@Qualifier("pingDatabase") database: ServiceDatabase): PersonalData =
+        PersonalData(PingUserRows.of(database.dsl), database.transactionManager)
 
     companion object {
         const val SCHEMA = "ping"

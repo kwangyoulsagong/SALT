@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 
 import jwt from "jsonwebtoken";
 
-import { AUDIENCE_API, AUDIENCE_GUEST, JwksKeys, TOKEN_ISSUER, TokenVerifier, type KeySource } from "../tokenVerifier";
+import { AUDIENCE_API, AUDIENCE_ERASE, AUDIENCE_GUEST, JwksKeys, TOKEN_ISSUER, TokenVerifier, type KeySource } from "../tokenVerifier";
 
 /**
  * 이중 검증 경계 표(`SRV-REQ-048` FR-8 · 수용 기준 "이중 검증 기간 옛 · 새 토큰 모두 통과, 종료 후 옛 토큰 401").
@@ -104,6 +104,31 @@ describe("TokenVerifier — 이중 검증 경계 표", () => {
     const down: KeySource = { key: async () => "unavailable" };
     assert.deepEqual(await verifier(NOW, down).check(rs()), { kind: "unavailable" });
     assert.equal((await verifier(NOW, down).check(hs())).kind, "person");
+  });
+});
+
+describe("TokenVerifier.eraseGrant — 지우기 허가(서버 S3c, 플랫폼 EraseGrants 와 같은 표)", () => {
+  it("RS · aud salt-erase · 발급자 맞음 → 그 사람", async () => {
+    assert.deepEqual(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE })), person);
+  });
+
+  it("접근 · 갱신 · 게스트 토큰은 허가가 아니다 · 허가는 사람 경로를 못 지난다", async () => {
+    assert.equal(await verifier().eraseGrant(rs()), null);
+    assert.equal(await verifier().eraseGrant(rs({}, { aud: "salt-refresh" })), null);
+    assert.equal(await verifier().eraseGrant(rs({ kind: "guest" }, { aud: AUDIENCE_GUEST })), null);
+    assert.deepEqual(await verifier().person(rs({}, { aud: AUDIENCE_ERASE })), { kind: "invalid" });
+  });
+
+  it("옛 HS 는 받지 않는다(이중 기간 안이라도) · 만료 · 다른 키 · 발급자 다름 · kid 없음 · JWKS 못 읽음 → null", async () => {
+    assert.equal(await verifier().eraseGrant(hs({ aud: AUDIENCE_ERASE })), null);
+    assert.equal(await verifier().eraseGrant(hs()), null);
+    assert.equal(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE, exp: sec(NOW) })), null);
+    assert.ok(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE, exp: sec(NOW) + 1 })));
+    assert.equal(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE, signer: stranger.privateKey })), null);
+    assert.equal(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE, iss: "someone" })), null);
+    assert.equal(await verifier().eraseGrant(rs({}, { aud: AUDIENCE_ERASE, kid: null })), null);
+    assert.equal(await verifier(NOW, { key: async () => "unavailable" }).eraseGrant(rs({}, { aud: AUDIENCE_ERASE })), null);
+    assert.equal(await verifier().eraseGrant(rs({ userId: "" }, { aud: AUDIENCE_ERASE })), null);
   });
 });
 

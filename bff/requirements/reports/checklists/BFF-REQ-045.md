@@ -74,3 +74,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 라우팅 표에 platform 경로 셋(`/coach/me/data` · `/ping/me/data` · `/notification/me/data` — 가장 긴 머리가 이긴다, `/coach` 는 legacy 그대로) | BFF 실스택(내보내기 · 삭제 모두 해당 서버에 도착) · `npm test` 465 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

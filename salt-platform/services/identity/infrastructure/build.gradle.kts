@@ -7,6 +7,7 @@ plugins {
 dependencies {
     api(project(":services:identity:domain"))
     implementation(project(":support:messaging"))
+    implementation(project(":support:persistence"))
     implementation(project(":support:web"))
     implementation("org.springframework.boot:spring-boot-starter-json")
     implementation("org.springframework.security:spring-security-crypto")

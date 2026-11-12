@@ -45,3 +45,8 @@
 ## 2026-11-12 — 서버 S3b 확인 2회차
 
 - 변이 11/11 · EXPLAIN · 429 · 소유자 판정 · 국내 스트림 · 게스트 실화면 · identity 중단 중 검증 — 새 결함 0. 상세 루트 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+## 2026-11-12 — 서버 S3c 내 데이터(`MONEY-S3c-identity-my-data`)
+
+- FR-3 · 4. 회고 본문 루트 `requirements/reports/retrospects/MONEY-S3c-identity-my-data.md` — 갱신 토큰이 지운 계정에 새 토큰을 줄 뻔했다(갱신이 서명만 봤다) · 내보내기 시각이 KST 로 나왔다(README 는 UTC)
+- Action: 사람 데이터를 다루는 기능은 "지운 뒤 그 토큰으로 무엇이 되나"를 첫 시험에

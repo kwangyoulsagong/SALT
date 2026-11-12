@@ -1,5 +1,7 @@
 package com.salt.savings
 
+import com.salt.savings.infrastructure.SavingsUserRows
+import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
 import com.salt.savings.application.AddItemUnit
 import com.salt.savings.application.Calculate
@@ -127,6 +129,11 @@ class SavingsComposition {
 
     @Bean
     fun goalClockQuery(reader: GoalReader, clock: Clock): GoalClockQuery = GoalClockQuery(reader, clock)
+
+    /** 내 데이터 — 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c). 경로는 앱 하나(`MyDataController`) */
+    @Bean
+    fun savingsPersonalData(@Qualifier("savingsDatabase") database: ServiceDatabase): PersonalData =
+        PersonalData(SavingsUserRows.of(database.dsl), database.transactionManager)
 
     companion object {
         const val SCHEMA = "savings"

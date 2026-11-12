@@ -61,7 +61,8 @@ export const ProfileMenu = () => {
         label={MESSAGES.menuLabel}
         items={[
           { id: PROFILE_MENU_ITEM.settings, label: MESSAGES.settings },
-          { id: PROFILE_MENU_ITEM.signOut, label: MESSAGES.signOut, tone: "danger" },
+          // 로그아웃은 빨강이 아니다 — 다시 로그인하면 되돌아온다. 빨강은 되돌릴 수 없는 일에만(`@repo/fsd/danger-only-irreversible`, 2026-11-12)
+          { id: PROFILE_MENU_ITEM.signOut, label: MESSAGES.signOut },
         ]}
         onSelect={(id) => {
           if (id === PROFILE_MENU_ITEM.settings) window.location.assign(ROUTES.settings);

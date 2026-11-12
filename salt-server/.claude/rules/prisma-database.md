@@ -12,6 +12,7 @@
 - 관계에는 필요한 `onDelete` 정책을 명시한다.
 - 자주 조회하는 조건에는 `@@index`를 검토한다.
 - 복합 유니크 제약은 Prisma schema에 `@@unique`로 표현한다.
+- **`user_id` 열이 있는 새 모델은 주인 컨텍스트 `infrastructure/userRows.ts` 목록에 넣는다** — 내 데이터 내보내기 · 계정 삭제(`/api/investment/me/data`)가 그 목록으로 돈다. 빠지면 `shared/infrastructure/__tests__/userRows.test.ts` 가 깬다(서버 S3c 2026-11-12)
 
 ## Migration
 

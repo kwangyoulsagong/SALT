@@ -96,3 +96,15 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 - 몫: zone · 도메인 `.eslintrc.json` 10곳(머리 주인 — `no-restricted-imports`)에 규칙 한 줄 `@repo/fsd/no-client-enum-export`. axios · motion 금지 무변경
 - 검증: 슬라이스 검증(`requirements/reports/checklists/MONEY-S2a-tips-content.md`)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-12 — 로그아웃 빨강 · danger 규칙(S3c 브랜치)
+
+| 바뀐 것 | 확인 |
+|---|---|
+| lint 설정에 `@repo/fsd/danger-only-irreversible` 를 켰다(zone 다섯 · 패키지 다섯) — 빨강은 바로 위 주석에 되돌릴 수 없는 이유가 있을 때만 | 경계 표 7칸(거절 넷 · 허용 셋) · 열 곳 lint 위반 0(고친 뒤) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

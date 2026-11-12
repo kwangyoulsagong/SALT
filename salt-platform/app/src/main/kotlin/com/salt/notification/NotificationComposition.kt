@@ -1,5 +1,7 @@
 package com.salt.notification
 
+import com.salt.notification.infrastructure.NotificationUserRows
+import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
 import com.salt.notification.api.NotificationCleanupWorker
 import com.salt.notification.api.NotificationEventsListener
@@ -63,6 +65,11 @@ class NotificationComposition {
     @Bean
     fun notificationSubscriptions(): Declarables =
         Declarables(NotificationEventsListener.SUBSCRIPTIONS.flatMap { EventTopology.subscription(NotificationEventsListener.SUBSCRIBER, it).declarables })
+
+    /** 내 데이터 — 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c). 경로는 앱 하나(`MyDataController`) */
+    @Bean
+    fun notificationPersonalData(@Qualifier("notificationDatabase") database: ServiceDatabase): PersonalData =
+        PersonalData(NotificationUserRows.of(database.dsl), database.transactionManager)
 
     companion object {
         const val SCHEMA = "notification"

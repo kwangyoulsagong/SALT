@@ -128,3 +128,15 @@
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.tsx` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-12 — 로그아웃 빨강 · danger 규칙(S3c 브랜치)
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 공용 머리 프로필 메뉴의 로그아웃에서 빨강(`tone: "danger"`)을 뺐다 — 로그아웃은 다시 로그인하면 되돌아온다(사용자 2026-11-12). 동작 무변경 | 실화면(메뉴 글자색 설정 = 로그아웃 · axe 0 · 로그아웃 뒤 쿠키 0 · 처음 화면) · zone 다섯 운영 빌드(worktree) · 타입 · lint |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

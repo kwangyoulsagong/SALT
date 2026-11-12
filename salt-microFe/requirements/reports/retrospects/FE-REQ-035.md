@@ -62,3 +62,7 @@ axios 직접 호출 둘을 `apiFetch` 로 옮기고 import 를 lint 로 막았�
 
 - 몫: zone · 도메인 `.eslintrc.json` 10곳(머리 주인 — `no-restricted-imports`)에 규칙 한 줄 `@repo/fsd/no-client-enum-export`. axios · motion 금지 무변경
 - **Action**: 없음
+
+## 2026-11-12 — 로그아웃 빨강
+
+- 빨강이 이유 없이 붙어 두 달 남았다 — 색의 뜻(되돌릴 수 없음)을 lint 로 셈. 이유는 그 줄 위 주석에
