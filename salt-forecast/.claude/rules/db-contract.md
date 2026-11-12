@@ -45,6 +45,7 @@
 | `ops_check` | (as_of 정시, subject) | 운영 점검 — 정기 작업 · 주간 비중 · 매일 판단 원장. 같은 시간 재실행은 덮어쓴다, 뷰 없음(`FC-REQ-018`) |
 | `short_horizon_test` · `short_horizon_prediction` · `short_horizon_outcome` | (prereg_key, market, horizon, run_as_of) · (symbol, horizon, as_of, model_version) · 같은 키 | 단타 방향 확률 시험(실행마다 칸마다 — 안 한 칸도 `not_tested`) · 통과 칸만 매시 예측 · 만료 뒤 결과 한 줄(`FC-REQ-028` FR-1 · FR-4, `DB-REQ-043` FR-2). 서버는 `v_short_horizon_cell` · `v_short_horizon_card` |
 | `news_kind_dict` · `news_reaction_stat` · `news_pre_move` | prereg_key · (prereg_key, market, origin, kind, horizon, as_of) · (market, symbol, bar_at) | 소식 측정 태그 — 사전(서버가 새 제목을 같은 사전으로 분류) · 같은 종류 초과 반응 서술 · 종목 봉마다 선반영(`FC-REQ-028` FR-3, `DB-REQ-043` FR-4). 서버는 `v_news_kind_dict` · `v_news_reaction` · `v_news_pre_move` · 원천은 export 뷰 `public.v_kr_news_title_export` · `v_news_article_export` |
+| (읽기만) `public.v_move_explanation_export` | — | 오늘 등락 한 줄(③) 시도 — 주인 서버 coach(`DB-REQ-041` FR-8). 주간 운영 리포트 `move-explain-*.md` 만 읽는다(`FC-REQ-027` FR-4~6, F016 단계 D) |
 | `v_entity_asof` · `v_neighbors`(계획 — `FC-REQ-022` · `023`, 9월 초안 `v_symbol_facts` · `v_symbol_actors` 대체) · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` · `v_event_card`(사건 종목 `event_symbol` — `DB-REQ-034`) · `v_upcoming_event` · `v_move_beta_export`(F016) | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.

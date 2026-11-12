@@ -34,6 +34,7 @@
 | 업비트 공지 JSON | 상장 · 유의 · 유통량 공지 | 없음 | — | 비공식 · 약관 제10조 | **사용 안 함 (사용자 결정 2026-09-23)** — 호출 코드 0건 |
 | 국내 주식 일봉 — 서버가 KIS 에서 받은 `public.price_history(kr_stock, 1d)` · `public.market_holidays`(**실행 날짜까지만** — 서버가 미래 개장일을 KRX 공시 표로 미리 쓴다, 2026-10-30) · `public.kr_stock_master`(상태 플래그 · `synced_at`, FC-REQ-020 FR-9 · 시장 · 업종 중분류, FC-REQ-027) · `public.kr_sector_index_daily`(지수 · 업종 일별 종가 — 서버가 KIS 기간별 시세로 받음, 2026-11-09 FC-REQ-027) **읽기** | 국내 주식 변동 범위 · 채점(FC-REQ-009) | **없음 — KIS 키는 서버에만**(키 보유처 한 곳, FEATURE-011 FR-80) | 외부 호출 0 | KIS 시세 — 재배포 해석 미확정 → **소유자 전용**(FEATURE-011 OQ) | F011 슬라이스 5 |
 | 국내 시황 · 공시 제목 — 서버가 KIS 에서 받은 `public.kr_news_title`(+ 관련 종목) · 코인 뉴스 `public.news_articles` — export 뷰 `v_kr_news_title_export` · `v_news_article_export` **읽기** | 소식 측정 태그(`news-reaction@1`) — 사건 종류 · 같은 종류 초과 반응 | 없음(KIS 키는 서버에만) | 외부 호출 0 — 서버가 1년 백필(2025-11 ~, 보관 400일) | 제목만(본문 0) · 화면엔 서버가 이미 보이는 소식 행에 칩으로 | F017 단계 6 |
+| 오늘 등락 한 줄(③) 시도 — 서버 coach `public.move_explanation` 의 export 뷰 `v_move_explanation_export` **읽기** | 주간 운영 리포트(게이트 분포 · 걸린 사유 · 인용 수 · 나빠짐 판정 · 사람 표시 양식 — `FC-REQ-027` FR-4~6) | 없음 | 외부 호출 0 · DB 쓰기 0 | 문장 · 인용 id 만(기사 본문 0) | F016 단계 D |
 | 투자자별 수급(KRX) | 국내 수급 | — | 공식 API 미제공 · 증권사 API 는 계좌 필요 → **§1-2 충돌로 보류** | — | 보류 |
 
 - 한도는 문서 값의 **80%** 로 pacer 설정.
