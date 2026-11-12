@@ -44,3 +44,4 @@ source: "`FEATURE-018` · `ADR-011`(사용자 결정 2026-11-10)"
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0
 - 2026-11-11(F017 v2 단계 3, `feat/f017-s3-explain-always`): `env.ts` — `COACH_LLM_LOCAL_USERS` · `LLM_USER_DAILY_CALL_LIMIT` 삭제(해설이 배치 하나 — 사람마다 고르거나 세지 않는다, `.env` 에 남아도 스키마가 무시). 손님 시세 변경 0
 - 2026-11-11(F017 v2 단계 5, `feat/f017-s5-short-direction`): F017 v2 단계 5 — `ownerGateScope` 허용표에 `GetSymbolScenario`(확률 = 전망과 같은 소유자 전용, `ADR-003`). 국내 판정 0 그대로
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `env.ts`(머리 주인)에 `MOVE_SUMMARY`(on/off) 하나. 한 줄 읽기 경로는 시장 경로와 같은 읽는 사람(`marketReaderMiddleware` — 게스트 포함) |

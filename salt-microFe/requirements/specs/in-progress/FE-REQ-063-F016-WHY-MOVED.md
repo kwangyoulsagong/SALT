@@ -53,7 +53,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 프리뷰 한 줄 | done | `WhyMovedPreview` — 시장 표 우측 프리뷰 맨 위 "왜 떨어졌을까?"(카드 날만) · 가장 큰 몫 둘 · 사실 하나 · 자세히(셰브론). 단계 D 의 ③ 문장 자리(사용자 2026-11-09 "프리뷰에도 나와야지") |
 | FR-6 표 행 | done | `WhyMovedRowChip` "왜?" — 서버 `moveCard` 행만 · 누르면 상세 `#why-moved` |
 | 국내 프리뷰 오늘 소식 | done | `KrNewsPreview` — 코인 뉴스 프리뷰와 같은 카드(제목 한 줄 · 제공처 · N분 전 · 공시/시황 배지). 링크 · 요약은 원천에 없다(사용자 2026-11-09 "코인처럼 뉴스") |
-| FR-1 ③ | 단계 D | — |
+| FR-1 ③ | done(2026-11-12 단계 D) | `WhyMovedCard` `MoveSummaryLine` — ① 표 아래 · ② 목록 위. `[k]` → 번호 칩(누르면 그 사실 줄 · `:target` 바탕) · `ai` 면 `ADR-009` §3 AI 표시 · 조용한 날 서버 문장은 표시 없이 · `pending` "정리하는 중" · 막힘 · 꺼짐 · 못 읽음은 그리지 않음. 프리뷰는 사실 한 줄 자리에 ③(번호 빼고 두 줄 말줄임 + AI 표시) |
 
 - 디자인은 기능만(사용자 2026-11-09 "디자인 개선은 추후 스펙") — 깨짐 막기(넘침 · 줄바꿈 · 720 폭 · 대비)까지
 - 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md`
@@ -61,9 +61,9 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 ## Acceptance Criteria
 
 - [ ] 실화면 — 큰 등락 종목(국내 · 코인) 카드 · 정지 띠(재생 데이터 또는 Playwright `route`) · 칩
-- [ ] Playwright — 원천 실패 · ③ 없음 · 생성 중 · 비소유자 · 만료 세션
+- [ ] Playwright — 원천 실패 · ③ 없음 · 생성 중 · 비소유자 · 만료 세션 — **③ 몫 닫음 2026-11-12**(ok · pending · quiet · guard_blocked · 낡은 인용 route 강제, 실데이터 국내 3 · 코인 1). 비소유자 · 만료 세션은 F018 뒤 국내 공개라 해당 없음
 - [ ] axe 새 요소 0 · 넘침 0 · 문구 grep 0
-- [ ] 번들 — 투자 zone 상세 증가분 기록(`FE-REQ-029`)
+- [ ] 번들 — 투자 zone 상세 증가분 기록(`FE-REQ-029`) — 단계 D: 상세 첫 로드 153kB(단계 C 뒤 F017 단계 6 과 같음 — ③ 증가 0, worktree 운영 빌드)
 
 ## 계약 영향
 
@@ -87,3 +87,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrInvestorFlows.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockNews.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+| 2026-11-12 | 단계 D — FR-1 ③ done. 실화면 1440 · 390(앱 웹뷰 UA) · 코인 상세 · 프리뷰 · 상태 5종(route) · 넘침 0 |

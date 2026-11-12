@@ -66,10 +66,19 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - 로컬 적용 2026-11-09. 롤백 SQL 은 각 파일 머리. `forecast` 를 `public` 에서 읽는 자리 +1(`kr_sector_index_daily` · `kr_stock_master.sector_mid_code`) — `DB-REQ-036` 부록 B9
 - 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md`
 
+## 진행 — 단계 D done(2026-11-12)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-8 `move_explanation` | done | `20261112120000_move_explanation` — 시도 하나 = 한 행(실패도 — 같은 지문 LLM 1회 · 하루 상한을 센다) · `(asset_class, symbol, trade_date, fingerprint)` 유일 · 게이트 CHECK(ok ⇔ 문장 · 인용 ≥1) · UPDATE 차단 트리거(`judgment_ledger_immutable` 재사용) · 사용자 열 0 · 원문 0. export 뷰 `v_move_explanation_export`(예측 주간 리포트만 읽는다) |
+| FR-9 교차 스키마 0 | done | coach 는 market 공개 API `whyMovedCard` 로만 카드를 읽는다 — 조인 0 |
+
+- EXPLAIN: 그날 시도 읽기 `move_explanation_day_idx` 인덱스 스캔 0.15ms(버퍼 2)
+
 ## Acceptance Criteria
 
 - [ ] 마이그레이션 목적 하나씩(표 추가 · 열 추가 분리) · 롤백 SQL
-- [ ] 본문 열 0(스키마 grep) · `move_explanation` UPDATE 실패 테스트
+- [x] 본문 열 0(스키마 grep) · `move_explanation` UPDATE 실패 테스트(로컬 DB 실측 — 트리거 오류)
 - [ ] 새 쿼리 EXPLAIN(종목 · 시각 인덱스)
 
 ## 계약 영향
@@ -87,3 +96,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | 단계 C done — `move_beta` · `v_move_beta_export` · 업종 중분류 열 · 지수 이름 표. FR-7 정정(새 열 대신 기존 스냅샷 뷰) |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `PrismaKrMoveSourceStore.newsTitle(serial, code)` — 연결 PK(serial, code) → 제목 PK, 광고성 제외(본문 찾기 입력) |
 | 2026-11-10 | `PrismaKrMoveSourceStore` 읽기 둘 — `sectorBoard`(업종 최신 값 + 이름, 20행 안팎) · `searchNewsTitles`(일주일 창 `ILIKE` · `published_at` 인덱스 0.26ms) — 검색 모달 `SRV-REQ-055` `dd0bbdcc`. DDL 0. 저장된 시황 제목 39행 제어 문자 정리(`0df7784e`, 규칙 주인 `SRV-REQ-051`) |
+| 2026-11-12 | 단계 D — FR-8 · FR-9 done. 정정: 실패 시도도 행으로(같은 지문 LLM 1회의 근거 · 품질 감사) · export 뷰 더함(예측 리포트) |

@@ -347,3 +347,4 @@ type ExplainResult =
 - 2026-11-10 밤(1b): `GetSymbolCoach` 기본 모드 — 국내는 장기 그대로(국내 단타를 열어도 프로필 기본 모드는 코인에서 고른 것이라 국내엔 안 건다, `326a0553`). 응답 모양 무변경
 - 2026-11-11(1c): `feat/f017-s1c-collection`: 해설 테스트 가짜 시장에 `dailyBarCounts`(위와 같은 이유). 해설 계약 변경 0
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/application/GetSymbolCoach.ts` 에 걸린 몫: 등급 리더(선택 생성자 인자)를 판단 재료와 나란히 한 번 읽어 모드마다 `tier` 를 붙인다 — 실패하면 참고, 판단 · 게이트 흐름 그대로. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `llmBudget.ts` FR-62 — `llmBudgetVerdict` 에 `reservedCalls`(기본 0) · `LLM_RESERVED_CALLS.moveSummary` 30. 상한 값 그대로 |

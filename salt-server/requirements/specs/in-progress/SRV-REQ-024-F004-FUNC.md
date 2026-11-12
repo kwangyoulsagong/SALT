@@ -402,3 +402,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
   - `salt-server/src/coach/application/api/index.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
 - 2026-11-10 밤(1b): `RecordSymbolJudgments` — 국내 단타 스냅샷 · 다음 거래일 종가 채점(`SRV-REQ-040` FR-63 v2, `326a0553`)
 - 2026-11-11(1c): `feat/f017-s1c-collection`: 판단 원장 테스트 가짜 시장에 `dailyBarCounts` — 코인 장기 이력 꼬리표(`SRV-REQ-057` FR-1)가 MA50 없는 코인의 일봉을 센다. 원장 동작 변경 0
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `opsGuards.test.ts` 에 LLM 상한 예약 경계 표 한 줄(`reservedCalls`) — 해설 · 한 줄이 같은 상한을 나눠 쓴다 |

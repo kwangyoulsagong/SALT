@@ -86,3 +86,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-11 | **단계 4**(`feat/f017-s4-grade`) — FR-7 done(`a584ea21`). 지금 등급은 네 칸 다 참고(`no_candidate`) — 판단 화면에 이유 · 유효 표본 n/620 |
 | 2026-11-11 | **단계 5**(`feat/f017-s5-short-direction`) FR-5 done `74289a7a` — `GET /api/coach/scenario`(소유자만 · 지평 늘 셋 · 막힘 이유 하나 · 막혀도 시험 성적). 정정: 응답 `range{lowPct,midPct,highPct}` · `track.alwaysUpHits`(같은 확신 행 늘 오른다). 언어 가드 테스트가 면책 문구 '보장'을 잡아 '자주 빗나가며'로 |
 | 2026-11-12 | **단계 4b** — 등급용 후보 규칙 `mode-decision@3`(후보 문턱 70 → 60) 사전등록 `94122c60` · 정정 `e1fff7c5`(70 은 @2 가 일부러 남긴 것) → 표본 밖 관문 **hold**: 국내 단타 후보 비용 뒤 −0.203% [−0.280, −0.127] · 비용 전 +0.02%(리포트 `requirements/reports/backtests/mode-decision-3-gate-2026-11-12.md`). 라이브 규칙 · 코드 변경 0 — FR-7 등급은 그대로 참고(`no_candidate`). 후보는 문턱이 아니라 새 신호가 있어야 나온다 |
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): 해설 배치 `GenerateExplanationSnapshots` 가 LLM 상한 끝 30회를 남긴다(오늘 등락 한 줄 몫) — 해설 회차 상한 · 지문 규칙 그대로 |

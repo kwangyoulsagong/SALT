@@ -532,3 +532,17 @@
 - [x] `GetKrStockNews` 항목에 `tag`(측정 태그 — 덧붙임, 실패면 null). 읽기 경로 · 범위(오늘 · 최근 7일)는 그대로
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| BFF `app-kr-stock.service.ts`(머리 주인) `getWhyMoved` 가 ③ 한 줄을 병렬로 합친다(`BFF-REQ-051` FR-1) — 다른 국내 경로 변경 0 | BFF 테스트 457 · 실 BFF 경유 54~159ms |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

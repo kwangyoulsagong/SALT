@@ -49,3 +49,17 @@
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 소유자 판정 범위 | 충족 | 허용표 넷 · 테스트 통과 · 실 BFF 비소유자 토큰 404 |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `env.ts`(머리 주인)에 `MOVE_SUMMARY`(on/off) 하나. 한 줄 읽기 경로는 시장 경로와 같은 읽는 사람(`marketReaderMiddleware` — 게스트 포함) | 게스트 토큰으로 200 · 토큰 없음 401 실측 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

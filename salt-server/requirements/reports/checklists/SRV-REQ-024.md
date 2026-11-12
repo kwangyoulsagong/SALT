@@ -375,3 +375,17 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 상한 경계 표 | 충족 | `npm test` 1208 |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `opsGuards.test.ts` 에 LLM 상한 예약 경계 표 한 줄(`reservedCalls`) — 해설 · 한 줄이 같은 상한을 나눠 쓴다 | `node --test` 통과(16) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

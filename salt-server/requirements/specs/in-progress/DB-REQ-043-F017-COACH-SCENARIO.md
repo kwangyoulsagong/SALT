@@ -49,3 +49,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-10 | 신규(to-do) — `FEATURE-017` 개정(범위 "잘 사고 잘 팔기") |
 | 2026-11-10 밤(1b) | to-do → in-progress — FR-6 출처 라벨 done(`f38ca6ae`, 마이그레이션 `20261110200000_judgment_backtest_labels`). 라벨을 단 원장은 계획의 `coach.judgment_ledger` 가 아니라 지금 3종이 읽는 `public.symbol_judgment_snapshots` — 계획 문장 정정 |
 | 2026-11-11 | **단계 4**(`feat/f017-s4-grade`) — FR-6 등급 표 · 계약 뷰 · 판단 원장 export 뷰 done(`fa1877a1`). 정정: 행동 열 없음. `EXPLAIN (ANALYZE, BUFFERS)`(확인 2회차) — 서버 읽기 `v_judgment_tier` PK 인덱스 스캔 0.45ms · 4행 / 배치 읽기 export 뷰 원장 순차 스캔 16만 행 67ms(하루 한 번 전부 읽는 배치 — 예산 안) |
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): coach `application/api/index.ts`(머리 주인) 조립에 유스케이스 둘(`getMoveSummary` · `generateMoveSummaries`) · 의존 없으면 꺼짐(테스트 조립) |

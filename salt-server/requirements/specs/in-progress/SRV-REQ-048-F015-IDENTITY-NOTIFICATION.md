@@ -50,3 +50,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — coach `ports.ts` — `ExplanationSnapshotStore` · `ExplanationSnapshotRecord` · `ExplainCaller.userId` 가 `null` 가능(배치) · `batch` 표지 · `LlmUsageStore.usageSince` 사용자 `null` |
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/domain/ports.ts` 에 걸린 몫: 포트 `JudgmentTierReader` 추가. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-11 | F017 v2 단계 5 — `coach/domain/ports.ts` 에 `ShortHorizonReader` 포트(머리 주석 주인) |
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): coach `domain/ports.ts`(머리 주인) — 포트 셋(`MoveCardReader` · `MoveSummaryStore` · `MoveSummaryWriter`) · 사용량 `purpose` 에 `move_summary` 추가. 알림 · identity 몫 변경 0 |

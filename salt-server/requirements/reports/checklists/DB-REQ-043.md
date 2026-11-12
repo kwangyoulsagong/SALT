@@ -64,3 +64,17 @@
 |---|---|---|
 | 첫 "ok" 서술(숫자 있는 칩) 실화면 | 국내 제목 이력이 11-06 ~ 뿐이라 첫 실행은 전부 `below_min` — 서버 1년 백필이 장 밖 30쪽/분으로 채우는 중 | 백필이 1년 앞에 닿은 뒤 매일 배치(`daily.sh` news_reaction) 다음 회차 — 2026-11-13 |
 | ~~응답 시간(p95) 실측~~ | **닫힘 2026-11-12 11:2x**(부하 평균 13 로 내려간 뒤) — 20회씩 p50 / p95: 국내 소식 14 / 207ms · 12 / 24ms · 코인 뉴스 5 / 10ms · 국내 왜 움직였나 19 / 51ms · 코인 9 / 21ms. 선반영 조회 `EXPLAIN` 인덱스 1.5ms · 서술 뷰 2ms | — |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| coach `application/api/index.ts`(머리 주인) 조립에 유스케이스 둘(`getMoveSummary` · `generateMoveSummaries`) · 의존 없으면 꺼짐(테스트 조립) | 서버 테스트 1282 · 빌드 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

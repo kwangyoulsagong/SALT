@@ -112,3 +112,17 @@
 - [x] `composition.ts` 에 `PrismaNewsTagReader`(예측 뷰 셋) 조립 — market 의존 하나 더
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `composition.ts`(머리 주인) — 한 줄 의존 조립(`MoveCardAdapter` · `PrismaMoveSummaryStore` · `LlmMoveSummaryWriter`, 로컬 CLI 감지 결과를 같이 꽂음) · `MOVE_SUMMARY` 스위치 | 서버 빌드 · 재시작 뒤 실경로 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

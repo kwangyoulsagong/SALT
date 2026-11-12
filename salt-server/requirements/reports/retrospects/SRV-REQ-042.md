@@ -68,3 +68,8 @@
 ## 2026-11-12 — F017 단계 6 덧붙임
 
 - 이 REQ 의 코드에 측정 태그 칸을 더했다(덧붙임 — 없거나 실패면 이전과 같은 화면). 새 교훈은 주인 REQ(`SRV-REQ-053` 회고)에
+
+## F016 단계 D 짝(2026-11-12)
+
+- 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: `composition.ts`(머리 주인) — 한 줄 의존 조립(`MoveCardAdapter` · `PrismaMoveSummaryStore` · `LlmMoveSummaryWriter`, 로컬 CLI 감지 결과를 같이 꽂음) · `MOVE_SUMMARY` 스위치
+- 배운 것: 공유 파일을 바꾸면 그 파일 소비처를 grep 으로 전부 — 이번엔 소비처 변경 0

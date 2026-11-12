@@ -60,3 +60,4 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 - 2026-11-10 밤(1b): `composition.ts` — 과거 검산 저장소가 세는 출처를 `BACKTEST_DISPLAY_ORIGINS` 로(`f38ca6ae`). 이 REQ 의 몫(요약 띠) 무변경 — 조립 파일이 이 REQ 를 가리켜 기록만
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `composition.ts` — 수집 의존(`collection`) · KIS 동시 대기 상한 설정. 요약 띠 변경 0
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/composition.ts` 에 걸린 몫: `judgmentTiers: new PrismaJudgmentTierReader()` 조립 한 줄. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `composition.ts`(머리 주인) — 한 줄 의존 조립(`MoveCardAdapter` · `PrismaMoveSummaryStore` · `LlmMoveSummaryWriter`, 로컬 CLI 감지 결과를 같이 꽂음) · `MOVE_SUMMARY` 스위치 |
