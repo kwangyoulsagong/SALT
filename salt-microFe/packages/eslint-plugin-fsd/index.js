@@ -3,6 +3,7 @@
 const layers = require("./rules/layers");
 const noRenderRead = require("./rules/no-render-read");
 const noClientEnumExport = require("./rules/no-client-enum-export");
+const dangerOnlyIrreversible = require("./rules/danger-only-irreversible");
 
 /**
  * FSD 레이어 경계를 강제하는 ESLint 플러그인 (`FE-REQ-009` FR-21).
@@ -20,5 +21,7 @@ module.exports = {
     "no-render-read": noRenderRead,
     // "use client" 파일의 enum 은 서버 컴포넌트에서 undefined — 실화면에서만 보였다(`FE-REQ-058`, 2026-11-05)
     "no-client-enum-export": noClientEnumExport,
+    // 빨강은 되돌릴 수 없는 일에만 — 로그아웃이 빨간 메뉴였다(`FE-REQ-055`, 2026-11-12)
+    "danger-only-irreversible": dangerOnlyIrreversible,
   },
 };
