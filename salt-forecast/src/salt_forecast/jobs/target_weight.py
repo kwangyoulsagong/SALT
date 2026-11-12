@@ -17,6 +17,7 @@ from pathlib import Path
 
 from sqlalchemy import Engine
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.scoring.target_weight import render_report, run
 from salt_forecast.store.db import engine
@@ -80,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
                                       "less_drawdown": r.claim_less_drawdown, "timing": r.claim_timing}},
                 )  # fmt: skip
         if not args.no_report:
-            path = REPORTS / f"target-weight-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"target-weight-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, out), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return len(out.records)

@@ -60,6 +60,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0 |
 | 2026-11-09 | 신규(to-do) — 관망 채점 · 해설 리포트 · 엔진 v3 |
 | 2026-11-10 밤 | **v2** — FR-2 표본 미달 → `below_min` 상태 · 조건 K1~K8 · C1~C8 · FR-5 코인 과거 검산 채점(3종 늘) · FR-6 `rule-ic-kr@1` · 등급 신규 · 불변식 4 · 5(리서치 v2) |
 | 2026-11-10 | to-do → in-progress · **몫을 바꿈**(파일 이름도) — FR-0 결함 done(`eb0d6bea`) · FR-1 단타 방향 확률 · FR-2 기저율 · FR-3 사건 종류 반응 · FR-4 채점. 옛 FR 전부 뺌(Non-Goals) |

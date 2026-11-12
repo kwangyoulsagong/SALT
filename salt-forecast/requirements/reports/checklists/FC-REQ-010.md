@@ -54,3 +54,9 @@
 | `btc_beta` 소비처 하나 더 — 등락 분해 코인 β 로 그대로 옮긴다(F016 단계 C `FC-REQ-027`, 새 계산 0) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-12 리포트 이름 날짜
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |

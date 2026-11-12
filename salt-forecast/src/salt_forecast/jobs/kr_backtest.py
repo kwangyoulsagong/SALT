@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.domain.kr_regime import REGIMES, kr_regime
 from salt_forecast.domain.kr_universe import KEY as UNIVERSE_KEY
 from salt_forecast.domain.kr_universe import eligible_at
@@ -294,7 +295,7 @@ def main(argv: list[str] | None = None) -> int:
             register_model(eng, m, m.split("@")[0], kr_model_params(m))
         n = write_predictions(eng, cols.prediction_rows()) + write_scores(eng, cols.score_rows())
         REPORTS.mkdir(exist_ok=True)
-        (REPORTS / f"kr-backtest-{now.date()}.md").write_text(report, encoding="utf-8")
+        (REPORTS / f"kr-backtest-{report_day(now)}.md").write_text(report, encoding="utf-8")
         t_now = int(now.timestamp())
         stale = {s for s, c in series.items() if not cal.fresh(c, t_now, slack=1)}
         rows = pooled_gates(

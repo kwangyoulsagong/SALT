@@ -12,6 +12,7 @@ import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.domain.judgment_tier import KEY, RULE_VERSION
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
@@ -65,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
             else save_tiers(eng, KEY, RULE_VERSION, as_of, [c.row for c in runs], datetime.now(UTC))
         )
         if not args.no_report:
-            path = REPORTS / f"judgment-tier-{KEY.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"judgment-tier-{KEY.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(KEY, sha, as_of, runs), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return written

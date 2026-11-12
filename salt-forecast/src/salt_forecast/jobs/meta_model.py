@@ -15,6 +15,7 @@ import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.models.meta import learners
 from salt_forecast.scoring.meta_model import rule_ic_fdr, run
@@ -83,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
                               "adopted": out.adopted}},
         )  # fmt: skip
         if not args.no_report:
-            path = REPORTS / f"meta-model-{key.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"meta-model-{key.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(key, sha, as_of, out, fdr), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return out.n_rows

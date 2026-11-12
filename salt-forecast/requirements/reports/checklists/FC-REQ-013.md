@@ -35,3 +35,9 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: "마지막 단계" · in-progress 둔 이유(2027-05-03). 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## 2026-11-12 리포트 이름 날짜
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |

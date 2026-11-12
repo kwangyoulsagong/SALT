@@ -89,3 +89,9 @@
 - dry-run 공시 행 쓰기 전후: `kr_daily` 예측 400 · 대기 19,044 · 채점 0 / `kr_volatility` 2,611 — 같다. `reports/` 새 파일 0
 - 게이트: `ruff check` · `ruff format --check` · `pyright` 0 · `lint-imports` 3 kept · `pytest` · `pytest tests/leakage` 통과
 - ~~미검증 · 범위 밖: `kr_backtest` dry-run 안 돌림~~ **닫힘 2026-10-30** — `--as-of 2026-10-30` 을 공시 행 있음(45행) · 뺌 두 번: 리포트 493줄 바이트 동일(sha256 `71fee458…`) · 7,450,872행 같음 · 12.8 · 13.4분. 뺀 행은 상시 서버 재시작으로 다시 채움(45 · 휴장 3). `reports/` 새 파일 0. 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+
+## 2026-11-12 리포트 이름 날짜
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |

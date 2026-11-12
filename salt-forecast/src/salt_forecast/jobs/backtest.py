@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.jobs._common import (
     base_parser,
     logger,
@@ -96,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
             register_model(eng, m, m.split("@")[0], model_params(m))
         n = write_predictions(eng, preds) + write_scores(eng, scores)
         REPORTS.mkdir(exist_ok=True)
-        (REPORTS / f"backtest-{now.date()}.md").write_text(report, encoding="utf-8")
+        (REPORTS / f"backtest-{report_day(now)}.md").write_text(report, encoding="utf-8")
         universe = sorted({(s, h) for s in series for h in HORIZONS})
         stale = {s for s, c in series.items() if (c.last_at() or 0) < int(now.timestamp()) - 2 * 86_400}
         n += write_gates(eng, gates(scores_for(eng, [PRODUCTION, BASELINE]), PRODUCTION, BASELINE, stale, universe))

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import numpy as np
 import pytest
@@ -120,3 +120,25 @@ def test_stalled_sources_make_prices_stale() -> None:
     assert as_of is not None and as_of == krx_session(date(2026, 10, 20))
     assert not presumed.fresh(s, as_of, slack=1)
     assert presumed.realized(s, krx_session(date(2026, 10, 6)), 1) is None  # 봉 없는 가정일은 채점에 안 들어간다
+
+
+@pytest.mark.parametrize(
+    ("t", "day"),
+    [
+        (datetime(2026, 11, 11, 6, 44, tzinfo=UTC), "2026-11-11"),  # 15:44 KST
+        (datetime(2026, 11, 11, 14, 59, 59, tzinfo=UTC), "2026-11-11"),  # 23:59:59 KST
+        (datetime(2026, 11, 11, 15, 0, tzinfo=UTC), "2026-11-12"),  # 00:00 KST
+        (datetime(2026, 11, 11, 23, 57, tzinfo=UTC), "2026-11-12"),  # 08:57 KST — UTC 날짜면 전날 리포트를 덮었다
+    ],
+)
+def test_report_day_is_kst_date(t: datetime, day: str) -> None:
+    from salt_forecast.domain.calendar import report_day
+
+    assert report_day(t) == day
+
+
+def test_report_day_rejects_naive() -> None:
+    from salt_forecast.domain.calendar import report_day
+
+    with pytest.raises(ValueError):
+        report_day(datetime(2026, 11, 11))  # noqa: DTZ001 — naive 를 거절하는지가 시험 대상

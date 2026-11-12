@@ -60,5 +60,6 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4-1 ·
 
 ## Changelog
 
+- 2026-11-12: 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0
 - 2026-09-29: 초판 · FR-1~5 완료(`766e08d` · `84f69b2` · `baed893`)
 - 2026-10-29: 전수 조사 정정 — 범위 밖 2행 닫힘 표시(`FC-REQ-013`)

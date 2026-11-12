@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from salt_forecast.domain.base_rate import CRYPTO_ROUND_TRIP, kr_round_trip
+from salt_forecast.domain.calendar import report_day
 from salt_forecast.domain.series import DAY
 from salt_forecast.domain.short_direction import (
     CRYPTO_SPECS,
@@ -200,7 +201,7 @@ def main(argv: list[str] | None = None) -> int:
             )  # fmt: skip
         written = len(rows) if args.dry_run else save_test(eng, KEY, mv, as_of, rows, datetime.now(UTC))
         if not args.no_report:
-            path = REPORTS / f"short-direction-{KEY.replace('@', '-')}-{as_of.date().isoformat()}.md"
+            path = REPORTS / f"short-direction-{KEY.replace('@', '-')}-{report_day(as_of)}.md"
             path.write_text(render_report(KEY, sha, as_of, run, forward, look), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return written
