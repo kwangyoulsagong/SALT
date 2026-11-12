@@ -47,7 +47,6 @@ import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSymbolEvents } from "../GetSymbolEvents";
-import { GetSymbolForecast } from "../GetSymbolForecast";
 import { GetSymbolScenario } from "../GetSymbolScenario";
 import { GetSymbolPositioning } from "../GetSymbolPositioning";
 import { GetSignalPerformance } from "../GetSignalPerformance";
@@ -109,7 +108,7 @@ export interface CoachDependencies {
   generationLogs: CoachGenerationLogStore;
   /** 수동 재생성 쿨다운(초). **설정값**이다(`SRV-REQ-024` FR-82) — env 에서 온다 */
   regenerateCooldownSeconds: number;
-  /** 가격 전망 읽기(F008) — `forecast.v_forecast_card` */
+  /** 전망 계약 뷰 읽기(F008) — 사건 · 쏠림 · 변동성 · 국면(주간 변동 범위 `v_forecast_card` 읽기는 2026-11-12 삭제) */
   forecasts: ForecastReader;
   /** 전망 소유자 이메일(ADR-003) — env 에서 온다. 비면 아무도 못 본다 */
   forecastOwnerEmails: readonly string[];
@@ -156,7 +155,6 @@ export interface CoachUseCases {
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
-  getSymbolForecast: GetSymbolForecast;
   /** 시나리오 카드 — 단타 방향 확률, 소유자만(F017 v2 단계 5 · `SRV-REQ-053` FR-5) */
   getSymbolScenario: GetSymbolScenario;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
@@ -297,7 +295,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.backtestJudgments ?? null,
       deps.market
     ),
-    getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.market, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),

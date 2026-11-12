@@ -1,115 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isForecastOwner, toForecastHorizon, type ForecastCardRow } from "../policy";
-import type { CoachHolding } from "../model";
+import { isForecastOwner } from "../policy";
 
-/**
- * 가격 전망 카드 (F008 `SRV-REQ-037` · `ADR-003`). 숫자는 Python 이 채점한 것이고 여기는 환산 · 게이트만.
- */
-
-const row = (over: Partial<ForecastCardRow> = {}): ForecastCardRow => ({
-  assetClass: "crypto",
-  horizonWeeks: 2,
-  asOf: new Date("2026-09-23T00:00:00Z"),
-  modelVersion: "ens-baseline@0.1.0",
-  baseClose: 100_000_000,
-  quantiles: [-0.1, -0.07, -0.03, 0.001, 0.03, 0.07, 0.1],
-  pUp: 0.51,
-  direction: "abstain",
-  renderable: false,
-  blockedReason: "underperforms_baseline",
-  rangeRenderable: true,
-  rangeBlockedReason: null,
-  scoreKind: "backtest",
-  sample: 52,
-  coverage90: 0.885,
-  width90: 0.2,
-  baselineWidth90: 0.19,
-  pinballSkill: -0.01,
-  pinballSkillCiLow: -0.03,
-  directionCalls: 0,
-  directionHits: 0,
-  directionBaseRate: null,
-  recentMisses: [{ asOf: "2026-08-10T00:00:00Z", realized: -0.15, q05: -0.1, q95: 0.1 }],
-  windowFrom: new Date("2025-09-29T00:00:00Z"),
-  windowTo: new Date("2026-09-21T00:00:00Z"),
-  missCount: 6,
-  ...over,
-});
-
-const holding = (quantity: number): CoachHolding => ({
-  symbol: "BTC",
-  totalQuantity: quantity,
-  averageBuyPrice: 90_000_000,
-  totalInvested: 90_000_000 * quantity,
-  currentPrice: 100_000_000,
-  currentValue: 100_000_000 * quantity,
-  unrealizedProfit: 0,
-  unrealizedProfitRate: 0,
-  realizedProfit: 0,
-});
-
-describe("toForecastHorizon", () => {
-  it("분위수를 기준가 × e^q 로 환산하고 원화는 정수다", () => {
-    const v = toForecastHorizon(row(), null);
-    assert.equal(v.renderable, true);
-    assert.equal(v.range?.low, Math.round(100_000_000 * Math.exp(-0.1)));
-    assert.equal(v.range?.high, Math.round(100_000_000 * Math.exp(0.1)));
-    assert.equal(v.range?.coverage, 90);
-    assert.equal(v.scenario, null); // 보유 없음
-  });
-
-  it("보유 수량이 있으면 '이 주에 판다면' 평가금액 변화 범위를 싣는다", () => {
-    const v = toForecastHorizon(row(), holding(0.5));
-    assert.ok(v.scenario);
-    assert.equal(v.scenario.valueChangeLow, Math.round(0.5 * (v.range!.low - 100_000_000)));
-    assert.ok(v.scenario.valueChangeLow < 0 && v.scenario.valueChangeHigh > 0);
-  });
-
-  it("기준을 못 이긴 기간에는 방향 필드 자체가 없다", () => {
-    const v = toForecastHorizon(row(), null);
-    assert.equal("direction" in v, false);
-    const won = toForecastHorizon(row({ renderable: true, direction: "up", pUp: 0.6, directionCalls: 30, directionHits: 18, directionBaseRate: 0.55 }), null);
-    assert.equal(won.direction?.baseRate, 0.55); // 적중률은 기저율과 한 묶음
-  });
-
-  it("빗나간 사례가 없으면 범위를 싣지 않는다 — 전망 3종", () => {
-    const v = toForecastHorizon(row({ recentMisses: [] }), null);
-    assert.equal(v.renderable, false);
-    assert.equal(v.blockedReason, "failure_cases_missing");
-    assert.equal(v.range, null);
-  });
-
-  it("보정이 막히면 사유만 — 숫자 0건", () => {
-    const v = toForecastHorizon(row({ rangeRenderable: false, rangeBlockedReason: "miscalibrated" }), holding(1));
-    assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario, v.trackRecord], [false, "miscalibrated", null, null, null]);
-  });
-
-  it("국내 거부권 사유는 그대로 옮긴다 — 표본 부족으로 접지 않는다 (F011 5d · FC-REQ-020 FR-1 · FR-2)", () => {
-    for (const reason of ["not_sharper_than_baseline", "skill_not_significant"]) {
-      const v = toForecastHorizon(row({ assetClass: "kr_stock", rangeRenderable: false, rangeBlockedReason: reason }), holding(1));
-      assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario], [false, reason, null, null]);
-    }
-  });
-
-  it("국내 종목 상태 사유도 그대로 옮긴다 (FC-REQ-020 FR-9)", () => {
-    for (const reason of ["delisting_liquidation", "trading_halted", "administrative_issue", "investment_warning"]) {
-      const v = toForecastHorizon(row({ assetClass: "kr_stock", rangeRenderable: false, rangeBlockedReason: reason }), holding(1));
-      assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario], [false, reason, null, null]);
-    }
-  });
-
-  it("커버리지는 폭 · 기준 폭과 함께만 나간다", () => {
-    const v = toForecastHorizon(row({ baselineWidth90: null }), null);
-    assert.equal(v.renderable, false);
-  });
-
-  it("목표가 · 기대수익 · 확신 같은 필드가 없다", () => {
-    const keys = JSON.stringify(toForecastHorizon(row(), holding(1)));
-    for (const banned of ["targetPrice", "expectedReturn", "confidence"]) assert.equal(keys.includes(banned), false);
-  });
-});
+/** 전망 소유자 판정 (F008 `SRV-REQ-037` · `ADR-003`). 주간 변동 범위 카드 테스트는 2026-11-12 카드와 같이 삭제 */
 
 describe("isForecastOwner", () => {
   it("대소문자 · 공백을 무시하고, 목록이 비면 아무도 아니다", () => {
@@ -117,23 +11,5 @@ describe("isForecastOwner", () => {
     assert.equal(isForecastOwner("other@example.com", ["me@example.com"]), false);
     assert.equal(isForecastOwner("me@example.com", []), false);
     assert.equal(isForecastOwner(undefined, ["me@example.com"]), false);
-  });
-});
-
-describe("변동 범위 성적 4요소 (F009 FR-33)", () => {
-  it("판정 창 · 표본 · 단순 예측 기준 · 범위 밖 수를 싣는다", () => {
-    const v = toForecastHorizon(row(), null);
-    assert.deepEqual(v.trackRecord?.claim, {
-      period: { present: true, from: "2025-09-29", to: "2026-09-21" },
-      sample: 52,
-      baseline: { present: true, code: "naive_range" },
-      misses: { present: true, count: 6, outOf: 52 },
-    });
-  });
-
-  it("열이 생기기 전 행은 기간 · 빗나간 수가 not_recorded", () => {
-    const claim = toForecastHorizon(row({ windowFrom: null, windowTo: null, missCount: null }), null).trackRecord?.claim;
-    assert.deepEqual(claim?.period, { present: false, reason: "not_recorded" });
-    assert.deepEqual(claim?.misses, { present: false, reason: "not_recorded" });
   });
 });

@@ -5,8 +5,6 @@ import type { ForecastReader } from "../../domain";
 import { GetSymbolEvents } from "../GetSymbolEvents";
 
 const reader = (calls: string[]): ForecastReader => ({
-  cards: async () => [],
-  recentCloses: async () => [],
   eventCards: async (symbol) => {
     calls.push(symbol);
     return [];
