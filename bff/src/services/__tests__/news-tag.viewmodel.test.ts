@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { toNewsTagVM } from "../news-tag.viewmodel";
 import { toKrNewsVM } from "../kr-stock.viewmodel";
 import { toNewsPreviewViewModels } from "../news.viewmodel";
+import { toWhyMovedVM } from "../why-moved.viewmodel";
 
 /** F017 단계 6 — 측정 태그(BFF-REQ-052 FR-5): 서버 값을 옮기기만 · 모르는 라벨 · 깨진 모양이면 태그 없이 행만 */
 
@@ -61,5 +62,20 @@ describe("소비처 — 국내 소식 · 코인 종목 뉴스 행에 tag", () =>
     const vms = toNewsPreviewViewModels([{ ...a, tag }, a]);
     assert.equal(vms[0]!.tag?.label, "up_usually");
     assert.equal(vms[1]!.tag, null);
+  });
+});
+
+describe("왜 움직였나 같은 날 사실 — 소식 행에 tag", () => {
+  it("tag 를 옮기고 · 칸이 없으면(프로그램 매매 · 옛 서버) null", () => {
+    const base = { date: "2026-11-12", show: false, reasons: [], usualRate: null, split: null, unavailable: [] };
+    const vm = toWhyMovedVM({
+      ...base,
+      facts: [
+        { id: "kr-news:1", kind: "news", at: "2026-11-12T01:00:00Z", source: "연합", title: "t", value: null, tag },
+        { id: "kr-flow:1", kind: "flow", at: "2026-11-12T01:00:00Z", source: "KRX", title: "program", value: 1 },
+      ],
+    });
+    assert.equal(vm.facts[0]!.tag?.eventKind, "contract");
+    assert.equal(vm.facts[1]!.tag, null);
   });
 });
