@@ -8,8 +8,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { env } from "../../shared/config/env";
 import { logger } from "../../shared/config/logger";
 import {
-  LOCAL_LLM_FAILURE_LIMIT,
-  LOCAL_LLM_PAUSE_MS,
   type ExplainProvider,
   type LlmCallRecord,
   type LlmUsageStore,
@@ -18,6 +16,7 @@ import {
 } from "../domain";
 import { errorCodeOf } from "./GeminiCoachExplainer";
 import { LOCAL_CLI_TIMEOUT_MS } from "./LocalCliCoachExplainer";
+import { LocalCliGate } from "./localCliGate";
 import { localCliArgs, runCli, safeStderr } from "./localCliProcess";
 import { buildMoveSummaryPrompt, cleanMoveSummaryOutput, MOVE_SUMMARY_SYSTEM_INSTRUCTION } from "./moveSummaryPrompt";
 
@@ -41,19 +40,18 @@ export class MoveSummaryGeminiBlocked extends Error {
 /**
  * 오늘 등락 한 줄(③) LLM — F016 단계 D · `SRV-REQ-052` FR-3 · FR-6.
  *
- * 해설(`RoutingCoachExplainer`)과 같은 길: 로컬 CLI(구독 · 비용 0) 먼저, 실패 · 없음이면 Gemini 한 번. 격리 인자는 해설과 같은 것
- * (`localCliArgs`). 시도마다 LLM 사용량 원장에 `purpose: move_summary` 로 남긴다 — 24시간 상한을 해설과 나눠 쓴다.
- * 원문(프롬프트 · 응답)은 로그 · 원장에 0. 배치 하나만 부르므로 동시 실행은 1
+ * 해설(`RoutingCoachExplainer`)과 같은 길: 로컬 CLI(구독 · 비용 0) 먼저, 실패 · 없음이면 Gemini 한 번. 고르기 · 연속 실패 쉬기 ·
+ * 동시 상한은 해설 라우터와 **같은 `LocalCliGate` 인스턴스**(조립에서 넘긴다), 격리 인자도 같은 함수(`localCliArgs`).
+ * 시도마다 LLM 사용량 원장에 `purpose: move_summary` 로 남긴다 — 24시간 상한을 해설과 나눠 쓴다. 원문(프롬프트 · 응답)은 로그 · 원장에 0
  */
 export class LlmMoveSummaryWriter implements MoveSummaryWriter {
-  private failures = 0;
-  private pausedUntil = 0;
   private local: { provider: LocalProvider; bin: string } | null = null;
   private readonly gemini: GoogleGenerativeAI;
 
   constructor(
     private readonly usage: LlmUsageStore | null,
-    private readonly options: { localModel?: string; run?: typeof runCli; now?: () => number } = {}
+    private readonly options: { localModel?: string; run?: typeof runCli; gate?: LocalCliGate } = {},
+    private readonly gate: LocalCliGate = options.gate ?? new LocalCliGate()
   ) {
     this.gemini = new GoogleGenerativeAI(env.GEMINI_API_KEY);
   }
@@ -63,28 +61,18 @@ export class LlmMoveSummaryWriter implements MoveSummaryWriter {
     this.local = local;
   }
 
-  private now(): number {
-    return this.options.now?.() ?? Date.now();
-  }
-
   private async remember(entry: LlmCallRecord): Promise<void> {
     await this.usage?.record(entry).catch((error: unknown) => logger.warn(`LLM 사용량 기록 실패: ${(error as Error).message}`));
   }
 
   async write(prompt: MoveSummaryPrompt, options: { geminiAllowed: boolean }) {
     const text = buildMoveSummaryPrompt(prompt);
-    if (this.local && this.now() >= this.pausedUntil) {
+    const local = this.local;
+    if (local && this.gate.pick(local.provider) !== "gemini") {
       try {
-        const out = await this.writeLocal(this.local, text);
-        this.failures = 0;
-        return out;
+        return await this.gate.run(local.provider, () => this.writeLocal(local, text));
       } catch {
-        this.failures += 1;
-        if (this.failures >= LOCAL_LLM_FAILURE_LIMIT) {
-          this.pausedUntil = this.now() + LOCAL_LLM_PAUSE_MS;
-          this.failures = 0;
-          logger.warn(`오늘 등락 한 줄 — 로컬 CLI 연속 ${LOCAL_LLM_FAILURE_LIMIT}회 실패, 10분 동안 Gemini 로`);
-        }
+        // 실패는 게이트가 셌다 — 같은 요청을 Gemini 로 한 번
       }
     }
     if (!options.geminiAllowed) throw new MoveSummaryGeminiBlocked();

@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import type { LlmCallRecord, LlmUsageStore, MoveSummaryPrompt } from "../../domain";
 import { moveSummaryPromptFacts } from "../../domain";
 import { LlmMoveSummaryWriter, MoveSummaryGeminiBlocked } from "../LlmMoveSummaryWriter";
+import { LocalCliGate } from "../localCliGate";
 import type { CliRun } from "../localCliProcess";
 import { buildMoveSummaryPrompt, cleanMoveSummaryOutput } from "../moveSummaryPrompt";
 
@@ -72,5 +73,17 @@ describe("LlmMoveSummaryWriter", () => {
     await assert.rejects(() => w.write(PROMPT, { geminiAllowed: false }), MoveSummaryGeminiBlocked);
     assert.equal(u.rows[0]!.ok, false);
     assert.equal(u.rows[0]!.errorCode, "timeout");
+  });
+
+  it("해설 라우터와 게이트를 나눠 쓴다 — 한 줄 쪽 로컬 연속 3번 실패면 해설도 10분 Gemini", async () => {
+    let now = 0;
+    const gate = new LocalCliGate({ now: () => now });
+    const w = new LlmMoveSummaryWriter(null, { gate, run: async () => ({ ok: false, reason: "exit_1", stderr: "" }) });
+    w.useLocal({ provider: "local_claude", bin: "/bin/claude" });
+    assert.equal(gate.pick("local_claude"), "local_claude");
+    for (let i = 0; i < 3; i += 1) await assert.rejects(() => w.write(PROMPT, { geminiAllowed: false }), MoveSummaryGeminiBlocked);
+    assert.equal(gate.pick("local_claude"), "gemini", "같은 게이트를 보는 해설 라우터도 쉰다");
+    now += 10 * 60 * 1000;
+    assert.equal(gate.pick("local_claude"), "local_claude");
   });
 });

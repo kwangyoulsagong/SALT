@@ -13,6 +13,7 @@ import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplaine
 import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
 import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
+import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
 import { PrismaMoveSummaryStore } from "./coach/infrastructure/PrismaMoveSummaryStore";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
@@ -251,12 +252,15 @@ const portfolio = createPortfolioApplication({
  */
 const llmUsage = new PrismaLlmUsageStore();
 /**
- * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI 가 있으면 로컬, 아니면 Gemini. 부르는 곳은 해설 스냅샷 배치 하나(`SRV-REQ-053` FR-3). 감지는 부팅 때 한 번, 끝나면 꽂는다.
+ * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI 가 있으면 로컬, 아니면 Gemini. 부르는 곳은 해설 스냅샷 배치 하나(`SRV-REQ-053` FR-3) —
+ * 로컬 CLI 자체는 오늘 등락 한 줄 배치도 쓴다(같은 게이트 · 같은 감지 결과). 감지는 부팅 때 한 번, 끝나면 꽂는다.
  * 기동 로그 한 줄: 버전 · 경로만(계정 · 토큰 0)
  */
-const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage));
+/** 로컬 CLI 상태 하나 — 해설 라우터와 오늘 등락 한 줄 작성기가 같이 쓴다(연속 실패 · 쉬기 · 동시 상한, F016 단계 D) */
+const localCliGate = new LocalCliGate();
+const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), { gate: localCliGate });
 /** 오늘 등락 한 줄(F016 단계 D) — 해설과 같은 로컬 CLI → Gemini. 감지 결과를 같이 꽂는다 */
-const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL });
+const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {

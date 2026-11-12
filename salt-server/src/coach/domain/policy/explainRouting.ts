@@ -19,7 +19,8 @@ export interface ExplainRouteInput {
 /**
  * 첫 공급자 — 로컬 CLI 가 있고 쉬는 중 · 바쁨이 아니면 로컬, 아니면 Gemini.
  *
- * **부르는 곳은 해설 스냅샷 배치 하나다**(F017 v2 단계 3, 2026-11-11 · `SRV-REQ-053` FR-3) — 종목마다 한 번 만들어 모두가 같은 문장을 본다.
+ * **부르는 곳은 LLM 배치 둘이다** — 해설 스냅샷(F017 v2 단계 3, 2026-11-11 · `SRV-REQ-053` FR-3)과 오늘 등락 한 줄(F016 단계 D, 2026-11-12 ·
+ * `SRV-REQ-052`). 둘 다 종목마다 한 번 만들어 모두가 같은 문장을 본다. 상태(실패 · 쉬기 · 동시)는 둘이 한 `LocalCliGate` 를 나눠 쓴다.
  * ~~허용 사용자 · 웹만 로컬, 모바일은 Gemini(FR-3 · FR-4)~~ 는 요청 경로 해설이 사라져 고를 사람 · 클라이언트가 없다 — 그 분기를 지웠다
  */
 export const pickExplainProvider = (input: ExplainRouteInput): ExplainProvider =>
