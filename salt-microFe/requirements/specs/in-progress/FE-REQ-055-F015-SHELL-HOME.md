@@ -68,3 +68,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S3a 확인 2회차 — 결함: 만료 세션 `/onboarding` 이 "불러오는 중"에 머묾 → 401 = 세션 없음 · 초대 단계 `698da12b`. 실패 경로 넷 · 만료 세션 셋 실화면 |
 | 2026-11-12 | 서버 S3c(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FR-5 done — 내려받기 · 계정 지우기 패널. FR-7(LLM 전송 필드 화면)은 S3d |
 | 2026-11-12 | S3c 확인 2회차 — 새 패널 대비 미달 셋 고침(설명 글자색 · 버튼 `primary`) · 로딩 · 실패 상태 실화면. 공용 버튼 변형 대비는 사용자 결정 |
+| 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |

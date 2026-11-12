@@ -67,3 +67,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-8 done — `GET/PUT /api/app/me/notifications`(도메인 순서 · 목록은 서버 것) · `/api/app/alerts` 는 Kotlin `/notifications`(종류 셋) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-5 · FR-6 · FR-4 숨김 기본값 done — 서버 identity(라우팅 `/identity` → platform). 옛 `/api/app/onboarding/status` 410 은퇴. 커밋 `066ba971` |
 | 2026-11-12 | 서버 S3c(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FR-7 done — 내보내기 zip(Node zlib 직접, 라이브러리 0) · 계정 삭제 순서. 라우팅 표 platform 경로 셋(`BFF-REQ-045`) |
+| 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
