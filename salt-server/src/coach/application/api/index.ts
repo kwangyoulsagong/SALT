@@ -179,7 +179,7 @@ export interface CoachUseCases {
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
-  /** 시나리오 카드 — 단타 방향 확률, 소유자만(F017 v2 단계 5 · `SRV-REQ-053` FR-5) */
+  /** 시나리오 — 모든 종목 · 지평 넷에 늘(과거 실제 결과 · 모델 확률 칸만 소유자, F017 v4 · `SRV-REQ-053` FR-10) */
   getSymbolScenario: GetSymbolScenario;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
   getSymbolEvents: GetSymbolEvents;
@@ -337,7 +337,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.backtestJudgments ?? null,
       deps.market
     ),
-    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.market, deps.forecastOwnerEmails),
+    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.baseRates, deps.market, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),

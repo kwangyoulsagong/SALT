@@ -13,6 +13,7 @@ import { describe, it } from "node:test";
  * 허용 자리:
  * - `GetSymbolEvents` · `GetSymbolPositioning` — 전망 읽기(접근 판정). ~~`GetSymbolForecast`~~ 2026-11-12 삭제(주간 변동 범위 — 화면 소비처 0)
  * - `GetSymbolScenario` — 단타 방향 확률(시나리오 카드, F017 v2 단계 5 — 확률이라 전망과 같은 소유자 전용, 사용자 11-10 *"소유자로 해야지"*)
+ *   2026-11-13 v4: 경로는 누구나(과거 실제 결과) · 소유자 판정은 **모델 확률 칸을 읽을지**만 가른다(`SRV-REQ-053` FR-10)
  * - ~~`explainRouting` — 해설 LLM 을 로컬 CLI 로 보낼지~~ 2026-11-11 뺐다 — 해설이 배치 하나라 사람으로 고르지 않는다(`SRV-REQ-053` FR-3)
  * 테스트 파일은 세지 않는다(판정 함수 자체를 재는 곳이 있다).
  */

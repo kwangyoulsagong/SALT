@@ -147,3 +147,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetail.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
   - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/KrMirrorPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+- 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 국내 상세 — `KrScenario` 가 접힌 "자세히" 대신 오른쪽 열 맨 위 카드로 늘 · 죽은 스타일 넷(`krMore*`) · 문구 둘 삭제. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8

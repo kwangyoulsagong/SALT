@@ -95,3 +95,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-7 장중 기저율 · FR-8 사건 반응 창 · 선반영 · FR-9 예측 실험 사전등록 여섯 · FR-10 추출 사실 피처(to-do) |
 | 2026-11-13 | FR-9 H1 · H3 확정 · 사전등록 둘 커밋(구현 전). H1 자료 정정(5분봉 없음) · H3 는 국내 소식 이력 2026-10-27 ~ 뿐이라 전진 시험만 |
 | 2026-11-13 | FR-11 코인 가설(H7 상장 뒤 · H8 크기별 부호 · H9 대형 코인 큰 하락 다음 날 · H3 · H1 코인 확장) · FR-12 코인 시장 몫(β) — 리서치 F 반영(to-do) |
+| 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 서버 시나리오가 `v_base_rate` 의 보유 연장 분포(`hold_*` — 비용 전)를 지평 1 · 5 로 읽는다 — 예측 코드 · 뷰 · 사전등록 변경 0. 장중 지평(FR-7)이 생기면 서버 `BASE_RATE_HORIZON` 표에 이어 붙인다. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |

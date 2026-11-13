@@ -61,3 +61,17 @@
 |---|---|---|
 | 소비처 0 확인 | 충족 | FE · 모바일 · BFF 다른 경로 · 서버 코치 도구 · 해설 grep 0 |
 | 검증 | 충족 | 서버 tsc · lint · build · test 1223 · BFF build · test 447 · 404 통과 · 5xx 규칙은 시나리오 · 사건 테스트가 지킴 · 실호출 404(경로 없음) |
+
+## F017 v4 순서 1a 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 같은 서비스 파일 `getScenario` 주석 — 404(소유자 아님)는 시나리오에서 오지 않는다(주요 사건 · 쏠림은 그대로 소유자 전용) | 서버 build · lint · test 1325 · layer-check / BFF build · test 481 / FE check-types 13/13 · lint 13/13 · test(core 298 · ui 63) · 레이어 훅 사후(대조군 둘 exit 2 → 23파일 0) · 실스택(BFF 4001 — 비소유자 · 소유자 시험 토큰, BTC · 005930) · 실화면 1440 · 390 앱 UA |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

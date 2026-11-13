@@ -59,3 +59,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | 서버 S3b 확인 2회차(루트 체크리스트) — 새 결함 0 |
 | 2026-11-12 | **서버 S3c**(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`) — FR-3 · 4 done(정정 둘: 저장 0 · 이벤트 대신 BFF 순서 + 지우기 허가), Open Question 닫음(판정 원장 사람 칸 0). FR-6 · 7 은 S3d. 수용 기준 2 충족 · 새 기준 하나 |
 | 2026-11-13 | **서버 S3d**(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-6 · 7 done(정정: 분류 표 대신 표 주석). 수용 기준 둘 |
+| 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `composition.ts` 등락 의존(`move`)에 원인 근거 리더(`PrismaMoveEvidenceReader`) 조립 한 줄. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |

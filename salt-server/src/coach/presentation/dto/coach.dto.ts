@@ -108,7 +108,7 @@ export type SignalPerformanceQueryDto = z.infer<
   typeof signalPerformanceQuerySchema
 >;
 
-/** 소유자 전용 종목 조회(시나리오 · 주요 사건 · 쏠림)의 심볼 — 코치 모양(`BTC`). 옛 `/forecast` 는 2026-11-12 삭제 */
+/** 종목 조회(시나리오 — 누구나 · 주요 사건 · 쏠림 — 소유자 전용)의 심볼 — 코치 모양(`BTC`). 옛 `/forecast` 는 2026-11-12 삭제 */
 export const forecastQuerySchema = z.object({
   symbol: z
     .string()

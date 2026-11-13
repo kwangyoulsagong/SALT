@@ -24,6 +24,8 @@ const SECTION_ORDER: { section: ExplainSection; heading: string }[] = [
   { section: "keyDrivers", heading: M.keyDriversHeading },
   { section: "risks", heading: M.risksHeading },
   { section: "newsSummary", heading: M.newsHeading },
+  { section: "track", heading: M.trackHeading },
+  { section: "miss", heading: M.missHeading },
 ];
 
 /** 출처 번호 — 해설 전체에서 처음 나온 순서로 1, 2, 3 … (같은 사실은 같은 번호) */
@@ -88,7 +90,7 @@ const Sentence = ({
   );
 };
 
-const Body = ({ view }: { view: SymbolExplanation }) => {
+const Body = ({ view, BlockHeading }: { view: SymbolExplanation; BlockHeading: "h4" | "h5" }) => {
   const numbers = numberCitations(view);
   let order = 0;
   return (
@@ -98,7 +100,7 @@ const Body = ({ view }: { view: SymbolExplanation }) => {
         if (rows.length === 0) return null;
         return (
           <div key={section} className={s.block}>
-            <h5 className={s.blockHeading}>{heading}</h5>
+            <BlockHeading className={s.blockHeading}>{heading}</BlockHeading>
             {rows.map((row, i) => (
               <Sentence key={`${section}-${i}`} text={row.text} citations={row.citations} numbers={numbers} order={order++} />
             ))}
@@ -123,6 +125,11 @@ interface ExplainCardProps {
   mode: CoachMode;
   /** 카드 상자 스타일 — 부르는 쪽이 준다 */
   className?: string;
+  /**
+   * 카드 제목 단계 — 놓이는 자리의 바로 위 제목 + 1. 코인 상세 오른쪽 열은 h2 카드들 사이라 3, 국내 판단 칸(h5 아래)은 기본 4.
+   * 칸 제목은 그 한 단계 아래(2026-11-13 axe heading-order — 코인 상세에서 h2 다음 h4)
+   */
+  headingLevel?: 3 | 4;
 }
 
 /**
@@ -132,7 +139,9 @@ interface ExplainCardProps {
  * 문장마다 끝에 출처 번호 칩 — 누르면 그 사실의 이름 · 시각(· 기사 원문). 1초 안의 대기엔 아무것도 그리지 않고, 그 뒤 반짝임.
  * 문장은 차례로 짧게 떠오른다(줄인 모션이면 바로). 로그아웃이면 그리지 않는다 — 패널이 이미 로그인 안내를 둔다
  */
-export const ExplainCard = ({ symbol, mode, className }: ExplainCardProps) => {
+export const ExplainCard = ({ symbol, mode, className, headingLevel = 4 }: ExplainCardProps) => {
+  const CardHeading = headingLevel === 3 ? "h3" : "h4";
+  const BlockHeading = headingLevel === 3 ? "h4" : "h5";
   const { data, isPending, isError, isSignedOut } = useSymbolExplanation(symbol, mode);
   const [slow, setSlow] = useState(false);
   useEffect(() => {
@@ -151,7 +160,7 @@ export const ExplainCard = ({ symbol, mode, className }: ExplainCardProps) => {
       <>
         {data.tier === "none" && <p className={s.sentence}>{M.noneHeading}</p>}
         {/* 면책은 판단 카드가 이미 그린다 — 같은 문장 두 번 0 */}
-        <Body view={data} />
+        <Body view={data} BlockHeading={BlockHeading} />
       </>
     );
   };
@@ -160,7 +169,7 @@ export const ExplainCard = ({ symbol, mode, className }: ExplainCardProps) => {
     <section className={className ? `${s.card} ${className}` : s.card} aria-label={M.heading} aria-busy={isPending || undefined}>
       <div className={s.cardHeader}>
         {/* 제목 단 — 칸 안 묶음 제목이 h5 라 이름 칩이 h4(axe heading-order, 2026-11-11 실화면) */}
-        <h4 className={s.nameChip}>{M.heading}</h4>
+        <CardHeading className={s.nameChip}>{M.heading}</CardHeading>
         {data?.aiGenerated && (
           <Badge size="sm" tone="ai">
             {M.aiBadge}

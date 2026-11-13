@@ -1,8 +1,10 @@
 import type { MoveFactKind } from "@repo/core/whyMoved";
 
 /**
- * "왜 움직였나" 카드 문구(F016 단계 C · `FE-REQ-063` FR-1 · FR-7). **인과 단정 · 앞날 · 매매 지시 0** — "때문에 · 원인은 · 덕분에 ·
- * 사세요 · 오를 거예요" 같은 말을 쓰지 않는다. 몫은 나눗셈 결과이고 사실은 같은 날 있었던 일일 뿐이다(`ADR-009`). 해요체
+ * "왜 움직였나" 카드 문구(F016 단계 C · `FE-REQ-063` FR-1 · FR-7 · FR-9). **인과 단정 · 앞날 · 매매 지시 0** — "때문에 · 덕분에 ·
+ * 사세요 · 오를 거예요" 같은 말을 쓰지 않는다. 몫은 나눗셈 결과이고 사실은 같은 날 있었던 일이다. ~~"원인은" 같은 말을 쓰지 않는다~~
+ * **원인은 근거가 붙은 것만 서버가 세 단계로 말한다**(`ADR-009` v4 2026-11-13 — 가장 유력 · 가능성 · 확인된 소식 없음, 문장은 서버 것 그대로).
+ * 화면은 칸 이름 · 단계 이름만 둔다. 해요체
  */
 export const WHY_MOVED_MESSAGES = {
   /** 제목 — 방향은 서버 등락 부호. 0 이면 나눠 보기 */
@@ -35,6 +37,19 @@ export const WHY_MOVED_MESSAGES = {
     pending: "같은 날 소식을 정리하는 중이에요",
     citationLabel: (n: number, title: string) => `출처 ${n}: ${title}`,
     headingSr: "한 줄 정리",
+  },
+
+  /**
+   * 원인 → 근거 → 결과(F017 v4 순서 1b · `FE-REQ-063` FR-9 · `ADR-009` v4) — 머리말 · 근거 · 결과 문장은 서버 것 그대로.
+   * 화면은 칸 이름과 단계 이름만 — 단계는 서버가 받치는 근거 수로 정했다(가장 유력 = 시각이 맞는 근거 포함 둘 이상)
+   */
+  cause: {
+    headingSr: "원인 · 근거 · 결과",
+    steps: { cause: "원인", evidence: "근거", result: "결과" },
+    strength: { likely: "가장 유력", possible: "가능성", none: "원인 못 찾음" },
+    others: "다른 가능성",
+    supportsSr: "단계를 정한 근거",
+    splitHeading: "오늘 등락 나눠 보기",
   },
 
   factsHeading: "같은 날 있었던 일",

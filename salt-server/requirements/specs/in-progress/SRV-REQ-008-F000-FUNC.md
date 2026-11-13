@@ -232,7 +232,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-06 | 파일만 걸침(F016 단계 A) — `schema.prisma`(머리에 이 REQ) 에 국내 시장 상태 열 · 표(`DB-REQ-041`). 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `schema.prisma` 에 `NewsArticleBody`(`news_article_body` — `DB-REQ-042`) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `schema.prisma` 에 모델 `TradeCheckLedgerEntry` → 표 `trade_check_ledger`(마이그레이션 `20261111130000_trade_check_ledger`, 추가만). 기존 모델 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
-
+| 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `investment.routes.ts` 코인 why-moved Swagger 에 `cause` · 코인 원인 순서. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |
 
 ## 구현이 REQ와 다른 지점 (2026-10-28)
 

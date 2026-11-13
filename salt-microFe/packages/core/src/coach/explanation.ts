@@ -8,7 +8,8 @@
 
 /** `latest` 최신 AI · `previous` 이전 AI(만든 시각을 같이) · `template` 사실표 문장(AI 표시 없음) · `none` 특이 소식 없음 + 판단 근거 */
 export type ExplanationTier = "latest" | "previous" | "template" | "none";
-export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
+/** `track` · `miss` — 서버가 판단 블록 값으로 쓴 "얼마나 믿을까" · "틀렸던 때"(F017 v4 순서 1c, LLM 0). 늘 맨 뒤 */
+export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary" | "track" | "miss";
 /** 누가 썼나 — AI 단만. 아니면 `null` */
 export type ExplainProvider = "local_claude" | "local_codex" | "gemini";
 

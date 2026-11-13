@@ -56,3 +56,8 @@
 - FR-6 · 7. 회고 본문 루트 `requirements/reports/retrospects/MONEY-S3d-identity-classify-usage.md`
 - 계획의 "분류 표"를 표 주석으로 정정 — 원천이 둘이면 갈라진다(S3c "목록에 없는 표" 와 같은 장치로 막음)
 - Action: 사람 표를 만들면 주석 한 줄까지 같은 마이그레이션에(규칙 `kotlin-platform.md` §4 · `prisma-database.md`)
+
+## F017 v4 순서 1b 짝 (2026-11-13)
+
+- `composition.ts` 등락 의존(`move`)에 원인 근거 리더(`PrismaMoveEvidenceReader`) 조립 한 줄
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

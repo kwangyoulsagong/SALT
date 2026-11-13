@@ -86,3 +86,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
 | 2026-11-12 | 단계 D — FR-1 `summary` · `gate` · FR-7. 정정: ③ 은 BFF 가 서버 두 경로를 합친다(서버 why-moved 응답에 넣지 않음 — market 이 coach 를 부르면 의존이 거꾸로) · BFF 전용 gate `unavailable` |
+| 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `why-moved.viewmodel.ts` 에 원인 칸(`cause`) — 이 REQ 의 ①② · ③ 옮기기 규칙 그대로 · 키 목록 테스트에 `cause`. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |

@@ -64,3 +64,6 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-11 | **단계 5 정정**(`d2237fb3`) — 성적에 `alwaysNotUpRate`(늘 안 오른다 = 확신 행 − 늘 오른다 맞힘). @2 진단: 확신 99% 가 '안 오름' 쪽이라 늘 오른다만으론 기준이 약했다. 막힌 카드에도 나가는 줄 |
 | 2026-11-13 | **v4 한 장 패널**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-6 패널 뷰모델 한 콜 · FR-7 해설 스트림 중계 · FR-8 내 기준(to-do) |
 | 2026-11-13 | FR-8 정정 — 평단 기본 포함 |
+| 2026-11-13 | **F017 v4 순서 1a**(`feat/f017-v4-s1-scenario-always`) FR-4 **개정** — 시나리오 뷰모델 지평 넷 · 두 출처(`source` · `tier` · `fallbackFrom` · `fallbackLabel` · `basis` · `modelBlocked`). 모델 칸은 여전히 막을 수만 · 과거 실제 결과 칸은 재료가 틀리면 결함 단(숫자 0). 404(소유자 아님)는 이제 오지 않는다. 서버 `SRV-REQ-053` FR-10 |
+| 2026-11-13 | **F017 v4 순서 1b**(`feat/f017-v4-s1-scenario-always`) FR-6 **일부 앞당김** — 패널 한 콜 전에 '왜 움직였나' 응답에 `cause`(원인 → 근거 → 결과)를 옮긴다(`why-moved.viewmodel.ts` `toMoveCauseVM`). 막을 수만: 단계가 근거 수와 안 맞는 원인 · 모르는 종류 · 단계는 버리고, 원인 칸이 깨지면 그 칸만 `null`(①② 는 그대로). 문장 · 단계를 만들지 않는다 |
+| 2026-11-13 | **F017 v4 순서 1c**(`feat/f017-v4-s1-scenario-always`) FR-2 해설 뷰모델 칸 둘 허용(`track` · `miss` — 서버가 판단 블록 값으로 쓴 '얼마나 믿을까' · '틀렸던 때'). 옮기기만 · 모르는 칸은 여전히 계약 깨짐 |

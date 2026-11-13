@@ -47,8 +47,11 @@ export const EXPLANATION_BATCH_MAX_PER_RUN = 12;
 
 export type ExplanationTier = "latest" | "previous" | "template" | "none";
 
-/** 해설 칸 — 스트림 시절 줄 단위 칸과 같은 넷 */
-export type ExplanationSection = ExplanationLineSection;
+/**
+ * 해설 칸 — LLM 이 쓰는 넷(스트림 시절 줄 단위 칸과 같다) + 서버가 판단 블록 값으로 쓰는 둘(`track` 얼마나 믿을까 · `miss` 틀렸던 때,
+ * F017 v4 순서 1c — `explanationPlain.ts`)
+ */
+export type ExplanationSection = ExplanationLineSection | "track" | "miss";
 
 /** 문장이 기댄 사실 하나 — 화면은 번호 칩으로, 누르면 이 이름 · 시각 */
 export interface ExplanationCitation {
@@ -265,7 +268,7 @@ const splitSentences = (text: string): string[] =>
 
 /** 해설 칸 → 인용 붙은 문장 목록. 칸 순서 = 화면 순서(판단 → 근거 → 주의 → 뉴스) */
 export const explanationSentences = (
-  explanation: Pick<CoachExplanation, ExplanationSection>,
+  explanation: Pick<CoachExplanation, ExplanationLineSection>,
   catalog: readonly CatalogFact[]
 ): ExplanationSentence[] => {
   const rows: { section: ExplanationSection; text: string }[] = [
@@ -326,7 +329,7 @@ export const selectExplanationTier = (input: {
 };
 
 /** LLM 이 낸 문장 수 — 판단 칸은 문장 단위, 목록 칸은 항목 단위(검증기와 같은 단위) */
-export const llmSentenceCount = (llm: Pick<CoachExplanation, ExplanationSection>): number =>
+export const llmSentenceCount = (llm: Pick<CoachExplanation, ExplanationLineSection>): number =>
   splitSentences(llm.modeReasoning).length + llm.keyDrivers.length + llm.risks.length + llm.newsSummary.length;
 
 /**

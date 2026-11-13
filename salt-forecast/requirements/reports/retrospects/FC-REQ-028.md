@@ -68,3 +68,8 @@
 
 - 변이 7 중 하나(평소 p₀ 가 as_of 뒤 창)가 살았다 — `run_market` 이 봉을 미리 잘라 실제 누수는 없었지만 함수 경계 테스트가 없었다. 더함
 - 코인 뉴스 이력은 2026-09 ~ 뿐 — 사전등록 [report] known_limits 에 적은 대로, 코인 칩은 당분간 표본 미달이 많다
+
+## F017 v4 순서 1a 짝 (2026-11-13)
+
+- 이 REQ 의 기능 변경은 없다 — 서버 시나리오가 `v_base_rate` 의 보유 연장 분포(`hold_*` — 비용 전)를 지평 1 · 5 로 읽는다 — 예측 코드 · 뷰 · 사전등록 변경 0. 장중 지평(FR-7)이 생기면 서버 `BASE_RATE_HORIZON` 표에 이어 붙인다
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

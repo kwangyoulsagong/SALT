@@ -1,31 +1,27 @@
 "use client";
 
-import { DirectionScenarioCard, useSymbolScenario } from "@/entities/coach";
+import { SignInRequired } from "@repo/web-shared/ui";
+
+import { DirectionScenarioCard, DirectionScenarioSkeleton, useSymbolScenario } from "@/entities/coach";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as M } from "../model";
-import { krMore, krMoreBody, krMoreHint, krMoreSummary, krSideCard } from "./SymbolHeader.css";
+import { krSideCard } from "./SymbolHeader.css";
 
 /**
- * 국내 주식 시나리오 카드(F017 v2 단계 5 · `FE-REQ-064` FR-4 — 변동 범위 `KrForecast` 자리 교체) — 코인 상세와 **같은 카드 ·
- * 같은 소유자 규칙 · 같은 "자세히" 자리**.
+ * 국내 주식 시나리오(F017 v4 순서 1 · `FE-REQ-064` FR-8) — 코인 상세와 **같은 카드 · 같은 자리(오른쪽 열 맨 위)**.
  *
- * - 404 = 소유자 아님 · 로그인 안 함 · 불러오는 중에는 자리도 문구도 없다(ADR-003 "응답에 없다")
- * - 국내 1시간 · 4시간은 장중 기록이 짧아 시험하지 않았다(`short-direction@1`) — 카드가 그 이유를 말한다. 면책은 카드 안
+ * 모든 종목에 늘 보인다(과거 실제 결과) — "자세히" 뒤로 접지 않는다(사용자 2026-11-13 "안 뜨는 게 문제 · 모든 종목에 항상").
+ * 로그인 안 했으면 유리막 · 불러오는 동안은 같은 높이의 자리. 면책은 카드 안
  */
 export const KrScenario = ({ code }: { code: string }) => {
   const scenario = useSymbolScenario(code);
-  if (scenario.isSignedOut || scenario.notOwner) return null;
-  if (!scenario.data && !scenario.isError) return null;
-
   return (
-    <details className={krMore}>
-      <summary className={krMoreSummary}>
-        {M.krMoreSummary}
-        <span className={krMoreHint}>{M.krMoreHint}</span>
-      </summary>
-      <div className={krMoreBody}>
+    <SignInRequired what={M.guestWhat.scenario} minHeight={480}>
+      {scenario.data || scenario.isError ? (
         <DirectionScenarioCard className={krSideCard} result={scenario.data ?? { status: "unavailable" }} />
-      </div>
-    </details>
+      ) : (
+        <DirectionScenarioSkeleton className={krSideCard} />
+      )}
+    </SignInRequired>
   );
 };

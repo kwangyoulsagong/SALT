@@ -175,3 +175,8 @@
 ## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
 
 - 문제 없음
+
+## F017 v4 순서 1a 짝 (2026-11-13)
+
+- 이 REQ 의 기능 변경은 없다 — `symbol-analysis` 문구 표 — 유리막 이름 `scenario` 더함 · "자세히" 요약에서 시나리오 뺌(오른쪽 열에 늘)
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

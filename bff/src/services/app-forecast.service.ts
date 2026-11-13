@@ -11,7 +11,7 @@ const FORECAST_TIMEOUT_MS = 800;
 type BackendEnvelope<T> = { success: boolean; message?: string; data: T };
 
 /**
- * 소유자 전용 코치 조회 — 시나리오 · 주요 사건 · 쏠림 (F008 `BFF-REQ-037` · F017 `BFF-REQ-052`). 주간 변동 범위(`/coach/forecast`)는
+ * 코치 종목 조회 — 시나리오(누구나 — 모델 확률 칸만 소유자, 2026-11-13 v4) · 주요 사건 · 쏠림(소유자 전용) (F008 `BFF-REQ-037` · F017 `BFF-REQ-052`). 주간 변동 범위(`/coach/forecast`)는
  * 2026-11-12 삭제 — 화면 소비처가 0이 됐다(시나리오 카드로 교체).
  *
  * - 서버 **4xx 는 그대로 올린다.** 특히 **404 = 소유자가 아니다**(`ADR-003` "응답에 없다") —
@@ -20,8 +20,8 @@ type BackendEnvelope<T> = { success: boolean; message?: string; data: T };
  */
 export class AppForecastService {
   /**
-   * 시나리오 카드 — 단타 방향 확률(F017 v2 단계 5 · `BFF-REQ-052` FR-4). 같은 규칙: 4xx(404 = 소유자 아님) 그대로,
-   * 5xx · 타임아웃 · 모양 깨짐은 200 `unavailable`. 서버는 뷰 두 개를 읽는다
+   * 시나리오 — 모든 종목 · 지평 넷에 늘(F017 v4 · `BFF-REQ-052` FR-4 개정). 로그인한 누구나(404 는 이제 오지 않는다 —
+   * 모델 확률 칸만 소유자, 서버가 가른다). 4xx 그대로 · 5xx · 타임아웃 · 모양 깨짐은 200 `unavailable`. 서버는 뷰 둘(소유자 넷)을 읽는다
    */
   async getScenario(token: string, symbol: string, signal?: AbortSignal): Promise<ScenarioResult> {
     try {

@@ -71,3 +71,5 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9 · �
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useJudgmentScoreboard.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-10 | F017 v2 단계 1(`f7ce96dc`) — 투자유의 한 줄 주석 정정: 판단 꼬리표 문장이 말한다(판단 막힘 아님) |
 | 2026-11-11 | F017 v2 단계 5 — 코인 상세 '자세히' 첫 카드 변동 범위 → 시나리오 카드(같은 자리 · 같은 소유자 규칙 · 불러오는 중 자리 0) |
+| 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 코인 상세 오른쪽 열 — 시나리오 카드를 "자세히"에서 꺼내 왜 움직였나 아래에 늘(FR-8 의 '소유자 카드는 접는다'는 주요 사건 · 쏠림 둘에만 남음). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
+| 2026-11-13 | F017 v4 순서 1c 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `SymbolAnalysis` 가 해설 카드에 제목 단계 3 을 준다(h2 카드들 사이 — axe heading-order). 이 REQ 의 배치 변경 0 |

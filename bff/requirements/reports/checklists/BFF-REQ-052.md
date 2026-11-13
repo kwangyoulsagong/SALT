@@ -69,3 +69,47 @@
 |---|---|---|
 | 첫 "ok" 서술(숫자 있는 칩) 실화면 | 국내 제목 이력이 11-06 ~ 뿐이라 첫 실행은 전부 `below_min` — 서버 1년 백필이 장 밖 30쪽/분으로 채우는 중 | 백필이 1년 앞에 닿은 뒤 매일 배치(`daily.sh` news_reaction) 다음 회차 — 2026-11-13 |
 | ~~응답 시간(p95) 실측~~ | **닫힘 2026-11-12 11:2x**(부하 평균 13 로 내려간 뒤) — 20회씩 p50 / p95: 국내 소식 14 / 207ms · 12 / 24ms · 코인 뉴스 5 / 10ms · 국내 왜 움직였나 19 / 51ms · 코인 9 / 21ms. 선반영 조회 `EXPLAIN` 인덱스 1.5ms · 서술 뷰 2ms | — |
+
+## F017 v4 순서 1a — 시나리오 늘 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| FR-4 개정 — 지평 넷 늘 · 지어내지 않음 표 11 · 모델 칸 막기 표 8 · 빌려 온 지평 이름 · 모델 숫자 새지 않음 | 충족 | `scenario.test.ts` 14 · BFF build · test 481 · 실 응답 4001 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 패널 한 콜(FR-6) | 서버 FR-13 뒤 | 순서 1 다음 칸 |
+
+확인 2회차(2026-11-13 오후): 변이 8 전부 죽음 · 전 종목 157 실패 0 · p95 52ms · 낡은 주석 2 · 다른 소비처 0. 본문 `requirements/reports/checklists/F017-v4-stage1-panel.md`.
+
+## F017 v4 순서 1b — 원인 → 근거 → 결과 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 원인 칸 옮기기 · 단계 검사 표 6 · 모르는 근거 · 깨짐 격리 · 옛 응답 | 충족 | `why-moved.test.ts` 20 · BFF test 486 · 변이 3/3 · BFF 경유 157 실측 원인 칸 null 0 · p95 34ms |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 패널 한 콜(FR-6 나머지) | 서버 FR-13 뒤 | 순서 1d |
+
+## F017 v4 순서 1c — 얼마나 믿을까 · 틀렸던 때 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 칸 둘 허용 · 그대로 옮김 | 충족 | `explanation.test.ts` 11 · BFF test 487 · 변이(칸 허용) 죽음 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

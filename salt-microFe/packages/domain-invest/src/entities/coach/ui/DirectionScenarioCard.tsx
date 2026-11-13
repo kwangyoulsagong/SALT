@@ -1,7 +1,9 @@
 "use client";
 
-import type { ScenarioHorizonKey, ScenarioHorizonView, SymbolScenarioResult } from "@repo/core/coach";
+import type { ScenarioHorizonKey, ScenarioHorizonView, SymbolScenarioResult, ScenarioTrack } from "@repo/core/coach";
+import { kstClock, kstMonthDay } from "@repo/core/marketKr";
 import { SegmentedControl, type SegmentedOption } from "@repo/ui/segmentedControl";
+import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 import { useState } from "react";
 
@@ -15,11 +17,12 @@ const MINUS = "−";
 /** 서버가 준 %(기준 가격 대비)를 부호와 함께 — 계산 없이 표기만 */
 const signedPct = (pct: number) => (pct === 0 ? "0%" : `${pct > 0 ? "+" : MINUS}${Math.abs(pct).toFixed(1)}%`);
 const shortDate = (iso: string) => iso.slice(0, 10);
+const count = (n: number) => n.toLocaleString("ko-KR");
 
-const HORIZONS: SegmentedOption<ScenarioHorizonKey>[] = (["1h", "4h", "1d"] as const).map((h) => ({
-  label: M.horizons[h],
-  value: h,
-}));
+const HORIZON_KEYS = ["1h", "4h", "1d", "5d"] as const;
+const HORIZONS: SegmentedOption<ScenarioHorizonKey>[] = HORIZON_KEYS.map((h) => ({ label: M.horizons[h], value: h }));
+/** 처음 보이는 기간 — 제 기록이 있는 하루(장중 기간은 아직 하루 값을 빌린다) */
+const DEFAULT_HORIZON: ScenarioHorizonKey = "1d";
 
 /** 범위 띠 좌표 — 0 과 세 분위가 다 들어오는 대칭 축(그리기 좌표만) */
 const Band = ({ low, mid, high }: { low: number; mid: number; high: number }) => {
@@ -34,8 +37,7 @@ const Band = ({ low, mid, high }: { low: number; mid: number; high: number }) =>
   );
 };
 
-const Track = ({ view }: { view: ScenarioHorizonView }) => {
-  const t = view.track;
+const Track = ({ track: t }: { track: ScenarioTrack | null }) => {
   if (!t || t.hitRate === null || t.alwaysUpRate === null || t.alwaysNotUpRate === null) return null;
   return (
     <>
@@ -63,8 +65,7 @@ const Track = ({ view }: { view: ScenarioHorizonView }) => {
   );
 };
 
-const Misses = ({ view }: { view: ScenarioHorizonView }) => {
-  const t = view.track;
+const Misses = ({ track: t }: { track: ScenarioTrack | null }) => {
   if (!t) return null;
   const lines = t.misses.map((m) =>
     M.missLine(shortDate(m.asOf), m.symbol.replace(/^KRW-/, ""), formatRatio(m.pUp), signedPct(m.realizedPct))
@@ -83,46 +84,103 @@ const Misses = ({ view }: { view: ScenarioHorizonView }) => {
   );
 };
 
-const Shown = ({ view }: { view: ScenarioHorizonView }) => {
-  if (view.pUp === null || view.upOutOf100 === null || !view.range || view.invalidation === null) return null;
-  const up = view.upOutOf100;
+/** 큰 숫자 — 과거 실제 결과 "100번 중 n번 올랐어요 (n%)" · 모델 확률 "오를 확률 n%" + 오른 몫 · 안 오른 몫 막대(색만으로 말하지 않는다) */
+const BigNumber = ({ context, up, past }: { context: string; up: number; past: boolean }) => (
+  <div className={s.big}>
+    <span className={s.context}>{past ? M.contextPast(context) : M.contextModel(context)}</span>
+    <p className={s.oddsRow}>
+      <span className={s.oddsValue}>{up}</span>
+      {/* 지난 기록은 과거형("번 올랐어요"), 모델 확률은 확률로("%") — 확률을 지난 일처럼 말하지 않는다 */}
+      {past ? (
+        <span className={s.oddsSuffix}>
+          {M.upSuffix} <span className={s.oddsPct}>{M.upPct(up)}</span>
+        </span>
+      ) : (
+        <span className={s.oddsSuffix}>%</span>
+      )}
+    </p>
+    <div className={s.split} aria-hidden="true">
+      <span className={s.splitPart.up} style={{ width: `${up}%` }} />
+      <span className={s.splitPart.down} style={{ width: `${100 - up}%` }} />
+    </div>
+    <div className={s.splitLabels}>
+      <span className={s.splitLabel.up}>{M.upLabel(up)}</span>
+      <span className={s.splitLabel.down}>{M.notUpLabel(100 - up)}</span>
+    </div>
+  </div>
+);
+
+const RangeLines = ({ view, past }: { view: ScenarioHorizonView; past: boolean }) => {
+  if (!view.range) return null;
+  const price = view.invalidation === null ? null : `${formatPrice(view.invalidation)}원`;
   return (
     <>
-      <div className={s.oddsRow}>
-        <span className={s.oddsLabel}>
-          {view.label} {M.upProbability}
-        </span>
-        <span className={s.oddsValue}>{up}%</span>
-      </div>
-      <div className={s.split} aria-hidden="true">
-        <span className={s.splitPart.up} style={{ width: `${up}%` }} />
-        <span className={s.splitPart.down} style={{ width: `${100 - up}%` }} />
-      </div>
-      <p className={s.line}>{M.oddsLine(up)}</p>
       <Band low={view.range.lowPct} mid={view.range.midPct} high={view.range.highPct} />
       <p className={s.line}>
-        {M.rangeLine(view.label, signedPct(view.range.lowPct), signedPct(view.range.highPct), signedPct(view.range.midPct))}
+        {M.rangeLine(signedPct(view.range.lowPct), signedPct(view.range.highPct), signedPct(view.range.midPct))}
       </p>
-      <p className={s.meta}>{M.invalidation(`${formatPrice(view.invalidation)}원`)}</p>
-      <Track view={view} />
-      <Misses view={view} />
+      {price && <p className={s.meta}>{past ? M.invalidationPast(price) : M.invalidation(price)}</p>}
     </>
   );
 };
 
-const Blocked = ({ view }: { view: ScenarioHorizonView }) => {
-  const t = view.track;
+/** 모델 확률 — 시험을 넘은 칸(소유자) */
+const Model = ({ view }: { view: ScenarioHorizonView }) => {
+  if (view.upOutOf100 === null) return null;
   return (
     <>
-      <p className={s.blockedTitle}>{M.blockedTitle}</p>
-      <p className={s.meta}>{M.reasons[view.blockedReason ?? "not_tested"] ?? M.reasons.not_tested}</p>
-      {t && t.hitRate !== null && t.alwaysUpRate !== null && t.alwaysNotUpRate !== null && (
-        <p className={s.meta}>
-          {M.blockedTrack(t.calls, formatRatio(t.hitRate), formatRatio(t.alwaysUpRate), formatRatio(t.alwaysNotUpRate))}
-        </p>
-      )}
-      <Misses view={view} />
+      <BigNumber context={view.label} up={view.upOutOf100} past={false} />
+      <p className={s.line}>{M.oddsLine(view.upOutOf100)}</p>
+      <RangeLines view={view} past={false} />
+      <Track track={view.track} />
+      <Misses track={view.track} />
     </>
+  );
+};
+
+/** 과거 실제 결과 — 지금 조건 · 평소 · 한 단계 긴 지평. 예측이라 부르지 않는다 */
+const Past = ({ view }: { view: ScenarioHorizonView }) => {
+  const basis = view.basis;
+  if (view.upOutOf100 === null || !basis) return null;
+  // 숫자가 속한 기간 — 빌려 왔으면 그 지평의 이름으로 말한다
+  const label = view.fallbackLabel ?? view.label;
+  const context = basis.condition ? M.contextCondition(basis.condition.phrase, label) : M.contextUsual(label);
+  const usual = basis.usualUpOutOf100;
+  return (
+    <>
+      {view.fallbackLabel && <p className={s.fallback}>{M.fallback(view.label, view.fallbackLabel)}</p>}
+      <BigNumber context={context} up={view.upOutOf100} past />
+      {basis.condition && usual !== null && (
+        <p className={s.line}>{basis.differsFromUsual ? M.differs(usual, basis.differsFromUsual) : M.usualToo(usual)}</p>
+      )}
+      <RangeLines view={view} past />
+      <p className={s.meta}>
+        {M.sample(count(basis.sampleDays), count(basis.sample))}
+        {view.upRange && ` · ${M.upRange(view.upRange.low, view.upRange.high)}`}
+      </p>
+    </>
+  );
+};
+
+/** 결함 단 — 숫자로 말하기엔 적다. 대칭 범위로 채우지 않는다 */
+const Defect = ({ view }: { view: ScenarioHorizonView }) => {
+  const n = view.basis?.sampleEffective ?? 0;
+  return <p className={s.defect}>{n > 0 ? M.defectFew(count(n)) : M.defectNone}</p>;
+};
+
+/** 소유자에게만 — 모델 확률이 이 칸에 안 나오는 이유와 시험 성적(접힘) */
+const ModelBlocked = ({ blocked }: { blocked: NonNullable<ScenarioHorizonView["modelBlocked"]> }) => {
+  const t = blocked.track;
+  return (
+    <details className={s.more}>
+      <summary className={s.moreSummary}>{M.modelBlockedSummary}</summary>
+      <ul className={s.moreList}>
+        <li>{M.reasons[blocked.reason] ?? M.reasons.not_tested}</li>
+        {t && t.hitRate !== null && t.alwaysUpRate !== null && t.alwaysNotUpRate !== null && (
+          <li>{M.blockedTrack(t.calls, formatRatio(t.hitRate), formatRatio(t.alwaysUpRate), formatRatio(t.alwaysNotUpRate))}</li>
+        )}
+      </ul>
+    </details>
   );
 };
 
@@ -132,15 +190,14 @@ interface DirectionScenarioCardProps {
 }
 
 /**
- * 시나리오 카드 — 다음 1시간 · 4시간 · 1일 오를 확률(F017 v2 단계 5 · `FE-REQ-064` FR-4). 변동 범위(대칭) 카드 자리를 대신한다.
+ * 시나리오 — 모든 종목 · 기간 넷에 늘(F017 v4 순서 1 · `FE-REQ-064` FR-8 · `ADR-010` v4).
  *
- * 숫자는 전부 서버 값이다(확률 · 범위 · 무효선 · 성적). 여기서 하는 계산은 **그리기 좌표**뿐이다.
- * 시험을 못 넘은 지평은 "지금은 방향이 안 보여요 — 이유" + 시험 성적 — 대칭 범위로 채우지 않는다.
- * 확률은 혼자 나가지 않는다 — 같은 카드에 "100번 중" 문장 · 확신 때 성적 vs 늘 오른다 · 빗나간 때.
+ * 칸마다 출처가 있다: 과거 실제 결과("100번 중 n번 올랐어요") 또는 시험을 넘은 모델 확률(소유자). 숫자는 전부 서버 값이고
+ * 여기서 하는 계산은 **그리기 좌표**뿐이다(100 − n 은 분모 100 고정의 나머지). 숫자를 말할 수 없는 칸은 "아직 n번뿐" —
+ * 대칭 범위로 채우지 않는다. 기간을 바꿔도 높이가 같게(`min-height`).
  */
 export const DirectionScenarioCard = ({ result, className }: DirectionScenarioCardProps) => {
-  const firstOpen = result.status === "ok" ? result.horizons.find((h) => h.renderable)?.horizon : undefined;
-  const [picked, setPicked] = useState<ScenarioHorizonKey | null>(null);
+  const [key, setKey] = useState<ScenarioHorizonKey>(DEFAULT_HORIZON);
 
   if (result.status !== "ok") {
     return (
@@ -151,17 +208,29 @@ export const DirectionScenarioCard = ({ result, className }: DirectionScenarioCa
     );
   }
 
-  const key = picked ?? firstOpen ?? "1h";
   const view = result.horizons.find((h) => h.horizon === key);
 
   return (
     <section className={`${className ?? ""} ${s.card}`} aria-label={M.heading}>
       <div className={s.headRow}>
-        <span className={s.nameChip}>{M.heading}</span>
-        <SegmentedControl options={HORIZONS} value={key} onChange={setPicked} label={M.horizonGroupLabel} />
+        <span className={s.headNames}>
+          <span className={s.nameChip}>{M.heading}</span>
+          {view && view.tier !== "defect" && <span className={s.sourceChip}>{M.source[view.source]}</span>}
+          {view?.asOf && <span className={s.asOf}>{M.asOf(`${kstMonthDay(view.asOf)} ${kstClock(view.asOf)}`)}</span>}
+        </span>
+        <SegmentedControl options={HORIZONS} value={key} onChange={setKey} label={M.horizonGroupLabel} />
       </div>
-      {view && (view.renderable ? <Shown view={view} /> : <Blocked view={view} />)}
+      {view && (view.tier === "defect" ? <Defect view={view} /> : view.source === "model" ? <Model view={view} /> : <Past view={view} />)}
+      {view?.modelBlocked && <ModelBlocked blocked={view.modelBlocked} />}
       <p className={s.meta}>{result.disclaimer}</p>
     </section>
   );
 };
+
+/** 불러오는 동안의 자리 — 카드와 같은 최소 높이(도착해도 아래가 밀리지 않는다) */
+export const DirectionScenarioSkeleton = ({ className }: { className?: string }) => (
+  <section className={`${className ?? ""} ${s.card}`} aria-label={M.heading} aria-busy="true">
+    <span className={s.nameChip}>{M.heading}</span>
+    <Skeleton lines={5} />
+  </section>
+);

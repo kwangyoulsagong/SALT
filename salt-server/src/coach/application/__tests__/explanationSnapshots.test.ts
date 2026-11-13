@@ -14,7 +14,7 @@ import type {
 } from "../../domain";
 import { EXPLANATION_BATCH_MAX_PER_RUN } from "../../domain";
 import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
-import { GetSymbolExplanation } from "../GetSymbolExplanation";
+import { GetSymbolExplanation, trustInput } from "../GetSymbolExplanation";
 import { ExplanationDemand } from "../lib/explanationDemand";
 
 /**
@@ -137,7 +137,7 @@ describe("GetSymbolExplanation — 4단, 빈 칸 0", () => {
     const view = await read.execute("BTC", "scalp");
     assert.equal(view.tier, "none");
     assert.ok(view.sentences.length > 0);
-    assert.ok(view.sentences.every((s) => s.citations[0]!.id === "judgment"));
+    assert.ok(view.sentences.filter((s) => s.section !== "track" && s.section !== "miss").every((s) => s.citations[0]!.id === "judgment"));
   });
 
   it("배치가 만든 뒤 → 최신 AI(저장 시각 · 공급자), 다시 알리지 않는다", async () => {
@@ -158,6 +158,61 @@ describe("GetSymbolExplanation — 4단, 빈 칸 0", () => {
     const view = await read.execute("BTC", "scalp");
     assert.equal(view.tier, "previous");
     assert.equal(view.aiGenerated, true);
+  });
+});
+
+describe("얼마나 믿을까 · 틀렸던 때(F017 v4 순서 1c · SRV-REQ-053 FR-16) — 어느 단이든 늘 뒤에 · 판단 블록과 같은 값", () => {
+  const trustOf = (sentences: { section: string; text: string; citations: { id: string }[] }[]) =>
+    sentences.filter((s) => s.section === "track" || s.section === "miss");
+
+  it("네 단 모두 맨 뒤가 성적 한 줄 + 틀렸던 때 — 같은 문장", async () => {
+    const template = await setup().read.execute("BTC", "scalp");
+    const none = await setup({ prices: { BTC: null } }).read.execute("BTC", "scalp");
+    const ai = setup();
+    await ai.batch(spyExplainer(() => llmText).explainer).execute();
+    const latest = await ai.read.execute("BTC", "scalp");
+    ai.rows[0] = { ...ai.rows[0]!, fingerprint: "older" };
+    const previous = await ai.read.execute("BTC", "scalp");
+    const want = trustOf(template.sentences);
+    assert.deepEqual(want.map((s) => s.section), ["track", "miss"]);
+    for (const v of [none, latest, previous]) {
+      assert.deepEqual(trustOf(v.sentences), want, v.tier);
+      // 맨 뒤에 붙는다 — LLM 칸 사이에 끼지 않는다
+      assert.deepEqual(v.sentences.slice(-2), want, v.tier);
+    }
+  });
+
+  it("숫자 = 판단 블록 값(같은 저장소 · 같은 함수) — 30번 중 15번 · 틀렸던 때 날짜 · 종목 · 등락", async () => {
+    const view = await setup().read.execute("BTC", "scalp");
+    const [track, miss] = trustOf(view.sentences);
+    assert.equal(track!.text, "이 판단은 지금까지 30번 중 15번 맞았어요(50%, 판단 뒤 24시간 기준).");
+    assert.deepEqual(track!.citations.map((c) => c.id), ["track"]);
+    assert.equal(miss!.text, "2026-08-31 ETH도 같은 판단이었는데 24시간 뒤 −5.0% 내렸어요.");
+    assert.equal(miss!.citations[0]!.id, "miss-1");
+  });
+
+  it("판단 블록 값 → 재료 그대로(적중 · 기준 대비 · 표본 · 출처 · 사례 이름 · 날짜 · 등락) — 고르거나 고치지 않는다", () => {
+    const got = trustInput("long_term", {
+      trackRecord: { winRate: 0.6, excessWinRate: 0.07, sample: 40, sampleOrigin: "backtest" } as never,
+      failureCases: [{ date: "2026-10-08", symbol: "000150", name: "두산", logoUrl: null, event: "long_term.avoid", outcome: "miss", returnRate: -0.455 }],
+    });
+    assert.deepEqual(got, {
+      mode: "long_term",
+      track: { mode: "long_term", winRate: 0.6, excessWinRate: 0.07, sample: 40, origin: "backtest" },
+      misses: [{ date: "2026-10-08", name: "두산", symbol: "000150", returnRate: -0.455 }],
+    });
+  });
+
+  it("저장된 AI 문장에 성적 칸이 있어도(옛 저장본) 지금 값 한 벌만 — 두 번 나오지 않는다", async () => {
+    const ai = setup();
+    await ai.batch(spyExplainer(() => llmText).explainer).execute();
+    ai.rows[0] = {
+      ...ai.rows[0]!,
+      sentences: [...ai.rows[0]!.sentences, { section: "track", text: "옛 성적 문장", citations: [{ id: "track", label: "x", at: null, url: null }] }],
+    };
+    const view = await ai.read.execute("BTC", "scalp");
+    assert.equal(view.sentences.filter((s) => s.section === "track").length, 1);
+    assert.ok(!view.sentences.some((s) => s.text === "옛 성적 문장"));
   });
 });
 

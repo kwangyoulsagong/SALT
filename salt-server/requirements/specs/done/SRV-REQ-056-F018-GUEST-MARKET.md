@@ -46,3 +46,4 @@ source: "`FEATURE-018` · `ADR-011`(사용자 결정 2026-11-10)"
 - 2026-11-11(F017 v2 단계 5, `feat/f017-s5-short-direction`): F017 v2 단계 5 — `ownerGateScope` 허용표에 `GetSymbolScenario`(확률 = 전망과 같은 소유자 전용, `ADR-003`). 국내 판정 0 그대로
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `env.ts`(머리 주인)에 `MOVE_SUMMARY`(on/off) 하나. 한 줄 읽기 경로는 시장 경로와 같은 읽는 사람(`marketReaderMiddleware` — 게스트 포함) |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 게스트 토큰 발급이 identity(RS256 · `aud` salt-guest)로 — "사람 경로를 못 지난다" 불변식은 비밀이 아니라 `aud` 로(옛 HS 게스트는 이중 기간 동안 그대로). 미들웨어 경계 표 9행으로 다시 씀(갱신 토큰 · 옛 HS 둘 더함) |
+| 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `ownerGateScope.test.ts` 주석 — `GetSymbolScenario` 의 소유자 판정은 이제 접근이 아니라 **모델 확률 칸을 읽을지**만 가른다(허용표 셋 그대로 · 테스트 통과). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |

@@ -164,3 +164,31 @@
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 자리 · 소유자 규칙 | 충족 | 404 = 섹션 없음 그대로 · 실화면은 `FE-REQ-064` 체크리스트 |
+
+## F017 v4 순서 1a 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 코인 상세 오른쪽 열 — 시나리오 카드를 "자세히"에서 꺼내 왜 움직였나 아래에 늘(FR-8 의 '소유자 카드는 접는다'는 주요 사건 · 쏠림 둘에만 남음) | 서버 build · lint · test 1325 · layer-check / BFF build · test 481 / FE check-types 13/13 · lint 13/13 · test(core 298 · ui 63) · 레이어 훅 사후(대조군 둘 exit 2 → 23파일 0) · 실스택(BFF 4001 — 비소유자 · 소유자 시험 토큰, BTC · 005930) · 실화면 1440 · 390 앱 UA |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |
+
+## F017 v4 순서 1c 짝 (2026-11-13)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 해설 카드 제목 단계 3(코인 상세) | 서버 build · lint · test 1397 · layer-check / BFF build · test 487 / FE check-types · lint 13/13 · test 361 / 훅 사후(대조군 둘 exit 2 → 11파일 0) / 변이 16 중 15(남은 1 = 같은 동작) / 전 종목 157 × 두 모드 = 314칸 판단 블록 대조 어긋남 0 · 해설 BFF p95 91ms / 실화면 코인 · 국내 × 1440 · 390 axe 0(움직임 줄임으로 확인 — 코인 1440 대비 1 은 문장 등장 애니메이션 도중 측정) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

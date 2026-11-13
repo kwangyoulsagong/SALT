@@ -25,6 +25,9 @@ export const EXPLAIN_MESSAGES = {
   keyDriversHeading: "핵심 근거",
   risksHeading: "주의점",
   newsHeading: "관련 소식",
+  /** 서버가 판단 블록과 같은 값으로 쓴 칸(F017 v4 순서 1c) — 어느 단이든 늘 */
+  trackHeading: "얼마나 믿을까",
+  missHeading: "틀렸던 때",
   unavailable: "해설을 지금 불러오지 못했어요. 판단 카드의 근거를 먼저 봐 주세요.",
   /** 문장 끝 번호 칩 — 스크린리더가 숫자만 읽지 않게 */
   citationChipLabel: (n: number, label: string) => `출처 ${n}: ${label} 펼치기`,

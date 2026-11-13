@@ -107,3 +107,17 @@
 |---|---|---|
 | 결제 문자 원문 미보관(FEATURE-015 FR-5 첫 줄) | 결제 문자 입력 자체가 없다 | 결제 문자 입력이 생길 때 |
 | 삭제 직후 남은 접근 토큰(최대 15분) | S3c 그대로 | 배포 `OPS-001` |
+
+## F017 v4 순서 1b 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `composition.ts` 등락 의존(`move`)에 원인 근거 리더(`PrismaMoveEvidenceReader`) 조립 한 줄 | 서버 build · lint · test 1379 · layer-check / BFF build · test 486 / FE check-types · lint 13/13 · test 361 / 훅 사후(대조군 둘 exit 2 → 18파일 0) / 변이 28/28 / 전 종목 157 실측(실패 0 · 원인 칸 null 0 · 금지어 0 · 서버 p95 25ms · BFF p95 34ms) / 실화면 국내 둘 · 코인 둘 × 1440 · 390(axe 0 · 넘침 0) · 옛 응답 · 미리보기(`route`) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

@@ -57,7 +57,42 @@ export interface MoveFact {
   tag?: NewsTag | null;
 }
 
+/** 원인 종류 · 단계(F017 v4 순서 1b · `BFF-REQ-052` FR-6 앞당김) — 단계는 서버가 받치는 근거 수로 정했다 */
+export type MoveCauseKind = "disclosure" | "news" | "warning" | "listing" | "sector" | "market" | "flow" | "none";
+export type MoveCauseStrength = "likely" | "possible" | "none";
+
+/** 근거 한 줄 — 사실 + 숫자(`value`) · 비교 · 용어 풀이 · 출처 이름 · 시각. 문장은 서버 것 그대로 */
+export interface MoveEvidence {
+  kind: string;
+  value: string;
+  compare: string | null;
+  gloss: string | null;
+  source: string;
+  at: string | null;
+  /** 단계를 센 근거 — 화면은 굵게 */
+  supports: boolean;
+}
+
+export interface MoveCause {
+  kind: MoveCauseKind;
+  strength: MoveCauseStrength;
+  headline: string;
+  note: string;
+  /** 같은 날 사실 id — 소식 원인일 때만 */
+  factId: string | null;
+  at: string | null;
+  evidence: MoveEvidence[];
+}
+
+export interface MoveCauseView {
+  /** 강한 것이 앞 · 늘 하나 이상(받치는 근거가 없으면 "확인된 소식이 없어요") */
+  causes: MoveCause[];
+  result: { changeRate: number; text: string; past: string | null };
+}
+
 export interface WhyMoved {
+  /** 원인 → 근거 → 결과 — 옛 BFF · 모양이 깨지면 없음(①② 만) */
+  cause?: MoveCauseView | null;
   date: string;
   show: boolean;
   reasons: MoveCardReason[];
