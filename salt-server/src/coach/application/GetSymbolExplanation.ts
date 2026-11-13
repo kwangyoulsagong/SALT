@@ -2,6 +2,7 @@ import {
   explanationFactCatalog,
   explanationSentences,
   judgmentOnlySentences,
+  plainTrustSentences,
   selectExplanationTier,
   templateExplanation,
   type CoachMode,
@@ -9,10 +10,11 @@ import {
   type ExplanationSentence,
   type ExplanationSnapshotStore,
   type ExplanationTier,
+  type PlainTrustInput,
 } from "../domain";
 import type { ExplanationDemand } from "./lib/explanationDemand";
 import { prepareExplanation, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
-import { JUDGMENT_DISCLAIMER } from "./lib/judgmentTrack";
+import { JUDGMENT_DISCLAIMER, type ModeCoachView } from "./lib/judgmentTrack";
 
 export interface SymbolExplanationView {
   symbol: string;
@@ -59,13 +61,15 @@ export class GetSymbolExplanation {
     if (tier !== "latest") this.deps.demand.want(prepared.symbol, mode, now);
 
     const base = { symbol: prepared.symbol, mode, tier, disclaimer: JUDGMENT_DISCLAIMER };
+    // 얼마나 믿을까 · 틀렸던 때 — 어느 단이든 늘 뒤에(F017 v4 순서 1c). 판단 블록과 같은 값 · 저장하지 않음
+    const trust = plainTrustSentences(trustInput(mode, prepared.view));
     if ((tier === "latest" || tier === "previous") && stored) {
       return {
         ...base,
         aiGenerated: true,
         provider: stored.provider,
         generatedAt: stored.generatedAt.toISOString(),
-        sentences: stored.sentences,
+        sentences: [...stored.sentences.filter((x) => x.section !== "track" && x.section !== "miss"), ...trust],
       };
     }
     if (tier === "template" && prepared.input) {
@@ -74,10 +78,10 @@ export class GetSymbolExplanation {
         aiGenerated: false,
         provider: null,
         generatedAt: now.toISOString(),
-        sentences: explanationSentences(
-          templateExplanation(prepared.input, now),
-          explanationFactCatalog(prepared.input, now)
-        ),
+        sentences: [
+          ...explanationSentences(templateExplanation(prepared.input, now), explanationFactCatalog(prepared.input, now)),
+          ...trust,
+        ],
       };
     }
     return {
@@ -86,7 +90,20 @@ export class GetSymbolExplanation {
       aiGenerated: false,
       provider: null,
       generatedAt: now.toISOString(),
-      sentences: judgmentOnlySentences(prepared.view.judgment, now),
+      sentences: [...judgmentOnlySentences(prepared.view.judgment, now), ...trust],
     };
   }
 }
+
+/** 판단 블록 값 → 3종 문장 재료. 판단 블록(`GetSymbolCoach`)과 같은 함수(`attachJudgmentTrack`)가 만든 값이다 */
+export const trustInput = (mode: CoachMode, view: Pick<ModeCoachView, "trackRecord" | "failureCases">): PlainTrustInput => ({
+  mode,
+  track: {
+    mode,
+    winRate: view.trackRecord.winRate,
+    excessWinRate: view.trackRecord.excessWinRate,
+    sample: view.trackRecord.sample,
+    origin: view.trackRecord.sampleOrigin,
+  },
+  misses: view.failureCases.map((c) => ({ date: c.date, name: c.name, symbol: c.symbol, returnRate: c.returnRate })),
+});

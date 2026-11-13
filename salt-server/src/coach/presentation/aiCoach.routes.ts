@@ -105,7 +105,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                       items:
    *                         type: object
    *                         properties:
-   *                           section: { type: string, enum: [modeReasoning, keyDrivers, risks, newsSummary] }
+   *                           section: { type: string, enum: [modeReasoning, keyDrivers, risks, newsSummary, track, miss], description: "track · miss = 서버가 판단 블록과 같은 값으로 쓴 '얼마나 믿을까' · '틀렸던 때'(늘 맨 뒤 · LLM 0, F017 v4 순서 1c)" }
    *                           text: { type: string }
    *                           citations:
    *                             type: array

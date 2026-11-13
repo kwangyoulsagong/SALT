@@ -5,6 +5,7 @@ export * from "./explain";
 export * from "./explanationFacts";
 export * from "./explanationTemplate";
 export * from "./explanationSnapshot";
+export * from "./explanationPlain";
 export * from "./judgmentBacktest";
 export * from "./forecast";
 export * from "./judgmentObservation";
