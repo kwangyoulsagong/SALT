@@ -73,7 +73,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-9 | **왜 움직였나를 원인 → 근거 → 결과로** — 종목 상세의 `WhyMovedCard` 는 시나리오 패널의 한 줄로 들어간다(`FE-REQ-064` FR-9 ②). 시세 목록 오른쪽 프리뷰(`WhyMovedPreview`)는 남기되 **원인 한 줄 + 근거 둘(숫자 · 평소 대비 · 이름 출처)** — 지금처럼 출처를 지운 한 문장만 보이지 않는다. 문장 속 등락 숫자가 지금 값과 다르면 그리지 않는다(서버 검사 `SRV-REQ-052`) | to-do |
+| FR-9 | **왜 움직였나를 원인 → 근거 → 결과로** — 종목 상세의 `WhyMovedCard` 는 시나리오 패널의 한 줄로 들어간다(`FE-REQ-064` FR-9 ②). 시세 목록 오른쪽 프리뷰(`WhyMovedPreview`)는 남기되 **원인 한 줄 + 근거 둘(숫자 · 평소 대비 · 이름 출처)** — 지금처럼 출처를 지운 한 문장만 보이지 않는다. 문장 속 등락 숫자가 지금 값과 다르면 그리지 않는다(서버 검사 `SRV-REQ-052`) | **일부 2026-11-13** — 상세 카드 · 미리보기 원인 줄. 패널 안으로는 순서 1e |
 
 ## Changelog
 
@@ -96,3 +96,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-12 | 단계 D — FR-1 ③ done. 실화면 1440 · 390(앱 웹뷰 UA) · 코인 상세 · 프리뷰 · 상태 5종(route) · 넘침 0 |
 | 2026-11-12 | 단계 D 마무리 — FR-7 문구 grep 0 · `i18n-policy` 원인 단정어 줄(`ADR-009` §5) · AI 표시 대비(axe) |
 | 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-9 원인 근거 결과 모양 · 프리뷰 출처 이름 · 상세 카드는 시나리오 패널로 |
+| 2026-11-13 | **F017 v4 순서 1b**(`feat/f017-v4-s1-scenario-always`) FR-9 **일부** — `WhyMovedCard` 맨 위 원인 → 근거 → 결과 세로 칸(단계 배지 · 단계를 정한 근거 굵게 · 이름 출처 칩 · 용어 풀이 · 다른 가능성 접힘) · 소식 원인은 아래 그 사실 줄로 이음 · 미리보기는 ③ 이 없을 때 '가장 유력 · 머리말'. 결과 칸이 오늘 등락을 말하면 아래 같은 숫자 줄을 뺀다. 접힌 카드 요약에 heading 역할(axe heading-order — main 에도 있던 결함). 패널로 옮기는 것은 순서 1e |

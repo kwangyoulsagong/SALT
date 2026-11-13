@@ -36,3 +36,8 @@
 
 - 실패 시도도 행으로 둔 게 "같은 지문 LLM 1회"의 근거가 됐다 — 성공만 저장하면 검사가 막은 지문을 회차마다 다시 부른다
 - 게이트와 문장의 짝을 CHECK 로(ok ⇔ 문장 · 인용 ≥1) — 코드가 틀려도 표가 막는다
+
+## F017 v4 순서 1b 짝 (2026-11-13)
+
+- `kr_flow_intraday` 보관 7 → 35일(`KR_FLOW_INTRADAY_RETENTION_DAYS`) — 스키마 변경 0 · 정리 배치가 다음 회차부터 덜 지운다(유니버스 50 × 하루 약 40행 × 35일 ≈ 7만 행)
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

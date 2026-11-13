@@ -21,7 +21,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-2 | `kr_vi_event` | market | (종목 · 발동 시각) 유일 · 정적/동적 · 해제 시각 · 발동가 · 괴리율 · 횟수 |
 | FR-3 | `kr_market_action` | market | 시장(코스피 · 코스닥) · kind(circuit_breaker · sidecar) · 단계 · 방향 · 시작 · 끝 · source(feed · inferred) |
 | FR-4 | `kr_sector_index_quote` · `kr_sector_index_daily` | market | 업종 코드 · 값 · 등락 · 시각 / 일별 종가 |
-| FR-5 | `kr_flow_intraday` | market | 종목 · 시각 · 외국인 · 기관 · 개인 · 프로그램 순매수(수량 · 금액 NUMERIC). 하루 지나면 일별 표(`kr_stock_investor_flows`)가 정본 — 7일 보관 |
+| FR-5 | `kr_flow_intraday` | market | 종목 · 시각 · 외국인 · 기관 · 개인 · 프로그램 순매수(수량 · 금액 NUMERIC). 하루 지나면 일별 표(`kr_stock_investor_flows`)가 정본 — ~~7일 보관~~ **35일 보관**(2026-11-13 — 프로그램 매매는 일별 표에 없어 원인 근거 '최근 거래일 평균의 n배'에 20거래일이 필요, `SRV-REQ-053` FR-11) |
 | FR-6 | `kr_stock_quotes` 열 추가 | market | `vi_code` · `caution_flag` · `managed_flag` · `liquidation_flag` · `short_overheat_flag` · `last_trade_at` — 2단계 아님(추가만) |
 | FR-7 | 코인 마켓 경보 | market | 기존 코인 마켓 표에 유의 · 주의 플래그 열 추가(어느 표인지는 착수 때 — `MarketAsset` 의 고래 · 폭 경로가 `asset_type` 을 거르지 않는 문제 `DB-REQ-033` 확인) |
 | FR-8 | `move_explanation` | coach | 종목 · 자산군 · 거래일 · 사실 지문 · 문장 · 인용 id 배열 · 모델 · 게이트 · 생성 시각. 불변(UPDATE 차단 트리거 — 판정 원장과 같은 방식) · (종목 · 거래일 · 지문) 유일 |
@@ -47,7 +47,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-1 `kr_news_title` · `kr_news_title_symbol` | done | `20261106160000_kr_news_title` — 일련번호 PK · 본문 · 링크 열 0 · 연결 표에 게시 시각을 같이 둬 `(code, published_at desc)` 한 인덱스 · FK CASCADE(정리가 제목만 지운다) · 마스터 FK 없음(ETN) |
 | FR-4 `kr_sector_index_quote` · `kr_sector_index_daily` | done | `20261106160100_kr_sector_index` — 최신 한 행 + (코드, 거래일) 한 행(장 끝 값 = 종가) |
 | FR-5 `kr_flow_intraday` | 부분 | `20261106160200_kr_flow_intraday` — 프로그램 순매수 · 매수 · 매도(원) 열만. 외국인 · 기관 · 개인 열은 원천이 생길 때 추가 마이그레이션(모의 키 거부) |
-| 보존 | done | 제목 30일 · 장중 수급 7일 · `kr_vi_event` 30일 — 5,000행씩 나눠 지운다 |
+| 보존 | done | 제목 30일(→ 400일 F017 단계 6) · 장중 수급 ~~7일~~ 35일(2026-11-13) · `kr_vi_event` 30일 — 5,000행씩 나눠 지운다 |
 
 - 로컬 운영 DB 적용(2026-11-06 11:5x). `prisma migrate diff`(DB → 스키마) 남은 차이는 기존 인덱스 이름 둘뿐(이번 변경 밖)
 - EXPLAIN(2026-11-06): 오늘 소식 = `kr_news_title_symbol_code_published_at_idx`(Index Cond code · published_at) → `kr_news_title_pkey` 0.14ms · 장중 수급 = `kr_flow_intraday_pkey` 역방향 0.03ms
@@ -97,3 +97,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `PrismaKrMoveSourceStore.newsTitle(serial, code)` — 연결 PK(serial, code) → 제목 PK, 광고성 제외(본문 찾기 입력) |
 | 2026-11-10 | `PrismaKrMoveSourceStore` 읽기 둘 — `sectorBoard`(업종 최신 값 + 이름, 20행 안팎) · `searchNewsTitles`(일주일 창 `ILIKE` · `published_at` 인덱스 0.26ms) — 검색 모달 `SRV-REQ-055` `dd0bbdcc`. DDL 0. 저장된 시황 제목 39행 제어 문자 정리(`0df7784e`, 규칙 주인 `SRV-REQ-051`) |
 | 2026-11-12 | 단계 D — FR-8 · FR-9 done. 정정: 실패 시도도 행으로(같은 지문 LLM 1회의 근거 · 품질 감사) · export 뷰 더함(예측 리포트) |
+| 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `kr_flow_intraday` 보관 7 → 35일(`KR_FLOW_INTRADAY_RETENTION_DAYS`) — 스키마 변경 0 · 정리 배치가 다음 회차부터 덜 지운다(유니버스 50 × 하루 약 40행 × 35일 ≈ 7만 행). 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |

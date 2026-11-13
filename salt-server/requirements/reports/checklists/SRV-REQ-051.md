@@ -132,3 +132,17 @@
 ### 미검증 · 범위 밖
 
 없음
+
+## F017 v4 순서 1b 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `GetWhyMoved` 가 원인 → 근거 → 결과(`cause`)를 같은 응답에 — ①②(분해 · 같은 날 사실) 값 · 규칙 변경 0. 머리 주석 '원인을 고르지 않는다'를 '원인은 근거로만'(`ADR-009` v4)으로 정정 | 서버 build · lint · test 1379 · layer-check / BFF build · test 486 / FE check-types · lint 13/13 · test 361 / 훅 사후(대조군 둘 exit 2 → 18파일 0) / 변이 28/28 / 전 종목 157 실측(실패 0 · 원인 칸 null 0 · 금지어 0 · 서버 p95 25ms · BFF p95 34ms) / 실화면 국내 둘 · 코인 둘 × 1440 · 390(axe 0 · 넘침 0) · 옛 응답 · 미리보기(`route`) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

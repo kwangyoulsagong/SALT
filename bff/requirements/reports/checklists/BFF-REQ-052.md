@@ -85,3 +85,17 @@
 | 패널 한 콜(FR-6) | 서버 FR-13 뒤 | 순서 1 다음 칸 |
 
 확인 2회차(2026-11-13 오후): 변이 8 전부 죽음 · 전 종목 157 실패 0 · p95 52ms · 낡은 주석 2 · 다른 소비처 0. 본문 `requirements/reports/checklists/F017-v4-stage1-panel.md`.
+
+## F017 v4 순서 1b — 원인 → 근거 → 결과 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 원인 칸 옮기기 · 단계 검사 표 6 · 모르는 근거 · 깨짐 격리 · 옛 응답 | 충족 | `why-moved.test.ts` 20 · BFF test 486 · 변이 3/3 · BFF 경유 157 실측 원인 칸 null 0 · p95 34ms |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 패널 한 콜(FR-6 나머지) | 서버 FR-13 뒤 | 순서 1d |

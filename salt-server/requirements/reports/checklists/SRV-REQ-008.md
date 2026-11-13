@@ -303,3 +303,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 — 모델 추가만 | 아래 회고 | 다음 카드 날 배치 로그 |
+
+## F017 v4 순서 1b 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `investment.routes.ts` 코인 why-moved Swagger 에 `cause` · 코인 원인 순서 | 서버 build · lint · test 1379 · layer-check / BFF build · test 486 / FE check-types · lint 13/13 · test 361 / 훅 사후(대조군 둘 exit 2 → 18파일 0) / 변이 28/28 / 전 종목 157 실측(실패 0 · 원인 칸 null 0 · 금지어 0 · 서버 p95 25ms · BFF p95 34ms) / 실화면 국내 둘 · 코인 둘 × 1440 · 390(axe 0 · 넘침 0) · 옛 응답 · 미리보기(`route`) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

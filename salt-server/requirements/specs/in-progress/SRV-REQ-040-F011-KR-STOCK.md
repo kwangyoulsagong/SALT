@@ -190,6 +190,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-11-10 밤(1b): FR-63 v2 완료 — 국내 단타 원장 · 다음 거래일 종가(`326a0553`) · 국내 단타 과거 검산 99,870(`f38ca6ae`) · 국내 장기 과거 검산 라벨 `backtest_full`(스크립트 지우기 범위를 국내 장기로 좁힘). 화면 문구 "국내는 장기 판단만" 삭제(`f4ac1427`)
 - 2026-11-10 밤(FR-61): FR-61 v2 완료 — 판단 원장 국내 행 · 자산군 열(`c8de7501`)
 - 2026-11-11(1c): `feat/f017-s1c-collection`: F017 단계 1c(`SRV-REQ-057`): 국내 5분봉 보정이 부팅 · 깸에도 · 유니버스에 새로 든 코드는 직전 날 스냅샷과 비교해 그 자리에서 일봉 2년 + 5분봉 29일 · 슬롯 밖 장중 5분봉 10분마다 · 코인 장기 이력 꼬리표가 국내와 같은 `KrJudgmentHistory` 모양(`cryptoLongTermHistory`). 실측: 지난 5개장일 (종목, 날) 5분봉 < 70 → 0 · 11-06 · 11-09 종목 48 · 46 → 50
+- 2026-11-13: F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `krStock.routes.ts` 국내 why-moved Swagger 에 `cause`. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9
 
 ## Changelog
 

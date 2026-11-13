@@ -29,3 +29,8 @@
 
 - ③ 을 서버 why-moved 응답에 넣지 않고 BFF 가 두 경로를 합쳤다 — market 이 coach 를 부르면 컨텍스트 의존이 거꾸로다. 화면 요청은 그대로 한 번
 - 기존 테스트가 경로 하나만 흉내 내고 있어 병렬 호출 뒤 첫 호출 경로를 단정한 줄이 깨졌다 — 경로별 흉내(`byPath`)로 바꿨다
+
+## F017 v4 순서 1b 짝 (2026-11-13)
+
+- `why-moved.viewmodel.ts` 에 원인 칸(`cause`) — 이 REQ 의 ①② · ③ 옮기기 규칙 그대로 · 키 목록 테스트에 `cause`
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

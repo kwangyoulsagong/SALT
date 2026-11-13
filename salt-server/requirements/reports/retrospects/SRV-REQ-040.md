@@ -244,3 +244,8 @@
 
 - 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: BFF `app-kr-stock.service.ts`(머리 주인) `getWhyMoved` 가 ③ 한 줄을 병렬로 합친다(`BFF-REQ-051` FR-1) — 다른 국내 경로 변경 0
 - 배운 것: 공유 파일을 바꾸면 그 파일 소비처를 grep 으로 전부 — 이번엔 소비처 변경 0
+
+## F017 v4 순서 1b 짝 (2026-11-13)
+
+- `krStock.routes.ts` 국내 why-moved Swagger 에 `cause`
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
