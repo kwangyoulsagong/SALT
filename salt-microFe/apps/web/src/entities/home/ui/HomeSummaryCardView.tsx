@@ -10,6 +10,8 @@ import { cardLink, head, note, value, values } from "./HomeSummaryCardView.css";
 
 interface HomeSummaryCardViewProps {
   card: HomeSummaryCard;
+  /** 카드를 누른 순간 — 부르기만 한다(계측은 위층이 정한다, `FE-REQ-055` FR-8) */
+  onOpen?: () => void;
 }
 
 /**
@@ -19,7 +21,7 @@ interface HomeSummaryCardViewProps {
  * 카드 전체가 그 도메인 zone 진입 링크다. 도메인이 아직 셸에 있으면(`hostedIn`) `<Link>`, 다른 zone 이면
  * `CrossZoneLink` — `ZoneLink` 가 레지스트리로 고른다. `degraded` 는 값 자리에 한 줄만 둔다.
  */
-export const HomeSummaryCardView = ({ card }: HomeSummaryCardViewProps) => {
+export const HomeSummaryCardView = ({ card, onOpen }: HomeSummaryCardViewProps) => {
   const body = (
     <Card>
       <div className={head}>
@@ -43,7 +45,7 @@ export const HomeSummaryCardView = ({ card }: HomeSummaryCardViewProps) => {
   );
 
   return (
-    <ZoneLink href={card.href} className={cardLink}>
+    <ZoneLink href={card.href} className={cardLink} onClick={onOpen}>
       {body}
     </ZoneLink>
   );
