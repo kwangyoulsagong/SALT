@@ -109,4 +109,5 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 부채꼴 차트 · 줄 넷 · 해설 상자 · 내 기준(FR-8 나머지 · FR-9~11) | 패널 응답(서버 FR-11 · 13) 뒤 | 순서 1 다음 칸 |
-| `web-investment` 운영 빌드 | worktree 에서 — 커밋 뒤 | 이 브랜치 done 전 |
+
+운영 빌드(2026-11-13): `web-investment` worktree 빌드 통과 — `/investments/[symbol]` First Load 153 kB.
