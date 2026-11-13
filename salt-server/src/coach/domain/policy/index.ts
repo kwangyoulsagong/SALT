@@ -15,6 +15,7 @@ export * from "./judgmentLedger";
 export * from "./judgmentScoreboard";
 export * from "./judgmentTier";
 export * from "./shortHorizon";
+export * from "./scenarioBaseRate";
 export * from "./languageGuard";
 export * from "./marketRegime";
 export * from "./modeDecision";

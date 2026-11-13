@@ -134,7 +134,7 @@ export class CoachToolsController {
   };
 
   /**
-   * 시나리오 카드 — 단타 방향 확률, 소유자만(아니면 404). F017 v2 단계 5 `SRV-REQ-053` FR-5.
+   * 시나리오 — 모든 종목 · 지평 넷에 늘(과거 실제 결과 · 모델 확률은 소유자 + 시험을 넘은 칸만). F017 v4 `SRV-REQ-053` FR-10.
    */
   getScenario = async (req: Request, res: Response, next: NextFunction) => {
     try {

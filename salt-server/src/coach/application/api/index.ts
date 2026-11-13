@@ -337,7 +337,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.backtestJudgments ?? null,
       deps.market
     ),
-    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.market, deps.forecastOwnerEmails),
+    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.baseRates, deps.market, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),
