@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiFetch, readApiError, retryWhileRetriable, useHasSession } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
-/** `GET /api/app/me/privacy` — 서비스마다 저장하는 것(등급 · 설명) · AI 로 가는 것. 목록 · 순서 · 설명은 BFF · 서버 것(`BFF-REQ-046` FR-9) */
+/** `GET /api/app/me/privacy` — 서비스마다 저장하는 것(등급 · 설명) · AI 로 가는 것. 목록 · 순서 · 설명은 BFF · 서버 것(`BFF-REQ-046` FR-10) */
 export const PRIVACY_ENDPOINT = "/api/app/me/privacy";
 
 export type PrivacyGrade = "sensitive" | "financial" | "record" | "unknown";

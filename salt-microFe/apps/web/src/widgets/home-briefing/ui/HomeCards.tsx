@@ -16,7 +16,7 @@ import { cardList } from "./HomeCards.css";
  * 도메인 요약 카드 목록 (`FE-REQ-055` FR-2). 순서는 BFF `order` 그대로, `hidden` 은 그리지 않는다.
  *
  * 카드 하나의 실패는 카드가 `degraded` 로 그린다 — BFF 가 카드별로 격리해서 준다(`BFF-REQ-046`).
- * 응답 전체를 못 받은 경우만 여기서 한 줄로 알린다. 카드를 누르면 도메인 사용 한 번(`FE-REQ-055` FR-8 — 기다리지 않는다).
+ * 응답 전체를 못 받은 경우만 여기서 한 줄로 알린다. 카드를 누르면 도메인 사용 한 번(`FE-REQ-055` FR-9 — 기다리지 않는다).
  */
 export const HomeCards = () => {
   const home = useHomeCards();

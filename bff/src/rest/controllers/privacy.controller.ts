@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { appPrivacyService } from "../../services/app-privacy.service";
 
-/** 개인정보 — 저장하는 것 · AI 로 가는 것(`BFF-REQ-046` FR-9) · 도메인 사용 계측(FR-10). 조립은 서비스 */
+/** 개인정보 — 저장하는 것 · AI 로 가는 것(`BFF-REQ-046` FR-10) · 도메인 사용 계측(FR-11). 조립은 서비스 */
 class PrivacyController {
   async privacy(req: Request, res: Response, next: NextFunction) {
     try {

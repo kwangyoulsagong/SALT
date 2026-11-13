@@ -2,7 +2,7 @@ import { INVESTMENTS_BASE_URL } from "../config";
 import { apiFetch } from "./apiFetch";
 import { hasSession } from "./session";
 
-/** `POST /api/app/me/usage` — 도메인 사용 계측(`FE-REQ-055` FR-8 · `BFF-REQ-046` FR-10 · 서버 S3d `SRV-REQ-048` FR-7) */
+/** `POST /api/app/me/usage` — 도메인 사용 계측(`FE-REQ-055` FR-9 · `BFF-REQ-046` FR-11 · 서버 S3d `SRV-REQ-048` FR-7) */
 export const USAGE_ENDPOINT = "/api/app/me/usage";
 
 export type UsageKind = "visit" | "card_click";

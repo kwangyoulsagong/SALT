@@ -4,7 +4,7 @@ import { toUpstreamClientError } from "../utils/error.util";
 import { logger } from "../config/logger";
 
 /**
- * 개인정보 — 저장하는 것 · AI 로 가는 것(`BFF-REQ-046` FR-9, 서버 S3d `SRV-REQ-048` FR-6) · 도메인 사용 계측 중계(FR-10, FR-7).
+ * 개인정보 — 저장하는 것 · AI 로 가는 것(`BFF-REQ-046` FR-10, 서버 S3d `SRV-REQ-048` FR-6) · 도메인 사용 계측 중계(FR-11, FR-7).
  *
  * 서버는 서비스마다 같은 경로 `GET /<service>/me/data-classification` 을 준다 — 표 · 등급(record · financial · sensitive) · 설명(표 주석이 원천).
  * AI 입력 목록은 투자(Express)만 준다 — LLM 을 부르는 곳이 투자 코치 배치뿐이다. 서비스 목록 = 지워지는 범위와 같은 목록(`MY_DATA_SCOPE`) —

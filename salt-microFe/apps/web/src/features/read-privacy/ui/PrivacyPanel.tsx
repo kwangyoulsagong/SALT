@@ -18,7 +18,7 @@ const ITEM_SEPARATOR = ", ";
 const TONE: Record<PrivacyGrade, BadgeTone> = { sensitive: "warning", financial: "brand", record: "neutral", unknown: "neutral" };
 
 /**
- * 저장하는 것 · AI 로 가는 것(`FE-REQ-055` FR-7 · `BFF-REQ-046` FR-9). 로그인 전이면 패널째 없다.
+ * 저장하는 것 · AI 로 가는 것(`FE-REQ-055` FR-7 · `BFF-REQ-046` FR-10). 로그인 전이면 패널째 없다.
  * AI 칸이 먼저다 — "내 기록이 AI 로 가나"가 사람이 먼저 묻는 것이다. 서비스 순서는 BFF(지워지는 범위와 같은 목록).
  */
 export const PrivacyPanel = () => {

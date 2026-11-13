@@ -6,7 +6,7 @@ import { appPrivacyService, toAi, toGroups } from "../app-privacy.service";
 import { backendApi } from "../backend-api.service";
 
 /**
- * 개인정보(`BFF-REQ-046` FR-9 · FR-10, 서버 S3d). 불변식 넷
+ * 개인정보(`BFF-REQ-046` FR-10 · FR-11, 서버 S3d). 불변식 넷
  * 1. 서비스 목록 = 지워지는 범위(`MY_DATA_SCOPE`) — "저장하는 것"과 "지워지는 것"이 같은 서비스를 가리킨다
  * 2. 등급 없는 표는 숨기지 않는다(`unknown` 묶음 · 표 이름) — 감추면 공개가 거짓
  * 3. 서비스 하나 실패 = 그 칸만 unavailable · 401 은 전체 401

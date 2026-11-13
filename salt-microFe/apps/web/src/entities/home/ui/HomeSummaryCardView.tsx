@@ -10,7 +10,7 @@ import { cardLink, head, note, value, values } from "./HomeSummaryCardView.css";
 
 interface HomeSummaryCardViewProps {
   card: HomeSummaryCard;
-  /** 카드를 누른 순간 — 부르기만 한다(계측은 위층이 정한다, `FE-REQ-055` FR-8) */
+  /** 카드를 누른 순간 — 부르기만 한다(계측은 위층이 정한다, `FE-REQ-055` FR-9) */
   onOpen?: () => void;
 }
 

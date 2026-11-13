@@ -63,7 +63,7 @@ export const ZoneNavigation = ({
 
   useEffect(() => {
     readZoneNavigationMetric(ZONE_APP);
-    // 도메인 사용 계측(`FE-REQ-055` FR-8) — 도메인 zone 문서를 연 것 한 번. 셸 · 공개 화면은 세지 않는다. 로그인 판정은 `countUsage` 가
+    // 도메인 사용 계측(`FE-REQ-055` FR-9) — 도메인 zone 문서를 연 것 한 번. 셸 · 공개 화면은 세지 않는다. 로그인 판정은 `countUsage` 가
     const zone = zoneOfPath(pathname);
     if (zone !== "shell" && !isPublicPath(pathname)) countUsage(zone, "visit");
     // 문서가 열릴 때 한 번만 — 같은 zone 안 이동은 zone 전환이 아니다
