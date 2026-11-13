@@ -46,6 +46,7 @@ export const PANEL_MESSAGES = {
   // 이전 AI 단 = 그 뒤 재료(숫자 · 소식 · 꼬리표)가 바뀌었지만 판단 방향은 같다 — "판단이 바뀌었다"고 말하지 않는다
   explainPrevious: (when: string) => `${when}에 쓴 해설이에요 — 그 뒤 들어온 숫자 · 소식은 아직 반영 전이에요`,
   explainDefect: "해설을 지금 불러오지 못했어요",
+  explainWriting: "AI 가 위 사실로 해설을 쓰고 있어요",
   // 내 기준
   mineHead: "내 기준",
   mineOnlyYou: "나만 보여요",

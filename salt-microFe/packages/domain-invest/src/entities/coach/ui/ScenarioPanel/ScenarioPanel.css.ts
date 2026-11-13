@@ -188,6 +188,19 @@ export const sentence = style({
   "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
 });
 
+/** "쓰는 중" — 줄인 모션이면 멈추지 않고 느리게(진행 표시는 필수 피드백, `motion.md` §7) */
+const shimmer = keyframes({ "0%": { opacity: 0.45 }, "50%": { opacity: 1 }, "100%": { opacity: 0.45 } });
+export const writing = style({
+  fontSize: "13px",
+  lineHeight: "22px",
+  color: vars.colors.neutral[600],
+  animationName: shimmer,
+  animationDuration: vars.motion.duration.scene,
+  animationIterationCount: "infinite",
+  animationTimingFunction: vars.motion.easing.enter,
+  "@media": { "(prefers-reduced-motion: reduce)": { animationDuration: `calc(${vars.motion.duration.scene} * 3)` } },
+});
+
 /** 출처 — 번호가 아니라 이름 칩(`FE-REQ-064` FR-10) */
 export const sourceChip = style({
   display: "inline-block",

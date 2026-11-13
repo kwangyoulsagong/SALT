@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import {
   coachQueryKeys,
   CompanyRow,
-  ExplainBox,
   InvalidationRow,
   MineLine,
   PANEL_DEFAULT_HORIZON,
@@ -23,6 +22,7 @@ import {
 } from "@/entities/coach";
 import { MoveCauseFlow, useKrChart, useMarketChart, useMarketChartPreview } from "@/entities/market";
 import { TradeCheckCard } from "@/features/check-trade-odds";
+import { StreamedExplanation } from "@/features/stream-explanation";
 
 import { scenarioPanel, scenarioPanelLoading, scenarioPanelNote } from "./ScenarioPanel.css";
 
@@ -115,7 +115,8 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
       <TrackRow track={mode.track} />
 
       {mode.explanation.view ? (
-        <ExplainBox view={mode.explanation.view} />
+        // 최신 AI 저장본이면 그대로, 아니면 스트림(F017 v4 1f) — 기간 탭이 모드를 바꾸면 새로 연다
+        <StreamedExplanation key={mode.mode} symbol={symbol} mode={mode.mode} stored={mode.explanation.view} />
       ) : (
         <StatusLine kind="error">{M.explainDefect}</StatusLine>
       )}
