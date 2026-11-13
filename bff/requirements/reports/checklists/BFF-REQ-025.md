@@ -140,3 +140,9 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 즉석 해설 경로 · 동시 상한 삭제 | 충족 | `app-ai-coach.service.ts` · 테스트 `explanation.test.ts` 8 · `npm test` 448 · build |
+
+## F017 v4 1d 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `getPanel` — 한 콜 · 400ms · 재시도 1 · 502/401 시험 3 | 충족 | 주인 REQ 체크리스트 |

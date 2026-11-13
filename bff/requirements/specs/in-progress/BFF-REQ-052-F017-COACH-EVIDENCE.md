@@ -43,9 +43,9 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-6 | `GET /api/app/ai-coach/panel?symbol` — 서버 `GET /api/coach/panel`(`SRV-REQ-053` FR-13) 한 콜을 패널 뷰모델로: `{ horizons[4], verdict, cause{ kind, headline, strength, evidence[], result }, company{ summary, facts[4] }, track{ hits, sample, baseline, miss }, mine?, explanation{ ready } }`. 화면 문구에 쓰는 숫자 모양(100번 중 n번 · n% 둘 다 · 범위 · 원 단위 가격)은 BFF 가 만든다 — 계산은 0(서버 값의 표시 변환만). 칸 `status` 는 그대로 전달 · 401 은 전체 401. 웹은 이 한 콜, 기존 칸별 경로(`/scenario` · `/check` · `/explanation`)는 소비처가 0 이 되면 삭제 | to-do |
+| FR-6 | `GET /api/app/ai-coach/panel?symbol` — 서버 `GET /api/coach/panel`(`SRV-REQ-053` FR-13) 한 콜을 패널 뷰모델로: `{ horizons[4], verdict, cause{ kind, headline, strength, evidence[], result }, company{ summary, facts[4] }, track{ hits, sample, baseline, miss }, mine?, explanation{ ready } }`. 화면 문구에 쓰는 숫자 모양(100번 중 n번 · n% 둘 다 · 범위 · 원 단위 가격)은 BFF 가 만든다 — 계산은 0(서버 값의 표시 변환만). 칸 `status` 는 그대로 전달 · 401 은 전체 401. 웹은 이 한 콜, 기존 칸별 경로(`/scenario` · `/check` · `/explanation`)는 소비처가 0 이 되면 삭제 | **done 2026-11-13**(1d — 서버 한 콜 → 뷰모델). 칸별 경로 삭제는 1e 에서 웹 소비처를 옮긴 뒤 |
 | FR-7 | `GET /api/app/ai-coach/explain/stream`(SSE) — 서버 스트림(`SRV-REQ-053` FR-9) 중계. 이벤트 `snapshot` · `sentence` · `fallback` · `done` · `ping`. 화면이 떠나면 서버로 끊김을 전한다(생성 자체는 서버가 끝까지 — 저장용). 압축 · 버퍼링 끔(`streaming-sse.md` §5) | to-do |
-| FR-8 | 내 기준 — 패널 뷰모델 `mine`: 보유가 없으면 칸 없음 · ~~평단은 펼침 경로에서만~~ **정정 2026-11-13** 평단 · 평가 손익 포함(매입가 숨김이면 빠짐, `SRV-REQ-053` FR-15) | to-do |
+| FR-8 | 내 기준 — 패널 뷰모델 `mine`: 보유가 없으면 칸 없음 · ~~평단은 펼침 경로에서만~~ **정정 2026-11-13** 평단 · 평가 손익 포함(매입가 숨김이면 빠짐, `SRV-REQ-053` FR-15) | **done 2026-11-13**(1d) |
 
 ## Changelog
 
@@ -67,3 +67,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | **F017 v4 순서 1a**(`feat/f017-v4-s1-scenario-always`) FR-4 **개정** — 시나리오 뷰모델 지평 넷 · 두 출처(`source` · `tier` · `fallbackFrom` · `fallbackLabel` · `basis` · `modelBlocked`). 모델 칸은 여전히 막을 수만 · 과거 실제 결과 칸은 재료가 틀리면 결함 단(숫자 0). 404(소유자 아님)는 이제 오지 않는다. 서버 `SRV-REQ-053` FR-10 |
 | 2026-11-13 | **F017 v4 순서 1b**(`feat/f017-v4-s1-scenario-always`) FR-6 **일부 앞당김** — 패널 한 콜 전에 '왜 움직였나' 응답에 `cause`(원인 → 근거 → 결과)를 옮긴다(`why-moved.viewmodel.ts` `toMoveCauseVM`). 막을 수만: 단계가 근거 수와 안 맞는 원인 · 모르는 종류 · 단계는 버리고, 원인 칸이 깨지면 그 칸만 `null`(①② 는 그대로). 문장 · 단계를 만들지 않는다 |
 | 2026-11-13 | **F017 v4 순서 1c**(`feat/f017-v4-s1-scenario-always`) FR-2 해설 뷰모델 칸 둘 허용(`track` · `miss` — 서버가 판단 블록 값으로 쓴 '얼마나 믿을까' · '틀렸던 때'). 옮기기만 · 모르는 칸은 여전히 계약 깨짐 |
+| 2026-11-13 | **F017 v4 순서 1d**(`feat/f017-v4-s1d-coach-panel`) FR-6 · FR-8 **done** — `GET /api/app/ai-coach/panel` · `coach-panel.viewmodel.ts` 는 칸마다 **이미 있는 칸별 뷰모델 그대로**(시나리오 · 점검 · 원인 · 해설 · 꼬리표) — 막는 규칙이 하나. 칸 안이 깨지면 그 칸만 `defect` + `degradedBlocks`(서버가 결함으로 준 칸은 세지 않음) · 머리(심볼 · 시장 · 칸 묶음)가 깨지면 502 · 401 그대로. 칸 표 `cells` 는 BFF 가 마지막 단으로 다시 만든다(화면이 보는 단 = 상태 점검이 세는 단). 숫자 모양만: 성적 100번 중 맞힌 번 · 기준(적중률 − 초과분, 관망은 null) · 틀렸던 때 = 빗나간 사례만. 예산 400ms(코치 상세와 같다). 실측 BFF 경유 157종목 실패 0 · 내린 칸 0 · p95 144ms |

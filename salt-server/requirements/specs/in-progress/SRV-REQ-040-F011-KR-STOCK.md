@@ -198,3 +198,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 |---|---|
 | 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `GetKrStockNews` 항목에 `tag`(측정 태그 — 덧붙임, 실패면 null). 읽기 경로 · 범위(오늘 · 최근 7일)는 그대로 |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): BFF `app-kr-stock.service.ts`(머리 주인) `getWhyMoved` 가 ③ 한 줄을 병렬로 합친다(`BFF-REQ-051` FR-1) — 다른 국내 경로 변경 0 |
+| 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — market 공개 API `whyMovedCard` 에 `opts.cause`(기본 false — ③ 한 줄 배치는 그대로 원인 재료를 읽지 않는다) · 뷰에 `cause`(true 일 때만). main 과 나란히 942응답 대조 다른 곳 0 |

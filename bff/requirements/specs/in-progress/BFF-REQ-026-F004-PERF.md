@@ -145,6 +145,7 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `ai-coach.controller.ts` 에 `tradeCheck` — 요청 취소(abort)를 서버 호출까지 전파. 기존 핸들러 무변경. 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — 해설 스트림 중계(SSE · 하트비트) 삭제 — 해설은 300ms 예산 GET(`BFF-REQ-052` FR-2) |
 | 2026-11-11 | F017 v2 단계 5 — `ai-coach.controller` 에 시나리오 핸들러 더함(소유자만 · 404 그대로 · upstream 끊기 같은 모양). 이 REQ 의 판단 상세 경로 변경 0 |
+| 2026-11-13 | F017 v4 1d 짝(`BFF-REQ-052` FR-6) — 컨트롤러 `panel`(화면이 떠나면 upstream 끊기 — FR-52 같은 꼴). 실측 157종목 p95 144ms |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/coachApi.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 - 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `ai-coach.routes.ts` 시나리오 줄 주석(누구나 · 지평 넷) — 이 REQ 의 판단 상세 경로 변경 0. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8

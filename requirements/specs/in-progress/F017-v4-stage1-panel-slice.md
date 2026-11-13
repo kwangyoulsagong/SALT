@@ -4,7 +4,7 @@ title: "F017 v4 순서 1 — 있는 데이터로 패널: 시나리오 늘 · 원
 priority: high
 labels: [F017, slice, server, bff, fe]
 created: 2026-11-13
-status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 done — 2026-11-13. 1d~1f 남음)
+status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 · 1d 패널 한 번 응답 done — 2026-11-13. 1e · 1f 남음)
 ---
 
 ## Summary
@@ -17,7 +17,7 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 1a | **시나리오 늘** — 모든 종목 · 지평 넷(1시간 · 4시간 · 1일 · 5일)에 과거 실제 결과("100번 중 n번 올랐어요") · 모델 확률은 소유자 + 시험을 넘은 칸만 · 접힌 자리에서 꺼냄 | `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 개정 · `FE-REQ-064` FR-8 머리 | **done 2026-11-13**(`feat/f017-v4-s1-scenario-always`) |
 | 1b | 원인 · 근거 · 결과 조립(업종 · 수급 · 프로그램 · 소식 뒤 30분 — LLM 0) · 코인 원인 순서 · '왜 움직였나' 카드 맨 위 · 미리보기 원인 줄 | `SRV-REQ-053` FR-11 · FR-17 · `BFF-REQ-052` FR-6 일부 · `FE-REQ-063` FR-9 일부 | **done 2026-11-13** |
 | 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) — 해설 네 단 모두 맨 뒤 | `SRV-REQ-053` FR-16 일부 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2 | **done 2026-11-13** — FR-16 나머지(LLM 재료 · 순서 · 검사)는 1f 로 |
-| 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 | `SRV-REQ-053` FR-13 · `BFF-REQ-052` FR-6 | to-do |
+| 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 · 내 기준 | `SRV-REQ-053` FR-13 · FR-15 · `BFF-REQ-052` FR-6 · FR-8 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
 | 1e | 패널 UI(시안 — 부채꼴 · 줄 넷 · 해설 상자 · 내 기준) | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 | to-do |
 | 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · FR-16 나머지(LLM 재료 · 문장 순서 · 검사 — 생성 경로를 다시 쓰며 한 번에) · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
 
@@ -62,6 +62,20 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 - BFF `GET /api/app/ai-coach/scenario` — **BREAKING**: `renderable` · `blockedReason` 삭제 → `source` · `tier` · `basis` · `modelBlocked`. 소비처(웹 카드 하나)를 같은 브랜치에서 옮김. 앱 웹뷰는 웹 화면을 그대로 쓴다(네이티브 소비 0)
 - DB · 예측 — 변경 0(읽는 뷰 그대로)
 
+## 판단 — 리뷰가 볼 곳 (1d)
+
+1. **조립만 · 새 계산 0** — 패널은 칸별 경로와 같은 유스케이스 인스턴스(서버) · 같은 뷰모델(BFF)을 그대로 부른다. 더한 것은 칸 단 규칙 한 파일(`coachPanel.ts`)
+2. **단 넷의 뜻** — `now` 제 값 · `usual` 평소 · 이전 값 · `longer` 대신 채운 값(긴 지평 · 과거 검산 · 사실표 해설) · `defect` 아직 말할 수 없음(표본 문턱 밑 · 읽기 실패 · 재료 없음). '확인된 소식이 없어요'는 데이터라 `usual`, 회사 사정은 재료가 순서 2 라 늘 `defect`
+3. **칸 표는 BFF 가 마지막으로 만든다** — BFF 가 칸을 내리면(계약 깨짐) 칸 표도 내린 단. 상태 점검은 화면이 보는 단을 센다
+4. **기간 탭 → 모드는 서버가 준다**(1h · 4h 단타 · 1d · 5d 장기) — 해설은 두 모드 다 실어 탭마다 다시 부르지 않는다. 그래서 모드와 무관한 재료를 한 번 읽도록 해설 읽기를 나눴다(동시 4 p95 371 → 140ms)
+5. **내 기준** — 손절가 먼저(지키는 쪽) · 없으면 목표가 · 거리는 지금 가격 대비 · 매입가 숨김이면 평단 · 손익 null · 보유를 못 읽으면 `degraded`(보유 없음으로 접지 않는다). 보유 일수는 화면 소비가 없어 뺐다
+
+## 계약 변경 (1d)
+
+- 서버 `GET /api/coach/panel` 신규 · market 공개 API `whyMovedCard(asset, symbol, opts?)` — `opts.cause` 추가(기본 false = 지금 동작) · 뷰에 `cause`(true 일 때만)
+- BFF `GET /api/app/ai-coach/panel` 신규. 칸별 경로는 그대로(1e 에서 웹 소비처를 옮긴 뒤 삭제)
+- DB · 예측 — 변경 0
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -69,3 +83,4 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 2026-11-13 | 신규 · 1a done(`feat/f017-v4-s1-scenario-always`) |
 | 2026-11-13 | 1b done(`feat/f017-v4-s1-scenario-always`) — 원인 → 근거 → 결과 · 실데이터로 규칙 넷 정정(시황 제목 · 목표가 · 작은 날 경보 · 상장일 원천) |
 | 2026-11-13 | 1c done(`feat/f017-v4-s1-scenario-always`) — 3종 문장 · FR-16 나머지는 1f 로 |
+| 2026-11-13 | 1d done(`feat/f017-v4-s1d-coach-panel`) — 패널 한 번 응답 · 내 기준 · 해설 두 모드 재료 한 번 읽기 |

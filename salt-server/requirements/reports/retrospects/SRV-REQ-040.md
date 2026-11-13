@@ -249,3 +249,7 @@
 
 - `krStock.routes.ts` 국내 why-moved Swagger 에 `cause`
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1d 짝 (2026-11-13)
+
+- 기본값을 지금 동작으로 두면 옛 소비처를 고치지 않아도 된다 — 짝 변경(주인 `SRV-REQ-053`)

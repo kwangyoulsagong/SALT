@@ -296,3 +296,7 @@ Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 �
 
 - 이 REQ 의 기능 변경은 없다 — `coachReport.routes.ts` · `coachTools.controller.ts` 시나리오 Swagger · 주석을 v4 계약으로(지평 넷 · 두 출처 · 404 없음) — 이 REQ 의 경로 변경 0
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1d 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경(주인 `SRV-REQ-053`)

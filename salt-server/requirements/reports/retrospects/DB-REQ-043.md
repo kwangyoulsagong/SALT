@@ -43,3 +43,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — `coach/application/api` 조립에서 `GetSymbolScenario` 가 기저율 리더를 같이 받는다 — 표 · 뷰 변경 0(읽는 뷰 `v_base_rate` · `v_base_rate_trigger` 그대로)
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1d 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경(주인 `SRV-REQ-053`)
