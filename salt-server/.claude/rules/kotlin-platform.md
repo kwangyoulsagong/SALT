@@ -83,7 +83,7 @@ salt-platform/
 - 한 테이블이 Prisma 와 Flyway 양쪽 마이그레이션에 동시에 있지 않다 — 경로 이전 PR 에서 주인을 옮긴다
 - 금액 열 NUMERIC 정밀도 그대로(`performance-database.md` §1 표). 컬럼 삭제 · 이름 변경 2단계 · drop 전 덤프는 그대로
 - N+1 · 페이징 · 인덱스 · `EXPLAIN` 의무는 `performance-database.md` 그대로
-- **새 표 = 그 서비스 `UserRows` 목록에 한 줄**(사람 행이면 지우기 순서 자리 · 아니면 `notPersonal` 에 이유) — 내 데이터 내보내기 · 계정 삭제가 이 목록 하나로 돈다. 빠지면 `MyDataEndToEndTest` 가 깬다(서버 S3c 2026-11-12, `SRV-REQ-048` FR-3 · 4)
+- **새 표 = 그 서비스 `UserRows` 목록에 한 줄**(사람 행이면 지우기 순서 자리 · 아니면 `notPersonal` 에 이유) — 내 데이터 내보내기 · 계정 삭제가 이 목록 하나로 돈다. 빠지면 `MyDataEndToEndTest` 가 깬다(서버 S3c 2026-11-12, `SRV-REQ-048` FR-3 · 4). 내보내는 사람 표엔 **같은 마이그레이션에 등급 주석** `COMMENT ON TABLE … IS '<record|financial|sensitive>: <설명>'` — 설명이 설정 화면에 그대로 나온다(서버 S3d 2026-11-13, FR-6)
 
 ## 5. 동시성
 
