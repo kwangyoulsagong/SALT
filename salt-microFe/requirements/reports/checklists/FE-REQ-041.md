@@ -503,3 +503,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## F017 v4 1e 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 시장 `ui/index.ts`(머리 주인) — 원인 타임라인 `MoveCauseFlow` 내보냄(패널이 같은 칸을 그린다) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |

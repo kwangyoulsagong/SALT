@@ -1,4 +1,5 @@
 ---
+| 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — `SymbolAnalysis.tsx` — 유리막(`SignInRequired`) 자리를 시나리오 카드에서 한 장 패널로 옮김(같은 문구 · 높이 480). 동작 변경은 그 자리뿐 |
 id: FE-REQ-070
 feature: F018
 area: frontend

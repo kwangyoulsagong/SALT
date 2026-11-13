@@ -35,3 +35,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — 같은 서비스 파일 `getScenario` 주석 — 404(소유자 아님)는 시나리오에서 오지 않는다(주요 사건 · 쏠림은 그대로 소유자 전용)
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1e 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경

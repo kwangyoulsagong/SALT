@@ -40,3 +40,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-11 | FR-6 해설 스트림 중계 **은퇴** — 해설은 저장값 읽기(`BFF-REQ-052` FR-2) — F017 v2 단계 3(`feat/f017-s3-explain-always`) |
 | 2026-11-11 | F017 v2 단계 5 — 같은 서비스 파일에 `getScenario`(전망과 같은 규칙: 4xx 그대로 · 5xx 200 unavailable). 변동 범위 경로 `/api/app/coach/forecast` 는 그대로 둔다(화면 소비처는 지움 — `FE-REQ-064` FR-4) |
 | 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 같은 서비스 파일 `getScenario` 주석 — 404(소유자 아님)는 시나리오에서 오지 않는다(주요 사건 · 쏠림은 그대로 소유자 전용). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
+| 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — `app-forecast.service.ts`(머리 주인) `getScenario` 삭제 — 시나리오는 패널 응답으로(사건 · 쏠림 그대로). 동작 변경은 그 자리뿐 |

@@ -1,5 +1,5 @@
 /**
- * 시나리오 — BFF `GET /api/app/ai-coach/scenario` 응답(F017 v4 순서 1 · `BFF-REQ-052` FR-4 개정 · `FE-REQ-064` FR-8).
+ * 시나리오 칸 — BFF 한 장 패널 `GET /api/app/ai-coach/panel` 의 `scenario.horizons`(F017 v4 · `BFF-REQ-052` FR-6 · `FE-REQ-064` FR-8). 칸별 경로 `/scenario` 는 2026-11-13 은퇴.
  *
  * 모든 종목 · 지평 넷(1시간 · 4시간 · 1일 · 5일)에 늘. 칸마다 출처: 과거 실제 결과(`base_rate`) 또는 시험을 넘은 모델 확률
  * (`model` — 소유자만, `ADR-003`). 숫자는 전부 예측 배치와 서버가 정했다 — 화면은 그리기만 한다.

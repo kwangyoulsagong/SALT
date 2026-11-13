@@ -4,7 +4,7 @@ title: "F017 v4 순서 1 — 있는 데이터로 패널: 시나리오 늘 · 원
 priority: high
 labels: [F017, slice, server, bff, fe]
 created: 2026-11-13
-status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 · 1d 패널 한 번 응답 done — 2026-11-13. 1e · 1f 남음)
+status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 · 1d 패널 한 번 응답 · 1e 패널 UI done — 2026-11-13. 1f 남음)
 ---
 
 ## Summary
@@ -18,7 +18,7 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 1b | 원인 · 근거 · 결과 조립(업종 · 수급 · 프로그램 · 소식 뒤 30분 — LLM 0) · 코인 원인 순서 · '왜 움직였나' 카드 맨 위 · 미리보기 원인 줄 | `SRV-REQ-053` FR-11 · FR-17 · `BFF-REQ-052` FR-6 일부 · `FE-REQ-063` FR-9 일부 | **done 2026-11-13** |
 | 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) — 해설 네 단 모두 맨 뒤 | `SRV-REQ-053` FR-16 일부 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2 | **done 2026-11-13** — FR-16 나머지(LLM 재료 · 순서 · 검사)는 1f 로 |
 | 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 · 내 기준 | `SRV-REQ-053` FR-13 · FR-15 · `BFF-REQ-052` FR-6 · FR-8 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
-| 1e | 패널 UI(시안 — 부채꼴 · 줄 넷 · 해설 상자 · 내 기준) | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 | to-do |
+| 1e | 패널 UI(시안 — 부채꼴 · 줄 다섯 · 해설 상자 · 내 기준) · 칸별 BFF 경로 은퇴 | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 · `BFF-REQ-052` FR-6 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) — FR-10 스트림은 1f |
 | 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · FR-16 나머지(LLM 재료 · 문장 순서 · 검사 — 생성 경로를 다시 쓰며 한 번에) · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
 
 ## 판단 — 리뷰가 볼 곳 (1a)
@@ -76,6 +76,18 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 - BFF `GET /api/app/ai-coach/panel` 신규. 칸별 경로는 그대로(1e 에서 웹 소비처를 옮긴 뒤 삭제)
 - DB · 예측 — 변경 0
 
+## 판단 — 리뷰가 볼 곳 (1e)
+
+1. **같은 숫자 두 번 금지가 자리를 정했다** — 패널이 있는 자리에서 판단 카드의 성적 · 틀렸던 때와 왜 움직였나 카드의 원인 칸을 끈다(옵션 · 기본은 켬). 점검 카드는 '보통은' 줄로 옮겼다(100칸 점이 한 벌)
+2. **시안의 가격 라벨 · 분포 막대를 뺐다** — 둘 다 화면이 숫자를 만들었다(가격 × % · 세 값으로 정규분포). 라벨은 서버 % · 틀리는 선 가격은 서버 값
+3. **위젯끼리 부르지 않는다** — 코인 상세 본문(위젯)에 패널(위젯)은 페이지가 끼워 준다(slot)
+4. **해설 문장 수는 프론트가 자르지 않는다** — 지금 20문장까지 나온다. 4~6개는 생성을 다시 쓰는 1f 에서 서버가
+
+## 계약 변경 (1e)
+
+- BFF **BREAKING** — `GET /api/app/ai-coach/scenario` · `/explanation` 은퇴(410 + replacement `/panel`, 1주). 웹 소비처는 같은 브랜치에서 옮김 · 앱 네이티브 소비 0
+- 웹 — `features/explain-symbol` 삭제 · `widgets/scenario-panel` 신규(레지스트리 · `layer-rules.cjs`)
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -84,3 +96,4 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 2026-11-13 | 1b done(`feat/f017-v4-s1-scenario-always`) — 원인 → 근거 → 결과 · 실데이터로 규칙 넷 정정(시황 제목 · 목표가 · 작은 날 경보 · 상장일 원천) |
 | 2026-11-13 | 1c done(`feat/f017-v4-s1-scenario-always`) — 3종 문장 · FR-16 나머지는 1f 로 |
 | 2026-11-13 | 1d done(`feat/f017-v4-s1d-coach-panel`) — 패널 한 번 응답 · 내 기준 · 해설 두 모드 재료 한 번 읽기 |
+| 2026-11-13 | 1e done(`feat/f017-v4-s1d-coach-panel`) — 한 장 패널 UI · 칸별 BFF 경로 은퇴 |

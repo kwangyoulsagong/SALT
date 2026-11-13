@@ -332,3 +332,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 이 REQ 몫: `layer-rules.cjs` features 레지스트리에 `read-privacy`(저장하는 것 · AI 로 가는 것 읽기)
 - 확인: lint 13/13 · 레이어 훅 사후 실행 15파일 exit 0(음성 대조 — 위로 향하는 import exit 2)
 - 미검증: 없음
+
+## F017 v4 1e 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `layer-rules.cjs`(머리 주인) 위젯 `scenario-panel` 더함 · 기능 `explain-symbol` 뺌(슬라이스 삭제) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |

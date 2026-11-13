@@ -211,6 +211,7 @@ created: 2026-09-09
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `entities/coach/api` 에 엔드포인트 `tradeCheck` · 쿼리 키 `tradeCheck(symbol, side)` · `coachApi.tradeCheck` · 훅 `useTradeCheck`(staleTime 60초). 기존 API 무변경. 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — 해설 경로 `COACH_ENDPOINTS.explanation` · 쿼리 키 `coachQueryKeys.explanation`(GET). **모드를 싣는다** — 해설은 모드마다 다른 문장이다(FR-85 "모드를 싣지 않는다"는 판단 조회 한정) |
 | 2026-11-11 | F017 v2 단계 5 — 코치 엔드포인트 `forecast` → `scenario`(`/api/app/ai-coach/scenario`), 쿼리 키 · API 함수 같이 |
+| 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — 코치 `endpoints.ts`(머리 주인) — `panel` 더함 · `scenario` · `explanation` 뺌. 동작 변경은 그 자리뿐 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc`) — FR-89 뒤집힘: `@repo/core` `ModeCoachViewModel` 한 모양(판단 늘 · `caveats`)
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

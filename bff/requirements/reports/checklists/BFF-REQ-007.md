@@ -225,3 +225,9 @@ BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch �
 - [x] 뉴스 프리뷰 뷰모델에 `tag`(측정 태그 — `news-tag.viewmodel`)를 더했다. 카드 칸 판정(전문 끊기 · 플레이스홀더 0)은 그대로
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## F017 v4 1e 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `gone.middleware.ts`(머리 주인) `RETIRED_PATHS` 에 코치 칸별 경로 둘(`/scenario` · `/explanation` → `/panel`, 1주) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |
