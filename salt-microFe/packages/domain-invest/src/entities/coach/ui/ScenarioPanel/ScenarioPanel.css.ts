@@ -170,7 +170,8 @@ export const explainTitle = style({
   borderRadius: "7px",
   padding: "2px 8px",
 });
-export const explainSub = style(label);
+/** 해설 상자 보조 글 — 옅은 회색 면 위라 라벨(회색 600)보다 한 단 진하게(2026-11-13 axe 대비) */
+export const explainSub = style([label, { color: vars.colors.neutral[700] }]);
 export const sentences = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" });
 
 /** 한 문장씩 등장 — 240ms · transform · opacity(`motion.md` §3 duration.base · easing.enter). 줄인 모션이면 바로 */
@@ -188,12 +189,24 @@ export const sentence = style({
   "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
 });
 
-/** "쓰는 중" — 줄인 모션이면 멈추지 않고 느리게(진행 표시는 필수 피드백, `motion.md` §7) */
-const shimmer = keyframes({ "0%": { opacity: 0.45 }, "50%": { opacity: 1 }, "100%": { opacity: 0.45 } });
+/**
+ * "쓰는 중" — 글자는 고정(진한 회색 — 반짝이는 글자는 옅어지는 순간 대비가 무너진다, 2026-11-13 axe), 옆 점 하나만 반짝인다.
+ * 줄인 모션이면 멈추지 않고 느리게(진행 표시는 필수 피드백, `motion.md` §7)
+ */
+const shimmer = keyframes({ "0%": { opacity: 0.25 }, "50%": { opacity: 1 }, "100%": { opacity: 0.25 } });
 export const writing = style({
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
   fontSize: "13px",
   lineHeight: "22px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[700],
+});
+export const writingDot = style({
+  width: "6px",
+  height: "6px",
+  borderRadius: "50%",
+  background: vars.colors.brand.primary,
   animationName: shimmer,
   animationDuration: vars.motion.duration.scene,
   animationIterationCount: "infinite",

@@ -52,7 +52,10 @@ export const ExplainBox = ({ view, streaming = false }: ExplainBoxProps) => {
           </li>
         ))}
         {streaming && (
-          <li className={s.writing}>{M.explainWriting}</li>
+          <li className={s.writing}>
+            <span className={s.writingDot} aria-hidden="true" />
+            {M.explainWriting}
+          </li>
         )}
       </ul>
     </section>

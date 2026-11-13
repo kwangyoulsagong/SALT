@@ -120,9 +120,10 @@ export const splitLabels = style({
   fontVariantNumeric: "tabular-nums",
 });
 
+/** 막대 밑 글자 — 막대(면)는 기본 상승 · 하락색, 글자는 진한 단계(흰 바탕 12px 에 기본색은 대비 미달 — 2026-11-13 axe) */
 export const splitLabel = styleVariants({
-  up: { color: vars.colors.special.up },
-  down: { color: vars.colors.special.down, textAlign: "right" },
+  up: { color: vars.colors.special.upDark },
+  down: { color: vars.colors.special.downDark, textAlign: "right" },
 });
 
 export const line = style({

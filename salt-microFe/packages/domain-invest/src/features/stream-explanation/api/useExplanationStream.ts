@@ -61,12 +61,15 @@ export const useExplanationStream = (symbol: string, mode: "scalp" | "long_term"
         return null;
       }
     };
+    // 닫은 뒤 늦게 온 이벤트는 버린다 — 개발 모드 effect 두 번 · 종목 · 모드가 빨리 바뀔 때 이전 연결의 문장이 섞이지 않게
     source.addEventListener("sentence", (e) => {
+      if (finished) return;
       const sentence = parse<ExplanationSentence>(e as MessageEvent);
       if (!sentence) return;
       setState((s) => (s.phase === "streaming" ? { phase: "streaming", sentences: [...s.sentences, sentence], slow: false } : s));
     });
     const terminal = (phase: "done" | "fallback") => (e: Event) => {
+      if (finished) return;
       const view = parse<SymbolExplanation>(e as MessageEvent);
       if (!view) return finish({ phase: "error" });
       finish({ phase, view });
