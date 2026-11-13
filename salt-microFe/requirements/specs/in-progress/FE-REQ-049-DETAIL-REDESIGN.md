@@ -96,3 +96,4 @@ source: 사용자 스크린샷 6장(2026-10-30 09:18~09:20) · "국내주식 상
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`41447893`) — 문제 목록 "같은 숫자 두 번" 중 해설 칸 성적 3칸 제거
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+- 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 상세 페이지 문구 표 — 유리막 이름 `scenario` 더함 · `krMoreSummary` · `krMoreHint` 삭제(소비처 0). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8

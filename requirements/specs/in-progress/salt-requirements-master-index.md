@@ -1111,3 +1111,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-12 | 서버 S3c 확인 3회차 — 지워지는 범위 BFF 소유(결함 1) · main 나란히 · 운영 빌드 |
 | 2026-11-12 | S3c 브랜치 — 로그아웃 빨강 뺌 · lint `danger-only-irreversible` · done 체크리스트 §1 한 줄 |
 | 2026-11-13 | **서버 S3d done**(`MONEY-S3d-identity-classify-usage`) — `SRV-REQ-048` FR-6 · 7 · `DB-REQ-040` FR-6(정정) · 7 · `BFF-REQ-046` FR-10 · 11 · `FE-REQ-055` FR-7 · 9 · `OPS-002` FR-8 · FEATURE-015 FR-5 · 6. 짝 `BFF-REQ-045` · `DB-REQ-017` · `FE-REQ-009` · `013` · `035` · `053` · `056` · `057` · `058` · `067` |
+| 2026-11-13 | **F017 v4 순서 1a — 시나리오 늘 done**(`feat/f017-v4-s1-scenario-always`) — 모든 종목 · 지평 넷에 과거 실제 결과("100번 중 n번 올랐어요") · 모델 확률은 소유자 + 시험을 넘은 칸만 · 접힌 자리에서 꺼냄. `SRV-REQ-053` FR-10 done(1d · 5d — 장중은 순서 3) · `BFF-REQ-052` FR-4 개정 · `FE-REQ-064` FR-8 머리. 루트 슬라이스 `F017-v4-stage1-panel`(1b~1f 남음) |

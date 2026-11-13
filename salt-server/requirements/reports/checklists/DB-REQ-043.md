@@ -92,3 +92,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## F017 v4 순서 1a 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `coach/application/api` 조립에서 `GetSymbolScenario` 가 기저율 리더를 같이 받는다 — 표 · 뷰 변경 0(읽는 뷰 `v_base_rate` · `v_base_rate_trigger` 그대로) | 서버 build · lint · test 1325 · layer-check / BFF build · test 481 / FE check-types 13/13 · lint 13/13 · test(core 298 · ui 63) · 레이어 훅 사후(대조군 둘 exit 2 → 23파일 0) · 실스택(BFF 4001 — 비소유자 · 소유자 시험 토큰, BTC · 005930) · 실화면 1440 · 390 앱 UA |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

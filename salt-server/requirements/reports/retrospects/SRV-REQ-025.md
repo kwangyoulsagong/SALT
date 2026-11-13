@@ -291,3 +291,8 @@ Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 �
 
 - 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: `llmBudget.ts` FR-62 — `llmBudgetVerdict` 에 `reservedCalls`(기본 0) · `LLM_RESERVED_CALLS.moveSummary` 30. 상한 값 그대로
 - 배운 것: 같은 LLM 상한을 두 배치가 나눠 쓰면 앞 배치가 다 쓴다 — 나중에 붙인 배치는 첫 실측에서 "다음 회차"만 세고 시도 0 이었다. 상한을 나눌 땐 뒤 배치 몫을 앞 배치가 남기게(예약)
+
+## F017 v4 순서 1a 짝 (2026-11-13)
+
+- 이 REQ 의 기능 변경은 없다 — `coachReport.routes.ts` · `coachTools.controller.ts` 시나리오 Swagger · 주석을 v4 계약으로(지평 넷 · 두 출처 · 404 없음) — 이 REQ 의 경로 변경 0
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

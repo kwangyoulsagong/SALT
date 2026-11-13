@@ -40,3 +40,4 @@ source: "`FEATURE-018` · `ADR-011` · 짝 `BFF-REQ-055` · `SRV-REQ-056`"
 
 ## Changelog
 - 2026-11-10: 초안 · 구현 · 실화면 확인 → **done**
+- 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 시나리오 카드도 사람 · AI 칸 가르개(`SignInRequired`) 뒤로 — 로그인 없이 보면 유리막("로그인하고 다음 시나리오 보기"). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8

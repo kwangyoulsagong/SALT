@@ -171,3 +171,19 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## F017 v4 순서 1a — 시나리오 늘 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| FR-10 시나리오 늘 — 내려가는 순서 경계 표 13 · Holm 방향 일치 · Wilson · 가격 모양 · 지평 넷 · 유스케이스 5(비소유자는 모델 뷰를 읽지 않음 · 뷰 실패 = 결함 단) | 충족 | `scenarioBaseRate.test.ts` 23 · `getSymbolScenario.test.ts` 5 · 서버 build · lint · test 1325 · layer-check / BFF build · test 481 / FE check-types 13/13 · lint 13/13 · test(core 298 · ui 63) · 레이어 훅 사후(대조군 둘 exit 2 → 23파일 0) · 실스택(BFF 4001 — 비소유자 · 소유자 시험 토큰, BTC · 005930) · 실화면 1440 · 390 앱 UA |
+| 실측(2026-11-13 12:40) — BTC: 1h · 4h `longer`(1d) · 1d · 5d `usual` 47 · 44 / 삼성전자: 1d `now`(K3 — 점검 한 줄과 같은 조건) 45 · 5d `usual` 44 / 소유자: 막힌 모델 칸 `awaiting_live` + 시험 성적 | 충족 | 실 응답 · `v_base_rate` 값 대조(`hold_up_rate` 0.467 → 47 · 0.441 → 44 · 0.448 → 45) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 1h · 4h 제 지평 기저율 | 장중 기저율 계산이 아직 없다(하루 값으로 내려가고 화면이 말한다) | 순서 3 `FC-REQ-028` FR-7 |
+| 추적 종목 전부 × 칸 단 분포 실측(`OPS-004`) | 패널 응답(FR-13)이 생긴 뒤 한 번에 센다 | 순서 1 FR-13 |

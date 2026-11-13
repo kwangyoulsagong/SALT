@@ -18,3 +18,8 @@
 ## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
 
 - 문제 없음
+
+## F017 v4 순서 1a 짝 (2026-11-13)
+
+- 이 REQ 의 기능 변경은 없다 — 상세 페이지 문구 표 — 유리막 이름 `scenario` 더함 · `krMoreSummary` · `krMoreHint` 삭제(소비처 0)
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

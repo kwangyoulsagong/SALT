@@ -63,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `coach/application/api/index.ts`(머리 주인) — 의존 `coachedUsers` · 유스케이스 `listCoachedUsers`(사람마다 배치 대상, `users` 읽기 0). 스키마 몫 변경 0 |
 | 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-8 원인 후보 스냅샷 · FR-9 추출 사실(문장 칸 없음) · FR-10 해설 칸 이름 · FR-11 회사 사정(to-do) |
 | 2026-11-13 | FR-12 코인 시장 몫 표 · 뷰(`FC-REQ-028` FR-12 · `SRV-REQ-053` FR-17) |
+| 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `coach/application/api` 조립에서 `GetSymbolScenario` 가 기저율 리더를 같이 받는다 — 표 · 뷰 변경 0(읽는 뷰 `v_base_rate` · `v_base_rate_trigger` 그대로). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |

@@ -56,3 +56,8 @@
 ## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
 
 - 문제 없음 — 머리 주석의 주인이라 걸렸다. 새 핸들러의 주인은 `BFF-REQ-052` FR-4
+
+## F017 v4 순서 1a 짝 (2026-11-13)
+
+- 이 REQ 의 기능 변경은 없다 — `ai-coach.routes.ts` 시나리오 줄 주석(누구나 · 지평 넷) — 이 REQ 의 판단 상세 경로 변경 0
+- 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`

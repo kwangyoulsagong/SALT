@@ -348,3 +348,4 @@ type ExplainResult =
 - 2026-11-11(1c): `feat/f017-s1c-collection`: 해설 테스트 가짜 시장에 `dailyBarCounts`(위와 같은 이유). 해설 계약 변경 0
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/application/GetSymbolCoach.ts` 에 걸린 몫: 등급 리더(선택 생성자 인자)를 판단 재료와 나란히 한 번 읽어 모드마다 `tier` 를 붙인다 — 실패하면 참고, 판단 · 게이트 흐름 그대로. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `llmBudget.ts` FR-62 — `llmBudgetVerdict` 에 `reservedCalls`(기본 0) · `LLM_RESERVED_CALLS.moveSummary` 30. 상한 값 그대로 |
+| 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `coachReport.routes.ts` · `coachTools.controller.ts` 시나리오 Swagger · 주석을 v4 계약으로(지평 넷 · 두 출처 · 404 없음) — 이 REQ 의 경로 변경 0. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
