@@ -68,6 +68,22 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 - BFF `BFF-REQ-052` · FE `FE-REQ-064` · 예측 `FC-REQ-028` · DB `DB-REQ-043`
 - 기존: `SRV-REQ-024`(코치 판단) · `SRV-REQ-037`(해설) · `SRV-REQ-050`(LLM 라우팅) · `SRV-REQ-052`(F016 ③ 검증기 공유) · `SRV-REQ-040` · `042`(국내 호가 · 표 — FR-0) · `SRV-REQ-051`(국내 소식 — FR-0 ④)
 
+## FR — v4 한 장 패널 (2026-11-13 · 전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`)
+
+> 사용자 2026-11-13: *"시나리오 … 모든 종목에 항상 떠야"* · *"사람들은 원인 근거 결과 이게 중요"* · *"우린 다 데이터가 있는데"* · *"회사 사정 얘기도"* · *"스트리밍"*.
+> 불변식 1 정정 — **요청 경로 LLM 0 → 해설만 예외**(저장본이 없을 때 그 자리에서 만들며 흘린다, FR-9). 나머지 칸은 그대로 저장값 읽기.
+
+| FR | 내용 | 상태 |
+|---|---|---|
+| FR-9 | **해설 스트림** `GET /api/coach/explain/stream?symbol&mode`(SSE) — 지금 지문의 저장본이 있으면 `snapshot` 한 번, 없으면 생성하며 검사를 지난 문장부터 `sentence`(칸 · 글 · 출처) → `done`(저장) · 실패면 `fallback`(서버 문장). **같은 종목 · 모드 · 지문을 동시에 연 요청은 한 생성에 붙는다**(생성 1 · 구독 N) · 요청이 다 떠나도 생성은 끝까지 가서 저장(다음 사람 몫) · 하루 상한 · 로컬 CLI 게이트 · 검사기 그대로 · 하트비트 15초(`streaming-sse.md`). 배치는 미리 데우기로 남고 회차 겹침 해소(회차당 시간 상한 · 본 종목 먼저) | to-do |
+| FR-10 | **시나리오 늘**(FR-5 개정) `GET /api/coach/scenario` — 로그인 사용자 누구나 · 지평 넷(1h · 4h · 1d · 5d) 늘. 칸마다 `source: model \| base_rate`: 모델이 시험을 넘은 칸은 `pUp`(**소유자만** — 아니면 그 칸도 base_rate), 아니면 **과거 실제 결과**(`FC-REQ-028` 기저율 — 지금 성립한 조건, 없으면 그 시장 평소): `{ condition, sample, sampleDays, upCount100, upRange, q10, q50, q90, usualUp100, differsFromUsual }` · 무효선 = 지금 가격 × (1 + q10). **내려가는 순서**: 지금 조건(유효 n ≥ 100) → 평소 → 한 단계 긴 지평(`fallbackFrom` 표시). 칸이 비는 응답 0 | to-do |
+| FR-11 | **원인 · 근거 · 결과 조립**(서버 계산 · LLM 0) — 종목 · 날마다 원인 후보 목록: `{ kind, headline, strength: likely \| possible \| none, evidence[], result }`. `kind`: disclosure(공시) · news(기사 사실) · sector(업종 전체) · market(시장 전체) · flow(수급) · pre_move(선반영) · none(확인된 소식 없음). **근거 하나 = 사실 + 숫자 + 비교 + 출처 · 시각**: 업종 지수 등락 · 같은 업종 n종목 중 m종목 상승 · 수급 금액과 20일 평균 대비 배수 · 소식 뒤 30분 등락 · 발표 전 5일 · 20일 등락 · 같은 종류 사건 과거 반응. `likely` 는 시각이 맞는 사건 + 근거 둘 이상일 때만, 하나면 `possible`, 없으면 `none`("확인된 소식이 없어요"). 용어 풀이(`gloss`)는 서버 사전. 기존 등락 분해(시장 · 업종 · 고유 몫, `SRV-REQ-051`)를 재료로 쓴다 — 새 계산은 배수 · 반응 창뿐 | to-do |
+| FR-12 | **회사 사정** — 종목마다 `{ summary, earnings, today, sector, concern }` 네 칸 + 한 줄. 재료: 공시 추출 사실(FR-14 · `FC-REQ-026`) · 기사 추출 사실(FR-14) · 업종 폭(FR-11). 칸마다 출처 · 날짜. **좋은 점만 싣지 않는다** — `concern` 칸은 재료가 있으면 늘(연체율 · 부채 · 소송 · 실적 하향 같은 사실). 재료가 없으면 그 칸은 "확인된 공시가 아직 없어요"(빈 칸 0). 한 줄 요약은 LLM(해설과 같은 검사기) · 칸의 숫자는 서버 | to-do |
+| FR-13 | **패널 한 번 응답** `GET /api/coach/panel?symbol` — 시나리오(FR-10) · 판단 한 줄 · 원인 근거 결과(FR-11) · 회사 사정(FR-12) · 성적 3종(기존) · 해설 저장본 유무를 한 응답으로. 칸마다 `status: ok \| fallback \| degraded` — 한 칸 실패가 패널을 비우지 않는다. 저장값 읽기만 · p95 300ms | to-do |
+| FR-14 | **사실 추출 배치**(LLM 읽기) — 공시 · 기사 본문에서 `{ who, what, amount, unit, compared_to, when, kind }` 사실만 뽑아 저장(`DB-REQ-043` FR-9). **문장은 저장 · 표시하지 않는다**(`ADR-009` 개정 2026-11-13) · 추출 사실마다 원문 주소 · 게시 시각 · 추출 시각(= `available_at`). 숫자는 원문 글자와 대조(없는 숫자를 뽑으면 버림) · 사건 종류는 사전(`news_kind_dict`) 우선, 못 맞추면 `other`. 기사 본문 원천은 포털 검색 API 를 거치지 않는 경로만(Open Question) | to-do |
+| FR-15 | **내 기준**(내 층) — 보유가 있으면 `{ myLine, gapToLine, heldDays }` · 내 선은 사용자가 정한 값(기존 계획 기록 재사용) · 서버 계산 · LLM 입력 0 · 매입가 숨김 설정을 따름. **평단은 기본 응답에 싣지 않는다**(평단 강조 시 처분효과 +17% — 리서치) — 펼침 요청에만(Open Question) | to-do |
+| FR-16 | **해설 재료 · 검사 개정**(FR-3 개정) — 입력에 FR-11 원인 후보 · FR-12 회사 사정 · 시나리오 숫자 · 성적 · 빗나간 사례. 문장 순서 = 결론 → 원인 → 근거 → 결과 → 회사 사정 → 얼마나 믿을까(적중률 · 기준 · 틀렸던 때 — **서버가 판단 블록과 같은 값으로 쓴다**, `explanationPlain.ts`) → 조심할 점. 출처는 이름(`9:42 공시` · `수급 10:40`), 판단 자신은 출처 아님. 검사: 근거 없는 원인 문장 · 출처 없는 숫자 · 같은 말 반복 · 확신 · 명령형. 근거가 약한 원인은 "가능성이 있어요"(1인칭 불확실 표현 — 과신 감소) | to-do |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -88,3 +104,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-12 | **단계 4b** — 등급용 후보 규칙 `mode-decision@3`(후보 문턱 70 → 60) 사전등록 `94122c60` · 정정 `e1fff7c5`(70 은 @2 가 일부러 남긴 것) → 표본 밖 관문 **hold**: 국내 단타 후보 비용 뒤 −0.203% [−0.280, −0.127] · 비용 전 +0.02%(리포트 `requirements/reports/backtests/mode-decision-3-gate-2026-11-12.md`). 라이브 규칙 · 코드 변경 0 — FR-7 등급은 그대로 참고(`no_candidate`). 후보는 문턱이 아니라 새 신호가 있어야 나온다 |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): 해설 배치 `GenerateExplanationSnapshots` 가 LLM 상한 끝 30회를 남긴다(오늘 등락 한 줄 몫) — 해설 회차 상한 · 지문 규칙 그대로 |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 워커 `investment-insight.worker.ts`(머리 주인) — 준수 판정 · 월간 복기 · 리밸런스 대상이 `prisma.user.findMany` → `listCoachedUsers`. 판정 · 해설 몫 변경 0 |
+| 2026-11-13 | **v4 한 장 패널**(전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-9~16 신규(to-do): 해설 스트림 · 시나리오 늘(FR-5 개정) · 원인 근거 결과 조립 · 회사 사정 · 패널 한 번 응답 · 사실 추출 배치 · 내 기준 · 해설 재료 개정(FR-3 개정). 불변식 1 정정(해설만 요청 경로 생성) |

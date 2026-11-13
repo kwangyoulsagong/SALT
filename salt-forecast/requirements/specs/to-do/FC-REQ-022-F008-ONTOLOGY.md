@@ -45,6 +45,18 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 
 - DB DDL(현재 `salt-server/prisma`) — 뷰 계약 신규라 서버 소비자 없음
 
+## FR — v4 재설계: 사실 → 근거 → 원인 후보 → 결과 (2026-11-13 · 전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`)
+
+> 사용자 2026-11-13: *"우리 온톨로지가 아직 설계가 안 되어 있어서 뉴스 그리고 공시 환율 이런 것들 RSI"* · *"사실 근거 원인"* · *"다 설명할 수 있잖아 우린 다 데이터가 있는데"*.
+> 위 O1(entity · relation · fact)은 그대로 바닥이다. 목적을 "에이전트가 조회하는 그래프"에서 **"원인 · 근거 · 결과를 잇는 틀"**로 바꾼다. `FEATURE-017` 범위 밖(11-10) → **범위 안**.
+
+| FR | 내용 | 상태 |
+|---|---|---|
+| FR-13 | **네 층** ① 사실(`fact` — 출처 · 관측 시각 · `available_at`: 공시 · 기사 추출 사실 · 지표값 · 수급 · 환율 · 금리) ② 근거(`evidence` — 사실 + 비교: 평소 대비 배수 · 업종 대비 · 반응 창) ③ 원인 후보(`cause_candidate` — 사건 + 근거 묶음 + `strength`) ④ 결과(`outcome` — 실제 등락 · 그 뒤 채점). ③ · ④ 는 서버 조립 결과의 사본(주인 `SRV-REQ-053` FR-11) | to-do |
+| FR-14 | **연결 셋** 사건 ↔ 종목 ↔ 업종(`affects` · `belongs_to` — 업종 소식을 종목에) · 사건 ↔ 반응 창(`FC-REQ-028` FR-8) · 원인 후보 ↔ 채점 | to-do |
+| FR-15 | **원인 설명 채점** — "가장 유력"이라 한 원인 종류별로 뒤의 등락이 과거 같은 종류와 같은 방향이었나 · 기준(업종 몫만으로 설명) 대비 | to-do |
+| FR-16 | 새 원천 — 공시(`FC-REQ-026`) · 기사 추출 사실 · 환율 · 금리 · 지수 값(`series_point` 확장). 원천마다 `available_at` 정의를 `security-sources.md` 표에 | to-do |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -52,3 +64,4 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 | 2026-10-30 | 신규(to-do) |
 | 2026-10-30 | **FR-4 정정** — as-of 거르기 기준 `ingested_at <= as_of` → **`available_at <= as_of`**. `time-and-leakage.md` §1 "수집 시각은 available_at 이 아니다 — 백필하면 ingested_at 이 전부 오늘" 과 반대였다(백필 사실이 과거 as-of 에서 사라져 백테스트가 틀린다). 테이블에 `available_at` 열 추가 · `ingested_at` 은 감사용. 규칙 `ontology.md` §3 |
 | 2026-11-10 | `FEATURE-017` 개정 — F017 은 온톨로지 전체를 기다리지 않는다. 필요한 것(소식 → 종목 · 사건 종류)만 `FC-REQ-028` FR-3 이 이미 있는 연결로 한다. 이 REQ 는 to-do 그대로(우선순위 뒤) |
+| 2026-11-13 | **v4 재설계**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-13~16: 사실 → 근거 → 원인 후보 → 결과 네 층 · 연결 셋 · 원인 설명 채점 · 새 원천. `FEATURE-017` 범위 안으로 |
