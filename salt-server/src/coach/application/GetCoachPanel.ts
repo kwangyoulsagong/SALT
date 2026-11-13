@@ -1,6 +1,7 @@
 import { logger } from "../../shared/config/logger";
 import {
   COMPANY_PENDING_REASON,
+  PANEL_CELL_KEYS_ALL,
   PANEL_HORIZON_MODE,
   causeTier,
   explanationTier,
@@ -150,19 +151,19 @@ export class GetCoachPanel {
     // 시나리오를 못 읽었으면 지평 넷 모두 결함으로 센다(칸 표가 줄지 않게)
     const scenarioTiers: Record<PanelHorizon, PanelTier> = { "1h": "defect", "4h": "defect", "1d": "defect", "5d": "defect" };
     for (const h of horizons) scenarioTiers[h.horizon] = h.tier;
-    const entries: Array<[PanelCellKey, PanelTier]> = [
-      ["scenario.1h", scenarioTiers["1h"]],
-      ["scenario.4h", scenarioTiers["4h"]],
-      ["scenario.1d", scenarioTiers["1d"]],
-      ["scenario.5d", scenarioTiers["5d"]],
-      ["verdict", verdict.tier],
-      ["cause", causeCell.tier],
-      ["company", company.tier],
-      ["track.scalp", modes.scalp.track.tier],
-      ["track.long_term", modes.longTerm.track.tier],
-      ["explanation.scalp", modes.scalp.explanation.tier],
-      ["explanation.long_term", modes.longTerm.explanation.tier],
-    ];
+    const tierOf: Record<PanelCellKey, PanelTier> = {
+      "scenario.1h": scenarioTiers["1h"],
+      "scenario.4h": scenarioTiers["4h"],
+      "scenario.1d": scenarioTiers["1d"],
+      "scenario.5d": scenarioTiers["5d"],
+      verdict: verdict.tier,
+      cause: causeCell.tier,
+      company: company.tier,
+      "track.scalp": modes.scalp.track.tier,
+      "track.long_term": modes.longTerm.track.tier,
+      "explanation.scalp": modes.scalp.explanation.tier,
+      "explanation.long_term": modes.longTerm.explanation.tier,
+    };
 
     return {
       symbol,
@@ -175,7 +176,8 @@ export class GetCoachPanel {
       company,
       modes,
       mine: mine === "none" ? null : mine === null ? { status: "degraded", view: null } : { status: "ok", view: mine },
-      cells: entries.map(([key, tier]) => ({ key, tier, status: panelStatus(tier) })),
+      // 칸 표 순서는 한 곳(`PANEL_CELL_KEYS_ALL`) — 상태 점검(OPS-004)이 같은 줄을 센다
+      cells: PANEL_CELL_KEYS_ALL.map((key) => ({ key, tier: tierOf[key], status: panelStatus(tierOf[key]) })),
     };
   }
 

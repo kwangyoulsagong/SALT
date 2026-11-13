@@ -53,6 +53,15 @@ export class InvestmentInsightWorker {
 
     // 게이지 적중률 (F004 · B9). 입력이 일봉이라 **일 1회**면 된다 — 10분 회차에 넣지 않는다.
     // 부팅 때도 한 번 돈다: 서버가 매일 그 시각 전에 재기동되면 영영 비어 있게 된다
+    // 패널 칸 채움 실측(OPS-004 FR-3) — 장중 한 번 · 장 뒤 한 번(KST). 놓치면 깨어난 자리에서 한 번
+    const measurePanelCells = async () => {
+      const r = await this.coach.measurePanelCells.execute();
+      console.log(
+        `🧮 Panel cells — 종목 ${r.symbols} · 칸 ${r.rows} · 결함 ${r.defects}(회사 사정 뺌) · 멈춘 종목 ${r.stale} · 새 종목 ${r.newSymbols} · 패널 실패 ${r.failed}`
+      );
+    };
+    schedule("panel-cell-check", "30 12,16 * * *", measurePanelCells, { timezone: "Asia/Seoul", catchUp: true });
+
     const refreshGauges = async () => {
       const result = await this.coach.refreshGaugeTrackRecords.execute();
       console.log(`📏 Gauge track records refreshed — ${result.records}줄`);

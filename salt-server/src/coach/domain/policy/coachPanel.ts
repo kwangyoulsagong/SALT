@@ -36,6 +36,21 @@ export type PanelCellKey =
   | "explanation.scalp"
   | "explanation.long_term";
 
+/** 칸 표의 줄 전부 — 상태 점검이 세는 순서(`GetCoachPanel` 칸 표와 같다) */
+export const PANEL_CELL_KEYS_ALL: readonly PanelCellKey[] = [
+  "scenario.1h",
+  "scenario.4h",
+  "scenario.1d",
+  "scenario.5d",
+  "verdict",
+  "cause",
+  "company",
+  "track.scalp",
+  "track.long_term",
+  "explanation.scalp",
+  "explanation.long_term",
+];
+
 export interface PanelCellState {
   key: PanelCellKey;
   tier: PanelTier;

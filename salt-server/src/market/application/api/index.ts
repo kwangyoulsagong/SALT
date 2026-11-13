@@ -237,6 +237,8 @@ export interface MarketApi {
    * 재료(시세 · 일봉 · 지표)가 있는 종목만 판단한다 — 관심 · 보유만 보면 장기 표본 20 이 몇 년 걸린다
    */
   krJudgmentUniverse(): Promise<string[]>;
+  /** 거래대금 상위 코인 n — 화면 시세 목록(limit=100)과 같은 순서. 패널 칸 채움 실측(OPS-004)이 쓴다 */
+  topCryptoByTradeValue(n: number): Promise<string[]>;
   /**
    * 오늘 왜 움직였나 카드(① 분해 · ② 같은 날 사실 · 카드 조건) — coach 의 ③ 한 줄 재료(F016 단계 D · `SRV-REQ-052` FR-1).
    * 화면 경로와 같은 유스케이스 그대로(저장값만 · 외부 호출 0). 없는 종목 · 국내 꺼짐이면 `null`
@@ -720,6 +722,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
+    topCryptoByTradeValue: (n) => deps.assets.topByTradeValue("crypto", n),
     // ③ 한 줄 배치의 재료 — 원인 칸을 쓰지 않으니 원인 근거 재료를 읽지 않는다(F017 v4 1b 확인 2회차). 한 장 패널만 `cause: true`
     whyMovedCard: async (asset, symbol, opts = {}) => {
       const cause = opts.cause === true;

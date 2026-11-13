@@ -971,6 +971,34 @@ export interface MoveCauseReader {
   cause(asset: MoveAsset, symbol: string): Promise<PanelMoveCause | null>;
 }
 
+/** 패널 칸 채움 실측 한 행(OPS-004) — 종목 × 칸 × 단 */
+export interface PanelCellCheckRow {
+  market: "crypto" | "kr";
+  symbol: string;
+  cellKey: string;
+  tier: "now" | "usual" | "longer" | "defect";
+  stale: boolean;
+  newSymbol: boolean;
+}
+
+/**
+ * 패널 칸 채움 실측의 대상(OPS-004 FR-3) — 사람이 패널을 열 수 있는 종목: 화면 시세 목록(코인 거래대금 상위 100) ∪ 관심 · 보유 ∪
+ * 국내 유니버스. 배치들이 쓰는 추적 종목(`TrackedAssetProbe` — 관심 · 보유 · 국내)보다 넓다
+ */
+export interface PanelUniverseProbe {
+  symbols(): Promise<string[]>;
+}
+
+/** 패널 칸 채움 실측 저장소(`panel_cell_check`) — 시장 층 · 사용자 열 0 */
+export interface PanelCellCheckStore {
+  /** 마지막 회차의 종목 — 새 종목(지난 회차에 없던) 판정 */
+  latestRunSymbols(): Promise<Set<string>>;
+  /** 한 회차를 한 문장으로(행마다 쓰지 않는다 — `noParallelRowWrites`) */
+  saveRun(runAt: Date, rows: readonly PanelCellCheckRow[]): Promise<number>;
+  /** 보관 기간 밖 회차를 지운다 */
+  pruneBefore(before: Date): Promise<number>;
+}
+
 /** 원인 칸 — 문장 · 단계는 market 이 정한 값 그대로. 단계 이름(가장 유력 · 가능성)은 화면이 붙인다 */
 export interface PanelMoveCause {
   causes: Array<{
