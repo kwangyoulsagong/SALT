@@ -1,5 +1,6 @@
 /**
- * 단타 방향 확률 — 시나리오 카드(F017 v2 단계 5 · `SRV-REQ-053` FR-5 · `FEATURE-017` FR-4). 소유자 전용(`ADR-003`).
+ * 단타 방향 확률 — 시나리오의 **모델 칸**(F017 v2 단계 5 · `SRV-REQ-053` FR-5 · `FEATURE-017` FR-4). 소유자 전용(`ADR-003`).
+ * 2026-11-13 v4: 시나리오 경로 자체는 누구나 본다 — 이 칸이 막히면 과거 실제 결과가 그 자리를 채운다(`scenarioBaseRate.ts` · FR-10).
  *
  * 숫자는 전부 예측 뷰(`forecast.v_short_horizon_cell` · `v_short_horizon_card`, 사전등록 `short-direction@1`)가 정한다.
  * **서버는 시험을 다시 하지 않는다** — 여기 있는 것은 "읽은 값을 화면에 내도 되나"뿐이다:

@@ -113,6 +113,12 @@ describe("시나리오 과거 실제 결과 — 내려가는 순서(SRV-REQ-053 
     assert.equal(say(0.4, "higher"), null); // 방향이 뒤집힘
     assert.equal(say(0.4, "lower"), "lower");
     assert.equal(say(0.506, null), null); // 예측이 통과시키지 않았다
+    // 견줄 평소 행이 없으면 말하지 않는다 — "평소(n번)보다"의 n 이 없다(변이 2026-11-13)
+    assert.equal(scenarioBaseRate("1d", { stats: [K1_1], matched: ["K1"], price: 1 }).baseRate.differsFromUsual, null);
+    assert.equal(
+      scenarioBaseRate("1d", { stats: [{ ...USUAL_1, status: "below_min" }, K1_1], matched: ["K1"], price: 1 }).baseRate.differsFromUsual,
+      null
+    );
     // 평소 행 자신은 늘 null
     assert.equal(scenarioBaseRate("1d", { stats: [USUAL_1], matched: [], price: 1 }).baseRate.differsFromUsual, null);
   });
@@ -120,7 +126,7 @@ describe("시나리오 과거 실제 결과 — 내려가는 순서(SRV-REQ-053 
 
 describe("가격 모양", () => {
   it("100원 이상은 원 단위 · 그 아래는 유효 숫자 넷", () => {
-    assert.deepEqual([192_965.562, 100, 99.994, 0.0123456, 3.14159].map(priceLike), [192_966, 100, 99.99, 0.01235, 3.142]);
+    assert.deepEqual([192_965.562, 123.456, 100, 99.994, 0.0123456, 3.14159].map(priceLike), [192_966, 123, 100, 99.99, 0.01235, 3.142]);
   });
 });
 

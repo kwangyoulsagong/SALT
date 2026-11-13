@@ -84,17 +84,20 @@ const Misses = ({ track: t }: { track: ScenarioTrack | null }) => {
   );
 };
 
-/** 큰 숫자 — "100번 중 n번 올랐어요 (n%)" + 오른 몫 · 안 오른 몫 막대. 횟수와 % 를 같이(색만으로 말하지 않는다) */
-const BigNumber = ({ context, up }: { context: string; up: number }) => (
+/** 큰 숫자 — 과거 실제 결과 "100번 중 n번 올랐어요 (n%)" · 모델 확률 "오를 확률 n%" + 오른 몫 · 안 오른 몫 막대(색만으로 말하지 않는다) */
+const BigNumber = ({ context, up, past }: { context: string; up: number; past: boolean }) => (
   <div className={s.big}>
-    <span className={s.context}>
-      {context} · {M.outOf100}
-    </span>
+    <span className={s.context}>{past ? M.contextPast(context) : M.contextModel(context)}</span>
     <p className={s.oddsRow}>
       <span className={s.oddsValue}>{up}</span>
-      <span className={s.oddsSuffix}>
-        {M.upSuffix} <span className={s.oddsPct}>{M.upPct(up)}</span>
-      </span>
+      {/* 지난 기록은 과거형("번 올랐어요"), 모델 확률은 확률로("%") — 확률을 지난 일처럼 말하지 않는다 */}
+      {past ? (
+        <span className={s.oddsSuffix}>
+          {M.upSuffix} <span className={s.oddsPct}>{M.upPct(up)}</span>
+        </span>
+      ) : (
+        <span className={s.oddsSuffix}>%</span>
+      )}
     </p>
     <div className={s.split} aria-hidden="true">
       <span className={s.splitPart.up} style={{ width: `${up}%` }} />
@@ -126,7 +129,7 @@ const Model = ({ view }: { view: ScenarioHorizonView }) => {
   if (view.upOutOf100 === null) return null;
   return (
     <>
-      <BigNumber context={view.label} up={view.upOutOf100} />
+      <BigNumber context={view.label} up={view.upOutOf100} past={false} />
       <p className={s.line}>{M.oddsLine(view.upOutOf100)}</p>
       <RangeLines view={view} past={false} />
       <Track track={view.track} />
@@ -146,7 +149,7 @@ const Past = ({ view }: { view: ScenarioHorizonView }) => {
   return (
     <>
       {view.fallbackLabel && <p className={s.fallback}>{M.fallback(view.label, view.fallbackLabel)}</p>}
-      <BigNumber context={context} up={view.upOutOf100} />
+      <BigNumber context={context} up={view.upOutOf100} past />
       {basis.condition && usual !== null && (
         <p className={s.line}>{basis.differsFromUsual ? M.differs(usual, basis.differsFromUsual) : M.usualToo(usual)}</p>
       )}

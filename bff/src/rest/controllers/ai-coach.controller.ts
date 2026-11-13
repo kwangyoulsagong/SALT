@@ -34,7 +34,7 @@ export class AppAICoachController {
     }
   };
 
-  /** 시나리오 카드 — 단타 방향 확률, 소유자만(404 는 그대로). F017 v2 단계 5 `BFF-REQ-052` FR-4 */
+  /** 시나리오 — 모든 종목 · 지평 넷에 늘(로그인한 누구나 · 모델 확률 칸만 소유자). F017 v4 `BFF-REQ-052` FR-4 개정 */
   scenario = async (req: Request, res: Response, next: NextFunction) => {
     const symbol = typeof req.query.symbol === "string" ? req.query.symbol.trim() : "";
     if (!SYMBOL_PATTERN.test(symbol)) {

@@ -111,3 +111,5 @@
 | 부채꼴 차트 · 줄 넷 · 해설 상자 · 내 기준(FR-8 나머지 · FR-9~11) | 패널 응답(서버 FR-11 · 13) 뒤 | 순서 1 다음 칸 |
 
 운영 빌드(2026-11-13): `web-investment` worktree 빌드 통과 — `/investments/[symbol]` First Load 153 kB.
+
+확인 2회차(2026-11-13 오후): 모델 확률 칸 실화면(`route`) — **결함: 확률을 과거형으로** → "모델이 본 오를 확률 n%" · 소유자 막힘 접힘 · axe 새 요소 0 · 낡은 주석 2 · 투자 zone worktree 재빌드. 본문 `requirements/reports/checklists/F017-v4-stage1-panel.md`.

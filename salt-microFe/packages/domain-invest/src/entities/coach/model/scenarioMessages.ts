@@ -12,7 +12,8 @@ export const SCENARIO_MESSAGES = {
   source: { base_rate: "과거 실제 결과", model: "모델 확률" } as const,
   asOf: (when: string) => `${when} 기준`,
   // 큰 숫자 줄 — "100번 중" 은 위 줄, 숫자 뒤에 "번 올랐어요 (n%)"
-  outOf100: "100번 중",
+  contextPast: (context: string) => `${context} · 100번 중`,
+  contextModel: (label: string) => `${label} · 모델이 본 오를 확률`,
   upSuffix: "번 올랐어요",
   upPct: (up: number) => `(${up}%)`,
   upLabel: (up: number) => `오름 ${up}`,

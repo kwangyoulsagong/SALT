@@ -11,7 +11,7 @@ const FORECAST_TIMEOUT_MS = 800;
 type BackendEnvelope<T> = { success: boolean; message?: string; data: T };
 
 /**
- * 소유자 전용 코치 조회 — 시나리오 · 주요 사건 · 쏠림 (F008 `BFF-REQ-037` · F017 `BFF-REQ-052`). 주간 변동 범위(`/coach/forecast`)는
+ * 코치 종목 조회 — 시나리오(누구나 — 모델 확률 칸만 소유자, 2026-11-13 v4) · 주요 사건 · 쏠림(소유자 전용) (F008 `BFF-REQ-037` · F017 `BFF-REQ-052`). 주간 변동 범위(`/coach/forecast`)는
  * 2026-11-12 삭제 — 화면 소비처가 0이 됐다(시나리오 카드로 교체).
  *
  * - 서버 **4xx 는 그대로 올린다.** 특히 **404 = 소유자가 아니다**(`ADR-003` "응답에 없다") —
