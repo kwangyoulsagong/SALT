@@ -16,5 +16,7 @@ router.get("/detail", appAICoachController.detail);
 router.get("/check", appAICoachController.tradeCheck);
 // 시나리오 — 모든 종목 · 지평 넷에 늘(과거 실제 결과 · 모델 확률은 소유자 + 시험을 넘은 칸, F017 v4 · `BFF-REQ-052` FR-4) — 서버 `/api/coach/scenario`
 router.get("/scenario", appAICoachController.scenario);
+// 한 장 패널 — 시나리오 · 점검 · 원인 · 회사 사정 · 성적 · 해설 · 내 기준을 한 콜로(F017 v4 1d · `BFF-REQ-052` FR-6) — 서버 `/api/coach/panel`
+router.get("/panel", appAICoachController.panel);
 
 export default router;

@@ -12,6 +12,7 @@ import {
 } from "./symbol-coach.viewmodel";
 import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
 import { ExplanationContractError, toExplanationViewModel } from "./explanation.viewmodel";
+import { CoachPanelContractError, toCoachPanelViewModel } from "./coach-panel.viewmodel";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
@@ -38,6 +39,11 @@ export const __resetDetailMemory = () => lastDetail.clear();
  * 예전 즉석 해설(20초 · 동시 2 · SSE 중계)은 서버 경로와 함께 지웠다
  */
 const EXPLANATION_TIMEOUT_MS = 300;
+/**
+ * 한 장 패널(F017 v4 1d · `BFF-REQ-052` FR-6) — 서버가 칸 일곱을 같이 읽는다. 실측(157종목 · 동시 4) p95 140ms · 순차 p95 68ms.
+ * 예산은 코치 상세와 같은 400ms(`performance-bff.md` §1)
+ */
+const PANEL_TIMEOUT_MS = 400;
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -69,6 +75,29 @@ export class AppAICoachService {
       return toTradeCheckViewModel((response.data as BackendEnvelope<unknown>).data);
     } catch (error) {
       if (error instanceof TradeCheckContractError) throw new AppError("trade_check_unavailable", 502);
+      throw error;
+    }
+  }
+
+  /**
+   * 한 장 패널 한 번 응답 — 칸마다 `tier` · `status`, 한 칸이 깨지면 그 칸만 결함(`toCoachPanelViewModel`). 머리가 깨졌으면 502.
+   * 조회라 1회 재시도 · 401 은 그대로(부분 실패로 삼키지 않는다 — 서버가 패널 전체에 401 을 준다)
+   */
+  async getPanel(token: string, query: { symbol?: unknown }, signal?: AbortSignal) {
+    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
+    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
+    const response = await retryOnceOnGet(
+      () =>
+        backendApi.proxyAuthRequest("GET", `/coach/panel?symbol=${encodeURIComponent(symbol)}`, token, undefined, {
+          timeout: PANEL_TIMEOUT_MS,
+          signal,
+        }),
+      signal,
+    );
+    try {
+      return toCoachPanelViewModel((response.data as BackendEnvelope<unknown>).data);
+    } catch (error) {
+      if (error instanceof CoachPanelContractError) throw new AppError("coach_panel_unavailable", 502);
       throw error;
     }
   }
