@@ -6,7 +6,7 @@ import { afterEach, describe, it, mock } from "node:test";
 import { appCryptoWhyMovedService } from "../app-crypto-why-moved.service";
 import { appKrStockService } from "../app-kr-stock.service";
 import { backendApi } from "../backend-api.service";
-import { toMoveSummaryVM, toWhyMovedVM, withMoveSummary } from "../why-moved.viewmodel";
+import { toMoveCauseVM, toMoveSummaryVM, toWhyMovedVM, withMoveSummary } from "../why-moved.viewmodel";
 
 /** F016 단계 C — 오늘 왜 움직였나 뷰모델 · 경로(BFF-REQ-051 FR-1 · 6 · 7) */
 
@@ -44,7 +44,8 @@ describe("toWhyMovedVM — 골라 옮기기 · 계산 0", () => {
     assert.deepEqual(vm.facts.map((f) => f.kind), ["flow", "news"]);
     assert.equal(vm.facts[0]!.value, -60550831650);
     assert.deepEqual(vm.unavailable, ["vi"]);
-    assert.deepEqual(Object.keys(vm).sort(), ["date", "facts", "reasons", "show", "split", "unavailable", "usualRate"]);
+    assert.deepEqual(Object.keys(vm).sort(), ["cause", "date", "facts", "reasons", "show", "split", "unavailable", "usualRate"]);
+    assert.equal(vm.cause, null); // 원인 칸이 없는 옛 서버 응답 — 칸만 빠지고 ①② 는 그대로
   });
 
   it("분해 없음(null) 은 그대로 · 모르는 method · 숫자 아닌 몫은 계약 깨짐(0 으로 채우지 않는다)", () => {
@@ -149,5 +150,50 @@ describe("③ 한 줄 — 뷰모델 · 붙이기 · 경로(F016 단계 D · BFF-
     }));
     const coin = await appCryptoWhyMovedService.get("t", "ETH");
     assert.ok(coin.status === "ok" && coin.gate === "unavailable");
+  });
+});
+
+describe("toMoveCauseVM — 원인 → 근거 → 결과(F017 v4 순서 1b) · 막을 수만", () => {
+  const ev = (supports: boolean, kind = "sector_index") => ({ kind, value: "금융 지수 +0.9%", compare: "코스피 −0.6%", gloss: null, source: "업종", at: "2026-11-13T04:16:00.000Z", supports });
+  const cause = (o: Record<string, unknown> = {}) => ({ kind: "sector", strength: "likely", headline: "금융 업종 전체 상승", note: "업종이 같이 움직였어요", factId: null, at: null, evidence: [ev(true), ev(true, "sector_share"), ev(false, "sector_breadth")], ...o });
+  const raw = (causes: unknown[]) => ({ causes, result: { changeRate: 5.3, text: "오늘 +5.3%", past: null } });
+
+  it("서버 문장 · 단계 · 근거를 그대로 옮긴다", () => {
+    const vm = toMoveCauseVM(raw([cause(), cause({ kind: "flow", strength: "possible", evidence: [ev(false, "program_flow"), ev(true, "investor_flow")] })]));
+    assert.deepEqual(vm?.causes.map((c) => [c.kind, c.strength, c.evidence.length]), [["sector", "likely", 3], ["flow", "possible", 2]]);
+    assert.deepEqual(vm?.result, { changeRate: 5.3, text: "오늘 +5.3%", past: null });
+  });
+
+  it("단계가 근거와 안 맞으면 그 원인을 버린다 — 막을 수만 있다", () => {
+    const bad = [
+      cause({ evidence: [ev(true), ev(false)] }), // 가장 유력인데 받침 1
+      cause({ strength: "possible", evidence: [ev(false)] }), // 가능성인데 받침 0
+      cause({ kind: "sector", strength: "none", evidence: [] }), // 원인 아님은 none 종류만
+      cause({ kind: "none", strength: "none", evidence: [ev(true)] }), // 원인 아님인데 받침
+      cause({ kind: "rumor" }), // 모르는 종류
+      cause({ strength: "certain" }), // 모르는 단계
+    ];
+    for (const c of bad) assert.equal(toMoveCauseVM(raw([c])), null, JSON.stringify(c).slice(0, 80));
+    // 좋은 원인과 섞이면 좋은 것만 남는다
+    assert.equal(toMoveCauseVM(raw([bad[0], cause()]))?.causes.length, 1);
+  });
+
+  it("모르는 근거 종류는 그 줄만 버린다 — 남은 받침으로 단계를 다시 본다", () => {
+    const vm = toMoveCauseVM(raw([cause({ evidence: [ev(true), ev(true, "rumor_score"), ev(false, "sector_breadth")] })]));
+    assert.equal(vm, null); // 받침이 1 로 줄어 가장 유력이 아니다
+  });
+
+  it("원인 칸이 깨져도 ①② 는 그대로 — 카드 전체가 unavailable 이 되지 않는다", () => {
+    for (const broken of [{ causes: "x" }, { causes: [cause()] }, { causes: [cause()], result: { text: 1 } }, 7]) {
+      assert.equal(toMoveCauseVM(broken), null);
+    }
+    const vm = toWhyMovedVM({ date: "2026-11-13", show: true, reasons: [], usualRate: null, split: null, facts: [], unavailable: [], cause: { causes: "x" } });
+    assert.equal(vm.cause, null);
+    assert.equal(vm.date, "2026-11-13");
+  });
+
+  it("원인 없음(확인된 소식이 없어요)은 원인 칸으로 나간다 — 이것도 데이터", () => {
+    const none = { kind: "none", strength: "none", headline: "확인된 소식이 없어요", note: "아직 알려지지 않은 이유일 수 있어요", factId: null, at: null, evidence: [ev(false, "news_count")] };
+    assert.equal(toMoveCauseVM(raw([none]))?.causes[0]?.headline, "확인된 소식이 없어요");
   });
 });

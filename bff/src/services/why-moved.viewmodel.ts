@@ -82,7 +82,59 @@ export interface MoveSummaryVM {
   generatedAt: string | null;
 }
 
+export const MOVE_CAUSE_KINDS = ["disclosure", "news", "warning", "listing", "sector", "market", "flow", "none"] as const;
+export const MOVE_CAUSE_STRENGTHS = ["likely", "possible", "none"] as const;
+export const MOVE_EVIDENCE_KINDS = [
+  "post_move",
+  "past_reaction",
+  "pre_move",
+  "idio_share",
+  "sector_index",
+  "sector_breadth",
+  "sector_share",
+  "market_index",
+  "market_share",
+  "program_flow",
+  "investor_flow",
+  "exchange_flag",
+  "listing_age",
+  "news_count",
+  "usual_range",
+] as const;
+
+/** 근거 한 줄 — 사실 + 숫자(`value`, 굵게) · 비교 · 용어 풀이 · 출처 이름 · 시각. `supports` 가 단계를 센 근거 */
+export interface MoveEvidenceVM {
+  kind: (typeof MOVE_EVIDENCE_KINDS)[number];
+  value: string;
+  compare: string | null;
+  gloss: string | null;
+  source: string;
+  at: string | null;
+  supports: boolean;
+}
+
+/** 원인 하나 — 단계는 서버가 받치는 근거 수로 정했다(`SRV-REQ-053` FR-11) */
+export interface MoveCauseVM {
+  kind: (typeof MOVE_CAUSE_KINDS)[number];
+  strength: (typeof MOVE_CAUSE_STRENGTHS)[number];
+  headline: string;
+  note: string;
+  factId: string | null;
+  at: string | null;
+  evidence: MoveEvidenceVM[];
+}
+
+export interface MoveCauseViewVM {
+  causes: MoveCauseVM[];
+  result: { changeRate: number; text: string; past: string | null };
+}
+
 export interface WhyMovedVM {
+  /**
+   * 원인 → 근거 → 결과(F017 v4 순서 1b · `BFF-REQ-052` FR-6 앞당김). 모양이 깨졌거나 원인이 0 이면 `null` —
+   * ①② 는 그대로 나간다(원인 칸만 빠진다). 단계 · 문장을 BFF 가 만들거나 고치지 않는다
+   */
+  cause: MoveCauseViewVM | null;
   date: string;
   show: boolean;
   reasons: MoveCardReasonVM[];
@@ -141,11 +193,42 @@ const toSplitVM = (raw: unknown): MoveSplitVM | null => {
   };
 };
 
+/**
+ * 원인 칸 — 막을 수만 있다. 아는 종류 · 단계만, 단계가 근거와 맞지 않으면(가장 유력인데 받치는 근거 < 2 · 가능성인데 0 ·
+ * 원인 아님인데 받침) 그 원인을 버린다. 남은 원인이 0 이면 칸 전체 `null`. 문장은 옮기기만
+ */
+export const toMoveCauseVM = (raw: unknown): MoveCauseViewVM | null => {
+  try {
+    if (raw === null || raw === undefined) return null;
+    const r = obj(raw, "cause");
+    const result = obj(r.result, "cause.result");
+    const causes = arr(r, "causes").flatMap((d): MoveCauseVM[] => {
+      const c = obj(d, "cause.item");
+      if (!known(MOVE_CAUSE_KINDS, c.kind) || !known(MOVE_CAUSE_STRENGTHS, c.strength)) return [];
+      const evidence = arr(c, "evidence").flatMap((e): MoveEvidenceVM[] => {
+        const v = obj(e, "evidence");
+        if (!known(MOVE_EVIDENCE_KINDS, v.kind) || typeof v.supports !== "boolean") return [];
+        return [{ kind: v.kind, value: str(v, "value"), compare: strOrNull(v, "compare"), gloss: strOrNull(v, "gloss"), source: str(v, "source"), at: strOrNull(v, "at"), supports: v.supports }];
+      });
+      const backed = evidence.filter((e) => e.supports).length;
+      const consistent = c.strength === "likely" ? backed >= 2 : c.strength === "possible" ? backed >= 1 : backed === 0 && c.kind === "none";
+      if (!consistent) return [];
+      return [{ kind: c.kind, strength: c.strength, headline: str(c, "headline"), note: str(c, "note"), factId: strOrNull(c, "factId"), at: strOrNull(c, "at"), evidence }];
+    });
+    if (causes.length === 0) return null;
+    return { causes, result: { changeRate: num(result, "changeRate"), text: str(result, "text"), past: strOrNull(result, "past") } };
+  } catch (error) {
+    if (error instanceof WhyMovedContractError) return null;
+    throw error;
+  }
+};
+
 /** 서버 `data` → 화면 계약. 국내 · 코인 같은 모양 */
 export const toWhyMovedVM = (raw: unknown): Omit<WhyMovedVM, "summary" | "gate"> => {
   const r = obj(raw, "data");
   if (typeof r.show !== "boolean") throw new WhyMovedContractError("show");
   return {
+    cause: toMoveCauseVM(r.cause),
     date: str(r, "date"),
     show: r.show,
     reasons: arr(r, "reasons").filter((x): x is MoveCardReasonVM => known(MOVE_CARD_REASONS, x)),
