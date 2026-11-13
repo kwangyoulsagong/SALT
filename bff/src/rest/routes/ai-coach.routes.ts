@@ -16,5 +16,7 @@ router.get("/detail", appAICoachController.detail);
 router.get("/check", appAICoachController.tradeCheck);
 // 한 장 패널 — 시나리오 · 점검 · 원인 · 회사 사정 · 성적 · 해설 · 내 기준을 한 콜로(F017 v4 1d · `BFF-REQ-052` FR-6) — 서버 `/api/coach/panel`
 router.get("/panel", appAICoachController.panel);
+// 해설 스트림(SSE) — 저장본이 없을 때 패널이 연다(F017 v4 1f · `BFF-REQ-052` FR-7) — 서버 `/api/coach/explain/stream`
+router.get("/explain/stream", appAICoachController.explainStream);
 
 export default router;

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { appAICoachService } from "../../services/app-ai-coach.service";
+import { formatSseEvent } from "../../utils/sse.util";
 
 export class AppAICoachController {
   preview = async (req: Request, res: Response, next: NextFunction) => {
@@ -42,6 +43,51 @@ export class AppAICoachController {
       return res.json({ success: true, data });
     } catch (error) {
       if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
+  /**
+   * 해설 스트림(SSE, F017 v4 1f · `BFF-REQ-052` FR-7) — 압축 · 버퍼링 끔 · 15초 ping(`streaming-sse.md` §5).
+   * 화면이 떠나면 서버 연결도 끊는다(생성은 서버가 끝까지 — 저장용). 헤더 전 실패(400 · 401 · 서버 4xx)는 오류 미들웨어로
+   */
+  explainStream = async (req: Request, res: Response, next: NextFunction) => {
+    const aborter = new AbortController();
+    let opened = false;
+    const ping = setInterval(() => opened && !res.writableEnded && res.write(": ping\n\n"), 15_000);
+    res.on("close", () => {
+      clearInterval(ping);
+      if (!res.writableFinished) aborter.abort();
+    });
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+    };
+    try {
+      await appAICoachService.streamExplanation(
+        req.token!,
+        req.query,
+        (e) => {
+          open();
+          if (!res.writableEnded) res.write(formatSseEvent(e.event, JSON.stringify(e.data)));
+        },
+        aborter.signal,
+      );
+      if (!opened) open();
+      res.end();
+    } catch (error) {
+      clearInterval(ping);
+      if (aborter.signal.aborted) return;
+      if (opened) {
+        res.write(formatSseEvent("error", JSON.stringify({ code: "EXPLAIN_STREAM_FAILED" })));
+        return res.end();
+      }
       next(error);
     }
   };

@@ -72,7 +72,8 @@ const toCitation = (raw: unknown): ExplanationCitation => {
   };
 };
 
-const toSentence = (raw: unknown): ExplanationSentence => {
+/** 문장 하나 — 스트림 `sentence` 이벤트도 같은 검사(F017 v4 1f · `BFF-REQ-052` FR-7) */
+export const toExplanationSentence = (raw: unknown): ExplanationSentence => {
   if (!isObject(raw)) throw new ExplanationContractError("sentence");
   if (!SECTIONS.includes(raw.section as ExplanationSection)) throw new ExplanationContractError("sentence.section");
   if (!Array.isArray(raw.citations) || raw.citations.length === 0) throw new ExplanationContractError("sentence.citations");
@@ -97,7 +98,7 @@ export const toExplanationViewModel = (raw: unknown): ExplanationViewModel => {
     aiGenerated: raw.aiGenerated === true,
     provider: provider as ExplanationProvider | null,
     generatedAt: str(raw.generatedAt, "generatedAt"),
-    sentences: raw.sentences.map(toSentence),
+    sentences: raw.sentences.map(toExplanationSentence),
     disclaimer: typeof raw.disclaimer === "string" ? raw.disclaimer : "",
   };
 };

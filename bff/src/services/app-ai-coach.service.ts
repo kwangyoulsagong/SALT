@@ -12,6 +12,8 @@ import {
 } from "./symbol-coach.viewmodel";
 import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
 import { CoachPanelContractError, toCoachPanelViewModel } from "./coach-panel.viewmodel";
+import { ExplanationContractError, toExplanationSentence, toExplanationViewModel } from "./explanation.viewmodel";
+import { createSseParser } from "../utils/sse.util";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
@@ -38,6 +40,17 @@ export const __resetDetailMemory = () => lastDetail.clear();
  * 예산은 코치 상세와 같은 400ms(`performance-bff.md` §1)
  */
 const PANEL_TIMEOUT_MS = 400;
+/**
+ * 해설 스트림(F017 v4 1f · `BFF-REQ-052` FR-7) — 소켓이 조용한 시간 상한. 서버가 15초마다 `: ping` 을 보내니 그 두 배.
+ * 생성 자체는 수 초~수십 초(로컬 CLI 45초 상한)
+ */
+const EXPLAIN_STREAM_IDLE_MS = 30_000;
+
+/** 화면이 받는 해설 스트림 이벤트 — 서버 이름 그대로, 몸은 뷰모델로 검사한 것만 */
+export type ExplainStreamEvent =
+  | { event: "snapshot" | "done" | "fallback"; data: ReturnType<typeof toExplanationViewModel> }
+  | { event: "sentence"; data: ReturnType<typeof toExplanationSentence> }
+  | { event: "error"; data: { code: string } };
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -94,6 +107,52 @@ export class AppAICoachService {
       if (error instanceof CoachPanelContractError) throw new AppError("coach_panel_unavailable", 502);
       throw error;
     }
+  }
+
+  /**
+   * 해설 스트림 중계 — 서버 SSE 를 읽어 이벤트마다 뷰모델 검사 뒤 `onEvent`. 모양이 깨진 문장은 버리고, 깨진 한 벌은 `error` 로
+   * (문장을 지어내지 않는다). `signal` 이 끊기면(화면이 떠남) 서버 연결도 끊는다 — 생성 자체는 서버가 끝까지 간다(저장용)
+   */
+  async streamExplanation(
+    token: string,
+    query: { symbol?: unknown; mode?: unknown },
+    onEvent: (event: ExplainStreamEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
+    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
+    if (query.mode !== "scalp" && query.mode !== "long_term") {
+      throw new AppError("mode 는 scalp · long_term", 400, true, "INVALID_MODE");
+    }
+    const upstream = await backendApi.openAuthStream(
+      `/coach/explain/stream?symbol=${encodeURIComponent(symbol)}&mode=${query.mode}`,
+      token,
+      undefined,
+      { method: "GET", timeout: EXPLAIN_STREAM_IDLE_MS, signal },
+    );
+    const parse = createSseParser(({ event, data }) => {
+      let body: unknown;
+      try {
+        body = JSON.parse(data);
+      } catch {
+        return;
+      }
+      try {
+        if (event === "sentence") onEvent({ event, data: toExplanationSentence(body) });
+        else if (event === "snapshot" || event === "done" || event === "fallback") onEvent({ event, data: toExplanationViewModel(body) });
+        else if (event === "error") onEvent({ event, data: { code: "EXPLAIN_STREAM_FAILED" } });
+      } catch (error) {
+        if (!(error instanceof ExplanationContractError)) throw error;
+        // 문장 하나가 깨지면 그 문장만 버린다 · 한 벌이 깨지면 화면이 서버 문장 대신 패널의 저장값을 그대로 쓰게 error
+        if (event !== "sentence") onEvent({ event: "error", data: { code: "EXPLAIN_CONTRACT" } });
+      }
+    });
+    await new Promise<void>((resolve, reject) => {
+      upstream.on("data", (chunk: Buffer) => parse(chunk.toString()));
+      upstream.on("end", () => resolve());
+      upstream.on("error", (error) => (signal?.aborted ? resolve() : reject(error)));
+      signal?.addEventListener("abort", () => resolve(), { once: true });
+    });
   }
 
   async getPreview(token: string, query: any) {
