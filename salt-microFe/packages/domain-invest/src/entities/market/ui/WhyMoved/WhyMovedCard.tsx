@@ -23,6 +23,11 @@ interface WhyMovedCardProps {
   className?: string;
   /** 코인 주의 종류 이름(`PRICE_FLUCTUATIONS` → "가격 급등락") — 이름표 주인은 coach 엔티티라 위젯이 넘긴다 */
   cautionLabel?: (code: string) => string | undefined;
+  /**
+   * 원인 → 근거 → 결과 칸을 빼고 그린다 — 같은 화면에 한 장 패널이 같은 칸을 그릴 때(F017 v4 1e · 같은 문장 두 번 금지).
+   * 그러면 오늘 등락 줄이 분해 표 위로 돌아온다(원인 칸이 없을 때와 같다)
+   */
+  hideCause?: boolean;
 }
 
 /**
@@ -33,9 +38,9 @@ interface WhyMovedCardProps {
  * - 인과 단정 · 앞날 · 매매 지시 문구 0 — 몫은 뺄셈, 사실은 같은 날 있었던 일(`ADR-009`)
  * - 움직임 없음 — 막대 등장 애니메이션을 두지 않아 줄인 모션 분기가 없다
  */
-export const WhyMovedCard = ({ result, className, cautionLabel }: WhyMovedCardProps) => {
+export const WhyMovedCard = ({ result, className, cautionLabel, hideCause = false }: WhyMovedCardProps) => {
   if (!result || result.status !== "ok" || !result.split) return null;
-  const data = result as WhyMoved & { split: MoveSplit };
+  const data = { ...(result as WhyMoved & { split: MoveSplit }), ...(hideCause ? { cause: null } : {}) };
   const tone = toneOf(data.split.total);
 
   if (!data.show) {
@@ -159,7 +164,7 @@ const WhyMovedBody = ({
  * 가장 앞 원인을 세 칸(원인 · 근거 · 결과)으로, 나머지는 "다른 가능성"으로 접는다. 단계를 정한 근거는 굵게(숨은 글자로도 말한다).
  * 소식 원인이면 머리말이 아래 "같은 날 있었던 일" 그 줄로 잇는다. 출처는 번호가 아니라 이름
  */
-const CauseFlow = ({ view }: { view: MoveCauseView }) => {
+export const CauseFlow = ({ view }: { view: MoveCauseView }) => {
   const [first, ...others] = view.causes;
   if (!first) return null;
   return (

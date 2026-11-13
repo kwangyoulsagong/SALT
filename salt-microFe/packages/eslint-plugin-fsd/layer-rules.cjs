@@ -90,7 +90,6 @@ const REGISTRY = {
     "switch-coach-mode",
     // 사기 전 · 팔기 전 점검 — 방향 전환 · 펼침(F017 v2 단계 2 `FE-REQ-064` FR-3, 2026-11-11). 숫자 · 문장은 서버
     "check-trade-odds",
-    "explain-symbol",
     "regenerate-coach",
     "record-transaction",
     // 저축 적립 — 단건 · 여러 목표 나눠 넣기(`FE-REQ-056` FR-4, 2026-11-03)
@@ -150,6 +149,7 @@ const REGISTRY = {
     "pc-panel-grid",
     "coach-panel",
     "symbol-analysis",
+    "scenario-panel",
     "judgment-overview",
     "position-overview",
     "market-list",

@@ -7,15 +7,17 @@ export const coachQueryKeys = {
   symbol: (symbol: string) => ["coach", "symbol", symbol] as const,
   /** 점검 — 방향(사기 전 · 팔기 전)마다 다른 응답이라 키에 있다. 문턱 · 기저율은 하루 1회, 시세만 움직인다 */
   tradeCheck: (symbol: string, side: "buy" | "sell") => ["coach", "trade-check", symbol, side] as const,
-  /** 해설 — 모드마다 다른 문장이라 키에 모드가 있다. 배치가 10분마다 바뀐 종목만 다시 만든다 */
-  explanation: (symbol: string, mode: "scalp" | "long_term") => ["coach", "explanation", symbol, mode] as const,
   /** 종목 판단 전체 — 기본 모드를 저장하면 버린다(주소에 모드가 없을 때 서버가 고른 모드가 바뀐다) */
   symbolAll: () => ["coach", "symbol"] as const,
   /** 코치 리포트. 재생성이 끝나면 이 키만 무효화한다 */
   report: () => ["coach", "report"] as const,
   generationStatus: () => ["coach", "generation-status"] as const,
-  /** 가격 변동 범위. 배치가 하루 1회 만든다 */
-  scenario: (symbol: string) => ["coach", "scenario", symbol] as const,
+  /**
+   * 한 장 패널(F017 v4 1d) — 칸 일곱이 한 응답. 거래를 저장하면 내 기준이 바뀌니 `plans` 와 같이 버린다
+   */
+  panel: (symbol: string) => ["coach", "panel", symbol] as const,
+  /** 패널 전체 — 매입가 숨김을 바꾸면 모든 종목 패널의 내 기준이 바뀐다 */
+  panelAll: () => ["coach", "panel"] as const,
   /** 주요 사건(거시 일정) · 과거 반응. 배치가 하루 1회 만든다 */
   events: (symbol: string) => ["coach", "events", symbol] as const,
   positioning: (symbol: string) => ["coach", "positioning", symbol] as const,

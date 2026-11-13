@@ -19,6 +19,8 @@ export const useRecordTrade = () => {
   const invalidate = (symbol: string) =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.plans(symbol) }),
+      // 한 장 패널의 내 기준(평단 · 평가 손익 · 내 선)이 보유 · 계획에서 온다(F017 v4 1e)
+      queryClient.invalidateQueries({ queryKey: coachQueryKeys.panel(symbol) }),
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.riskBudget() }),
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.sizeCheckAll() }),
       // 미러의 보유 대비 · 회전율 · 처분효과는 요청 때 센다 — 거래가 늘면 바뀐다(결과 · 태그는 배치 몫)
@@ -43,7 +45,12 @@ export const useRecordTrade = () => {
   >({
     mutationFn: recordTransactionApi.savePlan,
     retry: 0,
-    onSuccess: (plan) => queryClient.invalidateQueries({ queryKey: coachQueryKeys.plans(plan.symbol) }),
+    onSuccess: (plan) =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: coachQueryKeys.plans(plan.symbol) }),
+        // 내 선(손절가 · 목표가)이 계획에서 온다
+        queryClient.invalidateQueries({ queryKey: coachQueryKeys.panel(plan.symbol) }),
+      ]),
   });
 
   return { record, retryPlan };

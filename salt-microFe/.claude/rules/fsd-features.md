@@ -68,7 +68,7 @@ features/{slice}/
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
 | `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |
 | `check-trade-odds` | 사기 전 · 팔기 전 점검 — 방향 전환 · 펼침. 문장 · 숫자 · 조건 판정은 서버(`base-rate@1`) | F017 (2026-11-11 v2 단계 2) |
-| `explain-symbol` | 종목 해설 칸 — ~~해설 요청(버튼 · 스트림)~~ 서버가 미리 만든 해설 읽기 · 4단(최신 · 이전 · 사실표 · 없음) · 번호 칩 → 출처. 늘 보임(2026-11-11 F017 v2 단계 3) | F004 · F017 |
+| ~~`explain-symbol`~~ | ~~종목 해설 칸~~ **2026-11-13 삭제** — 해설은 한 장 패널 안 상자(`entities/coach` `ExplainBox` · `widgets/scenario-panel`, F017 v4 1e · `FE-REQ-064` FR-10). 출처는 번호가 아니라 이름 칩 | F004 · F017 |
 | `regenerate-coach` | 코치 리포트 재생성 · 쿨다운 표시 · 202 뒤 완료 폴링 | F004 |
 | `record-transaction` | 보유 거래 기록 추가·수정·삭제 + 서버 미리보기. F009 에서 **추가 + 계획(선택) + 사이즈 계산**이 먼저 생겼다 | F006 · F009 |
 | `set-risk-budget` | 내 기준(월 허용 손실 · 1회 최대 손실 — 원 또는 % · 한 종목 상한 · 투자금 · 목표 변동성) 설정. 필수 아님 | F009 · F010 |

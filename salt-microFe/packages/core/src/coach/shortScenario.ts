@@ -64,6 +64,4 @@ export interface ScenarioHorizonView {
   modelBlocked: { reason: string; track: ScenarioTrack | null } | null;
 }
 
-export type SymbolScenarioResult =
-  | { status: "ok"; symbol: string; market: "crypto" | "kr"; horizons: ScenarioHorizonView[]; disclaimer: string }
-  | { status: "unavailable" };
+// `SymbolScenarioResult`(칸별 시나리오 경로 응답)는 2026-11-13 지웠다 — 칸은 한 장 패널 응답(`coachPanel.ts`) 안에 온다(F017 v4 1e)

@@ -11,5 +11,6 @@ import { krSideCard } from "./SymbolHeader.css";
 export const KrWhyMoved = ({ code }: { code: string }) => {
   const { data, isError } = useWhyMoved({ kind: "kr", code });
   if (isError) return null;
-  return <WhyMovedCard className={krSideCard} result={data} />;
+  // 원인 → 근거 → 결과는 한 장 패널이 그린다(F017 v4 1e) — 여기는 등락 나눠 보기 · 같은 날 있었던 일
+  return <WhyMovedCard className={krSideCard} result={data} hideCause />;
 };
