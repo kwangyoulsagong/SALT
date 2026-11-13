@@ -226,6 +226,116 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/panel:
+   *   get:
+   *     summary: 한 장 패널 한 번 응답 — 시나리오 · 점검 한 줄 · 원인 · 회사 사정 · 성적 · 해설 · 내 기준 — F017 v4 (`SRV-REQ-053` FR-13)
+   *     description: |
+   *       로그인한 누구나. 칸별 경로(`/api/coach/scenario` · `/api/coach/check` · `/api/ai-coach` · `/api/ai-coach/explanation` ·
+   *       `…/why-moved`)와 **같은 유스케이스**를 한 번에 조립한다 — 새 계산 0, 저장값만(LLM · 외부 호출 0).
+   *
+   *       - 칸마다 `tier`(`now` 지금 조건 · 제 값 → `usual` 평소 · 이전 값 → `longer` 대신 채운 값 → `defect` 아직 말할 수 없음)와
+   *         `status`(`ok` · `fallback` · `degraded`). **한 칸 실패가 패널을 비우지 않는다** — 그 칸만 `defect`, 응답은 200
+   *       - `cells` 는 상태 점검(`OPS-004`)이 세는 칸 표(11줄 — 지평 넷 · 점검 · 원인 · 회사 사정 · 성적 둘 · 해설 둘)
+   *       - `horizonMode` — 기간 탭 → 판단 모드(1h · 4h = 단타, 1d · 5d = 장기). 성적 · 해설 칸은 모드마다 `modes` 에
+   *       - `company` 는 재료(공시 · 기사 추출 사실)가 순서 2 라 지금은 늘 `defect` + `reason: source_not_collected`
+   *       - `mine` 은 보유가 있을 때만(아니면 null) · 토큰의 사용자 것만 · 매입가 숨김이면 평단 · 평가 손익 null.
+   *         보유를 못 읽었으면 `status: degraded` + `view: null`(보유 없음으로 접지 않는다)
+   *       - 모델 확률은 소유자 + 시험을 넘은 칸만(`/api/coach/scenario` 와 같다). 한 점 목표가 · 매매 지시 필드는 없다
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: BTC }
+   *         description: 코인 심볼(`BTC`) 또는 국내 종목 코드(`005930`)
+   *     responses:
+   *       200:
+   *         description: 패널 — 칸이 비지 않는다
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     market: { type: string, enum: [crypto, kr] }
+   *                     generatedAt: { type: string, format: date-time }
+   *                     horizonMode:
+   *                       type: object
+   *                       properties:
+   *                         1h: { type: string, enum: [scalp, long_term] }
+   *                         4h: { type: string, enum: [scalp, long_term] }
+   *                         1d: { type: string, enum: [scalp, long_term] }
+   *                         5d: { type: string, enum: [scalp, long_term] }
+   *                     scenario:
+   *                       type: object
+   *                       description: "`horizons[]` 는 `/api/coach/scenario` 칸 + `status`"
+   *                       properties:
+   *                         horizons: { type: array, items: { type: object } }
+   *                         disclaimer: { type: string }
+   *                     verdict:
+   *                       type: object
+   *                       properties:
+   *                         tier: { type: string, enum: [now, usual, longer, defect] }
+   *                         status: { type: string, enum: [ok, fallback, degraded] }
+   *                         check: { type: object, nullable: true, description: "`/api/coach/check?side=buy` 응답 그대로" }
+   *                     cause:
+   *                       type: object
+   *                       properties:
+   *                         tier: { type: string, enum: [now, usual, longer, defect] }
+   *                         status: { type: string, enum: [ok, fallback, degraded] }
+   *                         cause:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             causes: { type: array, items: { type: object } }
+   *                             result: { type: object, properties: { changeRate: { type: number }, text: { type: string }, past: { type: string, nullable: true } } }
+   *                     company:
+   *                       type: object
+   *                       properties:
+   *                         tier: { type: string, enum: [defect] }
+   *                         status: { type: string, enum: [degraded] }
+   *                         reason: { type: string, enum: [source_not_collected] }
+   *                     modes:
+   *                       type: object
+   *                       description: "`scalp` · `longTerm` — 각 `{ mode, judgment, track{ tier, status, trackRecord, failureCases }, explanation{ tier, status, asOf, view } }`"
+   *                     mine:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         status: { type: string, enum: [ok, degraded] }
+   *                         view:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             line: { type: object, nullable: true, properties: { kind: { type: string, enum: [stop, target] }, price: { type: number } } }
+   *                             gapToLinePct: { type: number, nullable: true }
+   *                             averageBuyPrice: { type: number, nullable: true }
+   *                             unrealizedProfit: { type: number, nullable: true }
+   *                             unrealizedProfitRate: { type: number, nullable: true }
+   *                     cells:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           key: { type: string }
+   *                           tier: { type: string, enum: [now, usual, longer, defect] }
+   *                           status: { type: string, enum: [ok, fallback, degraded] }
+   *       400:
+   *         description: 심볼 형식 오류
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/panel", controller.getPanel);
+
+  /**
+   * @swagger
    * /api/coach/events:
    *   get:
    *     summary: 다가오는 주요 사건(거시 · 국내 시장 일정)과 과거 반응 (소유자 전용) — F008 슬라이스 22 · 24

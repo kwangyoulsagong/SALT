@@ -241,7 +241,7 @@ export interface MarketApi {
    * 오늘 왜 움직였나 카드(① 분해 · ② 같은 날 사실 · 카드 조건) — coach 의 ③ 한 줄 재료(F016 단계 D · `SRV-REQ-052` FR-1).
    * 화면 경로와 같은 유스케이스 그대로(저장값만 · 외부 호출 0). 없는 종목 · 국내 꺼짐이면 `null`
    */
-  whyMovedCard(asset: "kr" | "crypto", symbol: string): Promise<WhyMovedCardView | null>;
+  whyMovedCard(asset: "kr" | "crypto", symbol: string, opts?: { cause?: boolean }): Promise<WhyMovedCardView | null>;
   /**
    * 거래 기록이 국내 주식 코드를 받기 전 확인(F011 슬라이스 3b) — 꺼져 있으면 `KrStockDisabledError`(503),
    * 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
@@ -272,6 +272,25 @@ export interface WhyMovedCardView {
   show: boolean;
   split: { total: number; market: number; sector: number | null; idio: number; method: "regression" | "market_adjusted" | "benchmark" } | null;
   facts: Array<{ id: string; kind: string; at: string; source: string; title: string; value: number | null }>;
+  /**
+   * 원인 → 근거 → 결과(F017 v4 1b · `SRV-REQ-053` FR-11) — `opts.cause: true` 일 때만. 아니면 null(③ 한 줄 배치는 원인 재료를
+   * 읽지 않는다 — 종목마다 리더 넷이 더 돈다). 코치 한 장 패널(1d)이 쓴다
+   */
+  cause: WhyMovedCauseView | null;
+}
+
+/** 원인 칸 — 도메인 타입 0. 모양은 화면 경로 `…/why-moved` 의 `cause` 와 같다 */
+export interface WhyMovedCauseView {
+  causes: Array<{
+    kind: string;
+    strength: "likely" | "possible" | "none";
+    headline: string;
+    note: string;
+    factId: string | null;
+    at: string | null;
+    evidence: Array<{ kind: string; value: string; compare: string | null; gloss: string | null; source: string; at: string | null; supports: boolean }>;
+  }>;
+  result: { changeRate: number; text: string; past: string | null };
 }
 
 export interface MarketDependencies {
@@ -701,21 +720,44 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
-    // ③ 한 줄 배치의 재료 — 원인 칸을 쓰지 않으니 원인 근거 재료를 읽지 않는다(F017 v4 1b 확인 2회차)
-    whyMovedCard: async (asset, symbol) => {
+    // ③ 한 줄 배치의 재료 — 원인 칸을 쓰지 않으니 원인 근거 재료를 읽지 않는다(F017 v4 1b 확인 2회차). 한 장 패널만 `cause: true`
+    whyMovedCard: async (asset, symbol, opts = {}) => {
+      const cause = opts.cause === true;
       try {
         const view =
           asset === "kr"
             ? useCases.krStock
-              ? await useCases.krStock.getWhyMoved.execute(symbol, { cause: false })
+              ? await useCases.krStock.getWhyMoved.execute(symbol, { cause })
               : null
-            : await useCases.getCryptoWhyMoved.execute(symbol, { cause: false });
+            : await useCases.getCryptoWhyMoved.execute(symbol, { cause });
         if (!view) return null;
         return {
           date: view.date,
           show: view.show,
           split: view.split && { total: view.split.total, market: view.split.market, sector: view.split.sector, idio: view.split.idio, method: view.split.method },
           facts: view.facts.map((f) => ({ id: f.id, kind: f.kind, at: f.at, source: f.source, title: f.title, value: f.value })),
+          cause: cause
+            ? {
+                causes: view.cause.causes.map((c) => ({
+                  kind: c.kind,
+                  strength: c.strength,
+                  headline: c.headline,
+                  note: c.note,
+                  factId: c.factId,
+                  at: c.at,
+                  evidence: c.evidence.map((e) => ({
+                    kind: e.kind,
+                    value: e.value,
+                    compare: e.compare,
+                    gloss: e.gloss,
+                    source: e.source,
+                    at: e.at,
+                    supports: e.supports,
+                  })),
+                })),
+                result: { changeRate: view.cause.result.changeRate, text: view.cause.result.text, past: view.cause.result.past },
+              }
+            : null,
         };
       } catch (error) {
         // 없는 종목 · 국내 마스터에 없음은 "카드 없음" — 그 밖은 부르는 쪽이 회차 실패로 센다

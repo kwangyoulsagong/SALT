@@ -13,7 +13,12 @@ import {
   type PlainTrustInput,
 } from "../domain";
 import type { ExplanationDemand } from "./lib/explanationDemand";
-import { prepareExplanation, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
+import {
+  loadExplanationBase,
+  prepareExplanationMode,
+  type ExplanationBase,
+  type ExplanationMaterialsDeps,
+} from "./lib/explanationMaterials";
 import { JUDGMENT_DISCLAIMER, type ModeCoachView } from "./lib/judgmentTrack";
 
 export interface SymbolExplanationView {
@@ -47,8 +52,21 @@ export class GetSymbolExplanation {
   constructor(private readonly deps: GetSymbolExplanationDeps) {}
 
   async execute(symbol: string, mode: CoachMode): Promise<SymbolExplanationView> {
+    const [view] = await this.executeModes(symbol, [mode]);
+    return view!;
+  }
+
+  /**
+   * 여러 모드를 한 번에 — 모드와 무관한 재료(시세 · 지표 · 소식)는 한 번만 읽는다. 한 장 패널(F017 v4 1d)이 두 모드를 같이 싣는다
+   */
+  async executeModes(symbol: string, modes: readonly CoachMode[]): Promise<SymbolExplanationView[]> {
     const now = this.deps.now?.() ?? new Date();
-    const prepared = await prepareExplanation(this.deps, symbol, mode, now);
+    const base = await loadExplanationBase(this.deps, symbol);
+    return Promise.all(modes.map((mode) => this.forMode(base, mode, now)));
+  }
+
+  private async forMode(materials: ExplanationBase, mode: CoachMode, now: Date): Promise<SymbolExplanationView> {
+    const prepared = await prepareExplanationMode(this.deps, materials, mode, now);
     const stored = await this.deps.store.find(prepared.symbol, mode, prepared.fingerprint);
     const tier = selectExplanationTier({
       mode,

@@ -7,6 +7,7 @@ import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplai
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
 import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
+import { MoveCauseAdapter } from "./coach/infrastructure/MoveCauseAdapter";
 import { PrismaMoveSummaryStore } from "./coach/infrastructure/PrismaMoveSummaryStore";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
 import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
@@ -312,6 +313,8 @@ const coach = createCoachApplication({
   judgmentTiers: new PrismaJudgmentTierReader(),
   shortHorizons: new PrismaShortHorizonReader(),
   tradeCheckLedger: new PrismaTradeCheckLedger(),
+  // 한 장 패널의 원인 칸 — market 공개 API 의 원인 → 근거 → 결과(같은 유스케이스, `cause: true`)
+  moveCauses: new MoveCauseAdapter(market.api),
   tradePlans: new PrismaTradePlanStore(),
   decisionOutcomes: new PrismaDecisionOutcomeStore(),
   monthlyReviews: new PrismaMonthlyReviewStore(),

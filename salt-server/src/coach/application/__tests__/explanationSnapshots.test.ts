@@ -161,6 +161,25 @@ describe("GetSymbolExplanation — 4단, 빈 칸 0", () => {
   });
 });
 
+describe("두 모드 한 번에(한 장 패널 — F017 v4 1d)", () => {
+  it("모드마다 제 해설 · 모드와 무관한 재료(시세)는 한 번만 읽는다 · 하나씩 부른 것과 같다", async () => {
+    const { read } = setup();
+    const market = (read as unknown as { deps: { market: MarketProbe } }).deps.market;
+    let quoteReads = 0;
+    const original = market.quotes.bind(market);
+    market.quotes = async (symbols) => {
+      quoteReads += 1;
+      return original(symbols);
+    };
+    const [scalp, longTerm] = await read.executeModes("BTC", ["scalp", "long_term"]);
+    assert.equal(quoteReads, 1);
+    assert.equal(scalp!.mode, "scalp");
+    assert.equal(longTerm!.mode, "long_term");
+    assert.deepEqual(scalp, await read.execute("BTC", "scalp"));
+    assert.deepEqual(longTerm, await read.execute("BTC", "long_term"));
+  });
+});
+
 describe("얼마나 믿을까 · 틀렸던 때(F017 v4 순서 1c · SRV-REQ-053 FR-16) — 어느 단이든 늘 뒤에 · 판단 블록과 같은 값", () => {
   const trustOf = (sentences: { section: string; text: string; citations: { id: string }[] }[]) =>
     sentences.filter((s) => s.section === "track" || s.section === "miss");

@@ -149,6 +149,20 @@ export class CoachToolsController {
     }
   };
 
+  /** 한 장 패널 한 번 응답 — 칸마다 tier · status · 한 칸 실패가 패널을 비우지 않는다. F017 v4 `SRV-REQ-053` FR-13 */
+  getPanel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = forecastQuerySchema.parse(req.query);
+      const result = await this.useCases.getCoachPanel.execute(
+        { userId: req.user!.userId, email: req.user!.email },
+        query.symbol
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   /**
    * 주요 사건(거시 일정) · 과거 반응 — 소유자만(아니면 404). F008 `SRV-REQ-037` FR-10.
    */

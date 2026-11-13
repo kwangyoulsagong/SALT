@@ -952,6 +952,28 @@ export interface MoveCardReader {
   card(asset: MoveAsset, symbol: string): Promise<MoveCard | null>;
 }
 
+/**
+ * 한 장 패널의 원인 칸(F017 v4 1d · `SRV-REQ-053` FR-11 · 13) — market 의 원인 → 근거 → 결과를 coach 말로(ACL `MoveCauseAdapter`).
+ * 저장값만 읽는다(외부 호출 · LLM 0). 없는 종목 · 꺼진 국내면 `null`
+ */
+export interface MoveCauseReader {
+  cause(asset: MoveAsset, symbol: string): Promise<PanelMoveCause | null>;
+}
+
+/** 원인 칸 — 문장 · 단계는 market 이 정한 값 그대로. 단계 이름(가장 유력 · 가능성)은 화면이 붙인다 */
+export interface PanelMoveCause {
+  causes: Array<{
+    kind: string;
+    strength: "likely" | "possible" | "none";
+    headline: string;
+    note: string;
+    factId: string | null;
+    at: string | null;
+    evidence: Array<{ kind: string; value: string; compare: string | null; gloss: string | null; source: string; at: string | null; supports: boolean }>;
+  }>;
+  result: { changeRate: number; text: string; past: string | null };
+}
+
 /** 시도 한 건 — 실패도 남긴다(같은 지문 LLM 1회 · 하루 상한 · 품질 감사). 원문 0 */
 export interface MoveSummaryRecord extends StoredMoveSummary {
   asset: MoveAsset;
