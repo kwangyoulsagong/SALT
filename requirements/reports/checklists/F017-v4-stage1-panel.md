@@ -97,4 +97,5 @@
 |---|---|---|
 | FR-16 나머지(LLM 재료 · 문장 순서 · 검사) | 생성 경로를 다시 쓰는 칸과 같이 — 해설 재생성 한 번 | 1f |
 | 같은 적중률이 판단 블록과 해설 두 곳 | FR-16 이 해설 안에 두라고 정함 · 두 칸은 패널로 합친다 | 1e |
-| `web-investment` 운영 빌드 | 커밋 뒤 worktree | 이 묶음 커밋 직후 |
+
+1c 운영 빌드: `web-investment` worktree(커밋 `ba9f94e8`) — `/investments/[symbol]` First Load 153 kB.
