@@ -7,7 +7,8 @@
  */
 
 export type ExplanationTier = "latest" | "previous" | "template" | "none";
-export type ExplanationSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
+/** `track` · `miss` — 서버가 판단 블록 값으로 쓴 "얼마나 믿을까" · "틀렸던 때"(F017 v4 순서 1c). 늘 맨 뒤 */
+export type ExplanationSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary" | "track" | "miss";
 export type ExplanationProvider = "local_claude" | "local_codex" | "gemini";
 
 export interface ExplanationCitation {
@@ -42,7 +43,7 @@ export class ExplanationContractError extends Error {
 }
 
 const TIERS: readonly ExplanationTier[] = ["latest", "previous", "template", "none"];
-const SECTIONS: readonly ExplanationSection[] = ["modeReasoning", "keyDrivers", "risks", "newsSummary"];
+const SECTIONS: readonly ExplanationSection[] = ["modeReasoning", "keyDrivers", "risks", "newsSummary", "track", "miss"];
 const PROVIDERS: readonly ExplanationProvider[] = ["local_claude", "local_codex", "gemini"];
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);

@@ -41,6 +41,18 @@ describe("toExplanationViewModel", () => {
     assert.equal(v.sentences[1]!.citations[0]!.url, null);
   });
 
+  it("서버가 쓴 성적 · 틀렸던 때 칸(track · miss)도 그대로 옮긴다 — F017 v4 순서 1c", () => {
+    const vm = toExplanationViewModel(
+      server({
+        sentences: [
+          { section: "track", text: "이 판단은 지금까지 30번 중 15번 맞았어요(50%, 판단 뒤 24시간 기준).", citations: [{ id: "track", label: "이 판단의 성적", at: null, url: null }] },
+          { section: "miss", text: "2026-08-31 ETH도 같은 판단이었는데 24시간 뒤 −5.0% 내렸어요.", citations: [{ id: "miss-1", label: "틀렸던 때 · 2026-08-31", at: null, url: null }] },
+        ],
+      })
+    );
+    assert.deepEqual(vm.sentences.map((x) => x.section), ["track", "miss"]);
+  });
+
   it("템플릿 단 — AI 아님 · 공급자 없음", () => {
     const v = toExplanationViewModel(server({ tier: "template", aiGenerated: false, provider: null }));
     assert.equal(v.aiGenerated, false);
