@@ -4,7 +4,7 @@ title: "F017 v4 순서 1 — 있는 데이터로 패널: 시나리오 늘 · 원
 priority: high
 labels: [F017, slice, server, bff, fe]
 created: 2026-11-13
-status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 · 1d 패널 한 번 응답 · 1e 패널 UI done — 2026-11-13. 1f 남음)
+status: done (1a~1f 전부 2026-11-13)
 ---
 
 ## Summary
@@ -19,7 +19,7 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) — 해설 네 단 모두 맨 뒤 | `SRV-REQ-053` FR-16 일부 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2 | **done 2026-11-13** — FR-16 나머지(LLM 재료 · 순서 · 검사)는 1f 로 |
 | 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 · 내 기준 | `SRV-REQ-053` FR-13 · FR-15 · `BFF-REQ-052` FR-6 · FR-8 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
 | 1e | 패널 UI(시안 — 부채꼴 · 줄 다섯 · 해설 상자 · 내 기준) · 칸별 BFF 경로 은퇴 | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 · `BFF-REQ-052` FR-6 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) — FR-10 스트림은 1f |
-| 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · FR-16 나머지(LLM 재료 · 문장 순서 · 검사 — 생성 경로를 다시 쓰며 한 번에) · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
+| 1f | 해설 스트림 · 해설 v2(4~6문장 · 원인 재료 · 이름) | `SRV-REQ-053` FR-9 · FR-16 나머지 · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
 
 ## 판단 — 리뷰가 볼 곳 (1a)
 
@@ -88,6 +88,20 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 - BFF **BREAKING** — `GET /api/app/ai-coach/scenario` · `/explanation` 은퇴(410 + replacement `/panel`, 1주). 웹 소비처는 같은 브랜치에서 옮김 · 앱 네이티브 소비 0
 - 웹 — `features/explain-symbol` 삭제 · `widgets/scenario-panel` 신규(레지스트리 · `layer-rules.cjs`)
 
+## 판단 — 리뷰가 볼 곳 (1f)
+
+1. **문장 수는 서버가 정한다** — 칸 상한(결론 2 · 근거 3 · 주의 1 · 소식 1)과 전체 6을 줄 문지기 하나에 두고 배치 검증 · 스트림 · 사실표 문장이 같이 쓴다. 화면은 자르지 않는다
+2. **요청이 생성을 연다 — 그래도 사람마다 다른 LLM 호출은 0** — 같은 종목 · 모드 · 지문은 생성 하나(배치와 같은 등록부). 끊겨도 끝까지 저장. 규칙 문서(`ddd-infrastructure.md`) 로컬 CLI 줄을 고쳤다
+3. **원인은 생성할 때만 읽는다** — 읽기 경로 · 지문은 원인을 모른다(소식 제목이 이미 지문에 있다). 패널 읽기 부하는 그대로
+4. **이전 AI 단 = 지금 검증기 글만** — 버전을 올린 직후 하루 상한에 걸려 옛 20문장 글이 나가던 것을 막았다
+5. **머리말을 이름으로** — 판정 · 점수 · 원장과 무관한 문장 자리. 백테스트는 코드 그대로
+
+## 계약 변경 (1f)
+
+- 서버 `GET /api/coach/explain/stream`(SSE) 신규 · 해설 응답 문장 수가 줄어든다(같은 모양) · 판단 머리말이 이름(문자열 값만 바뀜)
+- BFF `GET /api/app/ai-coach/explain/stream` 신규
+- 규칙 — `salt-server/.claude/rules/ddd-infrastructure.md` 로컬 CLI 줄
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -97,3 +111,4 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 2026-11-13 | 1c done(`feat/f017-v4-s1-scenario-always`) — 3종 문장 · FR-16 나머지는 1f 로 |
 | 2026-11-13 | 1d done(`feat/f017-v4-s1d-coach-panel`) — 패널 한 번 응답 · 내 기준 · 해설 두 모드 재료 한 번 읽기 |
 | 2026-11-13 | 1e done(`feat/f017-v4-s1d-coach-panel`) — 한 장 패널 UI · 칸별 BFF 경로 은퇴 |
+| 2026-11-13 | 1f done(`feat/f017-v4-s1d-coach-panel`) — 해설 스트림 · 해설 v2 · 판단 머리말 이름. 순서 1 끝 |
