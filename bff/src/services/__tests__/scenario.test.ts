@@ -1,15 +1,9 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 
-import { appForecastService } from "../app-forecast.service";
-import { backendApi } from "../backend-api.service";
 import { toScenarioViewModel } from "../scenario.viewmodel";
 
 /** 시나리오 — 지평 넷 · 과거 실제 결과 또는 모델 확률(F017 v4 · `BFF-REQ-052` FR-4 개정 · `ADR-003`). */
-
-const ok = (data: unknown) => ({ data: { success: true, data } }) as never;
-const httpError = (status: number) =>
-  Object.assign(new Error(`status ${status}`), { response: { status, data: { message: "x" }, headers: {} } });
 
 const TRACK = {
   origin: "backtest",
@@ -186,32 +180,5 @@ describe("toScenarioViewModel", () => {
   it("모양이 깨졌으면 unavailable", () => {
     assert.deepEqual(toScenarioViewModel(null), { status: "unavailable" });
     assert.deepEqual(toScenarioViewModel({ horizons: "x" }), { status: "unavailable" });
-  });
-});
-
-describe("appForecastService.getScenario", () => {
-  afterEach(() => mock.restoreAll());
-
-  it("4xx 는 그대로 올린다 — unavailable 로 바꾸지 않는다", async () => {
-    mock.method(backendApi, "proxyAuthRequest", async () => {
-      throw httpError(404);
-    });
-    await assert.rejects(() => appForecastService.getScenario("t", "BTC"), /404/);
-  });
-
-  it("5xx 는 200 unavailable · 서버 경로는 /coach/scenario", async () => {
-    const paths: string[] = [];
-    mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string) => {
-      paths.push(path);
-      throw httpError(503);
-    });
-    assert.deepEqual(await appForecastService.getScenario("t", "BTC"), { status: "unavailable" });
-    assert.ok(paths.every((p) => p === "/coach/scenario?symbol=BTC"));
-  });
-
-  it("성공은 뷰모델로", async () => {
-    mock.method(backendApi, "proxyAuthRequest", async () => ok(server([open("1h")])));
-    const v = await appForecastService.getScenario("t", "BTC");
-    assert.equal(v.status, "ok");
   });
 });

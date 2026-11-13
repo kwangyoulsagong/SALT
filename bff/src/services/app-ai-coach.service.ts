@@ -11,7 +11,6 @@ import {
   type ServerSymbolNews,
 } from "./symbol-coach.viewmodel";
 import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
-import { ExplanationContractError, toExplanationViewModel } from "./explanation.viewmodel";
 import { CoachPanelContractError, toCoachPanelViewModel } from "./coach-panel.viewmodel";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
@@ -34,11 +33,6 @@ const rememberDetail = (key: string, view: ReturnType<typeof toSymbolCoachViewMo
 };
 /** 테스트 전용 */
 export const __resetDetailMemory = () => lastDetail.clear();
-/**
- * 해설(F017 v2 단계 3 · `BFF-REQ-052` FR-2) — 서버는 저장값만 읽는다(LLM 0, 배치가 미리 만든다). 판단 · 점검과 같은 예산.
- * 예전 즉석 해설(20초 · 동시 2 · SSE 중계)은 서버 경로와 함께 지웠다
- */
-const EXPLANATION_TIMEOUT_MS = 300;
 /**
  * 한 장 패널(F017 v4 1d · `BFF-REQ-052` FR-6) — 서버가 칸 일곱을 같이 읽는다. 실측(157종목 · 동시 4) p95 140ms · 순차 p95 68ms.
  * 예산은 코치 상세와 같은 400ms(`performance-bff.md` §1)
@@ -260,35 +254,6 @@ export class AppAICoachService {
       recordedAt: data.createdAt,
       status: "recorded",
     };
-  }
-
-  /**
-   * 종목 해설 — 4단 중 하나(`latest` · `previous` · `template` · `none`), 빈 칸 0. 서버 그대로 · 캐시 0.
-   * GET 이라 한 번 재시도(`retryOnceOnGet`). 모양이 깨지면 502 — 문장을 지어내지 않는다
-   */
-  async getExplanation(token: string, query: { symbol?: unknown; mode?: unknown }, signal?: AbortSignal) {
-    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
-    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
-    if (query.mode !== "scalp" && query.mode !== "long_term") {
-      throw new AppError("mode 는 scalp · long_term", 400, true, "INVALID_MODE");
-    }
-    const response = await retryOnceOnGet(
-      () =>
-        backendApi.proxyAuthRequest(
-          "GET",
-          `/ai-coach/explanation?symbol=${encodeURIComponent(symbol)}&mode=${query.mode}`,
-          token,
-          undefined,
-          { timeout: EXPLANATION_TIMEOUT_MS, signal },
-        ),
-      signal,
-    );
-    try {
-      return toExplanationViewModel((response.data as BackendEnvelope<unknown>).data);
-    } catch (error) {
-      if (error instanceof ExplanationContractError) throw new AppError("explanation_unavailable", 502);
-      throw error;
-    }
   }
 
   private mapDecision(decision: any) {
