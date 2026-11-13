@@ -8,14 +8,15 @@
 #   ops/salt.sh restart <이름>   코드를 바꾼 뒤 재시작(launchd 는 watch 없이 뜬다)
 #   ops/salt.sh logs <이름>      로그 꼬리
 #   ops/salt.sh plist <이름>     up 이 등록할 launchd plist 를 등록 없이 출력(검토용)
+#   ops/salt.sh usage           도메인 사용 계측 — 최근 8주 주간 활성 · 재개율 · 카드 클릭(`ops/usage-weekly.sql`, 서버 S3d `SRV-REQ-048` FR-7)
 #
 # 왜 이 스크립트인가: 프로세스가 7개(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치 · 웹)인데 서버와 예측만 상시였고
 # 나머지는 사람이 기억해서 띄웠다. 2026-11-02 뉴스 워커가 09-29 부터 · BFF 시세 워커도 꺼진 채 발견 — 사용자 "계속 머 까먹어서".
 # 데이터를 모으는 프로세스(뉴스 · 시세)는 전부 상시로 둔다. 웹 dev 만 상시가 아니다(빌드 · 재시작이 잦다).
 #
-# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · web · web-investment · web-savings · web-household
+# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · web · web-investment · web-savings · web-household · web-tips
 # platform = Kotlin(`salt-platform`, :4010) — S1 저축부터 화면 경로가 있다(`SRV-REQ-045`). RabbitMQ 는 그 스크립트가 Compose 로 띄운다
-# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057`). 셸이 도메인 경로를 각 zone 으로 프록시한다
+# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057` · 금융 팁 web-tips 3005 — `FE-REQ-058`, 2026-11-13 빠져 있던 것을 넣음). 셸이 도메인 경로를 각 zone 으로 프록시한다
 # 웹은 dev 로만 띄운다 — dev 정적 경로는 zone 별(`/investment-static`). 운영 빌드(`next start`)를 여기에 넣으려면 빌드 뒤
 # `pnpm static:merge` 가 먼저다(운영 빌드는 모든 zone 이 공용 `/_next` — `ADR-005` 규칙 7 개정 · `FE-REQ-054`, 2026-11-03)
 set -u
@@ -34,18 +35,18 @@ LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
         forecast "$ROOT/salt-forecast/ops/daily.sh" forecast-live "$ROOT/salt-forecast/ops/live.sh")
-PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - web 3000 web-investment 3002 web-savings 3003 web-household 3004)
+PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - web 3000 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005)
 HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
      bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" forecast-live "$LOGS/salt-forecast-live.log" web "$LOGS/salt-web.log"
      web-investment "$LOGS/salt-web-investment.log" web-savings "$LOGS/salt-web-savings.log"
-     web-household "$LOGS/salt-web-household.log")
+     web-household "$LOGS/salt-web-household.log" web-tips "$LOGS/salt-web-tips.log")
 # 포트 없는 상시 프로세스를 수동으로 띄웠는지 알아보는 명령줄 조각
 typeset -A PATTERN
 PATTERN=(news "workers/news-crawler.worker" bff-worker "workers/price-updater.worker")
-ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live web web-investment web-savings web-household)
+ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live web web-investment web-savings web-household web-tips)
 # launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
-DEV_APPS=(web web-investment web-savings web-household)
+DEV_APPS=(web web-investment web-savings web-household web-tips)
 is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
 SERVICES=(server platform news bff-rest bff-ws bff-worker forecast forecast-live)
 
@@ -323,6 +324,14 @@ case "${1:-status}" in
   plist)
     valid "${2:-}"; is_dev "$2" && { say "$2 은 launchd 가 아니다(dev)"; exit 2; }
     write_plist "$2" /dev/stdout ;;
-  -h|--help|help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' ;;
-  *) say "모르는 명령: $1 — up | status | down | restart | logs | plist"; exit 2 ;;
+  usage)
+    url=$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"?]*\).*/\1/p' "$ROOT/salt-server/.env" 2>/dev/null | head -1)
+    [[ -z $url ]] && { say "  (DB 주소 없음 — salt-server/.env)"; exit 1; }
+    say "도메인 사용 — 최근 8주(주 = 월요일 시작 · KST)"
+    printf "  %-6s %-10s %6s %8s %6s\n" 주 도메인 활성 재개율 클릭
+    psql "$url" -At -F '|' -v ON_ERROR_STOP=1 -f "$ROOT/ops/usage-weekly.sql" | while IFS='|' read -r week domain active resume clicks; do
+      printf "  %-6s %-10s %6s %8s %6s\n" "$week" "$domain" "$active" "$resume" "$clicks"
+    done ;;
+  -h|--help|help) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) say "모르는 명령: $1 — up | status | down | restart | logs | plist | usage"; exit 2 ;;
 esac
