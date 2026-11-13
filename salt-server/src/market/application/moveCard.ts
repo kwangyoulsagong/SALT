@@ -10,6 +10,7 @@ import {
   type MoveBetaRow,
   type MoveCardEvents,
   type MoveCardPolicy,
+  type MoveEvidenceReader,
 } from "../domain";
 
 /**
@@ -22,6 +23,8 @@ export interface MoveDependencies {
   betas: MoveBetaReader;
   warnings: CryptoWarningReader;
   policy: MoveCardPolicy;
+  /** 원인 근거 재료(F017 v4 순서 1b · `SRV-REQ-053` FR-11). 없으면 재료 없이 조립한다(테스트 · 옛 조립) — 원인 목록은 그래도 비지 않는다 */
+  evidence?: MoveEvidenceReader;
 }
 
 /** 예측 배치 β · σ — 실패 · 오래됨은 없는 것으로(분해는 β=1 로 선다) */

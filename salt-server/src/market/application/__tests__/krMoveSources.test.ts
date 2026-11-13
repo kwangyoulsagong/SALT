@@ -451,7 +451,7 @@ describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보"
 });
 
 describe("PruneKrMoveSources — 보관 기한", () => {
-  it("제목 400일(F017 단계 6 — 태그 표본) · 장중 수급 7일 · VI 30일 앞을 지운다", async () => {
+  it("제목 400일(F017 단계 6 — 태그 표본) · 장중 수급 35일(F017 v4 1b — 원인 근거 '최근 거래일 평균의 n배') · VI 30일 앞을 지운다", async () => {
     let cutoffs: { news: Date; flows: Date; viEvents: Date } | null = null;
     const store = {
       prune: async (c: typeof cutoffs) => {
@@ -461,7 +461,7 @@ describe("PruneKrMoveSources — 보관 기한", () => {
     } as unknown as KrMoveSourceStore;
     await new PruneKrMoveSources(store, () => new Date("2026-11-06T06:55:00Z")).execute();
     assert.equal(cutoffs!.news.toISOString(), "2025-10-02T06:55:00.000Z");
-    assert.equal(cutoffs!.flows.toISOString(), "2026-10-30T06:55:00.000Z");
+    assert.equal(cutoffs!.flows.toISOString(), "2026-10-02T06:55:00.000Z");
     assert.equal(cutoffs!.viEvents.toISOString(), "2026-10-07T06:55:00.000Z");
   });
 });

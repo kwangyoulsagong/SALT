@@ -48,6 +48,7 @@ import { parseKrSummaryIndices } from "./market/domain";
 import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
 import { PrismaKrMarketStatusStore } from "./market/infrastructure/PrismaKrMarketStatusStore";
 import { PrismaKrMoveSourceStore } from "./market/infrastructure/PrismaKrMoveSourceStore";
+import { PrismaMoveEvidenceReader } from "./market/infrastructure/PrismaMoveEvidenceReader";
 import { PrismaCryptoWarningReader, PrismaMoveBetaReader } from "./market/infrastructure/PrismaForecastMoveReader";
 import { PrismaPriceFillMarkStore } from "./market/infrastructure/PrismaPriceFillMarkStore";
 import { PrismaUniverseSnapshotStore } from "./market/infrastructure/PrismaUniverseSnapshotStore";
@@ -204,6 +205,7 @@ const market = createMarketApplication({
     betas: new PrismaMoveBetaReader(),
     warnings: new PrismaCryptoWarningReader(),
     policy: { k: env.MOVE_CARD_K, minRate: env.MOVE_CARD_MIN_RATE },
+    evidence: new PrismaMoveEvidenceReader(),
   },
 });
 

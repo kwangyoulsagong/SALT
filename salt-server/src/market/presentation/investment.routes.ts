@@ -155,13 +155,17 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     description: |
    *       저장값만 읽는다(F016 단계 C). 등락은 업비트 전일 대비(KST 09:00 기준). BTC 몫 = β × BTC 등락(β = 예측 배치 `realized_vol.btc_beta`),
    *       종목 몫 = 나머지. BTC 자신은 `method: benchmark`(시장 몫이 전부). 사실 — 그날(09:00 KST 뒤) 기사 제목 · 거래소 유의/주의(매일 스냅샷, 2일 안).
+   *       `cause` — 원인 → 근거 → 결과(F017 v4 순서 1b · `SRV-REQ-053` FR-11 · 17, 서버 계산 · LLM 0) `{ causes: [{ kind, strength: likely | possible | none, headline, note, factId, at,
+   *       evidence: [{ kind, value, compare, gloss, source, at, supports }] }], result: { changeRate, text, past } }`. 단계는 받치는 근거(`supports`) 수 —
+   *       가장 유력 = 시각이 맞는 근거를 포함해 둘 이상 · 가능성 = 하나. 받치는 원인이 없으면 `none` 하나("확인된 소식이 없어요" · 평소 범위 안). 늘 하나 이상.
+   *       코인 원인 순서: 비트코인 몫 · 거래소 경보 · 유의 · 상장 나이(첫 일봉) · 종류가 맞은 기사 — 공시 · 업종 · 수급은 없다.
    *     tags: [Investment]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
    *       - { in: path, name: symbol, required: true, schema: { type: string, pattern: "^[0-9A-Za-z]{1,15}$" }, description: "BTC · ETH" }
    *     responses:
    *       200:
-   *         description: "`{ symbol, date, show, reasons[], usualRate, split: { total, market, sector: null, idio, method, marketIndex: KRW-BTC, sectorIndex: null, sectorName: null } | null, facts[], unavailable[] }`"
+   *         description: "`{ symbol, date, show, reasons[], usualRate, split: { total, market, sector: null, idio, method, marketIndex: KRW-BTC, sectorIndex: null, sectorName: null } | null, facts[], unavailable[], cause }`"
    *       401: { description: 로그인 필요 }
    *       404: { description: 모르는 종목(`MARKET_SYMBOL_NOT_FOUND`) }
    */

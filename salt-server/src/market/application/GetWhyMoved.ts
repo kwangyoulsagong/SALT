@@ -1,6 +1,20 @@
 import { logger } from "../../shared/config/logger";
 import {
+  assembleMoveCauses,
   CRYPTO_BENCHMARK,
+  CRYPTO_CAUTION_LABEL,
+  CRYPTO_MARKET_NAME,
+  CRYPTO_WARNING_LABEL,
+  KR_FLAG_LABEL,
+  KR_MARKET_NAME,
+  pickCauseEvents,
+  POST_MOVE_WINDOW_MINUTES,
+  toAfterMove,
+  toInvestorEvidence,
+  type MoveCauseEvent,
+  type MoveCauseInput,
+  type MoveCauseView,
+  type MoveEvidenceReader,
   cryptoMoveKey,
   isFreshMoveBeta,
   isKrStockCode,
@@ -42,7 +56,8 @@ import { loadKrSession } from "./SyncKrStock";
 
 /**
  * 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실 · 카드 조건(F016 단계 C · `SRV-REQ-051` FR-7~10). 저장값만 읽는다(외부 호출 0).
- * 원인을 고르지 않는다 — 몫은 뺄셈, 사실은 시각순. 문장(③)은 단계 D 가 이 응답 위에 얹는다.
+ * 몫은 뺄셈, 사실은 시각순. ~~원인을 고르지 않는다~~ **원인은 근거로만**(2026-11-13 `ADR-009` v4) — `cause`(원인 → 근거 → 결과,
+ * `MoveCause.ts`)가 받치는 근거 수로 세 단계를 정한다. 문장(③)은 단계 D 가 이 응답 위에 얹는다.
  */
 
 /** 응답 — %p 는 응답 직전 소수 둘째 자리 한 번(합은 반올림 전에 맞다) */
@@ -70,6 +85,11 @@ export interface WhyMovedView {
   facts: Array<Omit<MoveFact, "at"> & { at: string }>;
   /** 원천을 못 읽은 사실 종류 — 그 줄만 "불러오지 못했어요" */
   unavailable: MoveFactKind[];
+  /**
+   * 원인 → 근거 → 결과(F017 v4 순서 1b · `SRV-REQ-053` FR-11 · 17) — 서버 계산 · LLM 0. 원인 목록은 늘 하나 이상
+   * (받치는 근거가 없으면 "확인된 소식이 없어요" · 작은 움직임이면 "평소 범위 안")
+   */
+  cause: MoveCauseView;
 }
 
 const pp = (v: number) => Math.round(v * 100) / 100;
@@ -79,8 +99,10 @@ const toView = (
   split: (MoveSplit & { marketIndex: string; sectorIndex: string | null; sectorName: string | null }) | null,
   reasons: MoveCardReason[],
   sigma: number | null,
-  merged: { facts: MoveFact[]; unavailable: MoveFactKind[] }
+  merged: { facts: MoveFact[]; unavailable: MoveFactKind[] },
+  cause: MoveCauseView
 ): WhyMovedView => ({
+  cause,
   date,
   // ①이 없으면 카드도 없다(`BFF-REQ-051` FR-1) — 사건이 있어도 몫을 못 보이면 "왜"를 말할 자리가 없다
   show: split !== null && reasons.length > 0,
@@ -97,6 +119,37 @@ const toView = (
   unavailable: merged.unavailable,
 });
 
+/** 근거 재료 하나 읽기 — 실패 · 리더 없음은 `null`(그 근거만 빠진다 · 로그 한 줄) */
+const material = async <T>(name: string, read: (() => Promise<T>) | undefined): Promise<T | null> => {
+  if (!read) return null;
+  try {
+    return await read();
+  } catch (error) {
+    logger.warn(`원인 근거 재료 읽기 실패(${name}): ${(error as Error).message}`);
+    return null;
+  }
+};
+
+/** 같은 날 소식 → 원인 후보 재료(소식 뒤 가격을 붙여서) */
+const causeEvents = async (reader: MoveEvidenceReader | undefined, symbol: string, facts: MoveFact[]): Promise<MoveCauseEvent[]> => {
+  const picked = pickCauseEvents(facts);
+  const prices = picked.length
+    ? await material("pricesAfter", reader && (() => reader.pricesAfter(symbol, picked.map((f) => f.at), POST_MOVE_WINDOW_MINUTES)))
+    : null;
+  return picked.map((f) => ({
+    factId: f.id,
+    kind: f.kind === "disclosure" ? "disclosure" : "news",
+    at: f.at,
+    title: f.title,
+    source: f.source,
+    eventKindText: f.tag?.eventKindText ?? null,
+    label: f.tag?.label ?? null,
+    reaction: f.tag?.reaction ?? null,
+    preMove5d: f.tag?.preMove5d ?? null,
+    after: toAfterMove(f.at, prices?.get(f.at.getTime())),
+  }));
+};
+
 /** 원천 하나 읽기 — 실패는 그 kind 만 `unavailable`(로그 한 줄) */
 const group = async (kinds: MoveFactKind[], read: () => Promise<MoveFact[]>): Promise<MoveFactGroup> => {
   try {
@@ -106,6 +159,9 @@ const group = async (kinds: MoveFactKind[], read: () => Promise<MoveFact[]>): Pr
     return { kinds, facts: null };
   }
 };
+
+/** 투자자 수급의 평소를 재는 앞 거래일 수 */
+const INVESTOR_USUAL_DAYS = 20;
 
 // ==================== 국내 ====================
 
@@ -232,7 +288,44 @@ export class GetKrWhyMoved extends KrStockRead {
     ]);
 
     const facts = await attachNewsTags(this.deps.tagNews, "kr", code, merged.facts, related);
-    return { code, ...toView(today, split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }) };
+
+    // 원인 → 근거 → 결과(F017 v4 순서 1b) — 재료 넷을 한 번씩(저장값만). 하나가 실패해도 그 근거만 빠진다
+    const reader = this.move.evidence;
+    const stockDayStart = new Date(`${stockDate}T00:00:00+09:00`);
+    const [causeEventList, breadth, programUsual, investorRows] = await Promise.all([
+      causeEvents(reader, code, facts),
+      material("krSectorBreadth", reader && (() => reader.krSectorBreadth(code, stockDayStart))),
+      material("krProgramUsual", reader && (() => reader.krProgramUsual(code, since))),
+      material("investorFlows", () => this.deps.supplement.investorFlows(code, INVESTOR_USUAL_DAYS + 1)),
+    ]);
+    const programFact = facts.find((f) => f.kind === "flow" && f.value !== null);
+    const newsRead = !merged.unavailable.includes("news");
+    const cause = assembleMoveCauses({
+      market: "kr",
+      total: quote.changeRate,
+      sigma: beta?.sigmaRate ?? null,
+      split: raw && {
+        market: raw.market,
+        sector: raw.sector,
+        idio: raw.idio,
+        marketName: KR_MARKET_NAME[marketIndex] ?? "시장",
+        sectorName: split?.sectorName ?? null,
+        isBenchmark: false,
+      },
+      marketChange: usableIndex ? { rate: usableIndex.changeRate, at: usableIndex.updatedAt } : null,
+      sectorChange: usableSector ? { rate: usableSector.changeRate, at: usableSector.updatedAt } : null,
+      breadth,
+      events: causeEventList,
+      program: programFact ? { netValue: programFact.value!, at: programFact.at, usualAbs: programUsual?.usualAbs ?? null, usualDays: programUsual?.days ?? 0 } : null,
+      investor: investorRows ? toInvestorEvidence(investorRows.rows) : null,
+      flags: [
+        ...(vi ? [{ label: KR_FLAG_LABEL.vi, at: vi.triggeredAt }] : []),
+        ...badges.filter((b) => b !== "vi" && KR_FLAG_LABEL[b]).map((b) => ({ label: KR_FLAG_LABEL[b], at: null })),
+      ],
+      listedDays: null,
+      newsCount: newsRead ? facts.filter((f) => f.kind === "news" || f.kind === "disclosure").length : null,
+    } satisfies MoveCauseInput);
+    return { code, ...toView(today, split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }, cause) };
   }
 }
 
@@ -342,7 +435,35 @@ export class GetCryptoWhyMoved {
     ]);
 
     const facts = await attachNewsTags(this.tagNews, "crypto", symbol, merged.facts, related);
-    return { symbol, ...toView(kstDateOf(now), split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }) };
+
+    // 원인 → 근거 → 결과(코인판 `SRV-REQ-053` FR-17) — 시장 몫 · 거래소 표시 · 상장 나이 · 모은 소식. 공시 · 수급 · 업종은 없다
+    const reader = this.move.evidence;
+    const [events, listedAt] = await Promise.all([
+      causeEvents(reader, symbol, facts),
+      material("cryptoListedAt", reader && (() => reader.cryptoListedAt(symbol))),
+    ]);
+    const total = quote.change24h ?? 0;
+    const cause = assembleMoveCauses({
+      market: "crypto",
+      total,
+      sigma: beta?.sigmaRate ?? null,
+      split: raw && { market: raw.market, sector: null, idio: raw.idio, marketName: CRYPTO_MARKET_NAME, sectorName: null, isBenchmark: benchmark },
+      marketChange: !benchmark && btc?.change24h !== null && btc?.change24h !== undefined ? { rate: btc.change24h, at: btc.priceUpdatedAt } : null,
+      sectorChange: null,
+      breadth: null,
+      events,
+      program: null,
+      investor: null,
+      flags: warning
+        ? [
+            ...(warning.warning ? [{ label: CRYPTO_WARNING_LABEL, at: warning.fetchedAt as Date }] : []),
+            ...warning.cautions.map((c: string) => ({ label: CRYPTO_CAUTION_LABEL[c] ?? "거래소 주의 표시", at: warning.fetchedAt as Date })),
+          ]
+        : [],
+      listedDays: listedAt ? Math.floor((now.getTime() - listedAt.getTime()) / 86_400_000) : null,
+      newsCount: merged.unavailable.includes("crypto_news") ? null : facts.filter((f) => f.kind === "crypto_news").length,
+    } satisfies MoveCauseInput);
+    return { symbol, ...toView(kstDateOf(now), split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }, cause) };
   }
 }
 

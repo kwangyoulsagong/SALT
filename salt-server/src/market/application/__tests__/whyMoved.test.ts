@@ -18,6 +18,7 @@ import {
   type MarketAssetRepository,
   type MoveBetaReader,
   type MoveBetaRow,
+  type MoveEvidenceReader,
   type MoveFact,
   type StoredKrStockQuote,
   type SymbolNewsPort,
@@ -404,5 +405,87 @@ describe("같은 날 사실 측정 태그(F017 단계 6) — 소식에만 · 원
     ).execute("ETH");
     assert.deepEqual(calls, [{ market: "crypto", ids: ["crypto-news:n1"], related: [["ETH"]] }]);
     assert.equal(r.facts[0]!.tag?.label, "few");
+  });
+});
+
+// ==================== 원인 → 근거 → 결과(F017 v4 순서 1b) ====================
+
+const evidenceReader = (o: { fail?: Partial<Record<keyof MoveEvidenceReader, boolean>>; listedAt?: Date | null; calls?: string[] } = {}): MoveEvidenceReader => {
+  const guard = (name: keyof MoveEvidenceReader) => {
+    o.calls?.push(name);
+    if (o.fail?.[name]) throw new Error(`${name} 실패`);
+  };
+  return {
+    krSectorBreadth: async () => (guard("krSectorBreadth"), { total: 12, up: 2, down: 10 }),
+    krProgramUsual: async () => (guard("krProgramUsual"), { usualAbs: 10e9, days: 5 }),
+    pricesAfter: async (_s, times) => (
+      guard("pricesAfter"),
+      new Map(times.map((t) => [t.getTime(), { before: 100, after: 98.5, afterAt: new Date(t.getTime() + 30 * 60_000), firstBarAt: t }]))
+    ),
+    cryptoListedAt: async () => (guard("cryptoListedAt"), o.listedAt === undefined ? new Date("2025-01-01T00:00:00Z") : o.listedAt),
+  };
+};
+const runKrWithEvidence = (w: KrWorld, reader?: MoveEvidenceReader, tagged = true) => {
+  const { read, move } = krDeps(w);
+  const tagNews = {
+    execute: async (_m: "kr" | "crypto", items: ReadonlyArray<{ id: string }>) =>
+      new Map(
+        tagged
+          ? items.map((i) => [i.id, { eventKind: "earnings", eventKindText: "실적", label: "down_usually" as const, reaction: { days: 1 as const, sample: 40, upRate: 0.3, mean: -0.01, baseUpRate: 0.45 }, reaction5d: null, preMove5d: -0.02, asOf: null, preregKey: "news-reaction@2" }])
+          : []
+      ),
+  };
+  return new GetKrWhyMoved({ ...read, tagNews }, { ...move, evidence: reader }).execute("005930");
+};
+
+describe("원인 → 근거 → 결과(SRV-REQ-053 FR-11) — 유스케이스 연결", () => {
+  it("국내 −8% — 종류가 맞은 소식(실적) 뒤 30분 −1.5% · 같은 종류 과거 반응 · 업종 폭 · 프로그램 6배가 같은 응답에", async () => {
+    const r = await runKrWithEvidence({}, evidenceReader());
+    const [first, ...rest] = r.cause.causes;
+    assert.deepEqual([first!.kind, first!.strength, first!.headline, first!.factId], ["news", "likely", "반도체 약세", "kr-news:s1"]);
+    assert.deepEqual(first!.evidence.filter((e) => e.supports).map((e) => e.kind), ["post_move", "past_reaction", "idio_share"]);
+    assert.equal(first!.evidence[0]!.value, "소식 뒤 30분 −1.5%");
+    // 업종 −5% · 몫 −1 · 폭 12 중 10 하락 → 업종도 받침
+    const sector = rest.find((c) => c.kind === "sector")!;
+    assert.equal(sector.headline, "전기전자 업종 전체 하락");
+    assert.ok(sector.evidence.some((e) => e.kind === "sector_breadth" && e.supports));
+    assert.equal(r.cause.result.text, "오늘 −8.00%");
+    assert.ok(r.cause.result.past?.startsWith("같은 종류(실적) 소식 과거 40건"));
+  });
+
+  it("재료 하나가 실패하면 그 근거만 빠진다 — 소식 뒤 가격을 못 읽으면 소식 원인은 시각을 못 재고 다른 원인이 앞", async () => {
+    const r = await runKrWithEvidence({}, evidenceReader({ fail: { pricesAfter: true, krSectorBreadth: true } }));
+    const news = r.cause.causes.find((c) => c.kind === "news");
+    assert.ok(!news || news.strength !== "likely");
+    assert.ok(r.cause.causes.every((c) => c.evidence.every((e) => e.kind !== "sector_breadth" && e.kind !== "post_move")));
+    assert.ok(r.split); // 분해 · 사실은 그대로
+  });
+
+  it("리더가 없어도(옛 조립) 원인 목록은 비지 않는다 · 종류를 모르는 소식은 원인이 아니다", async () => {
+    const r = await runKrWithEvidence({}, undefined, false);
+    assert.ok(r.cause.causes.length >= 1);
+    assert.ok(r.cause.causes.every((c) => c.kind !== "news"));
+  });
+
+  it("작은 날 — 원인은 '평소 범위 안' 하나", async () => {
+    const r = await runKrWithEvidence({ quote: quote({ changeRate: 0.3 }) }, evidenceReader());
+    assert.deepEqual(r.cause.causes.map((c) => c.headline), ["평소 범위 안의 움직임이에요"]);
+  });
+
+  it("코인 — 비트코인 따라 · 상장 나이는 첫 일봉으로 · 상장일을 못 읽으면 그 후보만 없다", async () => {
+    const assets = { findQuotes: async (s: string[]) => [coin("NEW", -12), coin("BTC", -3)].filter((q) => s.includes(q.symbol)) } as unknown as MarketAssetRepository;
+    const news: SymbolNewsPort = { recent: async () => [] };
+    const run = (reader: MoveEvidenceReader) =>
+      new GetCryptoWhyMoved(
+        assets,
+        news,
+        { betas: betaReader([beta({ symbol: "KRW-NEW", betaMarket: 1.1, betaSector: null, sigmaRate: 4 })]), warnings: { latest: async () => new Map() }, policy: { k: 2.5, minRate: 3 }, evidence: reader },
+        () => NOW
+      ).execute("NEW");
+    const fresh = await run(evidenceReader({ listedAt: new Date("2026-11-06T00:00:00Z") }));
+    assert.ok(fresh.cause.causes.some((c) => c.kind === "listing" && c.headline === "원화 마켓에 상장한 지 3일 된 코인"));
+    const unknown = await run(evidenceReader({ fail: { cryptoListedAt: true } }));
+    assert.ok(unknown.cause.causes.every((c) => c.kind !== "listing"));
+    assert.equal(unknown.cause.causes[0]!.kind, "market");
   });
 });

@@ -179,8 +179,12 @@ export interface KrProgramFlowFact {
   sellValue: number;
 }
 
-/** 장중 표 보관 일수(`DB-REQ-041` FR-5) — 하루가 지나면 일별 투자자 표가 정본 */
-export const KR_FLOW_INTRADAY_RETENTION_DAYS = 7;
+/**
+ * 장중 표 보관 일수(`DB-REQ-041` FR-5). ~~7일 — 하루가 지나면 일별 투자자 표가 정본~~ **35일(2026-11-13 F017 v4 순서 1b)** —
+ * 프로그램 매매는 일별 투자자 표에 없어서, 원인 근거 "최근 20거래일 평균의 n배"(`SRV-REQ-053` FR-11)를 재려면 거래일 20개가 남아야 한다
+ * (유니버스 50종목 × 하루 약 40행 × 35일 ≈ 7만 행)
+ */
+export const KR_FLOW_INTRADAY_RETENTION_DAYS = 35;
 /** VI 사건 보관 일수 — 단계 A 가 남긴 정리(시장 전체 하루 수백 행) */
 export const KR_VI_RETENTION_DAYS = 30;
 /** 정리 한 번에 지우는 행 수 — 긴 트랜잭션 · 대량 죽은 튜플을 피한다(`performance-database.md` §8) */
