@@ -113,3 +113,17 @@
 운영 빌드(2026-11-13): `web-investment` worktree 빌드 통과 — `/investments/[symbol]` First Load 153 kB.
 
 확인 2회차(2026-11-13 오후): 모델 확률 칸 실화면(`route`) — **결함: 확률을 과거형으로** → "모델이 본 오를 확률 n%" · 소유자 막힘 접힘 · axe 새 요소 0 · 낡은 주석 2 · 투자 zone worktree 재빌드. 본문 `requirements/reports/checklists/F017-v4-stage1-panel.md`.
+
+## F017 v4 순서 1c — 얼마나 믿을까 · 틀렸던 때 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 두 칸 실화면 — 코인 BTC(단타 89번 중 51번 · 사례 둘) · 국내 005930(장기 48번 중 14번 · 사례 둘) × 1440 · 390 | 충족 | axe 0 · 콘솔 오류 0 · 문장 등장 애니메이션 도중 대비는 움직임 줄임으로 재확인 0 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 카드를 패널 안으로(FR-8~11) · 번호 출처 칩 → 이름 | 1e | 순서 1e |

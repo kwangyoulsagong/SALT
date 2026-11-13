@@ -91,3 +91,4 @@ status: in-progress
 | 2026-11-13 | Q6 닫음 — AI 본문 경로 `SRV-REQ-058` · 업비트 공식 API 약관 확인 |
 | 2026-11-13 | 순서 1a 시나리오 늘 done(`feat/f017-v4-s1-scenario-always`) — 루트 슬라이스 `F017-v4-stage1-panel-slice.md` |
 | 2026-11-13 | 순서 1b 원인 → 근거 → 결과 done(`feat/f017-v4-s1-scenario-always`) |
+| 2026-11-13 | 순서 1c 3종 문장 done(`feat/f017-v4-s1-scenario-always`) — FR-16 나머지는 1f 로 |

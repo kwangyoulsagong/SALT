@@ -178,3 +178,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## F017 v4 순서 1c 짝 (2026-11-13)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 해설 카드 제목 단계 3(코인 상세) | 서버 build · lint · test 1397 · layer-check / BFF build · test 487 / FE check-types · lint 13/13 · test 361 / 훅 사후(대조군 둘 exit 2 → 11파일 0) / 변이 16 중 15(남은 1 = 같은 동작) / 전 종목 157 × 두 모드 = 314칸 판단 블록 대조 어긋남 0 · 해설 BFF p95 91ms / 실화면 코인 · 국내 × 1440 · 390 axe 0(움직임 줄임으로 확인 — 코인 1440 대비 1 은 문장 등장 애니메이션 도중 측정) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

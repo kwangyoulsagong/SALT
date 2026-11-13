@@ -99,3 +99,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 패널 한 콜(FR-6 나머지) | 서버 FR-13 뒤 | 순서 1d |
+
+## F017 v4 순서 1c — 얼마나 믿을까 · 틀렸던 때 (2026-11-13, `feat/f017-v4-s1-scenario-always`)
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 칸 둘 허용 · 그대로 옮김 | 충족 | `explanation.test.ts` 11 · BFF test 487 · 변이(칸 허용) 죽음 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

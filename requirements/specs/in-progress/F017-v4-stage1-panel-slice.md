@@ -4,7 +4,7 @@ title: "F017 v4 순서 1 — 있는 데이터로 패널: 시나리오 늘 · 원
 priority: high
 labels: [F017, slice, server, bff, fe]
 created: 2026-11-13
-status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 done — 2026-11-13. 1c~1f 남음)
+status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 done — 2026-11-13. 1d~1f 남음)
 ---
 
 ## Summary
@@ -16,10 +16,10 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 done — 202
 |---|---|---|---|
 | 1a | **시나리오 늘** — 모든 종목 · 지평 넷(1시간 · 4시간 · 1일 · 5일)에 과거 실제 결과("100번 중 n번 올랐어요") · 모델 확률은 소유자 + 시험을 넘은 칸만 · 접힌 자리에서 꺼냄 | `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 개정 · `FE-REQ-064` FR-8 머리 | **done 2026-11-13**(`feat/f017-v4-s1-scenario-always`) |
 | 1b | 원인 · 근거 · 결과 조립(업종 · 수급 · 프로그램 · 소식 뒤 30분 — LLM 0) · 코인 원인 순서 · '왜 움직였나' 카드 맨 위 · 미리보기 원인 줄 | `SRV-REQ-053` FR-11 · FR-17 · `BFF-REQ-052` FR-6 일부 · `FE-REQ-063` FR-9 일부 | **done 2026-11-13** |
-| 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) · 해설 재료 개정 | `SRV-REQ-053` FR-16 | to-do |
+| 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) — 해설 네 단 모두 맨 뒤 | `SRV-REQ-053` FR-16 일부 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2 | **done 2026-11-13** — FR-16 나머지(LLM 재료 · 순서 · 검사)는 1f 로 |
 | 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 | `SRV-REQ-053` FR-13 · `BFF-REQ-052` FR-6 | to-do |
 | 1e | 패널 UI(시안 — 부채꼴 · 줄 넷 · 해설 상자 · 내 기준) | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 | to-do |
-| 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
+| 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · FR-16 나머지(LLM 재료 · 문장 순서 · 검사 — 생성 경로를 다시 쓰며 한 번에) · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
 
 ## 판단 — 리뷰가 볼 곳 (1a)
 
@@ -45,6 +45,17 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 done — 202
 - BFF `/api/app/market/kr/:code/why-moved` · `/api/app/market/:symbol/why-moved` — 칸 더함 `cause`(깨지면 `null`)
 - DB — 스키마 0 · 보관 기간 상수만(`kr_flow_intraday` 35일)
 
+## 판단 — 리뷰가 볼 곳 (1c)
+
+1. **3종 중 숫자 둘은 LLM 이 쓰지 않는다** — 적중률 · 틀렸던 때는 서버가 판단 블록과 같은 값 · 같은 반올림으로. 그래서 해설마다 늘 있고 판단 블록과 어긋날 수 없다(314칸 대조 0)
+2. **저장하지 않고 읽을 때 붙인다** — 성적이 바뀌어도 AI 해설을 다시 만들지 않는다. 옛 저장본에 같은 칸이 있어도 지금 값 한 벌
+3. **FR-16 을 나눴다** — LLM 재료(원인 · 회사 사정 · 시나리오) · 문장 순서 · 검사는 생성 경로를 다시 쓰는 1f 와 같이. 프롬프트 버전을 두 번 올리면 전 종목 해설 재생성도 두 번
+4. **같은 숫자가 두 칸에** — 판단 블록과 해설 '얼마나 믿을까'가 같은 적중률을 말한다. FR-16 이 정한 자리이고 1e 에서 한 패널로 합친다(그때 하나로)
+
+## 계약 변경 (1c)
+
+- 서버 · BFF `explanation` 응답 `sentences[].section` 에 값 둘 더함(`track` · `miss`) — 추가만. 웹 카드가 같은 브랜치에서 받는다. 앱 웹뷰는 웹 화면 그대로
+
 ## 계약 변경 (1a)
 
 - 서버 `GET /api/coach/scenario` — **BREAKING**: 지평 셋 → 넷 · 칸 모양 `{ source, tier, fallbackFrom, model, baseRate }` · 404(소유자 아님) 없음
@@ -57,3 +68,4 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 done — 202
 |---|---|
 | 2026-11-13 | 신규 · 1a done(`feat/f017-v4-s1-scenario-always`) |
 | 2026-11-13 | 1b done(`feat/f017-v4-s1-scenario-always`) — 원인 → 근거 → 결과 · 실데이터로 규칙 넷 정정(시황 제목 · 목표가 · 작은 날 경보 · 상장일 원천) |
+| 2026-11-13 | 1c done(`feat/f017-v4-s1-scenario-always`) — 3종 문장 · FR-16 나머지는 1f 로 |
