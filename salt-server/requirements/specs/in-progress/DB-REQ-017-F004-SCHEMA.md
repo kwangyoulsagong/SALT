@@ -286,3 +286,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `salt-server/src/app.ts`(머리 주인) — `/api/auth` · `/api/users` 라우터 등록 삭제(경로는 Kotlin identity). 스키마 몫 변경 0 |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): `app.ts` 에 `/api/investment/me/data` 라우터 하나(`/api/investment` 보다 먼저). 이 REQ 몫 기능 변경 0 |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `src/app.ts` 에 라우터 하나 — `/api/investment/me/data-classification`(내 데이터 경로와 같은 자리 · `/api/investment` 보다 먼저) |
+| 2026-11-13 | 인사이트 upsert 3곳(`investment-insight.service.ts` 둘 · `whale-signal.service.ts`)의 `create` 에 `dedupeKey` 가 빠져 열 기본값으로 들어가 두 번째부터 P2002(기동마다 오류 로그) — `create` 에 `where` 와 같은 키. 기계 검사 `shared/infrastructure/__tests__/upsertCreateKeys.test.ts`(유니크 키로 찾는 upsert 는 `create` 에도 그 키). 옛 기본값 행 4개(만료)는 둔다(F017 v4 확인 중 발견) |

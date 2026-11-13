@@ -43,6 +43,8 @@ export class InvestmentInsightService {
             },
           },
           create: {
+            // where 와 같은 키 — 빠지면 "default" 로 저장돼 두 번째 종목부터 유니크 위반(2026-11-13 · upsertCreateKeys 시험)
+            dedupeKey: `concentration:${holding.symbol}`,
             userId,
             symbol: holding.symbol,
             assetType: holding.assetType,
@@ -160,6 +162,8 @@ export class InvestmentInsightService {
           },
         },
         create: {
+          // where 와 같은 키 — 빠지면 "default" 로 저장돼 두 번째 종목부터 유니크 위반(2026-11-13 · upsertCreateKeys 시험)
+          dedupeKey: `buy:${indicator.symbol}`,
           userId: "global",
           symbol: indicator.symbol,
           assetType: indicator.assetType,

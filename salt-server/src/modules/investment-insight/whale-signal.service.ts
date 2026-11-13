@@ -108,6 +108,8 @@ export class WhaleSignalService {
         },
 
         create: {
+          // where 와 같은 키 — 빠지면 "default" 로 저장돼 두 번째 종목부터 유니크 위반(2026-11-13 · upsertCreateKeys 시험)
+          dedupeKey: `whale:${market.symbol}`,
           userId: "global",
           symbol: market.symbol,
           assetType: "crypto",
