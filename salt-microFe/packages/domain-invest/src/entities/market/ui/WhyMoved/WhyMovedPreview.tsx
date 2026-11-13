@@ -32,6 +32,7 @@ export const WhyMovedPreview = ({ symbol, assetType, name }: { symbol: string; a
     .sort((a, b) => Math.abs(b.v) - Math.abs(a.v))
     .slice(0, 2);
   const tone = moveTone(split.total);
+  const topCause = data.cause?.causes.find((c) => c.strength !== "none") ?? null;
   const firstFact = data.facts.find((f) => f.kind === "news" || f.kind === "disclosure" || f.kind === "crypto_news");
   const ids = new Set(data.facts.map((f) => f.id));
   const summary =
@@ -57,6 +58,9 @@ export const WhyMovedPreview = ({ symbol, assetType, name }: { symbol: string; a
           <p className={s.summary}>{summary.text.replace(/\s*\[\d{1,2}\]/g, "")}</p>
           {summary.label === "ai" && <p className={s.aiLabel}>{M.summary.aiLabel}</p>}
         </>
+      ) : topCause ? (
+        // 원인(F017 v4 순서 1b) — 단계 이름과 머리말. 근거는 상세 카드에
+        <p className={s.fact}>{`${M.cause.strength[topCause.strength]} · ${topCause.headline}`}</p>
       ) : (
         firstFact && <p className={s.fact}>{firstFact.title}</p>
       )}

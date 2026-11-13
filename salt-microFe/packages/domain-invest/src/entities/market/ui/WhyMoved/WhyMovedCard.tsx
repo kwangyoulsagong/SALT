@@ -1,5 +1,5 @@
 import { kstClock } from "@repo/core/marketKr";
-import type { MoveFact, MoveFactKind, MoveSplit, WhyMoved, WhyMovedResult } from "@repo/core/whyMoved";
+import type { MoveCause, MoveCauseView, MoveFact, MoveFactKind, MoveSplit, WhyMoved, WhyMovedResult } from "@repo/core/whyMoved";
 import { Badge } from "@repo/ui/badge";
 import { StatusLine } from "@repo/ui/statusLine";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
@@ -41,9 +41,14 @@ export const WhyMovedCard = ({ result, className, cautionLabel }: WhyMovedCardPr
   if (!data.show) {
     return (
       <details id={WHY_MOVED_ANCHOR_ID} className={[className, s.collapsed].filter(Boolean).join(" ")}>
-        <summary className={s.collapsedSummary}>{M.collapsed}</summary>
+        {/* 접힌 카드의 제목 — 펼친 몸의 h3 들이 h2 없이 오지 않게(axe heading-order, 2026-11-13 실화면에서 찾음 · main 에도 있던 순서) */}
+        <summary className={s.collapsedSummary}>
+          <span role="heading" aria-level={2}>
+            {M.collapsed}
+          </span>
+        </summary>
         <div className={s.collapsedBody}>
-          <WhyMovedBody data={data} cautionLabel={cautionLabel} />
+          <WhyMovedBody data={data} cautionLabel={cautionLabel} collapsed />
         </div>
       </details>
     );
@@ -58,7 +63,15 @@ export const WhyMovedCard = ({ result, className, cautionLabel }: WhyMovedCardPr
   );
 };
 
-const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSplit }; cautionLabel?: (code: string) => string | undefined }) => {
+const WhyMovedBody = ({
+  data,
+  cautionLabel,
+  collapsed = false,
+}: {
+  data: WhyMoved & { split: MoveSplit };
+  cautionLabel?: (code: string) => string | undefined;
+  collapsed?: boolean;
+}) => {
   const { split } = data;
   const rows: Array<{ key: string; label: string; value: number }> = [
     { key: "market", label: M.parts.market[split.marketIndex] ?? M.parts.marketFallback, value: split.market },
@@ -71,8 +84,12 @@ const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSp
 
   return (
     <div className={s.body}>
+      {data.cause && <CauseFlow view={data.cause} />}
+      {/* 접힌 카드는 요약 줄이 이미 "오늘 등락 나눠 보기" — 같은 제목을 두 번 두지 않는다(h2 없이 h3 가 먼저 오는 순서 결함도) */}
+      {data.cause && !collapsed && <h3 className={s.subheading}>{M.cause.splitHeading}</h3>}
       <p className={s.todayLine}>
-        <span className={s.value[toneOf(split.total)]}>{M.today(signed(split.total, "%"))}</span>
+        {/* 원인 칸이 있으면 오늘 등락은 그 "결과" 칸이 이미 말했다 — 바로 아래 같은 숫자를 다시 두지 않는다 */}
+        {!data.cause && <span className={s.value[toneOf(split.total)]}>{M.today(signed(split.total, "%"))}</span>}
         {data.usualRate !== null && <span>{M.usual(`${data.usualRate.toFixed(2)}%`)}</span>}
       </p>
       <table className={s.table} aria-label={M.splitTableLabel}>
@@ -136,6 +153,88 @@ const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSp
     </div>
   );
 };
+
+/**
+ * 원인 → 근거 → 결과(F017 v4 순서 1b · `FE-REQ-063` FR-9 · `ADR-009` v4) — **표시 전용**. 문장 · 단계 · 순서는 서버가 정했다.
+ * 가장 앞 원인을 세 칸(원인 · 근거 · 결과)으로, 나머지는 "다른 가능성"으로 접는다. 단계를 정한 근거는 굵게(숨은 글자로도 말한다).
+ * 소식 원인이면 머리말이 아래 "같은 날 있었던 일" 그 줄로 잇는다. 출처는 번호가 아니라 이름
+ */
+const CauseFlow = ({ view }: { view: MoveCauseView }) => {
+  const [first, ...others] = view.causes;
+  if (!first) return null;
+  return (
+    <section aria-label={M.cause.headingSr}>
+      <ol className={s.causeFlow}>
+        <li className={s.causeStep}>
+          <span className={s.causeStepLabel}>{M.cause.steps.cause}</span>
+          <CauseHead cause={first} />
+        </li>
+        {first.evidence.length > 0 && (
+          <li className={s.causeStep}>
+            <span className={s.causeStepLabel}>{M.cause.steps.evidence}</span>
+            <EvidenceList cause={first} />
+          </li>
+        )}
+        <li className={s.causeStep}>
+          <span className={s.causeStepLabel}>{M.cause.steps.result}</span>
+          <p className={s.causeHeadline}>
+            {/* 아래 "오늘 등락 나눠 보기" 줄과 같은 숫자 · 같은 자릿수(같은 숫자를 두 모양으로 보이지 않는다) */}
+            <span className={s.value[toneOf(view.result.changeRate)]}>{M.today(signed(view.result.changeRate, "%"))}</span>
+          </p>
+          {view.result.past && <p className={s.causeNote}>{view.result.past}</p>}
+        </li>
+      </ol>
+      {others.length > 0 && (
+        <details className={s.otherCauses}>
+          <summary className={s.otherSummary}>
+            {M.cause.others} {others.length}
+          </summary>
+          <ul className={s.causeFlow}>
+            {others.map((c) => (
+              <li key={`${c.kind}:${c.headline}`} className={s.causeStep}>
+                <CauseHead cause={c} />
+                <EvidenceList cause={c} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+};
+
+const CauseHead = ({ cause }: { cause: MoveCause }) => (
+  <>
+    <p className={s.causeHeadline}>
+      {cause.strength !== "none" && (
+        <Badge size="sm" tone={cause.strength === "likely" ? "brand" : "neutral"}>
+          {M.cause.strength[cause.strength]}
+        </Badge>
+      )}{" "}
+      {cause.factId ? <a href={`#${factAnchor(cause.factId)}`}>{cause.headline}</a> : cause.headline}
+    </p>
+    {cause.note && <p className={s.causeNote}>{cause.note}</p>}
+  </>
+);
+
+const EvidenceList = ({ cause }: { cause: MoveCause }) => (
+  <ul className={s.evidenceList}>
+    {cause.evidence.map((e) => (
+      <li key={`${e.kind}:${e.value}`}>
+        <p className={s.evidenceLine}>
+          <span className={s.evidenceValue[e.supports ? "strong" : "plain"]}>{e.value}</span>
+          {e.supports && <span className={s.srOnly}> ({M.cause.supportsSr})</span>}
+          {e.compare && ` · ${e.compare}`}
+          <span className={s.sourceChip}>
+            {e.source}
+            {e.at && ` ${kstClock(e.at)}`}
+          </span>
+        </p>
+        {e.gloss && <p className={s.gloss}>{e.gloss}</p>}
+      </li>
+    ))}
+  </ul>
+);
 
 /** 사실 줄 앵커 — 인용 칩이 여기로 온다. id 의 `:` 등은 그대로 두면 CSS `:target` 이 안 맞을 수 있어 안전한 글자로 */
 const factAnchor = (id: string) => `why-moved-fact-${id.replace(/[^A-Za-z0-9_-]/g, "_")}`;

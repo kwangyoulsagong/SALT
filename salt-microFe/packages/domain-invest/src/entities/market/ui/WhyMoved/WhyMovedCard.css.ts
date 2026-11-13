@@ -207,3 +207,83 @@ export const factTarget = style({
   scrollMarginTop: "80px",
   selectors: { "&:target": { background: "rgba(2,32,71,.05)", borderRadius: "8px" } },
 });
+
+// ==================== 원인 → 근거 → 결과(F017 v4 순서 1b) ====================
+
+/** 세로 타임라인 — 칸 셋(원인 · 근거 · 결과)이 왼쪽 선으로 이어진다(시안 `pm/docs/2026-11-13-one-panel-research.html`) */
+export const causeFlow = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "12px" });
+
+export const causeStep = style({
+  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
+  paddingLeft: "16px",
+  borderLeft: `2px solid ${vars.colors.neutral[200]}`,
+  minWidth: 0,
+});
+
+export const causeStepLabel = style({
+  fontSize: "12px",
+  lineHeight: "18px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.secondary,
+});
+
+export const causeHeadline = style({
+  margin: 0,
+  fontSize: vars.typography.t6.fontSize,
+  lineHeight: vars.typography.t6.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
+  wordBreak: "keep-all",
+  overflowWrap: "anywhere",
+});
+
+export const causeNote = style([caption, { color: vars.colors.text.secondary }]);
+
+export const evidenceList = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" });
+
+export const evidenceLine = style({
+  margin: 0,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  color: vars.colors.text.secondary,
+  wordBreak: "keep-all",
+  overflowWrap: "anywhere",
+  fontVariantNumeric: "tabular-nums",
+});
+
+/** 단계를 정한 근거만 굵게 — 나머지는 같이 본 사실(굵기 + 숨은 글자로 말한다 · 색 아님) */
+export const evidenceValue = styleVariants({
+  strong: { fontWeight: vars.fontWeights.bold, color: vars.colors.text.primary },
+  plain: { fontWeight: vars.fontWeights.medium, color: vars.colors.text.primary },
+});
+
+/** 출처 이름 칩 — 번호가 아니라 이름(`FE-REQ-064` FR-10 · 사용자 "1 2 3 4 가 뭐고") */
+export const sourceChip = style({
+  display: "inline-block",
+  marginLeft: "6px",
+  padding: "0 6px",
+  borderRadius: "6px",
+  background: vars.colors.neutral[100],
+  fontSize: "12px",
+  lineHeight: "18px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.secondary,
+  whiteSpace: "nowrap",
+});
+
+export const gloss = style([caption, { paddingLeft: "10px", borderLeft: `2px solid ${vars.colors.neutral[100]}` }]);
+
+export const otherCauses = style({ display: "flex", flexDirection: "column", gap: "8px" });
+export const otherSummary = style({
+  cursor: "pointer",
+  minHeight: "32px",
+  display: "flex",
+  alignItems: "center",
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.secondary,
+});
