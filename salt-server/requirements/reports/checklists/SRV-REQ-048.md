@@ -98,7 +98,7 @@
 | FR-6 등급 경로 | 서비스 여섯 `GET /api/<service>/me/data-classification` 200 · 아웃박스 0 · 토큰 없음 401 · 없는 서비스 404(종단) |
 | FR-6 AI 입력 | `llmInputs.test.ts` — 바꾸면 프롬프트가 바뀌는 칸 = 공개 목록(해설 · 등락 한 줄) · 뉴스 주소 · 시각 미전송 · `ExplainCaller.userId` 에 사람 id 를 넣으면 컴파일 오류(`@ts-expect-error`) |
 | FR-7 계측 | `POST /api/identity/me/usage` — 세 번 = 한 행 3 · 해시 ≠ id · 모르는 값 400 · 401 · 내보내기 열에 해시 0 · 계정 삭제 때 함께 지움(실스택 임시 사용자 2행 → 0) |
-| 검증 | `./gradlew check` 통과 · 종단 8/8 · Express build · lint · test 1300 · layer-check · EXPLAIN(upsert 는 PK 중재 16ms · 주간 집계 18ms · 주석 읽기 7ms) |
+| 검증 | `./gradlew check` 통과 · 종단 8/8 · Express build · lint · test 1300 · layer-check · 서버 훅 사후 실행 8파일 0(음성 대조 2) · EXPLAIN(upsert 는 PK 중재 16ms · 주간 집계 18ms · 주석 읽기 7ms) |
 | 변이 | 9/9 — Express 주석 하나 빠짐 · 프롬프트 칸 추가 · 공개 칸 빠짐 · 모르는 등급 통과 · (Kotlin) 민감 → 기록 · upsert `DO NOTHING` 외 BFF 셋 |
 
 ### 미검증 · 범위 밖

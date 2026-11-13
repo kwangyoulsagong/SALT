@@ -24,7 +24,7 @@
 | bff `npm run build` · `npm test` | 통과 · 474/474 |
 | salt-microFe `pnpm check-types` · `lint` · `test` | 13/13 · 13/13 · core 298 · ui 63 |
 | 운영 빌드 zone 다섯(worktree) · main 나란히 | 5/5 · `/settings` 7.41 → 8.34 kB · `/home` 12.4 → 12.6 kB |
-| 레이어 훅 사후 실행 | 15파일 exit 0 · 음성 대조(위로 향하는 import) exit 2 |
+| 레이어 훅 사후 실행 | FE 15파일 exit 0(음성 대조 — 위로 향하는 import exit 2) · 서버 8파일 exit 0(음성 대조 — domain → `@prisma/client` exit 2) |
 | EXPLAIN | upsert PK 중재 16ms · 주간 집계 18ms · 주석 읽기 7ms |
 | 실스택 응답 | BFF `/api/app/me/privacy` 60ms(따뜻할 때) · 서비스마다 18~57ms |
 | 변이 | 9/9 죽음(Express 4 · Kotlin 2 · BFF 3) — 사본으로 되돌림 |
