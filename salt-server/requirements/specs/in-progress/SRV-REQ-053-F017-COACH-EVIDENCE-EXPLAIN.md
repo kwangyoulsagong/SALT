@@ -81,7 +81,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR-12 | **회사 사정** — 종목마다 `{ summary, earnings, today, sector, concern }` 네 칸 + 한 줄. 재료: 공시 추출 사실(FR-14 · `FC-REQ-026`) · 기사 추출 사실(FR-14) · 업종 폭(FR-11). 칸마다 출처 · 날짜. **좋은 점만 싣지 않는다** — `concern` 칸은 재료가 있으면 늘(연체율 · 부채 · 소송 · 실적 하향 같은 사실). 재료가 없으면 그 칸은 "확인된 공시가 아직 없어요"(빈 칸 0). 한 줄 요약은 LLM(해설과 같은 검사기) · 칸의 숫자는 서버 | to-do |
 | FR-13 | **패널 한 번 응답** `GET /api/coach/panel?symbol` — 시나리오(FR-10) · 판단 한 줄 · 원인 근거 결과(FR-11) · 회사 사정(FR-12) · 성적 3종(기존) · 해설 저장본 유무를 한 응답으로. 칸마다 `status: ok \| fallback \| degraded` — 한 칸 실패가 패널을 비우지 않는다. 저장값 읽기만 · p95 300ms | to-do |
 | FR-14 | **사실 추출 배치**(LLM 읽기) — 공시 · 기사 본문에서 `{ who, what, amount, unit, compared_to, when, kind }` 사실만 뽑아 저장(`DB-REQ-043` FR-9). **문장은 저장 · 표시하지 않는다**(`ADR-009` 개정 2026-11-13) · 추출 사실마다 원문 주소 · 게시 시각 · 추출 시각(= `available_at`). 숫자는 원문 글자와 대조(없는 숫자를 뽑으면 버림) · 사건 종류는 사전(`news_kind_dict`) 우선, 못 맞추면 `other`. 기사 본문 원천은 포털 검색 API 를 거치지 않는 경로만(Open Question) | to-do |
-| FR-15 | **내 기준**(내 층) — 보유가 있으면 `{ myLine, gapToLine, heldDays }` · 내 선은 사용자가 정한 값(기존 계획 기록 재사용) · 서버 계산 · LLM 입력 0 · 매입가 숨김 설정을 따름. **평단은 기본 응답에 싣지 않는다**(평단 강조 시 처분효과 +17% — 리서치) — 펼침 요청에만(Open Question) | to-do |
+| FR-15 | **내 기준**(내 층) — 보유가 있으면 `{ myLine, gapToLine, heldDays }` · 내 선은 사용자가 정한 값(기존 계획 기록 재사용) · 서버 계산 · LLM 입력 0 · 매입가 숨김 설정을 따름. ~~**평단은 기본 응답에 싣지 않는다**(평단 강조 시 처분효과 +17% — 리서치) — 펼침 요청에만(Open Question)~~ **정정 2026-11-13**(사용자 2026-11-13 "1번 보여줘도 되지 않을까?") 평단 · 평가 손익도 기본 응답에 싣는다. 순서는 내 선까지 거리 → 평단 대비(강조는 선 쪽). 기존 매입가 숨김 설정(F009 FR-27)을 켠 사람에게는 싣지 않는다 | to-do |
 | FR-16 | **해설 재료 · 검사 개정**(FR-3 개정) — 입력에 FR-11 원인 후보 · FR-12 회사 사정 · 시나리오 숫자 · 성적 · 빗나간 사례. 문장 순서 = 결론 → 원인 → 근거 → 결과 → 회사 사정 → 얼마나 믿을까(적중률 · 기준 · 틀렸던 때 — **서버가 판단 블록과 같은 값으로 쓴다**, `explanationPlain.ts`) → 조심할 점. 출처는 이름(`9:42 공시` · `수급 10:40`), 판단 자신은 출처 아님. 검사: 근거 없는 원인 문장 · 출처 없는 숫자 · 같은 말 반복 · 확신 · 명령형. 근거가 약한 원인은 "가능성이 있어요"(1인칭 불확실 표현 — 과신 감소) | to-do |
 
 ## Changelog
@@ -105,3 +105,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): 해설 배치 `GenerateExplanationSnapshots` 가 LLM 상한 끝 30회를 남긴다(오늘 등락 한 줄 몫) — 해설 회차 상한 · 지문 규칙 그대로 |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 워커 `investment-insight.worker.ts`(머리 주인) — 준수 판정 · 월간 복기 · 리밸런스 대상이 `prisma.user.findMany` → `listCoachedUsers`. 판정 · 해설 몫 변경 0 |
 | 2026-11-13 | **v4 한 장 패널**(전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-9~16 신규(to-do): 해설 스트림 · 시나리오 늘(FR-5 개정) · 원인 근거 결과 조립 · 회사 사정 · 패널 한 번 응답 · 사실 추출 배치 · 내 기준 · 해설 재료 개정(FR-3 개정). 불변식 1 정정(해설만 요청 경로 생성) |
+| 2026-11-13 | FR-15 정정 — 평단 기본으로 보임(사용자) · 매입가 숨김 설정은 그대로 따름 |
