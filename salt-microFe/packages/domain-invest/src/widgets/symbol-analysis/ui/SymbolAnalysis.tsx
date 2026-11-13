@@ -222,6 +222,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                   className={card}
                   symbol={symbol}
                   mode={mode}
+                  headingLevel={3}
                 />
                 {/* 제목을 붙이지 않는다 — `ProfitPlan` 이 자기 제목을 그린다(두 번 나온다) */}
                 {modeView && (
