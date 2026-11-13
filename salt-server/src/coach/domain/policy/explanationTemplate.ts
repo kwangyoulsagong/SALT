@@ -39,27 +39,29 @@ const signed = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(2)}%`;
 /** 입력 사실만으로 만든 해설. 결정적이다 — 같은 입력이면 같은 문장. */
 export const templateExplanation = (input: CoachExplanationInput, now: Date): CoachExplanation => {
   const headline = firstValue(input, "판단");
-  const tradeValue = Math.round(input.tradeValue24h / 1e8);
-  const modeReasoning = [
-    // 판단 문장을 그대로 앞에 둔다(2026-11-02). 전엔 `단타 관점 판단은 "…입니다. …못합니다."입니다.` 로 따옴표 안에 두 문장을 넣고
-    // "입니다"를 또 붙였다 — 블라인드 평가지 · 실화면에서 어색했다(FEATURE-008 FR-49). 판단 문장은 이미 "<종목> <모드> 관점은 …"으로 시작한다
-    headline ? (/[.!?]$/.test(headline.trim()) ? headline.trim() : `${headline.trim()}.`) : `${MODE_LABEL[input.mode]} 관점 판단입니다.`,
-    `24시간 변동 ${signed(input.change24h)} · 거래대금 약 ${tradeValue.toLocaleString("ko-KR")}억 원 기준입니다.`,
-  ].join(" ");
+  // 판단 문장을 그대로 앞에 둔다(2026-11-02). 전엔 `단타 관점 판단은 "…입니다. …못합니다."입니다.` 로 따옴표 안에 두 문장을 넣고
+  // "입니다"를 또 붙였다 — 블라인드 평가지 · 실화면에서 어색했다(FEATURE-008 FR-49). 판단 문장은 이미 "<종목> <모드> 관점은 …"으로 시작한다.
+  // ~~뒤에 "24시간 변동 · 거래대금 기준입니다."~~ 2026-11-13 뺐다(F017 v4 1f) — 4~6문장 상한 안에 들고, 오늘 등락은 원인 칸 '결과'가 말한다
+  const modeReasoning = headline
+    ? /[.!?]$/.test(headline.trim())
+      ? headline.trim()
+      : `${headline.trim()}.`
+    : `${MODE_LABEL[input.mode]} 관점 판단입니다.`;
 
   const reasons = valuesOf(input, "근거");
   const keyDrivers = (reasons.length > 0
     ? reasons
     : input.evidence.filter((e) => !e.label.includes("판단") && !e.label.includes("주의")).map((e) => `${e.label}: ${e.value}`)
-  ).slice(0, 3);
+    // 결론 2 + 근거 2 + 주의 1 + 소식 1 = 6 — 사실표 문장도 LLM 과 같은 상한(`EXPLANATION_TOTAL_CAP`)
+  ).slice(0, 2);
 
-  const cautions = valuesOf(input, "주의").slice(0, 2);
+  const cautions = valuesOf(input, "주의").slice(0, EXPLANATION_SECTION_CAP.risks);
   // 규칙이 준 주의가 없으면 그 사실을 말한다(2026-11-02). 전엔 "가격 변동이 커질 수 있는 구간입니다."를 끼워 넣었는데,
   // 입력에 없는 일반론이라 블라인드 평가자 셋이 2차에서 근거 없는 문장으로 짚었다(FEATURE-008 FR-49)
   const risks = cautions.length > 0 ? cautions : ["이 판단에 규칙이 적은 주의 사항은 없습니다."];
 
   const newsSummary = (input.news ?? [])
-    .slice(0, NEWS_MAX)
+    .slice(0, EXPLANATION_SECTION_CAP.newsSummary)
     .map((n) => (n.source ? `${n.title} (${n.source})` : n.title));
 
   return {
@@ -88,6 +90,10 @@ export const allowedFacts = (input: CoachExplanationInput, scope: { news: boolea
   const texts = [
     ...input.evidence.flatMap((e) => [e.label, e.value]),
     ...(scope.news ? (input.news ?? []).flatMap((n) => [n.title, n.summary ?? ""]) : []),
+    // 원인 칸의 숫자(소식 뒤 30분 · 평소의 n배 · 오늘 등락) — 서버가 만든 사실이라 판단 · 근거 칸이 인용할 수 있다(F017 v4 1f)
+    ...(input.cause
+      ? [input.cause.headline, input.cause.note, input.cause.result, ...input.cause.evidence.flatMap((e) => [e.value, e.compare ?? ""])]
+      : []),
     COACH_HORIZON[input.mode].phrase,
     ...PROMPT_PHRASES,
   ];
@@ -123,37 +129,92 @@ export const verifyExplanation = (
   input: CoachExplanationInput,
   now: Date
 ): VerifiedExplanation => {
-  const core = allowedFacts(input, { news: false });
-  const withNews = allowedFacts(input, { news: true });
   const template = templateExplanation(input, now);
   const dropped: VerifiedExplanation["dropped"] = [];
+  // 스트림과 같은 문지기 — 사실 · 극성 · 칸 상한 · 되풀이를 문장마다(F017 v4 1f). 순서가 곧 화면 순서라 칸 순서대로 넣는다
+  const gate = createLineGate(input);
+  const pass = (field: ExplanationLineSection, sentences: readonly string[]): string[] =>
+    sentences.flatMap((text) => {
+      const r = gate(field, text);
+      if (r.ok) return [text];
+      dropped.push({ field, reasons: r.reasons });
+      return [];
+    });
 
   // 문장 단위(`SRV-REQ-050` FR-14) — 예전엔 한 덩어리라 한 문장만 걸려도 판단 문단 전체가 템플릿이 됐다.
   // 마침표 뒤에 공백 · 끝이 올 때만 문장 끝("+1.23%" 의 점에서 자르지 않는다)
-  const single = (field: "modeReasoning"): string => {
-    const sentences = (llm[field].match(/.+?[.!?](?=\s|$)|.+$/gs) ?? []).map((t) => t.trim()).filter(Boolean);
-    const r = guardSentences(sentences, core, input.stance);
-    r.dropped.forEach((d) => dropped.push({ field, reasons: d.reasons }));
-    return r.kept.length > 0 ? r.kept.join(" ") : template[field];
-  };
+  const reasoning = pass("modeReasoning", (llm.modeReasoning.match(/.+?[.!?](?=\s|$)|.+$/gs) ?? []).map((t) => t.trim()).filter(Boolean));
   const list = (field: "keyDrivers" | "risks" | "newsSummary"): string[] => {
-    const r =
-      field === "newsSummary"
-        ? guardSentences(llm[field], withNews)
-        : guardSentences(llm[field], core, field === "keyDrivers" ? input.stance : undefined);
-    r.dropped.forEach((d) => dropped.push({ field, reasons: d.reasons }));
-    return r.kept.length > 0 || llm[field].length === 0 ? r.kept : template[field];
+    const kept = pass(field, llm[field]);
+    return kept.length > 0 || llm[field].length === 0 ? kept : template[field];
   };
 
   const explanation: CoachExplanation = {
     ...llm,
-    modeReasoning: single("modeReasoning"),
+    modeReasoning: reasoning.length > 0 ? reasoning.join(" ") : template.modeReasoning,
     timeframe: template.timeframe,
     keyDrivers: list("keyDrivers"),
     risks: list("risks"),
     newsSummary: list("newsSummary"),
   };
   return { explanation, source: dropped.length > 0 ? "llm_checked" : "llm", dropped };
+};
+
+/**
+ * 칸마다 문장 상한 — 결론 2(판단 머리말이 두 문장이다) · 원인 → 근거 → 결과 3 · 조심할 점 1 · 소식 1, 그리고 **전체 6**
+ * (F017 v4 1f · `SRV-REQ-053` FR-16 · `FE-REQ-064` FR-10 "문장 4~6개"). 칸 순서대로 세니 넘치면 뒤 칸(소식)부터 빠진다.
+ * 화면이 자르지 않는다 — 서버가 정한다(보여 줄 대상은 서버)
+ */
+export const EXPLANATION_SECTION_CAP: Readonly<Record<ExplanationLineSection, number>> = {
+  modeReasoning: 2,
+  keyDrivers: 3,
+  risks: 1,
+  newsSummary: 1,
+};
+export const EXPLANATION_TOTAL_CAP = 6;
+
+/** 같은 말 문턱 — 글자 두 개씩 묶은 조각의 겹침(Dice). 0.8 이상이면 되풀이 */
+export const EXPLANATION_REPEAT_SIMILARITY = 0.8;
+
+const bigrams = (text: string): Map<string, number> => {
+  const t = text.replace(/[\s.,!?·~'"()]/g, "");
+  const out = new Map<string, number>();
+  for (let i = 0; i < t.length - 1; i++) {
+    const g = t.slice(i, i + 2);
+    out.set(g, (out.get(g) ?? 0) + 1);
+  }
+  return out;
+};
+
+/** 두 문장의 겹침(0~1) — 순수 함수 */
+export const sentenceSimilarity = (a: string, b: string): number => {
+  const x = bigrams(a);
+  const y = bigrams(b);
+  const total = [...x.values()].reduce((s, n) => s + n, 0) + [...y.values()].reduce((s, n) => s + n, 0);
+  if (total === 0) return a.trim() === b.trim() ? 1 : 0;
+  let shared = 0;
+  for (const [g, n] of x) shared += Math.min(n, y.get(g) ?? 0);
+  return (2 * shared) / total;
+};
+
+/**
+ * 줄 문지기 — 한 해설 생성 동안 상태(칸별 개수 · 앞서 통과한 문장)를 쥔다. 배치 검증(`verifyExplanation`)과 스트림이 **같은 함수**를 쓴다.
+ * 사실 · 극성은 `guardExplanationLine`, 그 위에 칸 상한 · 되풀이
+ */
+export const createLineGate = (input: CoachExplanationInput) => {
+  const counts: Record<ExplanationLineSection, number> = { modeReasoning: 0, keyDrivers: 0, risks: 0, newsSummary: 0 };
+  const earlier: string[] = [];
+  return (section: ExplanationLineSection, text: string): { ok: true } | { ok: false; reasons: LanguageViolation[] } => {
+    const base = guardExplanationLine(section, text, input);
+    if (!base.ok) return base;
+    if (counts[section] >= EXPLANATION_SECTION_CAP[section] || earlier.length >= EXPLANATION_TOTAL_CAP) {
+      return { ok: false, reasons: ["over_cap"] };
+    }
+    if (earlier.some((e) => sentenceSimilarity(e, text) >= EXPLANATION_REPEAT_SIMILARITY)) return { ok: false, reasons: ["repeated"] };
+    counts[section] += 1;
+    earlier.push(text);
+    return { ok: true };
+  };
 };
 
 /** 해설 칸 — 줄 단위 스트림이 어느 칸의 문장인지(`SRV-REQ-050` FR-13) */

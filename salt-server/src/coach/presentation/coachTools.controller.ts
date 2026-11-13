@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
+import { logger } from "../../shared/config/logger";
 import {
+  explanationQuerySchema,
   forecastQuerySchema,
   tradeCheckQuerySchema,
   profitPlanQuerySchema,
@@ -160,6 +162,54 @@ export class CoachToolsController {
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);
+    }
+  };
+
+  /**
+   * 해설 스트림(SSE) — `snapshot` · `sentence` · `done` · `fallback` · 하트비트 15초(`streaming-sse.md` §5). F017 v4 `SRV-REQ-053` FR-9.
+   * 화면이 떠나면 이 구독만 뗀다 — 생성은 끝까지 가서 저장한다(다음 사람 몫)
+   */
+  streamExplanation = async (req: Request, res: Response, next: NextFunction) => {
+    let query: ReturnType<typeof explanationQuerySchema.parse>;
+    try {
+      query = explanationQuerySchema.parse(req.query);
+    } catch (error) {
+      return next(error);
+    }
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    const send = (event: string, data: unknown) => {
+      if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+    const aborter = new AbortController();
+    const heartbeat = setInterval(() => !res.writableEnded && res.write(": ping\n\n"), 15_000);
+    req.on("close", () => {
+      clearInterval(heartbeat);
+      aborter.abort();
+    });
+    try {
+      await this.useCases.streamSymbolExplanation.execute(
+        query.symbol,
+        query.mode,
+        {
+          snapshot: (view) => send("snapshot", view),
+          sentence: (sentence) => send("sentence", sentence),
+          done: (view) => send("done", view),
+          fallback: (view) => send("fallback", view),
+        },
+        aborter.signal
+      );
+    } catch (error) {
+      // 헤더를 이미 보냈다 — 오류 미들웨어 대신 이벤트 한 줄(문장 원문 · 원인은 싣지 않는다)
+      logger.warn(`해설 스트림 실패 — ${query.symbol} ${query.mode}: ${(error as Error).name}`);
+      send("error", { code: "EXPLAIN_STREAM_FAILED" });
+    } finally {
+      clearInterval(heartbeat);
+      if (!res.writableEnded) res.end();
     }
   };
 

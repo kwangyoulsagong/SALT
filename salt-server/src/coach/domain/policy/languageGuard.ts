@@ -32,10 +32,15 @@ export type LanguageViolation =
   | "performance_wording"
   | "advice_wording"
   /** 프롬프트 안쪽 이름(줄 라벨 "뉴스1" · 칸 이름)을 문장이 가리킨다 — 화면엔 그런 이름이 없다(SRV-REQ-050 FR-11 3회차) */
-  | "prompt_label";
+  | "prompt_label"
+  /** 칸 상한을 넘은 문장 — 해설은 4~6문장(F017 v4 1f · `FE-REQ-064` FR-10) */
+  | "over_cap"
+  /** 앞 문장과 같은 말 — "바로 앞 기사와 같은 내용" 같은 되풀이(F017 v4 1f) */
+  | "repeated";
 
 // "뉴스1과 연속 일수도 다르게 적혀" — 줄 라벨 · JSON 칸 이름. "뉴스 1건" · "기사 2개" 처럼 세는 말은 통과
-const PROMPT_LABEL = /(뉴스\s?\d+(?!\s?(건|개|줄|곳|번째|가지|일|시간|%))|newsSummary|keyDrivers|modeReasoning|근거\s?데이터\s?\d)/;
+// 원인 단계 이름("가장 유력 단계 · 확인된 소식 없음 단계")도 프롬프트 안쪽 말이다 — 단계는 화면이 붙인다(F017 v4 1b · 1f 실측)
+const PROMPT_LABEL = /(뉴스\s?\d+(?!\s?(건|개|줄|곳|번째|가지|일|시간|%))|newsSummary|keyDrivers|modeReasoning|근거\s?데이터\s?\d|(가장\s?유력|가능성|확인된\s?소식\s?없음)\s?단계|원인\s?후보)/;
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;

@@ -58,6 +58,8 @@ import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSymbolEvents } from "../GetSymbolEvents";
 import { GetSymbolScenario } from "../GetSymbolScenario";
 import { GetCoachPanel } from "../GetCoachPanel";
+import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
+import { ExplanationGenerations } from "../lib/explanationGeneration";
 import { GetSymbolPositioning } from "../GetSymbolPositioning";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
@@ -187,6 +189,8 @@ export interface CoachUseCases {
   getSymbolScenario: GetSymbolScenario;
   /** 한 장 패널 한 번 응답 — 칸마다 tier · status(F017 v4 1d · `SRV-REQ-053` FR-13) */
   getCoachPanel: GetCoachPanel;
+  /** 해설 스트림 — 저장본이 있으면 한 번, 없으면 생성하며 문장부터(F017 v4 1f · `SRV-REQ-053` FR-9) */
+  streamSymbolExplanation: StreamSymbolExplanation;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
   getSymbolEvents: GetSymbolEvents;
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자만(F008 슬라이스 23) */
@@ -283,6 +287,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
 
   // 한 장 패널(F017 v4 1d)이 칸별 경로와 같은 인스턴스를 그대로 쓴다 — 같은 "본 종목" 기억 · 같은 규칙
   const getSymbolExplanation = new GetSymbolExplanation({ ...explanationMaterials, store: deps.explanations, demand: explanationDemand });
+  // 배치와 스트림이 같은 등록부 — 같은 지문은 생성 하나(F017 v4 1f)
+  const explanationGenerations = new ExplanationGenerations();
   const getSymbolScenario = new GetSymbolScenario(deps.shortHorizons, deps.baseRates, deps.market, deps.forecastOwnerEmails);
   const checkTradeOdds = new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger);
 
@@ -323,6 +329,19 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       usage: deps.llmUsage,
       limits: deps.llmLimits,
       // 없으면 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않는다 — 화면은 사실표 문장
+      llmEnabled: deps.llmEnabled !== false,
+      causes: deps.moveCauses,
+      generations: explanationGenerations,
+    }),
+    streamSymbolExplanation: new StreamSymbolExplanation({
+      ...explanationMaterials,
+      read: getSymbolExplanation,
+      explainer: deps.explainer,
+      store: deps.explanations,
+      generations: explanationGenerations,
+      causes: deps.moveCauses,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
       llmEnabled: deps.llmEnabled !== false,
     }),
     getMoveSummary: new GetMoveSummary({ ...moveSummary, demand: moveSummaryDemand }),

@@ -12,6 +12,7 @@ import {
   judgmentOnlySentences,
   llmSentenceCount,
   selectExplanationTier,
+  EXPLANATION_VERIFIER_VERSION,
   templateExplanation,
   type ExplanationFingerprintInput,
   type JudgmentObservation,
@@ -75,6 +76,16 @@ describe("selectExplanationTier — 4단 경계 표", () => {
     ["저장본 없음 · 사실 없음 → 없음", { ...base, stored: null, factsAvailable: false }, "none"],
     ["사실이 없어도 같은 방향 이전 해설은 보인다", { ...base, stored: head("G", "wait", 1), factsAvailable: false }, "previous"],
     ["장기는 30일까지 이전", { ...base, mode: "long_term", stored: head("G", "wait", 29 * 86_400_000) }, "previous"],
+    [
+      "옛 검증기로 만든 글은 이전 단으로 쓰지 않는다(F017 v4 1f)",
+      { ...base, stored: { ...head("G", "wait", 1), verifier: { verifierVersion: "explain-verifier@1" } } },
+      "template",
+    ],
+    [
+      "지금 검증기 글이면 이전",
+      { ...base, stored: { ...head("G", "wait", 1), verifier: { verifierVersion: EXPLANATION_VERIFIER_VERSION } } },
+      "previous",
+    ],
   ];
   for (const [name, input, tier] of table) {
     it(name, () => assert.equal(selectExplanationTier(input), tier));

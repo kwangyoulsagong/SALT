@@ -318,6 +318,17 @@ export interface CoachExplanationInput {
    * 프롬프트에는 싣지 않는다 — 모델은 "판단" 근거 문장을 이미 본다. 없으면 극성 대조를 건너뛴다
    */
   stance?: JudgmentStance;
+  /**
+   * 원인 → 근거 → 결과(F017 v4 1f · `SRV-REQ-053` FR-16) — 생성할 때만 싣는다(읽기 · 지문엔 없다: 원인은 소식이 바뀌면 같이 바뀌고
+   * 소식 제목은 이미 지문에 있다). 단계 · 문장은 market 의 규칙(`MoveCause.ts`) 그대로 — 모델은 옮겨 말하기만 한다
+   */
+  cause?: {
+    strength: "likely" | "possible" | "none";
+    headline: string;
+    note: string;
+    evidence: Array<{ value: string; compare: string | null; source: string }>;
+    result: string;
+  };
   news?: Array<{
     title: string;
     summary?: string;

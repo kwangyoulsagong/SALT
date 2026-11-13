@@ -2,28 +2,17 @@ import { logger } from "../../shared/config/logger";
 
 import {
   EXPLANATION_BATCH_MAX_PER_RUN,
-  EXPLANATION_PROMPT_VERSION,
-  EXPLANATION_SNAPSHOT_KEEP,
-  EXPLANATION_VERIFIER_VERSION,
-  explanationFactCatalog,
-  explanationFactsHash,
-  explanationSentences,
-  isStorableExplanation,
-  llmSentenceCount,
-  LLM_BUDGET_WINDOW_MS,
-  LLM_RESERVED_CALLS,
-  llmBudgetVerdict,
-  resolveLlmLimits,
-  verifyExplanation,
   type CoachExplainer,
   type CoachMode,
   type ExplanationSnapshotStore,
   type LlmBudgetLimits,
   type LlmUsageStore,
+  type MoveCauseReader,
   type TrackedAssetProbe,
 } from "../domain";
 import type { ExplanationDemand } from "./lib/explanationDemand";
-import { prepareExplanation, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
+import { ExplanationGenerations, generateExplanation, llmBudget, withCause } from "./lib/explanationGeneration";
+import { loadExplanationBase, prepareExplanationMode, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
 
 /** 두 모드 다 — 국내 단타도 판단이 열려 있다(`ADR-010` v2) */
 const MODES: readonly CoachMode[] = ["scalp", "long_term"];
@@ -38,6 +27,10 @@ export interface GenerateExplanationSnapshotsDeps extends ExplanationMaterialsDe
   limits?: Partial<LlmBudgetLimits>;
   /** `COACH_EXPLAIN_LLM=off` 면 배치가 아무것도 만들지 않는다 — 화면은 사실표 문장(템플릿 단) */
   llmEnabled: boolean;
+  /** 원인 → 근거 → 결과 재료(F017 v4 1f) — 없으면 원인 없이 */
+  causes?: MoveCauseReader;
+  /** 스트림과 같은 등록부 — 같은 지문은 생성 하나(F017 v4 1f) */
+  generations: ExplanationGenerations;
   now?: () => Date;
 }
 
@@ -67,25 +60,6 @@ export class GenerateExplanationSnapshots {
 
   private now(): Date {
     return this.deps.now?.() ?? new Date();
-  }
-
-  /** 이번 시도에 LLM 을 불러도 되나 — 서버 전체 24시간 상한. 원장을 못 읽으면 막는다 */
-  private async budget(): Promise<{ allowed: boolean; geminiAllowed: boolean }> {
-    const usage = this.deps.usage;
-    if (!usage) return { allowed: true, geminiAllowed: true };
-    try {
-      const verdict = llmBudgetVerdict(
-        await usage.usageSince(new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS)),
-        resolveLlmLimits(this.deps.limits),
-        // 같은 워커 뒤에 도는 오늘 등락 한 줄 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
-        LLM_RESERVED_CALLS.moveSummary
-      );
-      if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
-      return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };
-    } catch (error) {
-      logger.warn(`해설 배치 — LLM 사용량 조회 실패, 이번 회차 쉼: ${(error as Error).message}`);
-      return { allowed: false, geminiAllowed: false };
-    }
   }
 
   private async candidates(now: Date): Promise<{ symbol: string; mode: CoachMode }[]> {
@@ -119,11 +93,17 @@ export class GenerateExplanationSnapshots {
     result.candidates = candidates.length;
     let attempts = 0;
 
+    // 같은 종목의 두 모드는 모드와 무관한 재료(시세 · 지표 · 소식)를 한 번만 읽는다(F017 v4 1d 와 같은 이유)
+    const bases = new Map<string, ReturnType<typeof loadExplanationBase>>();
     for (const { symbol, mode } of candidates) {
-      const prepared = await prepareExplanation(this.deps, symbol, mode, now).catch((error: unknown) => {
-        logger.warn(`해설 배치 — ${symbol} ${mode} 재료 실패: ${(error as Error).message}`);
-        return null;
-      });
+      if (!bases.has(symbol)) bases.set(symbol, loadExplanationBase(this.deps, symbol));
+      const prepared = await bases
+        .get(symbol)!
+        .then((base) => prepareExplanationMode(this.deps, base, mode, now))
+        .catch((error: unknown) => {
+          logger.warn(`해설 배치 — ${symbol} ${mode} 재료 실패: ${(error as Error).message}`);
+          return null;
+        });
       if (!prepared) {
         result.failed += 1;
         continue;
@@ -141,55 +121,26 @@ export class GenerateExplanationSnapshots {
         result.deferred += 1;
         continue;
       }
-      const budget = await this.budget();
+      const budget = await llmBudget(this.deps.usage, this.deps.limits, this.now());
       if (!budget.allowed) {
         result.deferred += 1;
         continue;
       }
 
       attempts += 1;
-      const input = prepared.input;
-      try {
-        const llm = await this.deps.explainer.explain(input, undefined, { userId: null, geminiAllowed: budget.geminiAllowed });
-        const generatedAt = this.now();
-        const verified = verifyExplanation(llm, input, generatedAt);
-        if (llm.callId && this.deps.usage) {
-          this.deps.usage
-            .markDropped(llm.callId, verified.dropped.length)
-            .catch((error: unknown) => logger.warn(`버린 문장 수 기록 실패: ${(error as Error).message}`));
-        }
-        const kept = llmSentenceCount(llm) - verified.dropped.length;
-        if (!isStorableExplanation(verified.source, kept) || !llm.provider) {
-          result.failed += 1;
-          continue;
-        }
-        const catalog = explanationFactCatalog(input, generatedAt);
-        const sentences = explanationSentences(verified.explanation, catalog);
-        await this.deps.store.save({
-          symbol: prepared.symbol,
-          mode,
-          fingerprint: prepared.fingerprint,
-          action: prepared.view.judgment.action,
-          source: verified.source,
-          provider: llm.provider,
-          sentences,
-          verifier: {
-            sentences: sentences.length,
-            // 검사가 버린 문장 수 — 버린 문장 원문은 남기지 않는다
-            dropped: verified.dropped.length,
-            promptVersion: EXPLANATION_PROMPT_VERSION,
-            verifierVersion: EXPLANATION_VERIFIER_VERSION,
-          },
-          factsHash: explanationFactsHash(input),
-          generatedAt,
-        });
-        await this.deps.store.prune(prepared.symbol, mode, EXPLANATION_SNAPSHOT_KEEP);
-        result.generated += 1;
-      } catch (error) {
-        // 원인 원문은 싣지 않는다 — 모델 응답이 섞일 수 있다(`ddd-infrastructure.md` §6)
-        logger.warn(`해설 배치 — ${symbol} ${mode} 생성 실패(이전 성공본 유지): ${(error as Error).name}`);
-        result.failed += 1;
-      }
+      const input = await withCause(this.deps.causes, prepared, prepared.input);
+      // 화면 스트림이 같은 지문을 이미 만들고 있으면 거기 붙는다 — LLM 두 번 0
+      const { done } = this.deps.generations.join(ExplanationGenerations.key(prepared), (emit) =>
+        generateExplanation(
+          { explainer: this.deps.explainer, store: this.deps.store, usage: this.deps.usage, now: () => this.now() },
+          prepared,
+          input,
+          budget.geminiAllowed,
+          emit
+        )
+      );
+      if (await done) result.generated += 1;
+      else result.failed += 1;
     }
     return result;
   }

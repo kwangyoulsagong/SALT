@@ -336,6 +336,48 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/explain/stream:
+   *   get:
+   *     summary: 해설 스트림(SSE) — 저장본이 있으면 한 번, 없으면 생성하며 검사를 지난 문장부터 — F017 v4 (`SRV-REQ-053` FR-9)
+   *     description: |
+   *       `text/event-stream`. 이벤트:
+   *
+   *       - `snapshot` — 지금 지문의 최신 AI 저장본(해설 4단 뷰 — `/api/ai-coach/explanation` 과 같은 모양). 이것으로 끝
+   *       - `sentence` — 검사(사실 · 극성 · 칸 상한 · 되풀이)를 지난 문장 하나 `{ section, text, citations }`
+   *       - `done` — 저장 끝 · 최종 한 벌(얼마나 믿을까 · 틀렸던 때 문장 포함)
+   *       - `fallback` — 만들 수 없었다(하루 상한 · LLM 꺼짐 · 검사가 전부 버림 · 실패) — 서버 문장(이전 AI · 사실표 · 판단만)
+   *       - `error` — 스트림 자체 실패 `{ code }`
+   *       - `: ping` 주석 15초
+   *
+   *       같은 종목 · 모드 · 지문은 생성 하나에 여러 요청이 붙는다(배치도 같은 자리). 끊겨도 생성은 끝까지 가서 저장한다.
+   *       문장은 모두에게 같다(시장 층 — 사람마다 다르지 않다)
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: BTC }
+   *       - in: query
+   *         name: mode
+   *         required: true
+   *         schema: { type: string, enum: [scalp, long_term] }
+   *     responses:
+   *       200:
+   *         description: SSE 스트림
+   *         content:
+   *           text/event-stream:
+   *             schema: { type: string }
+   *       400:
+   *         description: 심볼 · 모드 형식 오류
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/explain/stream", controller.streamExplanation);
+
+  /**
+   * @swagger
    * /api/coach/events:
    *   get:
    *     summary: 다가오는 주요 사건(거시 · 국내 시장 일정)과 과거 반응 (소유자 전용) — F008 슬라이스 22 · 24
