@@ -40,7 +40,7 @@
 | 다른 소비처 | `coach/scenario` · `ai-coach/scenario` grep — 서버 라우트 · BFF 서비스 · 웹 엔드포인트 하나씩뿐(앱 네이티브 0) |
 | 낡은 문구 | "시나리오 = 소유자 전용 · 404 · 자세히" 주석 일곱 곳 정정(서버 3 · BFF 2 · FE 2) |
 | 게스트 | 코치 라우터는 `authMiddleware`(사람만) 그대로 — 화면은 로그인 전 부르지 않고 유리막 |
-| 재검증 | 서버 build · test 1325 · BFF build · test 481 · FE check-types · lint 13/13 · test 361 · 훅 사후(대조군 둘 exit 2 → 0) · 투자 zone worktree 빌드 |
+| 재검증 | 서버 build · test 1325 · BFF build · test 481 · FE check-types · lint 13/13 · test 361 · 훅 사후(대조군 둘 exit 2 → 0) · 투자 zone worktree 빌드(커밋 `9fc35ec9` · `/investments/[symbol]` 153 kB) · `check-done` 통과(주석 정정으로 걸린 `FE-REQ-028` 짝 문서 포함) |
 
 ### 미검증 · 범위 밖(2회차 뒤)
 

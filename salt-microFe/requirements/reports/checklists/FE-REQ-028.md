@@ -165,3 +165,17 @@
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 옛 엔드포인트 소비처 | 충족 | `coachApi.forecast` · `useSymbolForecast` 소비처 grep 0 뒤 삭제 |
+
+## F017 v4 순서 1a 짝 (2026-11-13) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/in-progress/F017-v4-stage1-panel-slice.md` · 체크리스트 `requirements/reports/checklists/F017-v4-stage1-panel.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `entities/coach/api/endpoints.ts` 시나리오 줄 주석 정정(소유자만 → 모든 종목 · 기간 넷에 늘) — 경로 · 이 REQ 의 FR 변경 0 | FE check-types · lint 13/13 · test 361 · 훅 사후 0 · 투자 zone worktree 빌드(153 kB) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |
