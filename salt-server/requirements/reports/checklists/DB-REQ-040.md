@@ -53,3 +53,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## OPS-004 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `schema.prisma`(머리 주인)에 `PanelCellCheck`(`panel_cell_check` — 시장 층 · 사용자 열 0 · 30일) · 마이그레이션 `20261113200000_panel_cell_check`(표 하나 · 인덱스 하나 — 되돌리기 = 표 지우기) | 충족 | 로컬 DB `prisma migrate deploy` 적용 · 주인 체크리스트 `requirements/reports/checklists/OPS-004.md` |

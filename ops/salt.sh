@@ -247,6 +247,14 @@ collection() {
   fi
 }
 
+# 패널 칸 채움 점검(OPS-004) — 마지막 실측 회차만 읽는다(서버 워커가 12:30 · 16:30 KST 에 추적 종목 전부의 패널을 부른다)
+panel_cells() {
+  local url; url=$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"?]*\).*/\1/p' "$ROOT/salt-server/.env" 2>/dev/null | head -1)
+  [[ -z $url ]] && return
+  say "  — 패널 칸 채움 (코인 | 국내)"
+  psql "$url" -At -F '|' -v ON_ERROR_STOP=0 -f "$ROOT/ops/panel-cells.sql" 2>/dev/null | while IFS='|' read -r _ label crypto kr; do printf "  %-14s %-34s | %s\n" "$label" "${crypto:-?}" "${kr:-?}"; done
+}
+
 status() {
   say "SALT 상태 — $(date '+%m-%d %H:%M')"
   printf "  %-15s %-8s %-8s %-6s %s\n" 이름 방식 PID 포트 헬스
@@ -273,6 +281,7 @@ status() {
   pg_isready -q -h localhost -p 5432 && say "  postgres    ok" || say "  postgres    ✗ 꺼짐 — brew services start postgresql"
   latest
   collection
+  panel_cells
 }
 
 down_one() {
