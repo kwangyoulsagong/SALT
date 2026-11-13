@@ -29,6 +29,9 @@ import type {
   MoveCardReader,
   MoveSummaryStore,
   MoveSummaryWriter,
+  MoveCauseReader,
+  PanelCellCheckStore,
+  PanelUniverseProbe,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -56,6 +59,10 @@ import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSymbolEvents } from "../GetSymbolEvents";
 import { GetSymbolScenario } from "../GetSymbolScenario";
+import { GetCoachPanel } from "../GetCoachPanel";
+import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
+import { MeasurePanelCells } from "../MeasurePanelCells";
+import { ExplanationGenerations } from "../lib/explanationGeneration";
 import { GetSymbolPositioning } from "../GetSymbolPositioning";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
@@ -148,6 +155,12 @@ export interface CoachDependencies {
   shortHorizons: ShortHorizonReader;
   /** 점검 원장(F017 v2 단계 2) — `trade_check_ledger` */
   tradeCheckLedger: TradeCheckLedger;
+  /** 한 장 패널의 원인 칸(F017 v4 1d) — market 의 원인 → 근거 → 결과(ACL) */
+  moveCauses: MoveCauseReader;
+  /** 패널 칸 채움 실측(OPS-004) — `panel_cell_check` */
+  panelChecks: PanelCellCheckStore;
+  /** 실측 대상 — 화면 시세 목록 ∪ 추적 종목(OPS-004 FR-3) */
+  panelUniverse: PanelUniverseProbe;
 }
 
 export interface CoachUseCases {
@@ -181,6 +194,12 @@ export interface CoachUseCases {
   getJudgmentScoreboard: GetJudgmentScoreboard;
   /** 시나리오 — 모든 종목 · 지평 넷에 늘(과거 실제 결과 · 모델 확률 칸만 소유자, F017 v4 · `SRV-REQ-053` FR-10) */
   getSymbolScenario: GetSymbolScenario;
+  /** 한 장 패널 한 번 응답 — 칸마다 tier · status(F017 v4 1d · `SRV-REQ-053` FR-13) */
+  getCoachPanel: GetCoachPanel;
+  /** 해설 스트림 — 저장본이 있으면 한 번, 없으면 생성하며 문장부터(F017 v4 1f · `SRV-REQ-053` FR-9) */
+  streamSymbolExplanation: StreamSymbolExplanation;
+  /** 패널 칸 채움 실측 — 하루 두 번 워커가 부른다(OPS-004) */
+  measurePanelCells: MeasurePanelCells;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
   getSymbolEvents: GetSymbolEvents;
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자만(F008 슬라이스 23) */
@@ -275,7 +294,27 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     enabled: false,
   };
 
+  // 한 장 패널(F017 v4 1d)이 칸별 경로와 같은 인스턴스를 그대로 쓴다 — 같은 "본 종목" 기억 · 같은 규칙
+  const getSymbolExplanation = new GetSymbolExplanation({ ...explanationMaterials, store: deps.explanations, demand: explanationDemand });
+  // 배치와 스트림이 같은 등록부 — 같은 지문은 생성 하나(F017 v4 1f)
+  const explanationGenerations = new ExplanationGenerations();
+  const getSymbolScenario = new GetSymbolScenario(deps.shortHorizons, deps.baseRates, deps.market, deps.forecastOwnerEmails);
+  const checkTradeOdds = new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger);
+
+  const getCoachPanel = new GetCoachPanel({
+    scenario: getSymbolScenario,
+    check: checkTradeOdds,
+    judgment: symbolCoach,
+    explanation: getSymbolExplanation,
+    causes: deps.moveCauses,
+    profiles: deps.profiles,
+    portfolio: deps.portfolio,
+    tradePlans: deps.tradePlans,
+  });
+
   const useCases: CoachUseCases = {
+    getCoachPanel,
+    measurePanelCells: new MeasurePanelCells({ panel: getCoachPanel, universe: deps.panelUniverse, store: deps.panelChecks }),
     reportTriadGaps: new ReportTriadGaps(),
     generateRecommendation,
     requestGeneration: new RequestCoachGeneration(
@@ -302,7 +341,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getProfile: new GetCoachProfile(deps.profiles),
     updateProfile: new UpdateCoachProfile(deps.profiles),
     recordFeedback: new RecordCoachFeedback(deps.insights),
-    getSymbolExplanation: new GetSymbolExplanation({ ...explanationMaterials, store: deps.explanations, demand: explanationDemand }),
+    getSymbolExplanation,
     generateExplanationSnapshots: new GenerateExplanationSnapshots({
       ...explanationMaterials,
       explainer: deps.explainer,
@@ -312,6 +351,19 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       usage: deps.llmUsage,
       limits: deps.llmLimits,
       // 없으면 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않는다 — 화면은 사실표 문장
+      llmEnabled: deps.llmEnabled !== false,
+      causes: deps.moveCauses,
+      generations: explanationGenerations,
+    }),
+    streamSymbolExplanation: new StreamSymbolExplanation({
+      ...explanationMaterials,
+      read: getSymbolExplanation,
+      explainer: deps.explainer,
+      store: deps.explanations,
+      generations: explanationGenerations,
+      causes: deps.moveCauses,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
       llmEnabled: deps.llmEnabled !== false,
     }),
     getMoveSummary: new GetMoveSummary({ ...moveSummary, demand: moveSummaryDemand }),
@@ -337,9 +389,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.backtestJudgments ?? null,
       deps.market
     ),
-    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.baseRates, deps.market, deps.forecastOwnerEmails),
+    getSymbolScenario,
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
-    checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),
+    checkTradeOdds,
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),
     snapshotSymbolJudgments: new SnapshotSymbolJudgments(
       deps.tracked,

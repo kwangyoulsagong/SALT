@@ -61,3 +61,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — `ai-coach.routes.ts` 시나리오 줄 주석(누구나 · 지평 넷) — 이 REQ 의 판단 상세 경로 변경 0
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1d 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경(주인 `BFF-REQ-052`)

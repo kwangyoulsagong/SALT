@@ -121,3 +121,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## F017 v4 1d 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 포트 `MoveCauseReader` 만 — identity · notification 0 | 충족 | 주인 REQ 체크리스트 |

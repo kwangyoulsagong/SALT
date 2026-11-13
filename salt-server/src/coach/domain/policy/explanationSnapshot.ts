@@ -16,7 +16,8 @@ import { MODE_DECISION_RULE_VERSION, type ModeDecisionAction } from "./modeDecis
  *
  * 예전엔 사람이 [해설 보기]를 누를 때 LLM 을 불렀다 — 누르기 전엔 빈 칸, 누르면 수 초 기다림, 로컬 CLI 는 허용 사용자만.
  * 해설은 **시장 층**이다(종목 · 모드마다 같은 문장 — 보유 · 사람과 무관, `FEATURE-017` D2). 그래서 배치가 종목 지문이
- * 바뀐 종목만 한 번 만들어 저장하고, 화면은 저장값만 읽는다(요청 경로 LLM 0 — 불변식 1).
+ * 바뀐 종목만 한 번 만들어 저장하고, 화면은 저장값만 읽는다(요청 경로 LLM 0 — 불변식 1). **정정 2026-11-13(F017 v4 1f · FR-9)**: 저장본이 없으면
+ * 해설 스트림이 그 자리에서 만든다 — 지문당 생성 하나(배치와 같은 등록부) · 모두 같은 문장이라 사람마다 다른 LLM 호출은 여전히 0
  *
  * ## 4단 — 칸이 비지 않는다
  *
@@ -25,8 +26,8 @@ import { MODE_DECISION_RULE_VERSION, type ModeDecisionAction } from "./modeDecis
  */
 
 /** 프롬프트(`explanationPrompt.ts`) · 검증기(`explanationTemplate.ts` `verifyExplanation`)가 바뀌면 올린다 — 지문이 바뀌어 다시 만든다 */
-export const EXPLANATION_PROMPT_VERSION = "explain-prompt@1";
-export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@1";
+export const EXPLANATION_PROMPT_VERSION = "explain-prompt@2";
+export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@3";
 
 /** 지문에 넣는 뉴스 수 — 맨 위 몇 건이 바뀌면 다시 만든다(뒤쪽 순서 변화로 매번 다시 만들지 않게) */
 export const EXPLANATION_FINGERPRINT_NEWS = 3;
@@ -180,6 +181,21 @@ export const explanationFactCatalog = (input: CoachExplanationInput, asOf: Date)
     judgment.texts.push(COACH_HORIZON[input.mode].phrase);
     judgment.numbers.push(...numericTokens(COACH_HORIZON[input.mode].phrase));
   }
+  // 원인 칸 근거(F017 v4 1f) — 출처 이름 그대로("수급" · "업종" · "9:42 공시"). 원인 문장이 그 숫자를 말하면 그 이름으로 인용
+  (input.cause?.evidence ?? []).forEach((e, i) =>
+    add({
+      id: `cause-${i + 1}`,
+      label: e.source,
+      at,
+      url: null,
+      news: false,
+      texts: [e.value, ...(e.compare ? [e.compare] : [])],
+      numbers: [...numericTokens(e.value), ...numericTokens(e.compare ?? "")],
+    })
+  );
+  if (input.cause) {
+    add({ id: "cause-result", label: "시세", at, url: null, news: false, texts: [input.cause.result], numbers: numericTokens(input.cause.result) });
+  }
   (input.news ?? []).forEach((n, i) =>
     add({
       id: `news-${i + 1}`,
@@ -302,11 +318,15 @@ export interface StoredExplanationHead {
   fingerprint: string;
   action: string;
   generatedAt: Date;
+  /** 만든 검증기 버전 — 이전 단은 지금 검증기로 만든 글만(아래) */
+  verifier?: { verifierVersion: string };
 }
 
 /**
  * 어느 단을 보이나 — 경계 표 테스트(`explanationSnapshot.test.ts`).
- * 이전 해설은 **같은 방향 · 판단 기간 안**에서만: 판정이 관망 → 후보로 바뀌었는데 관망 문장을 보이면 판단 카드와 해설이 서로 다른 말을 한다
+ * 이전 해설은 **같은 방향 · 판단 기간 안**에서만: 판정이 관망 → 후보로 바뀌었는데 관망 문장을 보이면 판단 카드와 해설이 서로 다른 말을 한다.
+ * **그리고 지금 검증기로 만든 글만**(F017 v4 1f) — 옛 검증기 글은 지금 규칙(4~6문장 · 되풀이 · 단계 이름)을 통과하지 않았다.
+ * 프롬프트를 바꾼 직후 하루 상한에 걸리면 옛 20문장 해설이 '이전 AI'로 나갔다(2026-11-13 실측) — 사실표 문장으로 내려간다
  */
 export const selectExplanationTier = (input: {
   mode: CoachMode;
@@ -321,6 +341,7 @@ export const selectExplanationTier = (input: {
   if (
     stored &&
     stored.action === input.action &&
+    (stored.verifier === undefined || stored.verifier.verifierVersion === EXPLANATION_VERIFIER_VERSION) &&
     input.now.getTime() - stored.generatedAt.getTime() <= EXPLANATION_PREVIOUS_MAX_AGE_MS[input.mode]
   ) {
     return "previous";

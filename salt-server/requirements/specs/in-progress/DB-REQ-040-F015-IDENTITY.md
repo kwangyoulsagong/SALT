@@ -48,3 +48,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | 옛 public 표 drop 마이그레이션 로컬 운영 적용(사용자 승인). FR-1 남은 것 0 |
 | 2026-11-12 | 서버 S3c(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FR-4 done(삭제 기록 V3 · 내보내기 요청 표 정정 — 만들지 않음). 발행 원장 둘의 계정 삭제 예외(저축 V4 · 가계부 V9). 로컬 운영 DB 적용. FR-6 은 S3d |
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): FR-6 done(정정 — 표 주석) · 새 FR-7 `usage_day` done. 로컬 운영 DB 적용 |
+| 2026-11-13 | `OPS-004` 짝 — `schema.prisma`(머리 주인)에 `PanelCellCheck`(`panel_cell_check` — 시장 층 · 사용자 열 0 · 30일) · 마이그레이션 `20261113200000_panel_cell_check`(표 하나 · 인덱스 하나 — 되돌리기 = 표 지우기) |

@@ -10,15 +10,12 @@ export const COACH_ENDPOINTS = {
   /** 사기 전 · 팔기 전 점검 — AI 패널 맨 위 쉬운 한 줄(F017 v2 단계 2 · `BFF-REQ-052` FR-3) */
   tradeCheck: (symbol: string, side: "buy" | "sell") =>
     `/api/app/ai-coach/check?symbol=${encodeURIComponent(symbol)}&side=${side}`,
-  /** 해설 — 서버가 미리 만든 것을 읽는다, 4단(F017 v2 단계 3 · `BFF-REQ-052` FR-2). 모드마다 다른 문장이라 모드를 싣는다 */
-  explanation: (symbol: string, mode: "scalp" | "long_term") =>
-    `/api/app/ai-coach/explanation?symbol=${encodeURIComponent(symbol)}&mode=${mode}`,
   /** 코치 리포트 (`BFF-REQ-023`). 종목 판단과 다른 화면 · 다른 경로다 */
   report: "/api/app/coach/report",
   /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */
   generationStatus: "/api/app/coach/generation-status",
-  /** 시나리오 — 모든 종목 · 기간 넷에 늘(F017 v4 순서 1) */
-  scenario: (symbol: string) => `/api/app/ai-coach/scenario?symbol=${encodeURIComponent(symbol)}`,
+  /** 한 장 패널 — 시나리오 · 점검 · 원인 · 회사 사정 · 성적 · 해설 · 내 기준 한 콜(F017 v4 1d · `BFF-REQ-052` FR-6) */
+  panel: (symbol: string) => `/api/app/ai-coach/panel?symbol=${encodeURIComponent(symbol)}`,
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
   events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-9) */

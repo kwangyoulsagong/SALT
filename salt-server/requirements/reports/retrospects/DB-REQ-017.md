@@ -184,3 +184,7 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 ## 2026-11-13 — 서버 S3d(짝)
 
 - Express 는 마디 단위 `app.use` 라 `/me/data` 와 `/me/data-classification` 이 겹치지 않는다
+
+## 2026-11-13 — upsert 생성 키
+
+- `upsert` 의 `where` 키를 `create` 에 안 넣으면 열 기본값이 키가 된다 — 첫 행만 맞고 다음부터 충돌. 사례 고침이 아니라 소스 검사로(`done-checklist.md` §1 행)

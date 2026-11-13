@@ -212,3 +212,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — 국내 상세 — `KrScenario` 가 접힌 "자세히" 대신 오른쪽 열 맨 위 카드로 늘 · 죽은 스타일 넷(`krMore*`) · 문구 둘 삭제
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1e 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경

@@ -351,7 +351,7 @@ const KNOWN_CAVEATS: readonly string[] = [
 ];
 
 /** 꼬리표 배열 — 배열이 아니면 계약 깨짐(`null`). 모르는 사유는 `unknown` 으로 남긴다(셈만, 숫자를 지어내지 않는다) */
-const toCaveats = (value: unknown): JudgmentCaveat[] | null => {
+export const toCaveats = (value: unknown): JudgmentCaveat[] | null => {
   if (!Array.isArray(value)) return null;
   return value.map((raw) => {
     const reason = (raw as { reason?: unknown } | null)?.reason;

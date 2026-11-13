@@ -2,7 +2,7 @@
 
 import { Text } from "@repo/ui/text";
 import { StatusLine } from "@repo/ui/statusLine";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 
 import {
   COACH_MESSAGES,
@@ -10,8 +10,6 @@ import {
   EventsCard,
   ExchangeCautionNote,
   PositioningCard,
-  DirectionScenarioCard,
-  DirectionScenarioSkeleton,
   JudgmentDetail,
   ProfitPlan,
   selectModeView,
@@ -19,7 +17,6 @@ import {
   useSymbolCoach,
   useSymbolEvents,
   useSymbolPositioning,
-  useSymbolScenario,
   useTradePlans,
   ZoneLegend,
   ZoneSummary,
@@ -27,8 +24,6 @@ import {
   zoneToPriceLines,
 } from "@/entities/coach";
 import { MarketDetailChart, useMarketListing, useWhyMoved, WhyMovedCard } from "@/entities/market";
-import { TradeCheckCard } from "@/features/check-trade-odds";
-import { ExplainCard } from "@/features/explain-symbol";
 import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
 import {
@@ -73,10 +68,8 @@ import {
  * 레이아웃(F010 슬라이스 3 재배치 · 리서치 §9-4): PC 는 좌(코치 판단 → 차트 · 구간) / 우(왜 움직였나 → 다음 시나리오 → 자세히[주요 사건 ·
  * 쏠림] → 해설 → 수익 플랜 → 주문 전 체크 → 내 계획 → 거래 기록), 1024px 이하는 그 순서 그대로 한 줄이다. 첫 화면에 판정이 있다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
  */
-export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
+export const SymbolAnalysis = ({ symbol, scenarioPanel }: { symbol: string; scenarioPanel?: ReactNode }) => {
   const coach = useSymbolCoach(symbol);
-  // 시나리오 — 모든 종목에 늘(과거 실제 결과 · F017 v4 순서 1 `FE-REQ-064` FR-8). 오른쪽 열 맨 위, 접지 않는다
-  const scenario = useSymbolScenario(symbol);
   // 오늘 왜 움직였나(F016 단계 C) — 로그인 사용자. 실패 · 불러오는 중엔 자리가 없다(카드가 숨는다)
   const whyMoved = useWhyMoved({ kind: "crypto", symbol });
   // 주요 사건(거시 일정) — 전망과 같은 소유자 규칙(F008 슬라이스 22)
@@ -145,7 +138,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
       <>
         {/* 상세 카드는 성적 · 실패 사례까지 길다 — 끝에 두면 묻힌다. 판단보다 먼저 사실 한 줄 */}
         <ExchangeCautionNote flag={coach.data.exchangeFlag} />
-        <JudgmentDetail view={modeView} mode={mode} />
+        {/* 성적 · 틀렸던 때는 한 장 패널의 성적 줄이 같은 숫자로 그린다 — 두 번 두지 않는다(F017 v4 1e) */}
+        <JudgmentDetail view={modeView} mode={mode} showTrack={!scenarioPanel} />
       </>
     );
   };
@@ -167,8 +161,6 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               </div>
               {/* 로그인 없이 보면 유리막(`FE-REQ-070`) — 판단은 AI 칸 */}
               <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.coach} placeholder={<CoachBlockSkeleton block="judgment" />}>
-                {/* 맨 위 쉬운 한 줄 — 판단보다 먼저(F017 v2 단계 2 · FE-REQ-064 FR-3) */}
-                <TradeCheckCard symbol={symbol} />
                 {renderCoach()}
               </SignInRequired>
             </section>
@@ -203,34 +195,26 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 className={card}
                 result={whyMoved.data}
                 cautionLabel={(code) => (COACH_MESSAGES.exchangeCaution.kinds as Record<string, string>)[code]}
+                // 원인 → 근거 → 결과는 한 장 패널이 그린다(F017 v4 1e) — 여기는 등락 나눠 보기 · 같은 날 있었던 일
+                hideCause={Boolean(scenarioPanel)}
               />
             )}
-            {/* 다음 시나리오 — 모든 종목에 늘. 로그인 없이 보면 유리막(AI 칸, `FE-REQ-070`) */}
-            <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.scenario} minHeight={480}>
-              {scenario.data || scenario.isError ? (
-                <DirectionScenarioCard className={card} result={scenario.data ?? { status: "unavailable" }} />
-              ) : (
-                <DirectionScenarioSkeleton className={card} />
-              )}
-            </SignInRequired>
+            {/*
+              한 장 패널 — 시나리오 · 점검 · 원인 · 회사 사정 · 틀리는 때 · 성적 · AI 해설 · 내 기준(F017 v4 1e · `FE-REQ-064` FR-8).
+              위젯끼리 부를 수 없어 페이지가 끼워 준다. 로그인 없이 보면 유리막(AI 칸, `FE-REQ-070`)
+            */}
+            {scenarioPanel && (
+              <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.scenario} minHeight={480}>
+                {/* 겉 카드(면 · 모서리 · 여백)는 이 열의 카드와 같게 — 패널은 안쪽 틀만 갖는다 */}
+                <div className={card}>{scenarioPanel}</div>
+              </SignInRequired>
+            )}
             {ownerCards}
-            {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
-            {coach.data && mode && (
-              <>
-                <ExplainCard
-                  key={mode}
-                  className={card}
-                  symbol={symbol}
-                  mode={mode}
-                  headingLevel={3}
-                />
-                {/* 제목을 붙이지 않는다 — `ProfitPlan` 이 자기 제목을 그린다(두 번 나온다) */}
-                {modeView && (
-                  <section className={card}>
-                    <ProfitPlan zone={modeView.zone} />
-                  </section>
-                )}
-              </>
+            {/* 해설은 한 장 패널 안(F017 v4 1e). 수익 플랜 — 제목을 붙이지 않는다(`ProfitPlan` 이 자기 제목을 그린다) */}
+            {modeView && (
+              <section className={card}>
+                <ProfitPlan zone={modeView.zone} />
+              </section>
             )}
             {/* F004 FR-30 — 수익 플랜 다음 주문 전 체크(FR-25 순서). 사기 전 계산이라 이미 한 거래를 적는 폼보다 위 */}
             <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.preflight} minHeight={120}>

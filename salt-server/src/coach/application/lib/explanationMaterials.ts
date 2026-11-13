@@ -8,7 +8,7 @@ import {
   type NewsProbe,
   type SymbolJudgmentStore,
 } from "../../domain";
-import { collectJudgmentMaterials, indicatorFor, judgeSymbol, materialGuards } from "./judgeSymbols";
+import { collectJudgmentMaterials, indicatorFor, judgeSymbol, materialGuards, type SymbolJudgmentMaterials } from "./judgeSymbols";
 import { attachJudgmentTrack, type ModeCoachView } from "./judgmentTrack";
 
 export interface ExplanationMaterialsDeps {
@@ -39,14 +39,33 @@ export const prepareExplanation = async (
   rawSymbol: string,
   mode: CoachMode,
   now: Date
-): Promise<PreparedExplanation> => {
+): Promise<PreparedExplanation> => prepareExplanationMode(deps, await loadExplanationBase(deps, rawSymbol), mode, now);
+
+/** 모드와 무관한 재료(시세 · 지표 · 심리 · 고래 · 소식) — 두 모드 해설이 한 번만 읽게(한 장 패널, F017 v4 1d) */
+export interface ExplanationBase {
+  symbol: string;
+  materials: SymbolJudgmentMaterials;
+  judged: ReturnType<typeof judgeSymbol>;
+  news: Awaited<ReturnType<NewsProbe["recentForSymbol"]>>;
+}
+
+export const loadExplanationBase = async (deps: ExplanationMaterialsDeps, rawSymbol: string): Promise<ExplanationBase> => {
   const symbol = rawSymbol.toUpperCase();
   const [materialsBySymbol, news] = await Promise.all([
     collectJudgmentMaterials(deps.market, [symbol]),
     deps.news.recentForSymbol(symbol, EXPLANATION_NEWS_MAX).catch(() => []),
   ]);
   const materials = materialsBySymbol.get(symbol)!;
-  const judged = judgeSymbol(symbol, materials, false);
+  return { symbol, materials, judged: judgeSymbol(symbol, materials, false), news };
+};
+
+export const prepareExplanationMode = async (
+  deps: ExplanationMaterialsDeps,
+  base: ExplanationBase,
+  mode: CoachMode,
+  now: Date
+): Promise<PreparedExplanation> => {
+  const { symbol, materials, judged, news } = base;
   const decision = mode === "scalp" ? judged.scalp : judged.longTerm;
   const view = await attachJudgmentTrack(
     deps.judgments,

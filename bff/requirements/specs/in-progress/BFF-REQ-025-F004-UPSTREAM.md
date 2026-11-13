@@ -169,6 +169,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): `proxy.routes.ts` 의 `/goals*` 프록시 8줄 삭제 — 저축은 `/api/app/savings/*`(`BFF-REQ-047`), 옛 경로는 410 |
 | 2026-11-10 | v2 대체 표시 — FR-40 · FR-44 · FR-45 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — FR-1~12 즉석 해설(20초 · 재시도 0 · 동시 2 · `explain_busy`) **은퇴** — 해설은 서버 저장값 읽기 `GET /api/app/ai-coach/explanation` 300ms · GET 재시도 1(`BFF-REQ-052` FR-2) |
+| 2026-11-13 | F017 v4 1d 짝(`BFF-REQ-052` FR-6) — `app-ai-coach.service.ts`(머리 주인)에 `getPanel`(서버 `/coach/panel` 한 콜 · 400ms · 조회 1회 재시도 · 머리 깨짐 502). 기존 호출 맵 변경 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f843104e`) — FR-40 계약 가드: 꼬리표 배열 없음 · 결함 꼬리표 없이 빈 실패사례면 `null`, 3종 결함은 보인다
   - `bff/src/rest/routes/proxy.routes.ts` — `POST /api/auth/guest` 통과

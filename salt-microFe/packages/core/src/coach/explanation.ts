@@ -1,5 +1,5 @@
 /**
- * 종목 해설 — BFF `GET /api/app/ai-coach/explanation` 뷰모델(F017 v2 단계 3 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2).
+ * 종목 해설 — BFF 한 장 패널 `GET /api/app/ai-coach/panel` 의 `modes.*.explanation.view`(F017 v2 단계 3 · v4 1e · `BFF-REQ-052` FR-2 · FR-6 · `FE-REQ-064` FR-10). 칸별 경로 `/explanation` 은 2026-11-13 은퇴.
  * 정의 원본은 `bff/src/services/explanation.viewmodel.ts` — 모양을 바꾸면 둘을 같이 바꾼다.
  *
  * 서버가 미리 만든 해설(배치)을 읽기만 한다 — 4단 중 하나, 문장은 늘 하나 이상, 문장마다 인용 하나 이상.

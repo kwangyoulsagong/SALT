@@ -53,10 +53,14 @@ export const goneMiddleware = (req: Request, res: Response) => {
  * - `/api/goals` — 저축이 Kotlin `savings` 서비스로 태어났다(`SRV-REQ-045` · `BFF-REQ-047` FR-7, 2026-11-03). 데이터는 `savings-import.sql` 로 옮겼다
  * - `/api/app/onboarding/status` — 옛 3스텝(초대 · 첫 거래 · 첫 목표)이 도메인 선택 온보딩으로 바뀌었다(`BFF-REQ-046` FR-6 · `SRV-REQ-048` FR-1, 2026-11-06 서버 S3a).
  *   온보딩 라우터 뒤에 걸려 있어 `/status` 만 여기로 떨어진다
+ * - `/api/app/ai-coach/scenario` · `/explanation` — 칸별 경로가 한 장 패널 한 콜로 합쳐졌다(F017 v4 1e · `BFF-REQ-052` FR-6, 2026-11-13).
+ *   코치 라우터 뒤라 지운 두 경로만 여기로 떨어진다
  */
 export const RETIRED_PATHS: Readonly<Record<string, string>> = {
   "/api/goals": "/api/app/savings",
   "/api/app/onboarding/status": "/api/app/onboarding",
+  "/api/app/ai-coach/scenario": "/api/app/ai-coach/panel",
+  "/api/app/ai-coach/explanation": "/api/app/ai-coach/panel",
 };
 
 const retiredLogged = new Set<string>();

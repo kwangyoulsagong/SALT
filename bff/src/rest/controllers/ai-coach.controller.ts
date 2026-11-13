@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { appAICoachService } from "../../services/app-ai-coach.service";
-import { appForecastService } from "../../services/app-forecast.service";
-
-const SYMBOL_PATTERN = /^[A-Za-z0-9]{1,20}$/;
+import { formatSseEvent } from "../../utils/sse.util";
 
 export class AppAICoachController {
   preview = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,21 +32,62 @@ export class AppAICoachController {
     }
   };
 
-  /** 시나리오 — 모든 종목 · 지평 넷에 늘(로그인한 누구나 · 모델 확률 칸만 소유자). F017 v4 `BFF-REQ-052` FR-4 개정 */
-  scenario = async (req: Request, res: Response, next: NextFunction) => {
-    const symbol = typeof req.query.symbol === "string" ? req.query.symbol.trim() : "";
-    if (!SYMBOL_PATTERN.test(symbol)) {
-      return res.status(400).json({ success: false, message: "symbol 형식이 아닙니다" });
-    }
+  /** 한 장 패널(F017 v4 1d) — 종목을 빨리 바꾸면 이전 요청을 끊는다(upstream 도) */
+  panel = async (req: Request, res: Response, next: NextFunction) => {
     const aborter = new AbortController();
     res.on("close", () => {
       if (!res.writableFinished) aborter.abort();
     });
     try {
-      const data = await appForecastService.getScenario(req.token!, symbol.toUpperCase(), aborter.signal);
+      const data = await appAICoachService.getPanel(req.token!, req.query, aborter.signal);
       return res.json({ success: true, data });
     } catch (error) {
       if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
+  /**
+   * 해설 스트림(SSE, F017 v4 1f · `BFF-REQ-052` FR-7) — 압축 · 버퍼링 끔 · 15초 ping(`streaming-sse.md` §5).
+   * 화면이 떠나면 서버 연결도 끊는다(생성은 서버가 끝까지 — 저장용). 헤더 전 실패(400 · 401 · 서버 4xx)는 오류 미들웨어로
+   */
+  explainStream = async (req: Request, res: Response, next: NextFunction) => {
+    const aborter = new AbortController();
+    let opened = false;
+    const ping = setInterval(() => opened && !res.writableEnded && res.write(": ping\n\n"), 15_000);
+    res.on("close", () => {
+      clearInterval(ping);
+      if (!res.writableFinished) aborter.abort();
+    });
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+    };
+    try {
+      await appAICoachService.streamExplanation(
+        req.token!,
+        req.query,
+        (e) => {
+          open();
+          if (!res.writableEnded) res.write(formatSseEvent(e.event, JSON.stringify(e.data)));
+        },
+        aborter.signal,
+      );
+      if (!opened) open();
+      res.end();
+    } catch (error) {
+      clearInterval(ping);
+      if (aborter.signal.aborted) return;
+      if (opened) {
+        res.write(formatSseEvent("error", JSON.stringify({ code: "EXPLAIN_STREAM_FAILED" })));
+        return res.end();
+      }
       next(error);
     }
   };
@@ -95,20 +134,6 @@ export class AppAICoachController {
     }
   };
 
-  /** 해설(F017 v2 단계 3) — 저장값 읽기라 짧다. 화면을 떠나면 서버 호출도 끊는다 */
-  explanation = async (req: Request, res: Response, next: NextFunction) => {
-    const aborter = new AbortController();
-    res.on("close", () => {
-      if (!res.writableFinished) aborter.abort();
-    });
-    try {
-      const data = await appAICoachService.getExplanation(req.token!, req.query, aborter.signal);
-      return res.json({ success: true, data });
-    } catch (error) {
-      if (aborter.signal.aborted) return;
-      next(error);
-    }
-  };
 }
 
 export const appAICoachController = new AppAICoachController();

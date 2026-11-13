@@ -15,7 +15,9 @@ import type {
 import { EXPLANATION_BATCH_MAX_PER_RUN } from "../../domain";
 import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
 import { GetSymbolExplanation, trustInput } from "../GetSymbolExplanation";
+import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
 import { ExplanationDemand } from "../lib/explanationDemand";
+import { ExplanationGenerations } from "../lib/explanationGeneration";
 
 /**
  * 해설 스냅샷 — 배치(쓰기)와 읽기(4단) (F017 v2 단계 3 · `SRV-REQ-053` FR-3).
@@ -116,7 +118,7 @@ const setup = (opts: { prices?: Record<string, number | null>; tracked?: string[
   const tracked: TrackedAssetProbe = { listTrackedSymbols: async () => opts.tracked ?? ["BTC"] };
   const read = new GetSymbolExplanation(deps);
   const batch = (explainer: CoachExplainer, llmEnabled = true) =>
-    new GenerateExplanationSnapshots({ ...deps, explainer, tracked, llmEnabled });
+    new GenerateExplanationSnapshots({ ...deps, explainer, tracked, llmEnabled, generations: new ExplanationGenerations() });
   return { read, batch, rows, demand };
 };
 
@@ -158,6 +160,25 @@ describe("GetSymbolExplanation — 4단, 빈 칸 0", () => {
     const view = await read.execute("BTC", "scalp");
     assert.equal(view.tier, "previous");
     assert.equal(view.aiGenerated, true);
+  });
+});
+
+describe("두 모드 한 번에(한 장 패널 — F017 v4 1d)", () => {
+  it("모드마다 제 해설 · 모드와 무관한 재료(시세)는 한 번만 읽는다 · 하나씩 부른 것과 같다", async () => {
+    const { read } = setup();
+    const market = (read as unknown as { deps: { market: MarketProbe } }).deps.market;
+    let quoteReads = 0;
+    const original = market.quotes.bind(market);
+    market.quotes = async (symbols) => {
+      quoteReads += 1;
+      return original(symbols);
+    };
+    const [scalp, longTerm] = await read.executeModes("BTC", ["scalp", "long_term"]);
+    assert.equal(quoteReads, 1);
+    assert.equal(scalp!.mode, "scalp");
+    assert.equal(longTerm!.mode, "long_term");
+    assert.deepEqual(scalp, await read.execute("BTC", "scalp"));
+    assert.deepEqual(longTerm, await read.execute("BTC", "long_term"));
   });
 });
 
@@ -270,5 +291,156 @@ describe("GenerateExplanationSnapshots — 지문이 바뀐 것만 · 실패는 
     const r = await batch(spy.explainer, false).execute();
     assert.equal(spy.calls.length, 0);
     assert.equal(r.candidates, 0);
+  });
+});
+
+describe("해설 스트림 — 저장본 한 번 · 없으면 생성하며 문장부터 · 생성 하나에 구독 여럿(F017 v4 1f · SRV-REQ-053 FR-9)", () => {
+  const streamSetup = (explainer: CoachExplainer, opts: { llmEnabled?: boolean } = {}) => {
+    const { store, rows } = memoryStore();
+    const demand = new ExplanationDemand();
+    const generations = new ExplanationGenerations();
+    const materials = { market: marketWith({ BTC: 100 }), news, judgments, backtestJudgments: null };
+    const read = new GetSymbolExplanation({ ...materials, store, demand, now: () => T0 });
+    const stream = new StreamSymbolExplanation({
+      ...materials,
+      read,
+      explainer,
+      store,
+      generations,
+      llmEnabled: opts.llmEnabled ?? true,
+      now: () => T0,
+    });
+    const batch = new GenerateExplanationSnapshots({
+      ...materials,
+      explainer,
+      store,
+      demand,
+      tracked: { listTrackedSymbols: async () => ["BTC"] },
+      llmEnabled: true,
+      generations,
+      now: () => T0,
+    });
+    return { stream, batch, rows, generations };
+  };
+  const recorder = () => {
+    const events: string[] = [];
+    const sink = {
+      snapshot: () => events.push("snapshot"),
+      sentence: (s: { section: string }) => events.push(`sentence:${s.section}`),
+      done: (v: { tier: string }) => events.push(`done:${v.tier}`),
+      fallback: (v: { tier: string }) => events.push(`fallback:${v.tier}`),
+    };
+    return { events, sink };
+  };
+  /** 줄 형식 공급자 흉내 — 줄마다 `onLine` 을 부르고, 끝에 한 벌을 돌려준다 */
+  const lineExplainer = (gate?: Promise<void>) => {
+    let calls = 0;
+    const explainer: CoachExplainer = {
+      explain: async (_input, _signal, _caller, hooks) => {
+        calls += 1;
+        hooks?.onProvider?.("local_claude", true);
+        hooks?.onLine?.({ section: "modeReasoning", text: "비트코인은 지금 지켜보는 구간이에요." });
+        await gate;
+        hooks?.onLine?.({ section: "keyDrivers", text: "RSI 48 로 침체와 과열 사이예요." });
+        hooks?.onLine?.({ section: "keyDrivers", text: "RSI 48 로 침체와 과열 사이예요!" }); // 되풀이 — 흘리지 않는다
+        hooks?.onLine?.({ section: "risks", text: "심리가 공포 쪽이에요." });
+        return { ...llmText, modeReasoning: "비트코인은 지금 지켜보는 구간이에요.", newsSummary: [] };
+      },
+    };
+    return { explainer, calls: () => calls };
+  };
+
+  it("저장본이 없으면 생성하며 검사를 지난 문장부터 흘리고 저장 뒤 done(최신 AI)", async () => {
+    const { explainer } = lineExplainer();
+    const { stream, rows } = streamSetup(explainer);
+    const { events, sink } = recorder();
+    await stream.execute("BTC", "scalp", sink);
+    assert.deepEqual(events, ["sentence:modeReasoning", "sentence:keyDrivers", "sentence:risks", "done:latest"]);
+    assert.equal(rows.length, 1);
+  });
+
+  it("지금 지문의 저장본이 있으면 snapshot 한 번 — LLM 0", async () => {
+    const first = lineExplainer();
+    const { stream } = streamSetup(first.explainer);
+    await stream.execute("BTC", "scalp", recorder().sink);
+    const { events, sink } = recorder();
+    await stream.execute("BTC", "scalp", sink);
+    assert.deepEqual(events, ["snapshot"]);
+    assert.equal(first.calls(), 1);
+  });
+
+  it("같은 지문을 동시에 연 둘은 생성 하나 · 늦게 붙은 쪽도 앞 문장부터", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((ok) => (release = ok));
+    const lx = lineExplainer(gate);
+    const { stream } = streamSetup(lx.explainer);
+    const a = recorder();
+    const b = recorder();
+    const pa = stream.execute("BTC", "scalp", a.sink);
+    await new Promise((ok) => setTimeout(ok, 20));
+    const pb = stream.execute("BTC", "scalp", b.sink);
+    await new Promise((ok) => setTimeout(ok, 20));
+    release();
+    await Promise.all([pa, pb]);
+    assert.equal(lx.calls(), 1);
+    assert.deepEqual(b.events, a.events);
+    assert.equal(a.events.at(-1), "done:latest");
+  });
+
+  it("배치와 스트림이 같은 지문을 같이 만들면 LLM 한 번", async () => {
+    let release!: () => void;
+    const lx = lineExplainer(new Promise<void>((ok) => (release = ok)));
+    const { stream, batch } = streamSetup(lx.explainer);
+    const s = stream.execute("BTC", "scalp", recorder().sink);
+    await new Promise((ok) => setTimeout(ok, 20));
+    const run = batch.execute();
+    await new Promise((ok) => setTimeout(ok, 20));
+    release();
+    await Promise.all([s, run]);
+    // 배치는 두 모드(단타 · 장기) — 단타는 스트림 생성에 붙었다
+    assert.equal(lx.calls(), 2);
+  });
+
+  it("화면이 떠나도 생성은 끝까지 가서 저장 — 떠난 쪽엔 더 보내지 않는다", async () => {
+    let release!: () => void;
+    const lx = lineExplainer(new Promise<void>((ok) => (release = ok)));
+    const { stream, rows, generations } = streamSetup(lx.explainer);
+    const aborter = new AbortController();
+    const { events, sink } = recorder();
+    const p = stream.execute("BTC", "scalp", sink, aborter.signal);
+    await new Promise((ok) => setTimeout(ok, 20));
+    aborter.abort();
+    release();
+    await p;
+    await new Promise((ok) => setTimeout(ok, 20));
+    assert.deepEqual(events, ["sentence:modeReasoning"]);
+    assert.equal(rows.length, 1);
+    assert.equal(generations.size, 0);
+  });
+
+  it("LLM 이 꺼져 있으면 fallback(서버 문장)", async () => {
+    const lx = lineExplainer();
+    const { stream } = streamSetup(lx.explainer, { llmEnabled: false });
+    const { events, sink } = recorder();
+    await stream.execute("BTC", "scalp", sink);
+    assert.deepEqual(events, ["fallback:template"]);
+    assert.equal(lx.calls(), 0);
+  });
+
+  it("줄 형식이 아닌 공급자(JSON 한 번에)면 저장 문장을 done 앞에 흘린다 — 화면 순서가 같다", async () => {
+    const { stream } = streamSetup(spyExplainer(() => llmText).explainer);
+    const { events, sink } = recorder();
+    await stream.execute("BTC", "scalp", sink);
+    assert.ok(events.filter((e) => e.startsWith("sentence:")).length >= 3, events.join(","));
+    assert.equal(events.at(-1), "done:latest");
+    assert.equal(events.indexOf("sentence:modeReasoning"), 0);
+  });
+
+  it("생성 실패면 fallback · 저장 0", async () => {
+    const { stream, rows } = streamSetup({ explain: async () => Promise.reject(new Error("boom")) });
+    const { events, sink } = recorder();
+    await stream.execute("BTC", "scalp", sink);
+    assert.deepEqual(events, ["fallback:template"]);
+    assert.equal(rows.length, 0);
   });
 });

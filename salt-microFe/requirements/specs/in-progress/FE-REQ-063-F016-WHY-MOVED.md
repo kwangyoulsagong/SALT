@@ -97,3 +97,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-12 | 단계 D 마무리 — FR-7 문구 grep 0 · `i18n-policy` 원인 단정어 줄(`ADR-009` §5) · AI 표시 대비(axe) |
 | 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-9 원인 근거 결과 모양 · 프리뷰 출처 이름 · 상세 카드는 시나리오 패널로 |
 | 2026-11-13 | **F017 v4 순서 1b**(`feat/f017-v4-s1-scenario-always`) FR-9 **일부** — `WhyMovedCard` 맨 위 원인 → 근거 → 결과 세로 칸(단계 배지 · 단계를 정한 근거 굵게 · 이름 출처 칩 · 용어 풀이 · 다른 가능성 접힘) · 소식 원인은 아래 그 사실 줄로 이음 · 미리보기는 ③ 이 없을 때 '가장 유력 · 머리말'. 결과 칸이 오늘 등락을 말하면 아래 같은 숫자 줄을 뺀다. 접힌 카드 요약에 heading 역할(axe heading-order — main 에도 있던 결함). 패널로 옮기는 것은 순서 1e |
+| 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — `WhyMovedCard.tsx`(머리 주인) `hideCause` — 패널이 원인 칸을 그리는 자리에서 끈다(① 분해 · ② 사실은 그대로). 동작 변경은 그 자리뿐 |

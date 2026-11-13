@@ -438,3 +438,4 @@ PC                                                   모바일(세로 스택)
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `messages.ts` · `JudgmentSummary` — 관망 "규칙이 신호를 내지 않았어요" · 본 값 한 줄 · 근거 수에 관측(`FE-REQ-064` FR-1, `80d82128`)
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` 에 걸린 몫: 등급 문구 `tier`(글자 셋 · 참고 이유 다섯 + 계산 못 함 · 검증됨 · 주의 문장 — '실력 있음' 같은 말 0). 주인 `FE-REQ-064` FR-1. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `symbol-analysis` 문구 표 — 유리막 이름 `scenario` 더함 · "자세히" 요약에서 시나리오 뺌(오른쪽 열에 늘). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
+| 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — `JudgmentDetail.tsx`(머리 주인) `showTrack`(기본 켬) — 패널이 성적을 그리는 자리에서 끈다(같은 숫자 두 번 금지). 동작 변경은 그 자리뿐 |

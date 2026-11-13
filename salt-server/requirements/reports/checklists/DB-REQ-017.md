@@ -324,3 +324,9 @@
 - 이 REQ 몫: `src/app.ts` 에 라우터 하나 — `/api/investment/me/data-classification`(내 데이터 경로와 같은 자리 · `/api/investment` 보다 먼저)
 - 확인: Express build · lint · test 1300/1300 · layer-check · 실스택 23ms
 - 미검증: 없음
+
+## 2026-11-13 — 인사이트 upsert 의 빠진 생성 키(F017 v4 확인 중 발견)
+
+- [x] 3곳 `create` 에 `dedupeKey` — 기동 로그 P2002 0(재기동 뒤 확인)
+- [x] 소스 검사 `upsertCreateKeys.test.ts` 2/2 · 변이(한 곳 키 지움 → 실패) · 서버 test 1460/1460 · tsc · layer-check 사후 실행(음성 대조 exit 2)
+- 미검증: 없음 — 옛 기본값 행 4개는 이미 만료라 두었다(지우는 이득 0)

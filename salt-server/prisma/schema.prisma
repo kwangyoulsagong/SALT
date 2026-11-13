@@ -690,6 +690,24 @@ model MoveExplanation {
   @@map("move_explanation")
 }
 
+// 패널 칸 채움 실측(OPS-004 · F017 v4) — 하루 두 번 추적 종목 전부의 한 장 패널 응답을 불러 종목 × 칸마다 어느 단을 썼나.
+// 시장 층 — 사용자 열 0. 상태 점검(`ops/salt.sh status`)이 마지막 회차만 읽는다. 30일 보관(유스케이스가 지운다)
+model PanelCellCheck {
+  id        String   @id @default(uuid())
+  runAt     DateTime @map("run_at")
+  market    String // "crypto" | "kr"
+  symbol    String
+  cellKey   String   @map("cell_key") // coachPanel.ts PanelCellKey
+  tier      String // "now" | "usual" | "longer" | "defect"
+  // 서버 점검이 기준 종가가 묵었다고 본 종목(수집 멈춤 — 빈 칸이 아니라 마지막 값 + 기준 시각으로 보인다)
+  stale     Boolean  @default(false)
+  // 지난 회차에 없던 종목(오늘 추적을 시작 — 과거분 채움이 됐나)
+  newSymbol Boolean  @default(false) @map("new_symbol")
+
+  @@index([runAt])
+  @@map("panel_cell_check")
+}
+
 model TradeCheckLedgerEntry {
   id           String   @id @default(uuid())
   preregKey    String   @map("prereg_key")

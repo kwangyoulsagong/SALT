@@ -175,7 +175,7 @@ export const summaryText = style({
   wordBreak: "keep-all",
   overflowWrap: "anywhere",
 });
-/** 번호 칩 — 해설 칸(`ExplainCard`)과 같은 모양. 누르면 아래 그 사실 줄로 */
+/** 번호 칩 — 누르면 아래 그 사실 줄로(옛 해설 칸과 같은 모양이었다 — 해설은 2026-11-13 이름 칩으로) */
 export const citeChip = style({
   display: "inline-flex",
   alignItems: "center",

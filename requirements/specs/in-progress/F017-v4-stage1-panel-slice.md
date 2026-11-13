@@ -4,7 +4,7 @@ title: "F017 v4 순서 1 — 있는 데이터로 패널: 시나리오 늘 · 원
 priority: high
 labels: [F017, slice, server, bff, fe]
 created: 2026-11-13
-status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 문장 done — 2026-11-13. 1d~1f 남음)
+status: done (1a~1f 전부 2026-11-13)
 ---
 
 ## Summary
@@ -17,9 +17,9 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 1a | **시나리오 늘** — 모든 종목 · 지평 넷(1시간 · 4시간 · 1일 · 5일)에 과거 실제 결과("100번 중 n번 올랐어요") · 모델 확률은 소유자 + 시험을 넘은 칸만 · 접힌 자리에서 꺼냄 | `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 개정 · `FE-REQ-064` FR-8 머리 | **done 2026-11-13**(`feat/f017-v4-s1-scenario-always`) |
 | 1b | 원인 · 근거 · 결과 조립(업종 · 수급 · 프로그램 · 소식 뒤 30분 — LLM 0) · 코인 원인 순서 · '왜 움직였나' 카드 맨 위 · 미리보기 원인 줄 | `SRV-REQ-053` FR-11 · FR-17 · `BFF-REQ-052` FR-6 일부 · `FE-REQ-063` FR-9 일부 | **done 2026-11-13** |
 | 1c | 3종 문장(적중률 · 틀렸던 때를 서버가 판단 블록과 같은 값으로 — `explanationPlain.ts`) — 해설 네 단 모두 맨 뒤 | `SRV-REQ-053` FR-16 일부 · `BFF-REQ-052` FR-2 · `FE-REQ-064` FR-2 | **done 2026-11-13** — FR-16 나머지(LLM 재료 · 순서 · 검사)는 1f 로 |
-| 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 | `SRV-REQ-053` FR-13 · `BFF-REQ-052` FR-6 | to-do |
-| 1e | 패널 UI(시안 — 부채꼴 · 줄 넷 · 해설 상자 · 내 기준) | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 | to-do |
-| 1f | 해설 스트림 | `SRV-REQ-053` FR-9 · FR-16 나머지(LLM 재료 · 문장 순서 · 검사 — 생성 경로를 다시 쓰며 한 번에) · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | to-do |
+| 1d | 패널 한 번 응답(`tier` · `status` · `asOf`) · BFF 패널 뷰모델 · 내 기준 | `SRV-REQ-053` FR-13 · FR-15 · `BFF-REQ-052` FR-6 · FR-8 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
+| 1e | 패널 UI(시안 — 부채꼴 · 줄 다섯 · 해설 상자 · 내 기준) · 칸별 BFF 경로 은퇴 | `FE-REQ-064` FR-8 나머지 · FR-9~11 · FR-13 · `BFF-REQ-052` FR-6 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) — FR-10 스트림은 1f |
+| 1f | 해설 스트림 · 해설 v2(4~6문장 · 원인 재료 · 이름) | `SRV-REQ-053` FR-9 · FR-16 나머지 · `BFF-REQ-052` FR-7 · `FE-REQ-064` FR-10 | **done 2026-11-13**(`feat/f017-v4-s1d-coach-panel`) |
 
 ## 판단 — 리뷰가 볼 곳 (1a)
 
@@ -62,6 +62,46 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 - BFF `GET /api/app/ai-coach/scenario` — **BREAKING**: `renderable` · `blockedReason` 삭제 → `source` · `tier` · `basis` · `modelBlocked`. 소비처(웹 카드 하나)를 같은 브랜치에서 옮김. 앱 웹뷰는 웹 화면을 그대로 쓴다(네이티브 소비 0)
 - DB · 예측 — 변경 0(읽는 뷰 그대로)
 
+## 판단 — 리뷰가 볼 곳 (1d)
+
+1. **조립만 · 새 계산 0** — 패널은 칸별 경로와 같은 유스케이스 인스턴스(서버) · 같은 뷰모델(BFF)을 그대로 부른다. 더한 것은 칸 단 규칙 한 파일(`coachPanel.ts`)
+2. **단 넷의 뜻** — `now` 제 값 · `usual` 평소 · 이전 값 · `longer` 대신 채운 값(긴 지평 · 과거 검산 · 사실표 해설) · `defect` 아직 말할 수 없음(표본 문턱 밑 · 읽기 실패 · 재료 없음). '확인된 소식이 없어요'는 데이터라 `usual`, 회사 사정은 재료가 순서 2 라 늘 `defect`
+3. **칸 표는 BFF 가 마지막으로 만든다** — BFF 가 칸을 내리면(계약 깨짐) 칸 표도 내린 단. 상태 점검은 화면이 보는 단을 센다
+4. **기간 탭 → 모드는 서버가 준다**(1h · 4h 단타 · 1d · 5d 장기) — 해설은 두 모드 다 실어 탭마다 다시 부르지 않는다. 그래서 모드와 무관한 재료를 한 번 읽도록 해설 읽기를 나눴다(동시 4 p95 371 → 140ms)
+5. **내 기준** — 손절가 먼저(지키는 쪽) · 없으면 목표가 · 거리는 지금 가격 대비 · 매입가 숨김이면 평단 · 손익 null · 보유를 못 읽으면 `degraded`(보유 없음으로 접지 않는다). 보유 일수는 화면 소비가 없어 뺐다
+
+## 계약 변경 (1d)
+
+- 서버 `GET /api/coach/panel` 신규 · market 공개 API `whyMovedCard(asset, symbol, opts?)` — `opts.cause` 추가(기본 false = 지금 동작) · 뷰에 `cause`(true 일 때만)
+- BFF `GET /api/app/ai-coach/panel` 신규. 칸별 경로는 그대로(1e 에서 웹 소비처를 옮긴 뒤 삭제)
+- DB · 예측 — 변경 0
+
+## 판단 — 리뷰가 볼 곳 (1e)
+
+1. **같은 숫자 두 번 금지가 자리를 정했다** — 패널이 있는 자리에서 판단 카드의 성적 · 틀렸던 때와 왜 움직였나 카드의 원인 칸을 끈다(옵션 · 기본은 켬). 점검 카드는 '보통은' 줄로 옮겼다(100칸 점이 한 벌)
+2. **시안의 가격 라벨 · 분포 막대를 뺐다** — 둘 다 화면이 숫자를 만들었다(가격 × % · 세 값으로 정규분포). 라벨은 서버 % · 틀리는 선 가격은 서버 값
+3. **위젯끼리 부르지 않는다** — 코인 상세 본문(위젯)에 패널(위젯)은 페이지가 끼워 준다(slot)
+4. **해설 문장 수는 프론트가 자르지 않는다** — 지금 20문장까지 나온다. 4~6개는 생성을 다시 쓰는 1f 에서 서버가
+
+## 계약 변경 (1e)
+
+- BFF **BREAKING** — `GET /api/app/ai-coach/scenario` · `/explanation` 은퇴(410 + replacement `/panel`, 1주). 웹 소비처는 같은 브랜치에서 옮김 · 앱 네이티브 소비 0
+- 웹 — `features/explain-symbol` 삭제 · `widgets/scenario-panel` 신규(레지스트리 · `layer-rules.cjs`)
+
+## 판단 — 리뷰가 볼 곳 (1f)
+
+1. **문장 수는 서버가 정한다** — 칸 상한(결론 2 · 근거 3 · 주의 1 · 소식 1)과 전체 6을 줄 문지기 하나에 두고 배치 검증 · 스트림 · 사실표 문장이 같이 쓴다. 화면은 자르지 않는다
+2. **요청이 생성을 연다 — 그래도 사람마다 다른 LLM 호출은 0** — 같은 종목 · 모드 · 지문은 생성 하나(배치와 같은 등록부). 끊겨도 끝까지 저장. 규칙 문서(`ddd-infrastructure.md`) 로컬 CLI 줄을 고쳤다
+3. **원인은 생성할 때만 읽는다** — 읽기 경로 · 지문은 원인을 모른다(소식 제목이 이미 지문에 있다). 패널 읽기 부하는 그대로
+4. **이전 AI 단 = 지금 검증기 글만** — 버전을 올린 직후 하루 상한에 걸려 옛 20문장 글이 나가던 것을 막았다
+5. **머리말을 이름으로** — 판정 · 점수 · 원장과 무관한 문장 자리. 백테스트는 코드 그대로
+
+## 계약 변경 (1f)
+
+- 서버 `GET /api/coach/explain/stream`(SSE) 신규 · 해설 응답 문장 수가 줄어든다(같은 모양) · 판단 머리말이 이름(문자열 값만 바뀜)
+- BFF `GET /api/app/ai-coach/explain/stream` 신규
+- 규칙 — `salt-server/.claude/rules/ddd-infrastructure.md` 로컬 CLI 줄
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -69,3 +109,6 @@ status: in-progress (1a 시나리오 늘 · 1b 원인 근거 결과 · 1c 3종 �
 | 2026-11-13 | 신규 · 1a done(`feat/f017-v4-s1-scenario-always`) |
 | 2026-11-13 | 1b done(`feat/f017-v4-s1-scenario-always`) — 원인 → 근거 → 결과 · 실데이터로 규칙 넷 정정(시황 제목 · 목표가 · 작은 날 경보 · 상장일 원천) |
 | 2026-11-13 | 1c done(`feat/f017-v4-s1-scenario-always`) — 3종 문장 · FR-16 나머지는 1f 로 |
+| 2026-11-13 | 1d done(`feat/f017-v4-s1d-coach-panel`) — 패널 한 번 응답 · 내 기준 · 해설 두 모드 재료 한 번 읽기 |
+| 2026-11-13 | 1e done(`feat/f017-v4-s1d-coach-panel`) — 한 장 패널 UI · 칸별 BFF 경로 은퇴 |
+| 2026-11-13 | 1f done(`feat/f017-v4-s1d-coach-panel`) — 해설 스트림 · 해설 v2 · 판단 머리말 이름. 순서 1 끝 |

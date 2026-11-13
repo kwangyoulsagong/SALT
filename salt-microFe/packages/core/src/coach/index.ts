@@ -13,3 +13,4 @@ export * from "./targetWeight";
 export * from "./performanceClaim";
 export * from "./tradePreflight";
 export * from "./tradeCheck";
+export * from "./coachPanel";

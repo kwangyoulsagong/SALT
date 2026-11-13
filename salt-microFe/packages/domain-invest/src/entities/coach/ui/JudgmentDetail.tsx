@@ -107,6 +107,11 @@ interface JudgmentDetailProps {
   /** `null` = BFF 가 이 모드를 막았다(계약 깨짐) */
   view: ModeCoachViewModel | null;
   mode: CoachMode;
+  /**
+   * 성적 · 틀렸던 때를 그린다(기본). 같은 화면에 한 장 패널이 같은 숫자를 그리면 끈다 — 같은 숫자 두 번 금지
+   * (`screen-desktop.md` §5, F017 v4 1e)
+   */
+  showTrack?: boolean;
 }
 
 /**
@@ -120,7 +125,7 @@ interface JudgmentDetailProps {
  * 맞았던 때 · 틀렸던 때는 **한 목록에 같은 크기로** 둔다. 틀렸던 때를 접거나 뒤로 미루지
  * 않는다(B2 · FR-142 의 원칙을 여기에도).
  */
-export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
+export const JudgmentDetail = ({ view, mode, showTrack = true }: JudgmentDetailProps) => {
   if (!view) return <JudgmentSummary view={view} mode={mode} labelAs={3} />;
 
   const { judgment, trackRecord, failureCases } = view;
@@ -153,8 +158,12 @@ export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
           </ul>
         </section>
       )}
-      <TrackRecordStats record={trackRecord} />
-      <JudgmentCases cases={failureCases} backtest={trackRecord.sampleOrigin === "backtest"} />
+      {showTrack && (
+        <>
+          <TrackRecordStats record={trackRecord} />
+          <JudgmentCases cases={failureCases} backtest={trackRecord.sampleOrigin === "backtest"} />
+        </>
+      )}
     </>
   );
 };

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { templateExplanation, verifyExplanation } from "../policy/explanationTemplate";
+import { EXPLANATION_SECTION_CAP, EXPLANATION_TOTAL_CAP, templateExplanation, verifyExplanation } from "../policy/explanationTemplate";
 import { languageViolations } from "../policy/languageGuard";
 import { explanationFixtures } from "./fixtures/explanationFixtures";
 
@@ -68,7 +68,8 @@ describe("해설 품질 — 템플릿 픽스처 50건 (FEATURE-008 FR-49)", () =
   it("사실 정확도 — 검증기가 버리는 템플릿 문장 0", () => assert.equal(m.dropped, 0));
   it("금지어 0", () => assert.equal(m.violations, 0));
   it("인용률 100% — 출처 있는 기사 줄은 전부 출처가 붙는다", () => {
-    const withSource = FIXTURES.flatMap((f) => (f.news ?? []).slice(0, 5)).filter((n) => n.source).length;
+    // 소식은 한 줄(칸 상한 — F017 v4 1f)
+    const withSource = FIXTURES.flatMap((f) => (f.news ?? []).slice(0, EXPLANATION_SECTION_CAP.newsSummary)).filter((n) => n.source).length;
     assert.equal(m.newsLines, withSource);
     assert.equal(m.citedLines, m.newsLines);
   });
@@ -79,6 +80,13 @@ describe("해설 품질 — 템플릿 픽스처 50건 (FEATURE-008 FR-49)", () =
   });
   it("판단 문장을 따옴표로 감싸 \"입니다\"를 덧붙이지 않는다(2026-11-02 블라인드 평가 · 실화면)", () => {
     for (const f of FIXTURES) assert.doesNotMatch(templateExplanation(f, NOW).modeReasoning, /["”]입니다/);
+  });
+  it("사실표 문장도 4~6문장 상한 안(F017 v4 1f)", () => {
+    for (const f of FIXTURES) {
+      const t = templateExplanation(f, NOW);
+      const n = [t.modeReasoning, ...t.keyDrivers, ...t.risks, ...t.newsSummary].flatMap(sentences).length;
+      assert.ok(n <= EXPLANATION_TOTAL_CAP, `${f.symbol} ${n}`);
+    }
   });
   it("결정적이다 — 같은 입력이면 같은 문장", () => {
     const a = FIXTURES.map((f) => JSON.stringify(templateExplanation(f, NOW)));

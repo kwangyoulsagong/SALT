@@ -36,6 +36,8 @@ export const useTogglePurchasePrice = () => {
     },
     onSuccess: (result) => {
       queryClient.setQueryData(key, result);
+      // 한 장 패널의 내 기준 — 숨김이면 평단 · 평가 손익을 서버가 빼고 준다(F017 v4 1e)
+      return queryClient.invalidateQueries({ queryKey: coachQueryKeys.panelAll() });
     },
   });
 };

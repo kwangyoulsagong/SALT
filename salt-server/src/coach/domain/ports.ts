@@ -318,6 +318,17 @@ export interface CoachExplanationInput {
    * 프롬프트에는 싣지 않는다 — 모델은 "판단" 근거 문장을 이미 본다. 없으면 극성 대조를 건너뛴다
    */
   stance?: JudgmentStance;
+  /**
+   * 원인 → 근거 → 결과(F017 v4 1f · `SRV-REQ-053` FR-16) — 생성할 때만 싣는다(읽기 · 지문엔 없다: 원인은 소식이 바뀌면 같이 바뀌고
+   * 소식 제목은 이미 지문에 있다). 단계 · 문장은 market 의 규칙(`MoveCause.ts`) 그대로 — 모델은 옮겨 말하기만 한다
+   */
+  cause?: {
+    strength: "likely" | "possible" | "none";
+    headline: string;
+    note: string;
+    evidence: Array<{ value: string; compare: string | null; source: string }>;
+    result: string;
+  };
   news?: Array<{
     title: string;
     summary?: string;
@@ -950,6 +961,56 @@ export interface TradeCheckLedger {
 /** market 의 "오늘 왜 움직였나" 카드(① · ②)를 coach 말로 — ACL(`MoveCardAdapter`). 없는 종목 · 꺼진 국내면 `null` */
 export interface MoveCardReader {
   card(asset: MoveAsset, symbol: string): Promise<MoveCard | null>;
+}
+
+/**
+ * 한 장 패널의 원인 칸(F017 v4 1d · `SRV-REQ-053` FR-11 · 13) — market 의 원인 → 근거 → 결과를 coach 말로(ACL `MoveCauseAdapter`).
+ * 저장값만 읽는다(외부 호출 · LLM 0). 없는 종목 · 꺼진 국내면 `null`
+ */
+export interface MoveCauseReader {
+  cause(asset: MoveAsset, symbol: string): Promise<PanelMoveCause | null>;
+}
+
+/** 패널 칸 채움 실측 한 행(OPS-004) — 종목 × 칸 × 단 */
+export interface PanelCellCheckRow {
+  market: "crypto" | "kr";
+  symbol: string;
+  cellKey: string;
+  tier: "now" | "usual" | "longer" | "defect";
+  stale: boolean;
+  newSymbol: boolean;
+}
+
+/**
+ * 패널 칸 채움 실측의 대상(OPS-004 FR-3) — 사람이 패널을 열 수 있는 종목: 화면 시세 목록(코인 거래대금 상위 100) ∪ 관심 · 보유 ∪
+ * 국내 유니버스. 배치들이 쓰는 추적 종목(`TrackedAssetProbe` — 관심 · 보유 · 국내)보다 넓다
+ */
+export interface PanelUniverseProbe {
+  symbols(): Promise<string[]>;
+}
+
+/** 패널 칸 채움 실측 저장소(`panel_cell_check`) — 시장 층 · 사용자 열 0 */
+export interface PanelCellCheckStore {
+  /** 마지막 회차의 종목 — 새 종목(지난 회차에 없던) 판정 */
+  latestRunSymbols(): Promise<Set<string>>;
+  /** 한 회차를 한 문장으로(행마다 쓰지 않는다 — `noParallelRowWrites`) */
+  saveRun(runAt: Date, rows: readonly PanelCellCheckRow[]): Promise<number>;
+  /** 보관 기간 밖 회차를 지운다 */
+  pruneBefore(before: Date): Promise<number>;
+}
+
+/** 원인 칸 — 문장 · 단계는 market 이 정한 값 그대로. 단계 이름(가장 유력 · 가능성)은 화면이 붙인다 */
+export interface PanelMoveCause {
+  causes: Array<{
+    kind: string;
+    strength: "likely" | "possible" | "none";
+    headline: string;
+    note: string;
+    factId: string | null;
+    at: string | null;
+    evidence: Array<{ kind: string; value: string; compare: string | null; gloss: string | null; source: string; at: string | null; supports: boolean }>;
+  }>;
+  result: { changeRate: number; text: string; past: string | null };
 }
 
 /** 시도 한 건 — 실패도 남긴다(같은 지문 LLM 1회 · 하루 상한 · 품질 감사). 원문 0 */

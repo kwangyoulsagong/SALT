@@ -22,6 +22,7 @@
 | `viewTransitionName` 쌓임 맥락에 떠 있는 메뉴가 갇힘(머리 메뉴가 본문에 깔림) | `@repo/ui` `viewTransitionStacking.test.ts` — 그 블록에 `zIndex` | `pnpm test` |
 | `"use client"` 파일의 enum 을 서버 컴포넌트가 읽어 `undefined`(때맞춘 팁 400, 2026-11-05) | 웹 lint `@repo/fsd/no-client-enum-export` | 저장 · `pnpm lint` |
 | 봉 upsert 가 바뀌지 않은 행까지 다시 써 장중 DB 를 잡음(504 5회차, 2026-11-10) | `salt-server` `noBlindCandleRewrite.test.ts` — `price_history` `DO UPDATE` 는 `WHERE` 필수 | `npm test` |
+| upsert `create` 에 `where` 의 유니크 키가 빠져 열 기본값으로 충돌(기동마다 P2002, 2026-11-13) | `salt-server` `upsertCreateKeys.test.ts` | `npm test` |
 | 소유자 판정이 전망 밖으로 번짐(국내 공개 뒤 남은 판정, 2026-11-10 `ADR-011`) | `salt-server` `ownerGateScope.test.ts` | `npm test` |
 | 예측 작업 락이 트랜잭션을 열어 둔 채 DB 전체 VACUUM 을 막음(8시간, 2026-11-10) | `salt-forecast` `tests/store/test_advisory_lock.py` · `test_job_timeout.py` | `uv run pytest` |
 | 인용이 가리키는 사실 id 에 회차 시각 — 장중 10분마다 ③ 이 사라짐(2026-11-12 F016 D) | `salt-server` `whyMoved.test.ts` 불변식(회차 · 값이 바뀌어도 같은 날 id 같음) | `npm test` |

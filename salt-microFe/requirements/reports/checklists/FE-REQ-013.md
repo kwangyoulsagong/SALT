@@ -188,3 +188,9 @@
 - 이 REQ 몫: 홈 카드 목록(`HomeCards`)이 카드 클릭 때 계측 한 번(`countUsage` — 기다리지 않음 · keepalive). `/home` 번들 12.4 → 12.6 kB
 - 확인: 운영 빌드 zone 다섯 · main 나란히 번들 표
 - 미검증: 없음
+
+## F017 v4 1e 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `InvestmentDetailBody.tsx`(머리 주인) — 한 장 패널을 본문 위젯에 끼워 준다(같은 `ssr:false` 이유 그대로) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |

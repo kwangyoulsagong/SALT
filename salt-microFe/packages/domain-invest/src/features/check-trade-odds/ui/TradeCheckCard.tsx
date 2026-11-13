@@ -62,6 +62,10 @@ const Details = ({ view }: { view: TradeCheckResult }) => {
 
 interface TradeCheckCardProps {
   symbol: string | undefined;
+  /**
+   * 이름 칩 없이 — 한 장 패널의 '이런 상황 뒤 보통은' 줄 안에 놓일 때(줄 이름이 제목이다, F017 v4 1e). 방향 전환은 그대로
+   */
+  bare?: boolean;
 }
 
 /**
@@ -71,7 +75,7 @@ interface TradeCheckCardProps {
  * 표본 한 줄 · 펼침(기간별 분포 · 팔기 전 확정 수익률). 표본이 모자라면 서버가 비율 없이 이유 문장을 주고 점을 그리지 않는다.
  * 로그아웃이면 그리지 않는다 — 패널이 이미 로그인 안내를 둔다.
  */
-export const TradeCheckCard = ({ symbol }: TradeCheckCardProps) => {
+export const TradeCheckCard = ({ symbol, bare = false }: TradeCheckCardProps) => {
   const [side, setSide] = useState<TradeCheckSide>("buy");
   const { data, isPending, isError, isSignedOut } = useTradeCheck(symbol, side);
   if (isSignedOut || !symbol) return null;
@@ -99,7 +103,7 @@ export const TradeCheckCard = ({ symbol }: TradeCheckCardProps) => {
   return (
     <section className={s.card} aria-label={M.heading}>
       <div className={s.headRow}>
-        <span className={s.nameChip}>{M.heading}</span>
+        {!bare && <span className={s.nameChip}>{M.heading}</span>}
         <SegmentedControl options={SIDES} value={side} onChange={setSide} label={M.sideGroupLabel} />
       </div>
       {body()}

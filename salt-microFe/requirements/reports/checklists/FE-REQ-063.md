@@ -145,3 +145,9 @@
 | 패널 안으로 옮기기 · 줄마다 작은 그래픽(FR-9 나머지 · `FE-REQ-064` FR-9 ②) | 패널 응답(1d) 뒤 | 순서 1e |
 
 운영 빌드(2026-11-13 1b): `web-investment` worktree 통과 — `/investments/[symbol]` 153 kB.
+
+## F017 v4 1e 짝 (2026-11-13, `feat/f017-v4-s1d-coach-panel`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| `WhyMovedCard.tsx`(머리 주인) `hideCause` — 패널이 원인 칸을 그리는 자리에서 끈다(① 분해 · ② 사실은 그대로) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |

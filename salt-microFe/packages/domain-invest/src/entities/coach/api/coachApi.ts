@@ -1,6 +1,5 @@
 import type {
   BehaviorMirrorResult,
-  CoachMode,
   CoachProfileSettings,
   KrBehaviorMirrorResult,
   CoachGenerationStatus,
@@ -13,9 +12,8 @@ import type {
   SymbolEventsResult,
   SymbolPositioningResult,
   RiskBudgetResult,
-  SymbolScenarioResult,
+  CoachPanel,
   TradePlanListResult,
-  SymbolExplanation,
   TradeCheckResult,
   TradeCheckSide,
 } from "@repo/core/coach";
@@ -88,23 +86,14 @@ export const coachApi = {
   },
 
   /**
-   * 시나리오 — 모든 종목 · 지평 넷에 늘(`GET /api/app/ai-coach/scenario`, F017 v4 순서 1). 로그인한 누구나 —
-   * 모델 확률 칸만 소유자(서버가 가른다, `ADR-003`). 서버 장애는 BFF 가 200 `{ status: "unavailable" }` 로 준다.
+   * 한 장 패널 (`GET /api/app/ai-coach/panel`, F017 v4 1d) — 칸마다 단 · 상태. 칸 하나가 깨져도 200(그 칸만 결함).
+   * 머리가 깨졌으면 BFF 502 — 화면은 패널 자리에 한 줄
    */
-  scenario: async (symbol: string, signal?: AbortSignal): Promise<SymbolScenarioResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.scenario(symbol)}`, { signal });
+  panel: async (symbol: string, signal?: AbortSignal): Promise<CoachPanel> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.panel(symbol)}`, { signal });
     if (!response.ok) throw await readApiError(response, "coach");
 
-    const body = (await response.json()) as AppEnvelope<SymbolScenarioResult>;
-    return body.data;
-  },
-
-  /** 해설 (`GET /api/app/ai-coach/explanation`) — 4단 중 하나, 문장 · 인용은 서버 그대로. 로그인만 */
-  explanation: async (symbol: string, mode: CoachMode, signal?: AbortSignal): Promise<SymbolExplanation> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.explanation(symbol, mode)}`, { signal });
-    if (!response.ok) throw await readApiError(response, "coach");
-
-    const body = (await response.json()) as AppEnvelope<SymbolExplanation>;
+    const body = (await response.json()) as AppEnvelope<CoachPanel>;
     return body.data;
   },
 

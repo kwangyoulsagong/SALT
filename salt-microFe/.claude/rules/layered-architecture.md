@@ -105,6 +105,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
+| `scenario-panel` | coach(패널 칸 · 해설) + market(원인 칸 · 지난 가격) + `check-trade-odds` — 종목 상세 한 장 패널(F017 v4 `FE-REQ-064` FR-8, 2026-11-13) |
 | `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
 | `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 진입은 그 머리 칸에 들어갔다(2026-11-09 `FE-REQ-067` `headerSearch` — 2026-11-10 투자 zone 만, 메뉴는 `headerNav` `FE-REQ-069`) · 알림도 같은 자리** |
 | `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |

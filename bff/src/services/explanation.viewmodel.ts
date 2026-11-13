@@ -1,7 +1,7 @@
 /**
  * 종목 해설 뷰모델 — **순수 함수**(F017 v2 단계 3 · `BFF-REQ-052` FR-2).
  *
- * 서버 `GET /api/ai-coach/explanation` 의 4단 그대로 — 문장 · 인용 · 단을 고치지 않는다. 캐시 0(서버가 저장값을 읽는다).
+ * 서버 해설 4단(패널 응답 `modes.*.explanation.view` — 칸별 BFF 경로는 2026-11-13 은퇴, F017 v4 1e) 그대로 — 문장 · 인용 · 단을 고치지 않는다. 캐시 0(서버가 저장값을 읽는다).
  * 모양이 깨졌으면 `ExplanationContractError` — 빈 문장을 지어내지 않는다(빈 칸 0 은 서버가 지킨다).
  * 인용 주소는 `http(s)` 만 남긴다 — 서버가 이미 거르지만 화면이 링크로 여는 값이라 한 번 더(`citableUrl` 과 같은 선)
  */
@@ -72,7 +72,8 @@ const toCitation = (raw: unknown): ExplanationCitation => {
   };
 };
 
-const toSentence = (raw: unknown): ExplanationSentence => {
+/** 문장 하나 — 스트림 `sentence` 이벤트도 같은 검사(F017 v4 1f · `BFF-REQ-052` FR-7) */
+export const toExplanationSentence = (raw: unknown): ExplanationSentence => {
   if (!isObject(raw)) throw new ExplanationContractError("sentence");
   if (!SECTIONS.includes(raw.section as ExplanationSection)) throw new ExplanationContractError("sentence.section");
   if (!Array.isArray(raw.citations) || raw.citations.length === 0) throw new ExplanationContractError("sentence.citations");
@@ -97,7 +98,7 @@ export const toExplanationViewModel = (raw: unknown): ExplanationViewModel => {
     aiGenerated: raw.aiGenerated === true,
     provider: provider as ExplanationProvider | null,
     generatedAt: str(raw.generatedAt, "generatedAt"),
-    sentences: raw.sentences.map(toSentence),
+    sentences: raw.sentences.map(toExplanationSentence),
     disclaimer: typeof raw.disclaimer === "string" ? raw.disclaimer : "",
   };
 };

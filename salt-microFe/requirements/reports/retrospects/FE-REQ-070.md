@@ -11,3 +11,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — 시나리오 카드도 사람 · AI 칸 가르개(`SignInRequired`) 뒤로 — 로그인 없이 보면 유리막("로그인하고 다음 시나리오 보기")
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## F017 v4 1e 짝 (2026-11-13)
+
+- 배운 것 없음 — 짝 변경
