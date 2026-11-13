@@ -6,6 +6,8 @@ import com.salt.identity.api.FixedWindowLimit
 import com.salt.identity.application.AcceptInviteCode
 import com.salt.identity.application.ArrangeHome
 import com.salt.identity.application.CheckInviteCode
+import com.salt.identity.application.ClassifyAccountData
+import com.salt.identity.application.CountUsage
 import com.salt.identity.application.DeleteAccount
 import com.salt.identity.application.ExportAccount
 import com.salt.identity.application.IssueEraseGrant
@@ -29,6 +31,7 @@ import com.salt.identity.infrastructure.JooqAccounts
 import com.salt.identity.infrastructure.JooqInviteAttempts
 import com.salt.identity.infrastructure.JooqInviteCodes
 import com.salt.identity.infrastructure.JooqShellPrefs
+import com.salt.identity.infrastructure.JooqUsage
 import com.salt.identity.infrastructure.RsaTokenIssuer
 import com.salt.identity.infrastructure.SigningKeys
 import com.salt.identity.infrastructure.TokenLifetimes
@@ -116,6 +119,10 @@ class IdentityComposition {
     @Bean
     fun identityArrangeHome(store: JooqShellPrefs, clock: Clock): ArrangeHome = ArrangeHome(store, clock)
 
+    @Bean
+    fun identityCountUsage(@Qualifier("identityDatabase") database: ServiceDatabase, clock: Clock): CountUsage =
+        CountUsage(JooqUsage(database.dsl), clock)
+
     // ── 계정 · 토큰(S3b) ──
     /** 기동 때 지금 키를 JWKS 표에 올린다 — Flyway(V2)가 먼저 돈 뒤다(ServiceDatabase.open 이 마이그레이션까지 한다) */
     @Bean
@@ -181,6 +188,9 @@ class IdentityComposition {
     @Bean
     fun identityPersonalRecords(@Qualifier("identityDatabase") database: ServiceDatabase): IdentityPersonalRecords =
         IdentityPersonalRecords(IdentityUserRows.of(database.dsl))
+
+    @Bean
+    fun identityClassifyAccount(records: IdentityPersonalRecords): ClassifyAccountData = ClassifyAccountData(records)
 
     @Bean
     fun identityExportAccount(records: IdentityPersonalRecords): ExportAccount = ExportAccount(records)

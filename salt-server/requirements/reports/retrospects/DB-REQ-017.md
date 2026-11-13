@@ -180,3 +180,7 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 이 REQ 몫 기능 변경 0 — `app.ts` 에 `/api/investment/me/data` 라우터 하나(`/api/investment` 보다 먼저)
 - 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터
+
+## 2026-11-13 — 서버 S3d(짝)
+
+- Express 는 마디 단위 `app.use` 라 `/me/data` 와 `/me/data-classification` 이 겹치지 않는다

@@ -50,3 +50,9 @@
 
 - FR-3 · 4. 회고 본문 루트 `requirements/reports/retrospects/MONEY-S3c-identity-my-data.md` — 갱신 토큰이 지운 계정에 새 토큰을 줄 뻔했다(갱신이 서명만 봤다) · 내보내기 시각이 KST 로 나왔다(README 는 UTC)
 - Action: 사람 데이터를 다루는 기능은 "지운 뒤 그 토큰으로 무엇이 되나"를 첫 시험에
+
+## 2026-11-13 — 서버 S3d(`MONEY-S3d-identity-classify-usage`)
+
+- FR-6 · 7. 회고 본문 루트 `requirements/reports/retrospects/MONEY-S3d-identity-classify-usage.md`
+- 계획의 "분류 표"를 표 주석으로 정정 — 원천이 둘이면 갈라진다(S3c "목록에 없는 표" 와 같은 장치로 막음)
+- Action: 사람 표를 만들면 주석 한 줄까지 같은 마이그레이션에(규칙 `kotlin-platform.md` §4 · `prisma-database.md`)

@@ -285,3 +285,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/domain/model.ts` `CoachQuote` 에 선택 필드 `openPrice?`(국내 시가 — 점검 시가 갭 조건 K3). 표 · 열 변경 0. 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028` |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `salt-server/src/app.ts`(머리 주인) — `/api/auth` · `/api/users` 라우터 등록 삭제(경로는 Kotlin identity). 스키마 몫 변경 0 |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): `app.ts` 에 `/api/investment/me/data` 라우터 하나(`/api/investment` 보다 먼저). 이 REQ 몫 기능 변경 0 |
+| 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `src/app.ts` 에 라우터 하나 — `/api/investment/me/data-classification`(내 데이터 경로와 같은 자리 · `/api/investment` 보다 먼저) |

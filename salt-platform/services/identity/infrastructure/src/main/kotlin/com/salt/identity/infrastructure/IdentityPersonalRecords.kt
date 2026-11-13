@@ -3,6 +3,7 @@ package com.salt.identity.infrastructure
 import com.salt.identity.domain.DeletionLog
 import com.salt.identity.domain.PersonalRecords
 import com.salt.identity.domain.PersonalTable
+import com.salt.identity.domain.TableGrade
 import com.salt.identity.infrastructure.jooq.Tables.ACCOUNT_DELETION_LOG
 import com.salt.support.persistence.UserRowSet
 import com.salt.support.persistence.UserRows
@@ -23,6 +24,8 @@ object IdentityUserRows {
         dsl = dsl,
         sets = listOf(
             UserRowSet("user_domain_pref"),
+            // 계측(서버 S3d) — 사람 칸이 해시라 조건도 같은 식. 내보낼 땐 해시를 빼고 날 · 도메인 · 종류 · 횟수만
+            UserRowSet("usage_day", "user_hash = ${JooqUsage.USER_HASH}", select = "on_day, shell_domain, kind, times"),
             UserRowSet("invite_codes", "used_by_user_id = ?", select = "code, used_at, created_at", nullify = "used_by_user_id"),
             UserRows.outbox(),
             UserRowSet(
@@ -42,6 +45,8 @@ class IdentityPersonalRecords(private val rows: UserRows) : PersonalRecords {
     override fun export(userId: String): List<PersonalTable> = rows.export(userId).map { PersonalTable(it.name, it.columns, it.rows) }
 
     override fun erase(userId: String): Map<String, Int> = rows.erase(userId)
+
+    override fun classification(): List<TableGrade> = rows.classification().map { TableGrade(it.table, it.grade, it.about) }
 }
 
 class JooqDeletionLog(private val dsl: DSLContext, private val jsonMapper: JsonMapper) : DeletionLog {

@@ -217,3 +217,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetailBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
   - `salt-microFe/packages/web-shared/src/api/session.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
   - `salt-microFe/packages/web-shared/src/config/auth.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+- 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — 홈 카드 목록(`HomeCards`)이 카드 클릭 때 계측 한 번(`countUsage` — 기다리지 않음 · keepalive). `/home` 번들 12.4 → 12.6 kB

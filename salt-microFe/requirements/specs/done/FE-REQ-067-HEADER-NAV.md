@@ -56,3 +56,4 @@ source: 사용자 2026-11-09 — "우리도 투자 탭은 헤더로 하는 게 �
 | 2026-11-10 | in-progress → done — zone 전환 계측(A/B 운영 빌드 · 순수 CDP · Chrome 157): 적중 10/10 · 10/10, 퇴행 0. 재는 법 보완 — 포인터를 올린 **직후**(moderate 200ms 전) 세션을 끊는다 |
 | 2026-11-10 | D1 되돌림 — `FE-REQ-069`(`f193c6aa`): 레일 복원 · 머리 = 투자 zone 메뉴 · 검색칸 투자 zone 만. 링크 · 검색칸 값은 이어 씀 |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
+| 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — 공용 `ZoneNavigation` 마운트 효과에 도메인 방문 계측 한 번(도메인 zone · 공개 경로 아님 · 로그인일 때) · `ZoneLink` `onClick` 칸 |

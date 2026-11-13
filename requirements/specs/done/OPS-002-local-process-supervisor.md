@@ -24,6 +24,7 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | FR-4 | 포트를 다른 프로젝트가 쓰면 건너뛰고 알린다. 수동으로 띄운 SALT 프로세스는 그대로 두고, `up --replace` 일 때만 내리고 launchd 로 바꾼다 | 완료 |
 | FR-6 | **재시작에 고아 0 · 10초 안** — ① 서버 종료 처리 5초 상한(전엔 SIGTERM 뒤 DB 연결 닫기에서 멈춰 포트를 20초+ 쥐었다) ② 실행 스크립트 공용 `ops/lib-run.sh`: 종료 신호에 프로세스 그룹 전체 · 시작 때 같은 폴더 옛 프로세스 정리(진입 파일 경로로 찾는다) · 포트가 빌 때까지 최대 15초 ③ `restart` 는 `kickstart -k` 대신 내리기 → 비기 확인 → 올리기 | 완료 |
 | FR-7 | **launchd · 서버 실행 PATH 에 `~/.local/bin`** — 서버가 해설 다듬기 로컬 CLI(Claude Code)를 PATH 에서 찾는다(`SRV-REQ-050` FR-2). 없으면 nvm 경로의 codex 만 잡혔다(2026-11-02 실측). `ops/salt.sh` `LAUNCH_PATH` · `salt-server/ops/run-server.sh` 둘 다 | 완료 2026-11-02 — 기동 로그 `해설 로컬 CLI local_claude 2.1.316` |
+| FR-8 | **2026-11-13(서버 S3d)** `ops/salt.sh usage` — 최근 8주 도메인 사용(주간 활성 · 재개율 · 카드 클릭, `ops/usage-weekly.sql` · 사람 id 0). 같은 날 빠져 있던 웹 zone `web-tips`(3005)를 이름 표 · `DEV_APPS` 에 넣음 — 금융 팁 경로가 셸 프록시 뒤에서 죽어 있었다 | 완료 |
 | FR-5 | plist 는 스크립트가 만든다(손으로 고치지 않는다). node 경로는 실행한 셸에서 읽는다 — nvm 버전을 박지 않는다 | 완료 |
 
 ## 판단
@@ -53,3 +54,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: `salt-platform/ops/run-platform.sh` 에 `CONTENT_DB_PASSWORD`(← `.env` `LOCAL_DB_CONTENT_PASSWORD`) · 머리 주석에 `svc_content` · 금융 팁 경로. 공개 플래그 `CONTENT_PUBLIC` 은 넣지 않는다(기본 꺼짐 — 로컬 확인은 `launchctl setenv` 뒤 재시작, 끝나면 unsetenv) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `salt-platform/ops/run-platform.sh` — `IDENTITY_DB_PASSWORD`(← `.env` `LOCAL_DB_IDENTITY_PASSWORD`) `fc0207cb` |
 | 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |
+| 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-8 `usage` · `web-tips` 3005(사용자 "3000 으로 salt 켜 줘" 때 발견) |

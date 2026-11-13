@@ -8,6 +8,8 @@ interface ZoneLinkProps {
   href: string;
   className?: string;
   "aria-label"?: string;
+  /** 누른 순간 — 계측처럼 이동을 막지 않는 일만(`FE-REQ-055` FR-9 홈 카드) */
+  onClick?: () => void;
   children: ReactNode;
 }
 

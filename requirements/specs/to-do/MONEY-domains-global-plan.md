@@ -123,3 +123,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-06 | 투자 동결 위 사용자 요청 — F016 오늘 왜 움직였나(`requirements/specs/to-do/F016-why-moved-global-plan.md` · `ADR-009`). 동결 예외로 기록 · 돈 관리 칸과 번갈아(3b) |
 | 2026-11-12 | S3b 구현 — 사용자 · 초대 코드 identity 이전 · RS256 + JWKS · 이중 검증(옛 HS 끝 2026-11-27) · `UserRegistered`(구독자 0) · Express 리소스 서버만(루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md`). Prisma 마이그레이션 적용 승인 대기. 다음 칸 S3c |
 | 2026-11-12 | S3c done — 내 데이터 내보내기 · 계정 삭제(서비스마다 사람 행 목록 · 지우기 허가 · BFF 순서 · 계정 마지막 · 삭제 기록 사람 칸 0, 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`). 분류(`data_classification`) · 계측은 **S3d** 로 나눔. 다음 칸 S3d |
+| 2026-11-13 | S3d done — 사람 표 등급(표 주석) · 설정 "저장하는 것 · AI 로 가는 것" · 도메인 방문 · 카드 클릭 계측(`ops/salt.sh usage`), 루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`. S3 남은 것 HS 삭제(11-27) |

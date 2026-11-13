@@ -100,3 +100,38 @@ export const remainingUserRows = async (db: Db, sets: readonly UserRowSet[], use
   }
   return left;
 };
+
+/**
+ * 개인 데이터 등급(`SRV-REQ-048` FR-6, 서버 S3d) — 원천은 표 주석 `"<등급>: <설명>"` 하나(플랫폼 `UserRows.classification` 과 같은 판정).
+ * 등급 셋: record(기록) · financial(금액) · sensitive(감정 · 급여 · 사람 이름).
+ */
+export const DATA_GRADES = ["record", "financial", "sensitive"] as const;
+export type DataGrade = (typeof DATA_GRADES)[number];
+
+export interface TableClass {
+  table: string;
+  /** 주석이 없거나 모르는 등급이면 둘 다 null — 결함(시험이 깬다) */
+  grade: DataGrade | null;
+  about: string | null;
+}
+
+/** 주석 글자 → 등급 · 설명. 등급이 틀리면 설명도 내지 않는다(등급 없는 글자를 화면에 내지 않게) */
+export const parseTableComment = (comment: string | null | undefined): Pick<TableClass, "grade" | "about"> => {
+  const at = comment?.indexOf(":") ?? -1;
+  if (!comment || at < 0) return { grade: null, about: null };
+  const grade = comment.slice(0, at).trim();
+  const about = comment.slice(at + 1).trim();
+  if (!(DATA_GRADES as readonly string[]).includes(grade) || about.length === 0) return { grade: null, about: null };
+  return { grade: grade as DataGrade, about };
+};
+
+/** 내보내는 사람 표마다 등급 · 설명 — 한 쿼리(표 수만큼 왕복하지 않는다). 아웃박스 · 운영 로그(`export: false`)는 뺀다 */
+export const classifyUserRows = async (db: Db, sets: readonly UserRowSet[]): Promise<TableClass[]> => {
+  const tables = sets.filter((s) => s.export !== false).map((s) => s.table);
+  const rows = await db.$queryRawUnsafe<{ table_name: string; comment: string | null }[]>(
+    "SELECT t AS table_name, obj_description(to_regclass('public.' || t), 'pg_class') AS comment FROM unnest($1::text[]) AS t",
+    tables,
+  );
+  const byTable = new Map(rows.map((r) => [r.table_name, r.comment]));
+  return tables.map((table) => ({ table, ...parseTableComment(byTable.get(table)) }));
+};
