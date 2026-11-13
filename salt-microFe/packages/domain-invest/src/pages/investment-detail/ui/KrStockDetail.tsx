@@ -72,7 +72,7 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
  * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4). 코치 판단은 장기 한 모드
- * (`KrCoachJudgment`, 슬라이스 4). 시나리오(단타 방향 확률)는 오른쪽 열 "자세히"(`KrScenario`, F017 v2 단계 5 — 소유자만, 옛 변동 범위 자리). 해설은 판단 블록 안 판단 아래(F017 v2 단계 3).
+ * (`KrCoachJudgment`, 슬라이스 4). 시나리오(과거 실제 결과 — 모든 종목에 늘)는 오른쪽 열 맨 위(`KrScenario`, F017 v4 순서 1). 해설은 판단 블록 안 판단 아래(F017 v2 단계 3).
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const { data, isPending, error } = useKrDetail(code);
@@ -177,7 +177,7 @@ export const KrStockDetail = ({ code }: { code: string }) => {
       <div className={krBody}>
         <KrStockChart code={quote.code} displayName={quote.name} />
         <div className={krSideColumn}>
-          {/* 코인 상세 오른쪽 열과 같은 순서 — 자세히(시나리오) → 거래 기록 */}
+          {/* 코인 상세 오른쪽 열과 같은 순서 — 다음 시나리오 → 주문 전 체크 → 거래 기록 */}
           <KrScenario code={quote.code} />
           {/* 주문 전 체크(F004 FR-30) — 코인 상세와 같은 자리. 국내 주식 판단은 장기 한 모드라 장기로 계산한다 */}
           <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.preflight} minHeight={120}>

@@ -88,8 +88,8 @@ export const coachApi = {
   },
 
   /**
-   * 시나리오 카드 — 다음 1시간 · 4시간 · 1일 오를 확률(`GET /api/app/ai-coach/scenario`, F017 v2 단계 5).
-   * **소유자만** — 아니면 404 를 던진다(`ADR-003`). 서버 장애는 BFF 가 200 `{ status: "unavailable" }` 로 준다.
+   * 시나리오 — 모든 종목 · 지평 넷에 늘(`GET /api/app/ai-coach/scenario`, F017 v4 순서 1). 로그인한 누구나 —
+   * 모델 확률 칸만 소유자(서버가 가른다, `ADR-003`). 서버 장애는 BFF 가 200 `{ status: "unavailable" }` 로 준다.
    */
   scenario: async (symbol: string, signal?: AbortSignal): Promise<SymbolScenarioResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.scenario(symbol)}`, { signal });

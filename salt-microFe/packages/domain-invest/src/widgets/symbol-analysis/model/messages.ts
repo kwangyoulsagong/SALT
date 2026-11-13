@@ -1,7 +1,7 @@
 /** 상세 분석 페이지 조립 문구 (`FE-REQ-026` L) */
 export const SYMBOL_ANALYSIS_MESSAGES = {
   /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) — "로그인하고 {이름} 보기" */
-  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록" },
+  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
   /** 패널 제목. 카드 안에서 가장 큰 것은 내용이어야 하므로 짧게 둔다. */
   chartHeading: "차트 · 구간",
   coachHeading: "코치 판단",
@@ -10,7 +10,7 @@ export const SYMBOL_ANALYSIS_MESSAGES = {
   zoneHeading: "구간",
 
   /** 소유자 카드 접기(F010 `FE-REQ-040` FR-8) — 판정 · 차트가 먼저, 참고 카드는 한 번 눌러서 */
-  moreSummary: "자세히 — 시나리오 · 주요 사건 · 쏠림",
+  moreSummary: "자세히 — 주요 사건 · 쏠림",
   moreHint: "펼쳐 보기",
 
   /** 하단 고정 띠. 면책은 서버 문장을 그대로 싣는다. */

@@ -5,7 +5,7 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
     `${price} ${rate}${closed ? " 장 마감" : ""} | ${name}`,
   back: "투자로 돌아가기",
   /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) */
-  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록" },
+  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
   statRange: "24시간 범위",
@@ -28,9 +28,6 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   krBack: "투자로 돌아가기",
   krBlockName: "국내 주식 상세",
   krMetaTitle: (code: string) => `국내 주식 ${code}`,
-  /** 소유자 카드 접기(F011 슬라이스 5d) — 코인 상세와 같은 "자세히" 자리. 국내 주식은 시나리오 하나(F017 v2 단계 5 — 옛 변동 범위 자리) */
-  krMoreSummary: "자세히 — 다음 몇 시간 시나리오",
-  krMoreHint: "펼쳐 보기",
 } as const;
 
 /** 본문 자리 높이 — Hero + 차트(320) + 탭 · 여백. 도착 전 푸터가 올라붙지 않게 */
