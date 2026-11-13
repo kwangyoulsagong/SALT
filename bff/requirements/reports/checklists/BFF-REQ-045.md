@@ -88,3 +88,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: 라우팅 표 한 줄 — `/notification/me/data-classification` → platform(`/notifications` 와 머리가 달라 따로). 나머지 등급 경로는 기존 머리(`/savings` · `/household` · `/content` · `/identity` → platform, 투자 → legacy)로 간다
+- 확인: 실스택 BFF `/api/app/me/privacy` 여섯 서비스 200(투자 Express · 나머지 platform)
+- 미검증: 없음

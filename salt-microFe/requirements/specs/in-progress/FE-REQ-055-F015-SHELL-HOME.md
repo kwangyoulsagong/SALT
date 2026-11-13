@@ -23,8 +23,9 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-4 | 온보딩 — 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝. 첫 입력 폼은 해당 zone 화면으로 이동(`CrossZoneLink` + 돌아오기). 투자 미선택이면 투자 질문 0 | FR-1 |
 | FR-5 | 내 데이터 — 내보내기 ~~요청 · 상태 ·~~ 받기, 계정 삭제(재인증 · 삭제 범위 표시). ✅ **done 2026-11-12(S3c)** — 셸 `/settings` 패널 둘: `features/export-my-data`(누르면 zip 저장 — 요청 · 상태 단계는 없다, 서버가 저장하지 않는다) · `features/delete-account`(비밀번호 다시 · 지워지는 범위 · 지운 행 수는 서버 `total` · 지운 뒤 세션 쿠키 지움 → 결과 한 줄 + 처음 화면으로) | FR-3 |
 | FR-6 | 알림 설정 — 도메인별 켬/끔, 기본 꺼짐. ✅ 2026-11-06 S2c(셸 `/settings` — 로그아웃이면 패널 없음) | FR-4 |
-| FR-7 | 개인정보 — LLM 에 보내는 필드 목록 화면(서버 API) | FR-5 |
+| FR-7 | 개인정보 — LLM 에 보내는 필드 목록 화면(서버 API). ✅ **done 2026-11-13(S3d)** — 셸 `/settings` `features/read-privacy` "저장하는 것 · AI 로 가는 것" 패널(AI 칸 먼저 · 서비스 순서 BFF · 등급 배지 · 내용은 서버 표 주석) | FR-5 |
 | FR-8 | 문구 — "연결 · 연동" 0, 칭찬 · 재촉 0 | 정책 |
+| FR-9 | **새로 2026-11-13(S3d)** 도메인 사용 계측 — 도메인 zone 문서를 연 것(공용 `ZoneNavigation` 마운트 한 번) · 홈 카드를 누른 것(`HomeCards` → `countUsage`). 로그인일 때만 · `keepalive` · 실패 무시(화면 영향 0) · 금액 · 화면 내용 0 | FR-6 |
 
 ## 구현 현황 (2026-11-02 — 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`)
 
@@ -36,6 +37,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | ~~FR-4 · 5 · 6 · 7~~ | ~~미착수 — 서버 identity(S3, `SRV-REQ-048`)~~ **정정 2026-11-06** FR-6 done(S2c) · FR-4 done(S3a, 아래) · FR-5 · 7 은 S3c |
 | FR-4 | ✅ 2026-11-06 S3a — `widgets/onboarding-flow` 새로 · `features/choose-domains`. 초대 → 고르기 → 첫 기록(먼저 끝내고 그 zone 화면으로) → 끝. 경로 넷 실화면 |
 | FR-2(편집) | ✅ 2026-11-06 S3a — 순서 · 숨김 편집은 셸 `/settings` 패널(`features/arrange-home`) — 홈은 읽기 전용(`fsd-widgets.md`) 그대로 |
+| FR-7 | ✅ 2026-11-13 S3d — 실화면 1440 · 390 웹뷰 넘침 0 · axe 0 · 콘솔 오류 0 · 로딩 · 실패(Playwright `route`). 항목 사이 쉼표(설명 안 " · " 와 갈림, 실화면 결함 1) |
+| FR-9 | ✅ 2026-11-13 S3d — 실스택: 홈 카드 → `card_click` · 투자 zone 도착 → `visit` 각 +1(keepalive 가 zone 이동 뒤에도 도착) |
 | FR-8 | ✅ 카드 문구는 BFF — 금지어("연동 · 연결 · 칭찬 · 재촉") 0 |
 
 ## Acceptance Criteria
@@ -45,6 +48,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 - [x] 온보딩 경로 3종 E2E — 2026-11-06 S3a 실화면(모으기 · 쓰는 돈 · 투자 + 둘 고르기 — 각 첫 기록 화면 도착)
 - [x] 계정 삭제 실화면 — 2026-11-12 S3c(내려받기 · 틀린 비밀번호 안내 · 지움 → 쿠키 0 · 처음 화면 · 390 · 1440)
 - [x] 금지 문구 grep 0(카드 문구 · `entities/home` 문구)
+- [x] 저장하는 것 · AI 로 가는 것 실화면 — 2026-11-13 S3d(1440 · 390 웹뷰 · 로딩 · 실패 · axe 0)
 
 ## 계약 영향
 
@@ -70,3 +74,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | S3c 확인 2회차 — 새 패널 대비 미달 셋 고침(설명 글자색 · 버튼 `primary`) · 로딩 · 실패 상태 실화면. 공용 버튼 변형 대비는 사용자 결정 |
 | 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
 | 2026-11-12 | 로그아웃 빨강 뺌 · lint `danger-only-irreversible`(빨강은 되돌릴 수 없는 일에만) — 같은 브랜치 |
+| 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): FR-7 done · 새 FR-9 계측 done. `/settings` 번들 7.41 → 8.34 kB · `/home` 12.4 → 12.6 kB |

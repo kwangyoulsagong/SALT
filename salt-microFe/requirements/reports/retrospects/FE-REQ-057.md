@@ -82,3 +82,7 @@
 
 - 몫: 가계부 `/household` 머리 설명 아래 때맞춘 팁 칸 0~1장(`TimelyTip` context=household — 달 트리거)
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-13 — 서버 S3d(짝)
+
+- —

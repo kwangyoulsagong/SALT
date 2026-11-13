@@ -108,3 +108,9 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: `@repo/web-shared/api` 에 `countUsage` — `apiFetch` 를 지난다(축 하나 유지)
+- 확인: check-types · lint 13/13
+- 미검증: 없음

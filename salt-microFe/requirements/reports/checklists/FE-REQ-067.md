@@ -45,3 +45,9 @@
 ## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
 
 - 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: 공용 `ZoneNavigation` 마운트 효과에 도메인 방문 계측 한 번(도메인 zone · 공개 경로 아님 · 로그인일 때) · `ZoneLink` `onClick` 칸
+- 확인: zone 다섯 운영 빌드 · 실스택 투자 zone 도착 → `visit` +1
+- 미검증: 없음

@@ -182,3 +182,9 @@
   - `salt-microFe/packages/web-shared/src/config/auth.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: 홈 카드 목록(`HomeCards`)이 카드 클릭 때 계측 한 번(`countUsage` — 기다리지 않음 · keepalive). `/home` 번들 12.4 → 12.6 kB
+- 확인: 운영 빌드 zone 다섯 · main 나란히 번들 표
+- 미검증: 없음

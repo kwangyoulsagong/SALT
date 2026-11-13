@@ -26,6 +26,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-7 | `POST /api/app/me/export` · `GET /api/app/me/export/:id` · `DELETE /api/app/me`(재인증) |
 | FR-8 | `GET/PUT /api/app/me/notifications` — 도메인별. ✅ 2026-11-06 S2c(`PUT /:domain` · 값 검사는 서버) |
 | FR-9 | 기존 홈 블록 경로(`/api/app/home/*`)는 FE 전환 뒤 삭제 — 그 전까지 병존 |
+| FR-10 | **새로 2026-11-13(S3d)** `GET /api/app/me/privacy` — 저장하는 것(서비스 = 지워지는 범위 `MY_DATA_SCOPE` · 등급 묶음 민감 → 금액 → 기록 → 모름) · AI 로 가는 것(투자 서비스 AI 입력 · `personal`). 서버 `SRV-REQ-048` FR-6 |
+| FR-11 | **새로 2026-11-13(S3d)** `POST /api/app/me/usage {domain, kind}` → identity 그대로(값 판정은 서버) · 204. 서버 `SRV-REQ-048` FR-7 |
 
 ## 구현 현황 (2026-11-02 — 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`)
 
@@ -40,6 +42,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-6 | ✅ 2026-11-06 S3a — `GET /api/app/onboarding` · `PUT /domains` · `POST /finish`(identity). 첫 입력 경로는 카드 href 와 같은 표(저축 `/goals/new` · 가계부 `/household/new` · 투자 `/investments`). 옛 `/status` 410 은퇴 |
 | FR-4(추가) | ✅ 2026-11-06 S3a — "투자 미선택이면 숨김"은 서버 기본값(안 고른 도메인 숨김)으로 — 홈 `order` · `hidden` 을 identity 에서(배치 실패면 기본 순서 · 401 은 홈 전체 401) |
 | FR-7 | ✅ 2026-11-12 S3c — `GET /api/app/me/export`(서비스 여덟 곳을 나란히 읽어 zip 하나 · **하나라도 못 읽으면 502 `EXPORT_INCOMPLETE`** — 일부만 담긴 파일을 "전부"로 내주지 않는다 · 저장 0 · README · `all.json` · 서비스/표.csv) · `DELETE /api/app/me`(`{ password }` → identity 허가 → 서비스 차례 → 계정 마지막 · 중간 5xx 면 멈추고 502 `ACCOUNT_DELETE_INCOMPLETE` — 다시 누르면 남은 것만 · 응답 `{ deleted, total }`). 정정: 내보내기 요청 · 상태 조회(`/export/:id`)는 만들지 않는다(서버가 저장하지 않는다) |
+| FR-10 | ✅ 2026-11-13 S3d — 서비스 여섯 나란히(`allSettled`) · 하나 실패 = 그 칸 `unavailable` · 401 은 전체 · **등급 없는 표는 숨기지 않고 `unknown` 에 표 이름**(감추면 공개가 거짓) · 투자 실패면 `ai: null` |
+| FR-11 | ✅ 2026-11-13 S3d — 중계만 · 3초 · 서버 400 그대로 |
 | FR-9 | ✅ 옛 블록 응답(`portfolio` · `unreadNotifications` · `marketOverview`)을 바로 지웠다 — 소비처 0(웹은 이 경로를 부르지 않았다, 모바일 미착수) |
 | 추가 | 인증 거절(401)은 카드 degraded 로 덮지 않고 홈 401(`5b6d5320`) — 프론트 토큰 갱신 · 로그인 이동 |
 
@@ -49,6 +53,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 - [x] BFF 코드에 카드 숫자 계산 0 — 포맷만(`formatKrw` · `formatRate`), 손익률은 서버 `/portfolio/stats`
 - [x] 내보내기는 전부 아니면 실패 · 삭제는 허가 → 순서 → 계정 마지막 · 중간 실패 멈춤 — 2026-11-12 S3c(`app-my-data.test.ts` 8 · 변이 · 실스택)
 - [x] 프론트 타입과 같은 정의 — `home-card-contract.test.ts`(필드 하나 바꾸는 변이에 실패)
+- [x] 개인정보 — 등급 없는 표 숨김 0 · 서비스 하나 실패 격리 · 401 전체 — 2026-11-13 S3d(`app-privacy.test.ts` 8 · 변이 3/3 · 실스택 60ms)
 
 ## 계약 영향
 
@@ -68,3 +73,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-5 · FR-6 · FR-4 숨김 기본값 done — 서버 identity(라우팅 `/identity` → platform). 옛 `/api/app/onboarding/status` 410 은퇴. 커밋 `066ba971` |
 | 2026-11-12 | 서버 S3c(루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): FR-7 done — 내보내기 zip(Node zlib 직접, 라이브러리 0) · 계정 삭제 순서. 라우팅 표 platform 경로 셋(`BFF-REQ-045`) |
 | 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
+| 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): 새 FR-10 개인정보 뷰모델 · FR-11 계측 중계 done. 라우팅 표 `/notification/me/data-classification` → platform(`BFF-REQ-045`) |

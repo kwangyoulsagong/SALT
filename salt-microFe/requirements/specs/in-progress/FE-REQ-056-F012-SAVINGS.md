@@ -99,3 +99,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-13 서버 조회 둘이 절대 주소 `BFF_SERVER_URL`(브라우저 `INVESTMENTS_BASE_URL` 은 같은 origin 빈 문자열)(`721063fc`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 저축 목표 화면 `/goals` 머리 설명 아래 때맞춘 팁 칸 0~1장(`TimelyTip` context=savings — 무엇을 띄울지는 서버) |
+| 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(저축 줄은 그대로) |

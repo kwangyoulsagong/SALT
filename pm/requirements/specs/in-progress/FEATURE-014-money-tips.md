@@ -139,3 +139,4 @@ flowchart LR
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — FR-7 · 8 done · FR-6 · 4 나머지는 S2d |
 | 2026-11-05 | 금융 팁 S2b 확인 3회차 — 본문 표(화면 · BFF · 서버/DB · Trace Matrix · 수용 기준)가 착수 전 모양 그대로였다 → 구현 현황으로 정정 · 수용 기준 셋 체크(S2a 에 이미 참) |
 | 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — FR-6 done(BFF 가 원천을 읽고 content 가 계산 · 넷) · FR-4 고정비 증가(주거) + 월세 세액공제 글. 나머지 트리거는 원천 · 글이 생길 때 |
+| 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) 중 발견 — 금융 팁 zone(`web-tips` 3005)이 `ops/salt.sh` 에 없어 아무도 띄우지 않았다(셸 `/tips` 프록시가 죽어 있었다). 이름 표 · `DEV_APPS` 에 넣음(`FE-REQ-058` · `OPS-002` FR-8). 팁 데이터 칸은 개인정보 패널에 "금융 팁 — 기록"으로 나온다 |

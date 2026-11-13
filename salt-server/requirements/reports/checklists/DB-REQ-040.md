@@ -38,4 +38,18 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-6 `data_classification` | S3c 범위 밖 | 서버 S3d |
+| ~~FR-6 `data_classification`~~ | S3c 범위 밖 | 서버 S3d — **닫힘 2026-11-13**(정정: 표 주석, 아래 S3d 절) |
+
+## 2026-11-13 — 서버 S3d(`MONEY-S3d-identity-classify-usage`)
+
+| 항목 | 결과 |
+|---|---|
+| FR-6 | Flyway 여섯 + Prisma 하나 — 로컬 운영 DB 적용(identity V5 · 가계부 V10 · 저축 V5 · 팁 V3 · 알림 V2 · ping V2 · Prisma `20261113090000`). 기존 영어 주석 넷은 한국어로 다시 |
+| FR-7 | `usage_day` — PK 네 칸 · CHECK(해시 64 hex · 도메인 넷 · 종류 둘 · 횟수 > 0) · `on_day` 인덱스. jOOQ 코드 생성 통과(text 키 → varchar) |
+| 실행 계획 | upsert `Conflict Arbiter Indexes: usage_day_pkey` · 주간 집계 PK 인덱스 스캔 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |
