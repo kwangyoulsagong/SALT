@@ -365,8 +365,12 @@ export interface CoachExplanation {
  * Gemini 토큰 상한에 닿았다는 뜻이다 — 로컬 CLI 는 구독이라 토큰 상한을 세지 않는다(FR-9)
  */
 export interface ExplainCaller {
-  /** 배치(해설 스냅샷)는 `null` — 사람 몫이 아니라 시장 층이다(F017 v2 단계 3). 시도 원장에 그대로 */
-  userId: string | null;
+  /**
+   * **늘 `null` — LLM 으로 가는 사람 기록 0**(서버 S3d 2026-11-12, `SRV-REQ-048` FR-6). LLM 을 부르는 것은 종목마다 도는 배치(해설 스냅샷 ·
+   * 오늘 등락 한 줄)뿐이고 입력은 시장 사실이다. 타입을 `null` 로 좁혀 사람 id 를 실으려는 코드가 컴파일에서 깨진다 — 바꾸려면
+   * 설정 화면 "AI 로 가는 내 기록" 공개(`FE-REQ-055` FR-7)부터 고친다
+   */
+  userId: null;
   /** `false` 면 Gemini 토큰 상한에 닿았다 — 로컬 CLI 만(구독이라 토큰을 세지 않는다, FR-9) */
   geminiAllowed?: boolean;
 }

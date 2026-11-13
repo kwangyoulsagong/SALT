@@ -9,6 +9,7 @@ import com.salt.identity.domain.PasswordHasher
 import com.salt.identity.domain.PersonalRecords
 import com.salt.identity.domain.PersonalTable
 import com.salt.identity.domain.ReauthFailed
+import com.salt.identity.domain.TableGrade
 import com.salt.identity.domain.TokenIssuer
 import com.salt.identity.domain.TokenSubject
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +23,12 @@ import java.time.Clock
 open class ExportAccount(private val records: PersonalRecords) {
     @Transactional(transactionManager = IDENTITY_TX, readOnly = true)
     open fun execute(userId: String): List<PersonalTable> = records.export(userId)
+}
+
+/** 이 서비스 사람 표 등급 · 설명 — 읽기만(`SRV-REQ-048` FR-6) */
+open class ClassifyAccountData(private val records: PersonalRecords) {
+    @Transactional(transactionManager = IDENTITY_TX, readOnly = true)
+    open fun execute(): List<TableGrade> = records.classification()
 }
 
 /**

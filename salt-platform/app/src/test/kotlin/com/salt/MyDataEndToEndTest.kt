@@ -84,6 +84,7 @@ class MyDataEndToEndTest : ContentHttp() {
         ok(raw("POST", "/api/content/me/tips/housing-subscription-deduction/dismiss", p.access))
         ok(raw("PUT", "/api/notifications/prefs/savings", p.access, """{"enabled":true}"""))
         ok(raw("PUT", "/api/identity/shell/domains", p.access, """{"domains":["savings","household"]}"""))
+        ok(raw("POST", "/api/identity/me/usage", p.access, """{"domain":"savings","kind":"visit"}"""))
     }
 
     private fun services(): List<String> = sources.map { it.service }
@@ -97,6 +98,58 @@ class MyDataEndToEndTest : ContentHttp() {
             withClue(source.service) { source.rows.uncovered().shouldBeEmpty() }
         }
         identityRows.uncovered().shouldBeEmpty()
+    }
+
+    @Test
+    fun `등급 — 내보내는 사람 표마다 맞는 등급 · 설명 주석이 있다(서버 S3d FR-6)`() {
+        for (source in sources) {
+            withClue(source.service) { source.rows.unclassified().shouldBeEmpty() }
+        }
+        identityRows.unclassified().shouldBeEmpty()
+        // 감정 · 급여 · 사람 이름은 민감(FEATURE-015 FR-5)
+        val household = sources.first { it.service == "household" }.classification().associate { it.table to it.grade }
+        listOf("expense_tag", "household_setting", "person_entry").forEach { household[it] shouldBe "sensitive" }
+    }
+
+    @Test
+    fun `등급 경로 — 서비스마다 같은 모양 · 아웃박스 0 · 토큰 없으면 401`() {
+        val me = register()
+        for (service in services() + "identity") {
+            val body = ok(raw("GET", "/api/$service/me/data-classification", me.access))
+            body.path("service").asString() shouldBe service
+            val tables = items(body.path("tables"))
+            ("outbox" in tables.map { it.path("table").asString() }) shouldBe false
+            tables.forEach { withClue("$service ${it.path("table")}") { it.path("grade").asString() shouldContainOneOf listOf("record", "financial", "sensitive") } }
+        }
+        val identity = items(ok(raw("GET", "/api/identity/me/data-classification", me.access)).path("tables"))
+        identity.first { it.path("table").asString() == "users" }.path("about").asString() shouldBe "이메일 · 닉네임"
+        raw("GET", "/api/savings/me/data-classification", null).statusCode() shouldBe 401
+        raw("GET", "/api/nowhere/me/data-classification", me.access).statusCode() shouldBe 404
+    }
+
+    @Test
+    fun `계측 — 하루 · 도메인 · 종류당 한 행에 횟수 · 사람 칸은 해시 · 모르는 값 400 · 내보내기엔 해시 0`() {
+        val me = register()
+        repeat(3) { ok(raw("POST", "/api/identity/me/usage", me.access, """{"domain":"invest","kind":"card_click"}""")) }
+        ok(raw("POST", "/api/identity/me/usage", me.access, """{"domain":"invest","kind":"visit"}"""))
+        val rows = identityDatabase.dsl.fetch(
+            "SELECT user_hash, kind, times FROM usage_day WHERE user_hash = encode(sha256(convert_to(?, 'UTF8')), 'hex') ORDER BY kind", me.id,
+        )
+        rows.map { it.get("kind", String::class.java) to it.get("times", Int::class.java) } shouldBe listOf("card_click" to 3, "visit" to 1)
+        (rows[0].get("user_hash", String::class.java) == me.id) shouldBe false
+        identityDatabase.dsl.fetchValue("SELECT count(*) FROM usage_day WHERE user_hash = ?", me.id).toString() shouldBe "0"
+
+        for (bad in listOf("""{"domain":"home","kind":"visit"}""", """{"domain":"invest","kind":"amount"}""", """{"domain":"invest"}""", """{"domain":1,"kind":"visit"}""")) {
+            withClue(bad) { raw("POST", "/api/identity/me/usage", me.access, bad).statusCode() shouldBe 400 }
+        }
+        raw("POST", "/api/identity/me/usage", null, """{"domain":"invest","kind":"visit"}""").statusCode() shouldBe 401
+
+        val usage = ok(raw("GET", "/api/identity/me/data", me.access)).path("tables").first { it.path("name").asString() == "usage_day" }
+        items(usage.path("columns")).map { it.asString() } shouldBe listOf("on_day", "shell_domain", "kind", "times")
+    }
+
+    private infix fun String.shouldContainOneOf(options: List<String>) {
+        check(this in options) { "$this not in $options" }
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.salt.app
 
 import com.salt.support.persistence.ExportedTable
 import com.salt.support.persistence.PersonalData
+import com.salt.support.persistence.TableClass
 import com.salt.support.web.ApiResponse
 import com.salt.support.web.AuthenticatedUser
 import com.salt.support.web.EraseGrants
@@ -17,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus
 
 /**
- * 서비스마다 같은 두 경로 — 내 데이터 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c).
+ * 서비스마다 같은 세 경로 — 내 데이터 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c) · 저장하는 것의 등급(FR-6, 서버 S3d).
  * 서비스 조립이 내놓은 [PersonalData] 를 이름으로 고른다. **identity 는 여기 없다** — 계정 행은 마지막이고 삭제 기록과 한 트랜잭션이라
  * 자기 경로(`/api/identity/me`)로만 지운다.
  *
@@ -37,10 +38,17 @@ class MyDataController(sources: List<PersonalData>, private val grants: EraseGra
 
     data class ServiceErasureBody(val service: String, val deleted: Map<String, Int>)
 
+    data class ServiceClassificationBody(val service: String, val tables: List<TableClass>)
+
     @Operation(summary = "이 서비스의 내 데이터")
     @GetMapping("/api/{service}/me/data")
     fun export(@PathVariable service: String, user: AuthenticatedUser): ResponseEntity<ApiResponse<ServiceExportBody>> =
         ApiResponse.ok(ServiceExportBody(service, source(service).export(user.userId)))
+
+    @Operation(summary = "이 서비스가 저장하는 사람 표 · 등급(기록 · 금액 · 민감) · 설명 — 누구에게나 같은 답(`SRV-REQ-048` FR-6)")
+    @GetMapping("/api/{service}/me/data-classification")
+    fun classification(@PathVariable service: String, user: AuthenticatedUser): ResponseEntity<ApiResponse<ServiceClassificationBody>> =
+        ApiResponse.ok(ServiceClassificationBody(service, source(service).classification()))
 
     @Operation(summary = "이 서비스의 내 데이터 지우기 — 지우기 허가 필요. 다시 불러도 안전")
     @DeleteMapping("/api/{service}/me/data")

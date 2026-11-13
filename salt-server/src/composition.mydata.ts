@@ -9,13 +9,14 @@
  */
 import { NextFunction, Request, Response, Router } from "express";
 
+import { LLM_INPUTS } from "./coach/domain";
 import { COACH_USER_ROWS } from "./coach/infrastructure/userRows";
 import { MARKET_USER_ROWS } from "./market/infrastructure/userRows";
 import { NEWS_USER_ROWS } from "./news/infrastructure/userRows";
 import { PORTFOLIO_USER_ROWS } from "./portfolio/infrastructure/userRows";
 import { DomainError, ErrorKind } from "./shared/domain";
 import prisma from "./shared/infrastructure/prisma";
-import { checkUserRowSets, eraseUserRows, exportUserRows, type UserRowSet } from "./shared/infrastructure/userRows";
+import { checkUserRowSets, classifyUserRows, eraseUserRows, exportUserRows, type UserRowSet } from "./shared/infrastructure/userRows";
 import { tokenVerifier, type TokenVerifier } from "./shared/lib/tokenVerifier";
 import { authMiddleware, ResponseUtil } from "./shared/presentation";
 
@@ -104,6 +105,39 @@ export const createMyDataRouter = (verifier: TokenVerifier = tokenVerifier): Rou
       const userId = await grantedUserId(verifier, req.headers[ERASE_HEADER], req.user!.userId);
       const deleted = await prisma.$transaction((tx) => eraseUserRows(tx, INVESTMENT_USER_ROWS, userId));
       ResponseUtil.success(res, { service: SERVICE, deleted });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  return router;
+};
+
+/**
+ * 저장하는 것의 등급 · AI 로 가는 것(`SRV-REQ-048` FR-6, 서버 S3d) — `/api/investment/me/data-classification`.
+ * 누구에게나 같은 답이지만 설정 화면(로그인)만 부른다 — 토큰을 요구해 다른 내 데이터 경로와 같은 문을 쓴다.
+ * AI 입력 목록은 이 서비스에만 있다 — LLM 을 부르는 곳이 투자 코치 배치뿐이다(플랫폼 서비스는 LLM 을 부르지 않는다).
+ */
+export const createDataClassificationRouter = (): Router => {
+  const router = Router();
+
+  /**
+   * @swagger
+   * /api/investment/me/data-classification:
+   *   get:
+   *     summary: 투자 쪽이 저장하는 사람 표 · 등급 · 설명 + AI 로 보내는 입력
+   *     description: 등급 record · financial · sensitive(표 주석이 원천). llmInputs 는 해설 · 등락 한 줄 배치가 프롬프트에 싣는 칸 — personal 이 전부 false
+   *     tags: [MyData]
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200: { description: "{ service, tables: [{ table, grade, about }], llmInputs: [{ job, about, inputs: [{ about, personal }] }] }" }
+   *       401: { description: 토큰 없음 · 만료 }
+   */
+  router.get("/", authMiddleware, async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const tables = await classifyUserRows(prisma, INVESTMENT_USER_ROWS);
+      const llmInputs = LLM_INPUTS.map((j) => ({ job: j.job, about: j.about, inputs: j.inputs.map((i) => ({ about: i.about, personal: i.personal })) }));
+      ResponseUtil.success(res, { service: SERVICE, tables, llmInputs });
     } catch (error) {
       next(error);
     }
