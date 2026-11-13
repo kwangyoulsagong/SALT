@@ -28,6 +28,11 @@ export type ModeDecisionAction =
 export interface ModeDecisionInput {
   mode: CoachMode;
   symbol: string;
+  /**
+   * 머리말이 부르는 이름("삼성전자 장기 관점은 …") — 없으면 심볼. 판정 · 점수와 무관한 문장 자리다(F017 v4 1f — 국내 해설이
+   * "005930 장기 관점은"으로 시작했다). 백테스트는 넘기지 않는다
+   */
+  displayName?: string;
   change24h: number;
   sentimentScore?: number;
   rsi?: number;
@@ -222,8 +227,8 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
     // 검증기가 부정 명령 · `-으세요` 를 몰라 통과했다(FEATURE-008 FR-49 측정에서 찾음)
     headline:
       input.mode === "scalp"
-        ? `${input.symbol} 단타 관점은 ${label}입니다. 손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다.`
-        : `${input.symbol} 장기 관점은 ${label}입니다. 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`,
+        ? `${input.displayName || input.symbol} 단타 관점은 ${label}입니다. 손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다.`
+        : `${input.displayName || input.symbol} 장기 관점은 ${label}입니다. 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`,
     reasons: reasons.slice(0, 3),
     risks: risks.slice(0, 3),
     score: normalized,

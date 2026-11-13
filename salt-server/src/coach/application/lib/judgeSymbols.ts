@@ -212,6 +212,8 @@ export const judgeSymbol = (
 
   const shared = {
     symbol,
+    // 머리말은 이름으로 — 국내 종목은 6자리 코드만으로 어느 회사인지 모른다(F017 v4 1f)
+    displayName: quote?.koreanName || undefined,
     change24h: Number(quote?.change24h ?? sentiment?.priceChange24h ?? 0),
     sentimentScore: sentiment?.sentimentScore,
     whaleBuy,
