@@ -143,4 +143,5 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 패널 안으로 옮기기 · 줄마다 작은 그래픽(FR-9 나머지 · `FE-REQ-064` FR-9 ②) | 패널 응답(1d) 뒤 | 순서 1e |
-| `web-investment` 운영 빌드 | 커밋 뒤 worktree | 이 커밋 묶음 뒤 바로 |
+
+운영 빌드(2026-11-13 1b): `web-investment` worktree 통과 — `/investments/[symbol]` 153 kB.
