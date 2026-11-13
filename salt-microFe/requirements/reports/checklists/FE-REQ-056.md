@@ -105,3 +105,9 @@
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
 - 번들 `/goals` 152 → 152 kB(main 대조, 때맞춘 팁 칸)
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(저축 줄은 그대로)
+- 확인: `zsh -n`
+- 미검증: 없음

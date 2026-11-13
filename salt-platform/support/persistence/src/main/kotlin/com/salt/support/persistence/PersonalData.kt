@@ -17,6 +17,9 @@ class PersonalData(val rows: UserRows, transactionManager: PlatformTransactionMa
     /** 한 스냅샷(같은 트랜잭션)으로 읽는다 — 표 사이 시점이 갈리지 않게 */
     fun export(userId: String): List<ExportedTable> = readOnly.execute { rows.export(userId) }
 
+    /** 사람 표 등급 · 설명 — 표 주석에서(읽기만) */
+    fun classification(): List<TableClass> = readOnly.execute { rows.classification() }
+
     /** 한 트랜잭션 — 중간에 실패하면 이 서비스 것은 하나도 안 지워진다. 다시 부르면 남은 것만(멱등) */
     fun erase(userId: String): Map<String, Int> = tx.execute { rows.erase(userId) }
 }

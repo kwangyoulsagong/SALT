@@ -1,5 +1,6 @@
 package com.salt.identity.api
 
+import com.salt.identity.application.ClassifyAccountData
 import com.salt.identity.application.DeleteAccount
 import com.salt.identity.application.ExportAccount
 import com.salt.identity.application.IssueEraseGrant
@@ -40,8 +41,13 @@ class MyAccountController(
     private val delete: DeleteAccount,
     private val grants: EraseGrants,
     private val grantLimit: FixedWindowLimit,
+    private val classify: ClassifyAccountData,
 ) {
     data class GrantRequest(@field:NotNull(message = MISSING) @field:Size(min = 1, max = 200, message = "비밀번호를 입력해 주세요") val password: String?)
+
+    data class TableClassBody(val table: String, val grade: String?, val about: String?)
+
+    data class ServiceClassificationBody(val service: String, val tables: List<TableClassBody>)
 
     data class GrantBody(val eraseToken: String, val expiresIn: Long)
 
@@ -51,6 +57,11 @@ class MyAccountController(
     @GetMapping("/data")
     fun exportData(user: AuthenticatedUser): ResponseEntity<ApiResponse<ServiceExportBody>> =
         ApiResponse.ok(ServiceExportBody(SERVICE, export.execute(user.userId)))
+
+    @Operation(summary = "identity 가 저장하는 사람 표 · 등급 · 설명(`SRV-REQ-048` FR-6) — 누구에게나 같은 답")
+    @GetMapping("/data-classification")
+    fun classification(user: AuthenticatedUser): ResponseEntity<ApiResponse<ServiceClassificationBody>> =
+        ApiResponse.ok(ServiceClassificationBody(SERVICE, classify.execute().map { TableClassBody(it.table, it.grade, it.about) }))
 
     @Operation(summary = "계정 삭제 허가 — 비밀번호를 다시 확인하고 5분 토큰")
     @PostMapping("/erase-grant")

@@ -69,6 +69,12 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 - `BFF-REQ-051` · 기존 `FE-REQ-041`(국내 화면) · `FE-REQ-050`(요약 띠)
 
+## FR — v4 (2026-11-13 · 전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`)
+
+| FR | 내용 | 상태 |
+|---|---|---|
+| FR-9 | **왜 움직였나를 원인 → 근거 → 결과로** — 종목 상세의 `WhyMovedCard` 는 시나리오 패널의 한 줄로 들어간다(`FE-REQ-064` FR-9 ②). 시세 목록 오른쪽 프리뷰(`WhyMovedPreview`)는 남기되 **원인 한 줄 + 근거 둘(숫자 · 평소 대비 · 이름 출처)** — 지금처럼 출처를 지운 한 문장만 보이지 않는다. 문장 속 등락 숫자가 지금 값과 다르면 그리지 않는다(서버 검사 `SRV-REQ-052`) | to-do |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -89,3 +95,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 | 2026-11-12 | 단계 D — FR-1 ③ done. 실화면 1440 · 390(앱 웹뷰 UA) · 코인 상세 · 프리뷰 · 상태 5종(route) · 넘침 0 |
 | 2026-11-12 | 단계 D 마무리 — FR-7 문구 grep 0 · `i18n-policy` 원인 단정어 줄(`ADR-009` §5) · AI 표시 대비(axe) |
+| 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-9 원인 근거 결과 모양 · 프리뷰 출처 이름 · 상세 카드는 시나리오 패널로 |

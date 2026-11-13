@@ -39,6 +39,14 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 - 서버 `SRV-REQ-053` · FE `FE-REQ-064` · 기존 `BFF-REQ-023`(코치 경로) · `BFF-REQ-039` · `BFF-REQ-040`(국내 호가) · `BFF-REQ-051`(국내 소식)
 
+## FR — v4 한 장 패널 (2026-11-13 · 전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`)
+
+| FR | 내용 | 상태 |
+|---|---|---|
+| FR-6 | `GET /api/app/ai-coach/panel?symbol` — 서버 `GET /api/coach/panel`(`SRV-REQ-053` FR-13) 한 콜을 패널 뷰모델로: `{ horizons[4], verdict, cause{ kind, headline, strength, evidence[], result }, company{ summary, facts[4] }, track{ hits, sample, baseline, miss }, mine?, explanation{ ready } }`. 화면 문구에 쓰는 숫자 모양(100번 중 n번 · n% 둘 다 · 범위 · 원 단위 가격)은 BFF 가 만든다 — 계산은 0(서버 값의 표시 변환만). 칸 `status` 는 그대로 전달 · 401 은 전체 401. 웹은 이 한 콜, 기존 칸별 경로(`/scenario` · `/check` · `/explanation`)는 소비처가 0 이 되면 삭제 | to-do |
+| FR-7 | `GET /api/app/ai-coach/explain/stream`(SSE) — 서버 스트림(`SRV-REQ-053` FR-9) 중계. 이벤트 `snapshot` · `sentence` · `fallback` · `done` · `ping`. 화면이 떠나면 서버로 끊김을 전한다(생성 자체는 서버가 끝까지 — 저장용). 압축 · 버퍼링 끔(`streaming-sse.md` §5) | to-do |
+| FR-8 | 내 기준 — 패널 뷰모델 `mine`: 보유가 없으면 칸 없음 · ~~평단은 펼침 경로에서만~~ **정정 2026-11-13** 평단 · 평가 손익 포함(매입가 숨김이면 빠짐, `SRV-REQ-053` FR-15) | to-do |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -54,3 +62,5 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-11 | **단계 4**(`feat/f017-s4-grade`) — FR-1 등급 칸 done(`7796338b`): `tier` · `tierBasis` 를 서버 값 그대로, 검증됨은 출처 라이브 · 주의는 출처 있음일 때만(서버와 같은 불변식) |
 | 2026-11-11 | **단계 5**(`feat/f017-s5-short-direction`) FR-4 done `33d1c061` — `/api/app/ai-coach/scenario` · 뷰모델 막을 수만(`contract_incomplete`) · 4xx 그대로 · 5xx unavailable |
 | 2026-11-11 | **단계 5 정정**(`d2237fb3`) — 성적에 `alwaysNotUpRate`(늘 안 오른다 = 확신 행 − 늘 오른다 맞힘). @2 진단: 확신 99% 가 '안 오름' 쪽이라 늘 오른다만으론 기준이 약했다. 막힌 카드에도 나가는 줄 |
+| 2026-11-13 | **v4 한 장 패널**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-6 패널 뷰모델 한 콜 · FR-7 해설 스트림 중계 · FR-8 내 기준(to-do) |
+| 2026-11-13 | FR-8 정정 — 평단 기본 포함 |

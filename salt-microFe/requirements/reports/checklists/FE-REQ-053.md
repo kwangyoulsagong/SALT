@@ -92,3 +92,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(이 REQ 줄은 그대로 — 같은 줄에 이름이 나란히 있다)
+- 확인: `ops/salt.sh help` · `zsh -n`
+- 미검증: 없음

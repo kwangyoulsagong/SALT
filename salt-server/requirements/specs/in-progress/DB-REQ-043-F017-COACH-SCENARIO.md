@@ -37,6 +37,16 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 - `SRV-REQ-053` · `FC-REQ-028` · 기존 `DB-REQ-036`(서비스별 스키마) · `DB-REQ-033`(forecast 뷰) · `ADR-007`
 
+## FR — v4 (2026-11-13 · 전 영역 계획 `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`)
+
+| FR | 내용 | 상태 |
+|---|---|---|
+| FR-8 | `cause_snapshot`(종목 · 거래일 · 지문 · `candidates jsonb` · 만든 시각) — 원인 후보 조립 결과(`SRV-REQ-053` FR-11). 덧붙이기만 · (종목, 거래일, 지문) 유일 | to-do |
+| FR-9 | `extracted_fact`(원천 kind(disclosure · article) · 원문 키 · 종목 · who · what · amount NUMERIC · unit · compared_to · event_kind · published_at · `available_at` · 원문 주소 · 추출기 버전) — **기사 문장 칸 없음**(`ADR-009` 개정). (원천, 원문 키, what) 유일 · 내 데이터 아님(시장 층) | to-do |
+| FR-10 | `explanation_snapshot.sentences[].section` 값 개정 — `conclusion · cause · evidence · result · company · track · miss · caution`. 옛 값(modeReasoning …)은 읽기 호환만 · CHECK 는 새 값 | to-do |
+| FR-11 | `company_brief`(종목 · 기준일 · 네 칸 jsonb · 한 줄 · 만든 시각) — 회사 사정 저장본 | to-do |
+| FR-12 | `forecast.coin_market_share`(종목 · 날 · β · 비트코인 수익 · 시장 몫 · 나머지 · available_at) + 뷰 `v_coin_market_share` — 예측이 쓰고 서버는 뷰만(`ADR-007`). DDL 은 서버 S5 전까지 `salt-server/prisma` | to-do |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -51,3 +61,5 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-11 | **단계 4**(`feat/f017-s4-grade`) — FR-6 등급 표 · 계약 뷰 · 판단 원장 export 뷰 done(`fa1877a1`). 정정: 행동 열 없음. `EXPLAIN (ANALYZE, BUFFERS)`(확인 2회차) — 서버 읽기 `v_judgment_tier` PK 인덱스 스캔 0.45ms · 4행 / 배치 읽기 export 뷰 원장 순차 스캔 16만 행 67ms(하루 한 번 전부 읽는 배치 — 예산 안) |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): coach `application/api/index.ts`(머리 주인) 조립에 유스케이스 둘(`getMoveSummary` · `generateMoveSummaries`) · 의존 없으면 꺼짐(테스트 조립) |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `coach/application/api/index.ts`(머리 주인) — 의존 `coachedUsers` · 유스케이스 `listCoachedUsers`(사람마다 배치 대상, `users` 읽기 0). 스키마 몫 변경 0 |
+| 2026-11-13 | **v4**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-8 원인 후보 스냅샷 · FR-9 추출 사실(문장 칸 없음) · FR-10 해설 칸 이름 · FR-11 회사 사정(to-do) |
+| 2026-11-13 | FR-12 코인 시장 몫 표 · 뷰(`FC-REQ-028` FR-12 · `SRV-REQ-053` FR-17) |

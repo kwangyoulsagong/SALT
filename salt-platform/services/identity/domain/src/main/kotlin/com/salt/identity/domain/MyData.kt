@@ -19,7 +19,13 @@ interface PersonalRecords {
     fun export(userId: String): List<PersonalTable>
 
     fun erase(userId: String): Map<String, Int>
+
+    /** 내보내는 사람 표마다 등급 · 설명(표 주석) — 서버 S3d(`SRV-REQ-048` FR-6) */
+    fun classification(): List<TableGrade>
 }
+
+/** 사람 표 하나의 등급(record · financial · sensitive)과 설명 — 주석이 없거나 틀리면 둘 다 null(종단 시험이 깬다) */
+data class TableGrade(val table: String, val grade: String?, val about: String?)
 
 /** 삭제 기록 — 사람을 가리키는 칸 0. 서비스 → 표 → 행 수 */
 interface DeletionLog {

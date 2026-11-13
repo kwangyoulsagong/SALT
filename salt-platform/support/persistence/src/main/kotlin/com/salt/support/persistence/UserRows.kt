@@ -34,6 +34,9 @@ data class UserRowSet(
     }
 }
 
+/** 사람 표 하나의 등급과 설명(표 주석 `"<등급>: <설명>"`) — [grade] 가 null 이면 주석이 없거나 모르는 등급(결함, 종단 시험이 깬다) */
+data class TableClass(val table: String, val grade: String?, val about: String?)
+
 /** 내보낸 표 하나 — 값은 전부 글자(금액 정밀도 · 시각 모양이 JSON 숫자 변환에서 바뀌지 않게). null 은 null */
 data class ExportedTable(val name: String, val columns: List<String>, val rows: List<List<String?>>)
 
@@ -88,6 +91,22 @@ class UserRows(
         ).map { it.get(0, String::class.java) }.filter { it !in known }
     }
 
+    /**
+     * 내보내는 사람 표마다 등급 · 설명(`SRV-REQ-048` FR-6, 서버 S3d) — 원천은 그 서비스 Flyway 의 표 주석 `"<등급>: <설명>"` 하나.
+     * 별도 분류 표를 두지 않는다(표를 만들 때 고칠 곳이 둘이 되면 갈라진다). 아웃박스(내보내기 0)는 뺀다
+     */
+    fun classification(): List<TableClass> =
+        sets.filter { it.export }.map { set ->
+            val comment = commentOf(set.table)
+            TableClass(set.table, gradeOf(comment), aboutOf(comment))
+        }
+
+    /** 등급 주석이 없거나 틀린 사람 표 — 비어 있어야 한다(종단 테스트) */
+    fun unclassified(): List<String> = classification().filter { it.grade == null || it.about == null }.map { it.table }
+
+    private fun commentOf(table: String): String? =
+        dsl.fetchValue("SELECT obj_description(to_regclass(current_schema() || '.' || ?), 'pg_class')", table)?.toString()
+
     /** 이 사용자 행이 아직 남은 표(비운 열은 그 열이 아직 이 사람인 행) — 지운 뒤 비어 있어야 한다 */
     fun remaining(userId: String): Map<String, Int> =
         sets.associate { set ->
@@ -96,6 +115,15 @@ class UserRows(
         }.filterValues { it > 0 }
 
     companion object {
+        /** 등급 셋 — 기록 · 금액(수입 · 지출 · 목표) · 민감(감정 · 급여 · 사람 이름, FEATURE-015 FR-5) */
+        val GRADES: Set<String> = setOf("record", "financial", "sensitive")
+
+        fun gradeOf(comment: String?): String? = comment?.substringBefore(':', "")?.trim()?.takeIf { it in GRADES }
+
+        /** 등급이 맞을 때만 설명 — 등급 없는 주석의 글자를 화면에 내지 않는다 */
+        fun aboutOf(comment: String?): String? =
+            if (gradeOf(comment) == null) null else comment!!.substringAfter(':').trim().takeIf { it.isNotEmpty() }
+
         /** 모든 서비스에 같은 모양으로 있는 기술 표(`kotlin-platform.md` §4) — 아웃박스는 사용자 id 를 실어 [outbox] 로 따로 */
         val TECHNICAL: Map<String, String> = mapOf(
             "flyway_schema_history" to "마이그레이션 이력",

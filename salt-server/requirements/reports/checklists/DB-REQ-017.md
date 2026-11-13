@@ -318,3 +318,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: `src/app.ts` 에 라우터 하나 — `/api/investment/me/data-classification`(내 데이터 경로와 같은 자리 · `/api/investment` 보다 먼저)
+- 확인: Express build · lint · test 1300/1300 · layer-check · 실스택 23ms
+- 미검증: 없음

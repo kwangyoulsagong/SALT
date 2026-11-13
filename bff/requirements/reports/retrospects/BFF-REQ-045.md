@@ -56,3 +56,7 @@
 
 - 이 REQ 몫 기능 변경 0 — 라우팅 표에 platform 경로 셋(`/coach/me/data` · `/ping/me/data` · `/notification/me/data` — 가장 긴 머리가 이긴다, `/coach` 는 legacy 그대로)
 - 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터
+
+## 2026-11-13 — 서버 S3d(짝)
+
+- 경로 마디 단위 판정(`/coach/me/data` 가 `/coach/me/data-classification` 을 잡지 않는다)이라 줄을 더할 때 머리 충돌을 걱정할 필요가 없었다

@@ -85,3 +85,9 @@
 
 - `PublicShell` 주석 — 공개 zone 은 앱 내비 · 검색칸 없음(변화 없음)
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-13 — 서버 S3d(짝 — `MONEY-S3d-identity-classify-usage`)
+
+- 이 REQ 몫: `ops/salt.sh` 에 금융 팁 zone `web-tips`(3005)가 **빠져 있었다** — 셸이 `/tips` 를 프록시하는데 아무도 띄우지 않았다(11-13 수동 기동 후 넣음)
+- 확인: `ops/salt.sh up` 목록 · 셸 경유 `/tips` 200
+- 미검증: 없음
