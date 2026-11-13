@@ -196,7 +196,11 @@ export class GetKrWhyMoved extends KrStockRead {
     super(deps);
   }
 
-  async execute(code: string): Promise<WhyMovedView & { code: string }> {
+  /**
+   * `opts.cause: false` — 원인 근거 재료(소식 뒤 가격 · 업종 폭 · 수급 평소 · 투자자 수급)를 읽지 않는다. 원인 칸을 쓰지 않는 소비처
+   * (③ 한 줄 배치 — `whyMovedCard`)가 종목마다 쿼리 넷을 더 내지 않게(장중 DB 부하 이력, `workers-external.md`). 원인 목록은 그래도 비지 않는다
+   */
+  async execute(code: string, opts: { cause?: boolean } = {}): Promise<WhyMovedView & { code: string }> {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const now = this.now();
     const [session, quote] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.store.quote(code)]);
@@ -290,13 +294,13 @@ export class GetKrWhyMoved extends KrStockRead {
     const facts = await attachNewsTags(this.deps.tagNews, "kr", code, merged.facts, related);
 
     // 원인 → 근거 → 결과(F017 v4 순서 1b) — 재료 넷을 한 번씩(저장값만). 하나가 실패해도 그 근거만 빠진다
-    const reader = this.move.evidence;
+    const reader = opts.cause === false ? undefined : this.move.evidence;
     const stockDayStart = new Date(`${stockDate}T00:00:00+09:00`);
     const [causeEventList, breadth, programUsual, investorRows] = await Promise.all([
       causeEvents(reader, code, facts),
       material("krSectorBreadth", reader && (() => reader.krSectorBreadth(code, stockDayStart))),
       material("krProgramUsual", reader && (() => reader.krProgramUsual(code, since))),
-      material("investorFlows", () => this.deps.supplement.investorFlows(code, INVESTOR_USUAL_DAYS + 1)),
+      material("investorFlows", opts.cause === false ? undefined : () => this.deps.supplement.investorFlows(code, INVESTOR_USUAL_DAYS + 1)),
     ]);
     const programFact = facts.find((f) => f.kind === "flow" && f.value !== null);
     const newsRead = !merged.unavailable.includes("news");
@@ -378,7 +382,8 @@ export class GetCryptoWhyMoved {
   ) {}
 
   /** 없는 종목은 `UnknownMarketSymbolError`(404) */
-  async execute(rawSymbol: string): Promise<WhyMovedView & { symbol: string }> {
+  /** `opts.cause: false` — 원인 근거 재료를 읽지 않는다(국내와 같은 이유) */
+  async execute(rawSymbol: string, opts: { cause?: boolean } = {}): Promise<WhyMovedView & { symbol: string }> {
     const symbol = rawSymbol.toUpperCase();
     const now = this.now();
     const benchmark = symbol === CRYPTO_BENCHMARK;
@@ -437,7 +442,7 @@ export class GetCryptoWhyMoved {
     const facts = await attachNewsTags(this.tagNews, "crypto", symbol, merged.facts, related);
 
     // 원인 → 근거 → 결과(코인판 `SRV-REQ-053` FR-17) — 시장 몫 · 거래소 표시 · 상장 나이 · 모은 소식. 공시 · 수급 · 업종은 없다
-    const reader = this.move.evidence;
+    const reader = opts.cause === false ? undefined : this.move.evidence;
     const [events, listedAt] = await Promise.all([
       causeEvents(reader, symbol, facts),
       material("cryptoListedAt", reader && (() => reader.cryptoListedAt(symbol))),

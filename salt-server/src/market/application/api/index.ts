@@ -701,14 +701,15 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
+    // ③ 한 줄 배치의 재료 — 원인 칸을 쓰지 않으니 원인 근거 재료를 읽지 않는다(F017 v4 1b 확인 2회차)
     whyMovedCard: async (asset, symbol) => {
       try {
         const view =
           asset === "kr"
             ? useCases.krStock
-              ? await useCases.krStock.getWhyMoved.execute(symbol)
+              ? await useCases.krStock.getWhyMoved.execute(symbol, { cause: false })
               : null
-            : await useCases.getCryptoWhyMoved.execute(symbol);
+            : await useCases.getCryptoWhyMoved.execute(symbol, { cause: false });
         if (!view) return null;
         return {
           date: view.date,

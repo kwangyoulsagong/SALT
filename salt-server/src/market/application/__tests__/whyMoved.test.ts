@@ -489,3 +489,23 @@ describe("원인 → 근거 → 결과(SRV-REQ-053 FR-11) — 유스케이스 �
     assert.equal(unknown.cause.causes[0]!.kind, "market");
   });
 });
+
+describe("원인 재료를 읽지 않는 소비처(③ 한 줄 배치 — whyMovedCard)", () => {
+  it("cause: false — 근거 리더 · 투자자 수급을 한 번도 부르지 않는다 · 원인 목록은 그래도 하나 이상", async () => {
+    const calls: string[] = [];
+    const { read, move } = krDeps({});
+    let investor = 0;
+    const r = await new GetKrWhyMoved(
+      { ...read, supplement: { ...read.supplement, investorFlows: async () => (investor++, { rows: [], collectedAt: null }) } as never },
+      { ...move, evidence: evidenceReader({ calls }) }
+    ).execute("005930", { cause: false });
+    assert.deepEqual([calls, investor], [[], 0]);
+    assert.ok(r.cause.causes.length >= 1);
+    // 기본(화면 경로)은 읽는다
+    await new GetKrWhyMoved(
+      { ...read, supplement: { ...read.supplement, investorFlows: async () => (investor++, { rows: [], collectedAt: null }) } as never },
+      { ...move, evidence: evidenceReader({ calls }) }
+    ).execute("005930");
+    assert.ok(calls.length >= 3 && investor === 1);
+  });
+});
