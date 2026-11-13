@@ -20,8 +20,8 @@ type BackendEnvelope<T> = { success: boolean; message?: string; data: T };
  */
 export class AppForecastService {
   /**
-   * 시나리오 카드 — 단타 방향 확률(F017 v2 단계 5 · `BFF-REQ-052` FR-4). 같은 규칙: 4xx(404 = 소유자 아님) 그대로,
-   * 5xx · 타임아웃 · 모양 깨짐은 200 `unavailable`. 서버는 뷰 두 개를 읽는다
+   * 시나리오 — 모든 종목 · 지평 넷에 늘(F017 v4 · `BFF-REQ-052` FR-4 개정). 로그인한 누구나(404 는 이제 오지 않는다 —
+   * 모델 확률 칸만 소유자, 서버가 가른다). 4xx 그대로 · 5xx · 타임아웃 · 모양 깨짐은 200 `unavailable`. 서버는 뷰 둘(소유자 넷)을 읽는다
    */
   async getScenario(token: string, symbol: string, signal?: AbortSignal): Promise<ScenarioResult> {
     try {
