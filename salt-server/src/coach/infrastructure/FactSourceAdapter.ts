@@ -24,6 +24,8 @@ export class FactSourceAdapter implements FactSourceReader {
       url: r.url,
       sourceName: r.outletName,
       paragraphs: r.paragraphs,
+      // 포털은 이 길에 없다(`aiBodiesForExtraction` 이 거른다) — 타입을 좁힐 뿐
+      via: r.via === "portal" ? "rss_direct" : r.via,
     }));
   }
 
@@ -31,7 +33,7 @@ export class FactSourceAdapter implements FactSourceReader {
     return this.news.markAiBodyExtraction(key, outcome, at);
   }
 
-  kindsOf(market: "kr" | "coin", items: ReadonlyArray<{ title: string; codes: number }>) {
-    return this.market.newsKindsOf(market === "kr" ? "kr" : "crypto", items);
+  kindsOf(market: "kr" | "coin", origin: "news" | "disclosure", items: ReadonlyArray<{ title: string; codes: number }>) {
+    return this.market.newsKindsOf(market === "kr" ? "kr" : "crypto", origin, items);
   }
 }

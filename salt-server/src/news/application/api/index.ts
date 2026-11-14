@@ -3,6 +3,8 @@ import type {
   AiBodyStore,
   AiSourceStore,
   AiTitleSource,
+  DartPort,
+  KrUniverseSource,
   OutletDef,
   OutletFeedPort,
   ArticleBodyQuery,
@@ -18,6 +20,7 @@ import type {
   SentimentArticleQuery,
 } from "../../domain";
 import { CollectAiBodies } from "../CollectAiBodies";
+import { CollectDartDisclosures } from "../CollectDartDisclosures";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
 import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import {
@@ -88,6 +91,8 @@ export interface NewsDependencies {
     sources: AiSourceStore;
     bodies: AiBodyStore;
   };
+  /** DART 공시(F017 v4 2b) — 키가 없으면 `port: null`(회차가 아무것도 하지 않는다) */
+  dart: { port: DartPort | null; universe: KrUniverseSource };
 }
 
 export interface NewsUseCases {
@@ -103,6 +108,8 @@ export interface NewsUseCases {
   getArticleBody: GetArticleBody;
   /** AI 경로 본문 한 회차 — 뉴스 워커가 5분마다 */
   collectAiBodies: CollectAiBodies;
+  /** DART 공시 한 회차 — 같은 워커 5분 */
+  collectDartDisclosures: CollectDartDisclosures;
 }
 
 /**
@@ -134,6 +141,7 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     listBookmarks: new ListBookmarks(deps.bookmarks),
     getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
     collectAiBodies: new CollectAiBodies(deps.aiBody),
+    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies }),
   };
 
   const api: NewsApi = {

@@ -174,6 +174,22 @@ export interface AiBodyStore {
   pendingExtraction(limit: number): Promise<import("./AiBody").AiBodyForExtraction[]>;
   /** 추출 끝(`done`) 또는 실패 한 번(`failed` — 상한이면 끝으로 친다) */
   markExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
+  /** 공시 원문 행(`via: dart`, 받은 채 `ok`) — 같은 키는 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
+  saveDisclosures(rows: Array<{ key: string; title: string; publishedAt: Date; symbols: string[]; url: string; paragraphs: string[]; hash: string; chars: number }>, at: Date): Promise<number>;
   /** 문단을 지우고 해시 · 길이만 — 추출이 끝났거나 보관 기한이 지난 행. 지운 수 */
   purgeParagraphs(before: Date, at: Date): Promise<number>;
+}
+
+// ── DART 공시(F017 v4 2b) ─────────────────────────────────────────────────────
+
+/** OpenDART — 목록 한 쪽 · 원문 한 건. 키가 없으면 조립에서 빠진다(포트 자체가 없음). 실패는 던진다 */
+export interface DartPort {
+  list(type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+  /** 원문(본문 문서 HTML) — 문단으로 바꾼 것 */
+  document(rceptNo: string): Promise<string[]>;
+}
+
+/** 국내 판단 유니버스(상위 N + 보유) — `market` 공개 API */
+export interface KrUniverseSource {
+  codes(): Promise<string[]>;
 }

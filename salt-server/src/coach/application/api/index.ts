@@ -393,7 +393,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       limits: deps.llmLimits,
     }),
     extractArticleFacts: new ExtractArticleFacts({
-      sources: deps.factExtraction?.sources ?? { pending: async () => [], mark: async () => {}, kindsOf: async (_m, i) => i.map(() => "other") },
+      sources: deps.factExtraction?.sources ?? { pending: async () => [], mark: async () => {}, kindsOf: async (_m, _o, i) => i.map(() => "other") },
       extractor: deps.factExtraction?.extractor ?? { extract: async () => ({ output: "[]", provider: "gemini", model: "none" }) },
       facts: deps.factExtraction?.facts ?? { saveMany: async () => 0 },
       enabled: deps.factExtraction?.enabled === true,

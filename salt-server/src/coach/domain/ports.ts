@@ -1069,13 +1069,15 @@ export interface FactSourceBody {
   url: string;
   sourceName: string;
   paragraphs: string[];
+  /** 원천 — 공시(`dart`)면 사실의 `source_kind = disclosure` */
+  via: "rss_direct" | "dart" | "coin_rss" | "outlet_list";
 }
 
 export interface FactSourceReader {
   pending(limit: number): Promise<FactSourceBody[]>;
   mark(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
   /** 제목 → 사건 종류(예측 사전) — 제목 순서 그대로 */
-  kindsOf(market: "kr" | "coin", items: ReadonlyArray<{ title: string; codes: number }>): Promise<string[]>;
+  kindsOf(market: "kr" | "coin", origin: "news" | "disclosure", items: ReadonlyArray<{ title: string; codes: number }>): Promise<string[]>;
 }
 
 /** 사실 추출 LLM — 원문을 읽고 JSON 배열 글자를 돌려준다(검사는 도메인 `checkExtractedFacts`). 트랜잭션 밖에서만 */

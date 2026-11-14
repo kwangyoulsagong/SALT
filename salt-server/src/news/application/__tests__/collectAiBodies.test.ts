@@ -67,6 +67,7 @@ const harness = (opts: {
       if (result.status === "failed") r.attempts = result.attempts;
     },
     pendingExtraction: async () => [],
+    saveDisclosures: async () => 0,
     markExtraction: async () => {},
     purgeParagraphs: async () => 0,
   };

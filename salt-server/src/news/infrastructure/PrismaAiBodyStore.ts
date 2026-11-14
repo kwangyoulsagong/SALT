@@ -11,6 +11,9 @@ import type {
   RssItem,
 } from "../domain";
 
+/** 공시 원천 이름(화면 출처 칩) */
+const DART_SOURCE_NAME = "DART 공시";
+
 const STATUSES: readonly AiBodyStatus[] = ["pending", "ok", "empty", "failed", "unmatched", "blocked", "no_outlet", "robots_blocked"];
 
 /**
@@ -151,7 +154,8 @@ export class PrismaAiBodyStore implements AiBodyStore {
       Array<{ key: string; market: string; title: string; title_published_at: Date; fetched_at: Date; symbols: string[];
         item_url: string; outlet_name: string | null; via: string; paragraphs: unknown; extract_attempts: number }>
     >`
-      SELECT b.key, b.market, b.title, b.title_published_at, b.fetched_at, b.symbols, b.item_url, o.name AS outlet_name, b.via,
+      SELECT b.key, b.market, b.title, b.title_published_at, b.fetched_at, b.symbols, b.item_url,
+        COALESCE(o.name, CASE WHEN b.via = 'dart' THEN ${DART_SOURCE_NAME} END) AS outlet_name, b.via,
         b.paragraphs, b.extract_attempts
       FROM news_ai_body b LEFT JOIN news_outlet o ON o.id = b.outlet_id
       WHERE b.status = 'ok' AND b.extracted_at IS NULL AND b.purged_at IS NULL AND b.via <> 'portal'
@@ -186,6 +190,21 @@ export class PrismaAiBodyStore implements AiBodyStore {
       UPDATE news_ai_body SET extract_attempts = extract_attempts + 1,
         extracted_at = CASE WHEN extract_attempts + 1 >= ${AI_EXTRACT_MAX_ATTEMPTS} THEN ${at}::timestamptz ELSE NULL END
       WHERE key = ${key} AND extracted_at IS NULL`;
+  }
+
+  async saveDisclosures(rows: Parameters<AiBodyStore["saveDisclosures"]>[0], at: Date) {
+    if (rows.length === 0) return 0;
+    const col = <T,>(pick: (r: (typeof rows)[number]) => T) => rows.map(pick);
+    return prisma.$executeRaw`
+      INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, paragraphs, body_hash, body_chars,
+        linked_at, fetched_at, symbols)
+      SELECT u.key, 'kr', u.title, u.published_at, NULL, 'dart', 'ok', u.url, u.paragraphs::jsonb, u.hash, u.chars, ${at}, ${at},
+        string_to_array(u.symbols, ',')
+      FROM unnest(${col((r) => r.key)}::text[], ${col((r) => r.title)}::text[], ${col((r) => r.publishedAt)}::timestamptz[],
+        ${col((r) => r.url)}::text[], ${col((r) => JSON.stringify(r.paragraphs))}::text[], ${col((r) => r.hash)}::text[],
+        ${col((r) => r.chars)}::int[], ${col((r) => r.symbols.join(","))}::text[])
+        AS u(key, title, published_at, url, paragraphs, hash, chars, symbols)
+      ON CONFLICT (key) DO NOTHING`;
   }
 
   async purgeParagraphs(before: Date, at: Date) {

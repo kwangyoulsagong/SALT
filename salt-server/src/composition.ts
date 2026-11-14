@@ -74,6 +74,8 @@ import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
 import { OUTLETS } from "./news/domain/Outlets";
 import { AiTitleAdapter } from "./news/infrastructure/AiTitleAdapter";
+import { DartClient } from "./news/infrastructure/DartClient";
+import { KrUniverseAdapter } from "./news/infrastructure/KrUniverseAdapter";
 import { OutletFeedClient } from "./news/infrastructure/OutletFeedClient";
 import { PrismaAiBodyStore, PrismaAiSourceStore } from "./news/infrastructure/PrismaAiBodyStore";
 import { createPortfolioApplication } from "./portfolio/application/api";
@@ -135,6 +137,8 @@ const news = createNewsApplication({
     sources: new PrismaAiSourceStore(),
     bodies: new PrismaAiBodyStore(),
   },
+  // DART 공시(F017 v4 2b) — 키가 없으면 꺼짐. 유니버스는 market 공개 API(부를 때 찾는다)
+  dart: { port: env.DART_API_KEY ? new DartClient(env.DART_API_KEY) : null, universe: new KrUniverseAdapter(() => market.api) },
 });
 
 /**

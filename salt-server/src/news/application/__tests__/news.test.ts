@@ -87,6 +87,7 @@ const build = (deps: {
       sources: {} as never,
       bodies: {} as never,
     },
+    dart: { port: null, universe: { codes: async () => [] } },
   });
 
 describe("CrawlNews", () => {

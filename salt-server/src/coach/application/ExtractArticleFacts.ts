@@ -94,9 +94,10 @@ export class ExtractArticleFacts {
         await this.deps.sources.mark(body.key, "failed", this.now());
         continue;
       }
-      const [kind] = await this.deps.sources.kindsOf(body.market, [{ title: body.title, codes: body.symbols.length }]);
+      const disclosure = body.via === "dart";
+      const [kind] = await this.deps.sources.kindsOf(body.market, disclosure ? "disclosure" : "news", [{ title: body.title, codes: body.symbols.length }]);
       const rows: ExtractedFactRow[] = checked.kept.map((f) => ({
-        sourceKind: "article",
+        sourceKind: disclosure ? "disclosure" : "article",
         sourceKey: body.key,
         symbols: body.symbols,
         who: f.who,

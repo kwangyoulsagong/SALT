@@ -10,7 +10,7 @@ const NOW = new Date("2026-11-14T03:00:00Z");
 const body = (key: string, over: Partial<FactSourceBody> = {}): FactSourceBody => ({
   key, market: "kr", title: "씨티씨바이오 3분기 누적 영업익 182% 증가", publishedAt: new Date("2026-11-13T09:24:00Z"),
   fetchedAt: new Date("2026-11-13T09:30:00Z"), symbols: ["000001"], url: `https://f.example/${key}`, sourceName: "인포스탁데일리",
-  paragraphs: ["3분기 누적 영업이익이 52억원으로 전년 동기 대비 182% 늘었다."], ...over,
+  paragraphs: ["3분기 누적 영업이익이 52억원으로 전년 동기 대비 182% 늘었다."], via: "rss_direct", ...over,
 });
 
 const harness = (opts: { bodies: FactSourceBody[]; output?: (key: string) => string | Error; calls?: number; enabled?: boolean }) => {
@@ -22,7 +22,7 @@ const harness = (opts: { bodies: FactSourceBody[]; output?: (key: string) => str
     sources: {
       pending: async () => opts.bodies,
       mark: async (key, outcome) => void marks.push([key, outcome]),
-      kindsOf: async (_m, items) => items.map((i) => (i.title.includes("영업익") ? "earnings" : "other")),
+      kindsOf: async (_m, origin, items) => items.map((i) => (i.title.includes("영업익") ? `earnings${origin === "disclosure" ? ":d" : ""}` : "other")),
     },
     extractor: {
       extract: async (input) => {
@@ -50,6 +50,11 @@ describe("ExtractArticleFacts", () => {
     assert.equal(h.saved[0]?.amount, "52");
     assert.equal(h.saved[0]?.availableAt.toISOString(), "2026-11-13T09:30:00.000Z");
     assert.deepEqual(h.marks, [["kr:1", "done"]]);
+  });
+  it("공시 원천(dart)이면 사실도 공시 · 종류는 공시 규칙으로", async () => {
+    const h = harness({ bodies: [body("dart:1", { via: "dart" })] });
+    await h.uc.execute();
+    assert.deepEqual([h.saved[0]?.sourceKind, h.saved[0]?.eventKind], ["disclosure", "earnings:d"]);
   });
   it("원문에 없는 숫자는 버리고 본문은 끝낸 것으로", async () => {
     const h = harness({ bodies: [body("kr:1")], output: () => JSON.stringify([{ who: "씨티씨바이오", what: "영업이익", amount: 5200000000, unit: "원" }]) });

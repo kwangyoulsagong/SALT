@@ -1,4 +1,3 @@
-import { inflateRawSync } from "node:zlib";
 
 import { createHttpClient } from "../../shared/infrastructure";
 import type { KrMarket, KrStockListing, KrStockMasterSource } from "../domain";
@@ -68,22 +67,10 @@ const intOrNull = (raw: string): number | null => {
   return Number(trimmed);
 };
 
-/** zip 의 첫 항목을 푼다. 저장 방식은 deflate(8) · 무압축(0) 만 */
-export const unzipFirstEntry = (zip: Buffer): Buffer => {
-  const eocd = zip.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
-  if (eocd < 0) throw new Error("zip 끝 레코드 없음");
-  const centralOffset = zip.readUInt32LE(eocd + 16);
-  if (zip.readUInt32LE(centralOffset) !== 0x02014b50) throw new Error("zip 중앙 디렉터리 없음");
-  const method = zip.readUInt16LE(centralOffset + 10);
-  const compressedSize = zip.readUInt32LE(centralOffset + 20);
-  const localOffset = zip.readUInt32LE(centralOffset + 42);
-  if (zip.readUInt32LE(localOffset) !== 0x04034b50) throw new Error("zip 로컬 헤더 없음");
-  const dataStart = localOffset + 30 + zip.readUInt16LE(localOffset + 26) + zip.readUInt16LE(localOffset + 28);
-  const data = zip.subarray(dataStart, dataStart + compressedSize);
-  if (method === 0) return Buffer.from(data);
-  if (method === 8) return inflateRawSync(data);
-  throw new Error(`zip 압축 방식 미지원: ${method}`);
-};
+/** zip 풀기는 shared 한 곳(`shared/infrastructure/zip`) — DART 공시 원문(`news`)도 같이 쓴다. 옛 이름 그대로 다시 내보낸다 */
+import { unzipFirstEntry } from "../../shared/infrastructure/zip";
+
+export { unzipFirstEntry };
 
 export const parseMasterFile = (market: KrMarket, raw: Buffer): KrStockListing[] => {
   const { width, fields } = LAYOUT[market];
