@@ -132,3 +132,27 @@ describe("한 줄 · 숫자 표기", () => {
     assert.equal(companyFactText(f({ what: "차바이오텍 흑자전환", amount: null, unit: null, comparedTo: null })), "차바이오텍 흑자전환");
   });
 });
+
+describe("한 줄 순위 · 최근 칸(2b 실측 결함)", () => {
+  it("사전 종류가 걸린 사실이 절차 숫자보다 앞 — '사외이사 참석 7명' 이 한 줄이 되지 않는다", () => {
+    const d = { sourceKind: "disclosure" as const, availableAt: day(1), publishedAt: day(1) };
+    const r = assembleCompanyBrief(
+      [f({ ...d, what: "이사회 결의 사외이사 참석", amount: "7", unit: "명", comparedTo: null }), f({ ...d, what: "보통주 시가배당률", amount: "0.7", unit: "%", comparedTo: null, eventKind: "dividend" })],
+      [], NOW, TODAY,
+    );
+    assert.equal(r.brief.headline?.what, "보통주 시가배당률");
+  });
+  it("실적 · 걸리는 점 · 오늘이 아닌 사실도 최근 칸에 남는다(다른 칸과 겹치지 않음)", () => {
+    const r = assembleCompanyBrief(
+      [
+        f({ what: "분기 현금배당 결정", amount: null, unit: null, comparedTo: null, eventKind: "dividend", availableAt: day(2), publishedAt: day(2) }),
+        f({ what: "기업설명회 개최", amount: null, unit: null, comparedTo: null, eventKind: "ir", availableAt: day(1), publishedAt: day(1) }),
+        f({ what: "주주명부 폐쇄", amount: null, unit: null, comparedTo: null, availableAt: day(3), publishedAt: day(3) }),
+      ],
+      [], NOW, TODAY,
+    );
+    const shown = [r.brief.headline!.what, ...r.brief.recent.map((x) => x.what)];
+    assert.deepEqual(shown.sort(), ["기업설명회 개최", "분기 현금배당 결정", "주주명부 폐쇄"].sort());
+    assert.equal(new Set(shown).size, 3);
+  });
+});

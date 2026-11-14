@@ -49,6 +49,8 @@ export interface CompanyBriefView {
   headline: CompanyFactView | null;
   earnings: CompanyFactView[];
   today: CompanyFactView[];
+  /** 오늘이 아닌 창 안 사실(실적 · 걸리는 점에 없는 것) — 배당 · 계약 · IR 같은 사건이 칸 밖으로 사라지지 않게 */
+  recent: CompanyFactView[];
   sector: CompanySectorLine[];
   concern: CompanyFactView[];
   /** 고른 창(일) — 7 · 90 · 365. 사실이 없으면 null */
@@ -108,8 +110,10 @@ const toView = (f: CompanyFact): CompanyFactView => ({
   source: { kind: f.sourceKind, name: f.sourceName, url: f.sourceUrl, at: f.availableAt.toISOString() },
 });
 
-/** 공시가 기사보다 앞(1차 원천) · 그다음 숫자가 있는 사실 · 최근 */
+/** 사건 종류가 사전에 걸린 사실(실적 · 배당 · 계약 …)이 앞 · 공시가 기사보다 앞(1차 원천) · 숫자가 있는 사실 · 최근.
+ * 종류가 먼저인 이유: 공시 본문엔 '사외이사 참석 7명' 같은 절차 숫자가 많다(2026-11-14 실측 — 그것이 한 줄로 올라왔다) */
 const rank = (a: CompanyFact, b: CompanyFact) =>
+  (a.eventKind === "other" ? 1 : 0) - (b.eventKind === "other" ? 1 : 0) ||
   (a.sourceKind === "disclosure" ? 0 : 1) - (b.sourceKind === "disclosure" ? 0 : 1) ||
   (a.amount === null ? 1 : 0) - (b.amount === null ? 1 : 0) ||
   b.availableAt.getTime() - a.availableAt.getTime();
@@ -136,7 +140,7 @@ export const assembleCompanyBrief = (
   if (!window) {
     return {
       tier: "defect",
-      brief: { headline: null, earnings: [], today: [], sector: [...sector], concern: [], windowDays: null, factCount: 0 },
+      brief: { headline: null, earnings: [], today: [], recent: [], sector: [...sector], concern: [], windowDays: null, factCount: 0 },
     };
   }
   const inWindow = known.filter((f) => now.getTime() - f.availableAt.getTime() <= window.days * DAY_MS);
@@ -157,12 +161,15 @@ export const assembleCompanyBrief = (
   concern.forEach((f) => taken.add(f));
   const earnings = take(ranked.filter(isEarningsFact));
   const today = take(recent.filter((f) => f.publishedAt.getTime() >= todayStart.getTime()));
+  // 최근 = 남은 사실 중 순위 앞(종류 · 공시 · 숫자) — 오늘이 아닌 것도 칸 밖으로 사라지지 않게
+  const recentCell = take(ranked);
   return {
     tier: window.tier,
     brief: {
       headline: toView(headline),
       earnings: earnings.map(toView),
       today: today.map(toView),
+      recent: recentCell.map(toView),
       sector: [...sector],
       concern: concern.map(toView),
       windowDays: window.days,

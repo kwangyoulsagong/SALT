@@ -237,7 +237,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         `status`(`ok` · `fallback` · `degraded`). **한 칸 실패가 패널을 비우지 않는다** — 그 칸만 `defect`, 응답은 200
    *       - `cells` 는 상태 점검(`OPS-004`)이 세는 칸 표(11줄 — 지평 넷 · 점검 · 원인 · 회사 사정 · 성적 둘 · 해설 둘)
    *       - `horizonMode` — 기간 탭 → 판단 모드(1h · 4h = 단타, 1d · 5d = 장기). 성적 · 해설 칸은 모드마다 `modes` 에
-   *       - `company` — 추출 사실(공시 · 기사 — `extracted_fact`)과 원인 칸 업종 근거로 `brief{ headline, earnings[], today[], sector[], concern[], windowDays, factCount }`.
+   *       - `company` — 추출 사실(공시 · 기사 — `extracted_fact`)과 원인 칸 업종 근거로 `brief{ headline, earnings[], today[], recent[], sector[], concern[], windowDays, factCount }`.
    *         단 = 7일 안 사실 `now` · 90일 `usual` · 365일 `longer` · 없음 `defect`(빈 칸들). **걸리는 점(`concern`)은 사실이 있으면 늘**.
    *         숫자 · 단위는 원문 그대로 · 칸마다 출처(이름 · 주소 · 시각). 읽기 실패면 `brief: null` · `degraded`
    *       - `mine` 은 보유가 있을 때만(아니면 null) · 토큰의 사용자 것만 · 매입가 숨김이면 평단 · 평가 손익 null.
@@ -311,6 +311,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                             headline: { type: object, nullable: true }
    *                             earnings: { type: array, items: { type: object } }
    *                             today: { type: array, items: { type: object } }
+   *                             recent: { type: array, items: { type: object }, description: "오늘이 아닌 창 안 사실(다른 칸에 없는 것)" }
    *                             sector: { type: array, items: { type: object, properties: { text: { type: string }, source: { type: string }, at: { type: string, nullable: true } } } }
    *                             concern: { type: array, items: { type: object } }
    *                             windowDays: { type: integer, nullable: true, enum: [7, 90, 365] }
