@@ -44,6 +44,37 @@ select 21, '새 종목 빈 칸',
                || count(distinct symbol) filter (where tier = 'defect' and cell_key <> 'company') || ' / 새 ' || count(distinct symbol)
           from cur where new_symbol and market = 'kr')
 union all
--- FR-6 — AI 경로 기사 본문 원천이 아직 없다(순서 2) — 셀 수 없음
-select 22, '본문 덮임', '? 본문 원천 전', '? 본문 원천 전'
+-- FR-6 — AI 경로 본문 덮임(SRV-REQ-058 FR-6). 지난 24시간(1시간 전까지) 종목에 묶인 제목 중 1시간 안에 본문이 생긴 비율.
+-- 앞 숫자 = 제목 전체 기준 · '허용' = 약관 · robots 가 허락한 매체 제목만(목표 90% — 미만 ✗) · '막힘' = 매체가 막아 못 덮는 몫
+-- 매체별 · 빠진 매체 상위는 ops/ai-body-coverage.sql
+select 22, '본문 덮임', cov.coin, cov.kr from (
+  with win as (select now() - interval '25 hours' as lo, now() - interval '1 hour' as hi),
+  titles as (
+    select 'kr' as market, 'kr:' || t.serial as key from kr_news_title t, win
+     where t.kind = 'news' and not t.promo
+       and t.published_at >= (win.lo at time zone 'utc') and t.published_at < (win.hi at time zone 'utc')
+       and (select count(*) from kr_news_title_symbol s where s.serial = t.serial) between 1 and 2
+    union all
+    select 'coin', 'coin:' || a.id from news_articles a, win
+     where a.published_at >= (win.lo at time zone 'utc') and a.published_at < (win.hi at time zone 'utc')
+       and cardinality(a.symbols) between 1 and 2),
+  joined as (
+    select t.market, b.status, o.enabled,
+           (b.status = 'ok' and b.fetched_at <= b.title_published_at + interval '1 hour') as covered
+      from titles t left join news_ai_body b on b.key = t.key left join news_outlet o on o.id = b.outlet_id),
+  agg as (
+    select market, count(*) as n, count(*) filter (where covered) as c,
+           count(*) filter (where enabled) as allowed_n, count(*) filter (where enabled and covered) as allowed_c,
+           count(*) filter (where status = 'blocked' or enabled is false) as blocked_n
+      from joined group by market),
+  fmt as (
+    select market,
+           case when n = 0 then '? 제목 0'
+                else (case when allowed_n = 0 or allowed_c * 100 < allowed_n * 90 then '✗ ' else 'ok ' end)
+                     || round(c * 100.0 / n) || '% · 허용 ' || coalesce(round(allowed_c * 100.0 / nullif(allowed_n, 0)) || '%', '-')
+                     || ' · 막힘 ' || round(blocked_n * 100.0 / n) || '%' end as v
+      from agg)
+  select coalesce((select v from fmt where market = 'coin'), '? 제목 0') as coin,
+         coalesce((select v from fmt where market = 'kr'), '? 제목 0') as kr
+) cov
 ) t order by k;
