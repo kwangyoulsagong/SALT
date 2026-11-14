@@ -350,3 +350,4 @@ type ExplainResult =
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `llmBudget.ts` FR-62 — `llmBudgetVerdict` 에 `reservedCalls`(기본 0) · `LLM_RESERVED_CALLS.moveSummary` 30. 상한 값 그대로 |
 | 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `coachReport.routes.ts` · `coachTools.controller.ts` 시나리오 Swagger · 주석을 v4 계약으로(지평 넷 · 두 출처 · 404 없음) — 이 REQ 의 경로 변경 0. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coachReport.routes.ts`(머리 주인)에 `GET /api/coach/panel` 경로 · Swagger. 기존 경로 변경 0 |
+| 2026-11-14 | LLM 상한 남길 몫을 배치 순서 셋으로(`reservedCallsBehind` — 해설 → 오늘 등락 한 줄 → 사실 추출, F017 v4 2c). 상한 300 그대로 · 사실 추출 몫 60 더함 |

@@ -521,3 +521,7 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `/api/coach/panel` 경로 · Swagger · 기존 경로 0 | 충족 | 주인 REQ 체크리스트 |
+
+## 2026-11-14 — F017 v4 2c 걸침
+
+- LLM 남길 몫 = 배치 순서 셋(`reservedCallsBehind`) · 경계 표(해설 210 · 한 줄 240 · 추출 300) — 검증은 `SRV-REQ-053` 2c 체크리스트
