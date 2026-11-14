@@ -68,6 +68,10 @@ import { PrismaNewsTagReader } from "./market/infrastructure/PrismaNewsTagReader
 import { ArticleBodyAdapter } from "./market/infrastructure/ArticleBodyAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
+import { OUTLETS } from "./news/domain/Outlets";
+import { AiTitleAdapter } from "./news/infrastructure/AiTitleAdapter";
+import { OutletFeedClient } from "./news/infrastructure/OutletFeedClient";
+import { PrismaAiBodyStore, PrismaAiSourceStore } from "./news/infrastructure/PrismaAiBodyStore";
 import { createPortfolioApplication } from "./portfolio/application/api";
 import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdapter";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
@@ -117,6 +121,15 @@ const news = createNewsApplication({
     search: new NaverNewsSearch({ id: env.NAVER_CLIENT_ID, secret: env.NAVER_CLIENT_SECRET }),
     pages: new ArticlePageFetcher(),
     bodies: new PrismaArticleBodyStore(),
+  },
+  // AI 경로 본문(`SRV-REQ-058`) — 국내 제목은 `market` 공개 API 로(아래에서 조립 — 부를 때 찾는다)
+  aiBody: {
+    outlets: OUTLETS,
+    titles: new AiTitleAdapter(() => market.api),
+    feeds: new OutletFeedClient(),
+    pages: new ArticlePageFetcher(),
+    sources: new PrismaAiSourceStore(),
+    bodies: new PrismaAiBodyStore(),
   },
 });
 

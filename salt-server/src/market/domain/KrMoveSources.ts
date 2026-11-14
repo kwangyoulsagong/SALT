@@ -229,6 +229,11 @@ export interface KrMoveSourceStore {
   newsTitles(code: string, since: Date, limit: number): Promise<StoredKrNewsTitle[]>;
   /** 제목 하나 — 그 종목에 걸린 것만(광고성 제외). 기사 본문 찾기(`SRV-REQ-054`)의 입력. 없으면 `null` */
   newsTitle(serial: string, code: string): Promise<{ kind: KrNewsKind; title: string; publishedAt: Date } | null>;
+  /**
+   * AI 경로 본문을 찾을 시황 제목(`SRV-REQ-058` FR-3) — `since` 뒤 · 기사(공시 아님) · 광고성 제외 · 관련 종목 1~2개(여러 종목 묶음 시황은 원인 근거가 아니다).
+   * 오래된 것부터 `limit` 건
+   */
+  newsTitlesForAiBody(since: Date, limit: number): Promise<Array<{ serial: string; providerName: string; title: string; publishedAt: Date }>>;
   /** 마지막으로 제목을 받은 시각(신선도) */
   newsCollectedAt(): Promise<Date | null>;
   /** 종목 → 업종 지수 코드(분류 없음은 빠진다) */

@@ -1114,3 +1114,77 @@ model NewsArticleBody {
 
   @@map("news_article_body")
 }
+
+/// AI 경로 매체 판정(`SRV-REQ-058` FR-1) — 원본은 코드 `news/domain/Outlets.ts`. 회차마다 목록 + robots 로 다시 쓴다
+model NewsOutlet {
+  id            String   @id
+  name          String
+  market        String
+  enabled       Boolean
+  robotsVerdict String   @map("robots_verdict")
+  termsVerdict  String   @map("terms_verdict")
+  termsNote     String   @map("terms_note")
+  checkedAt     DateTime @map("checked_at") @db.Timestamptz(3)
+
+  @@map("news_outlet")
+}
+
+/// origin 마다 robots.txt 저장본(하루 한 번)
+model NewsRobots {
+  origin    String   @id
+  status    Int
+  body      String
+  fetchedAt DateTime @map("fetched_at") @db.Timestamptz(3)
+
+  @@map("news_robots")
+}
+
+/// RSS 주소마다 조건부 GET 상태
+model NewsFeedState {
+  url          String   @id
+  outletId     String   @map("outlet_id")
+  etag         String?
+  lastModified String?  @map("last_modified")
+  status       String
+  polledAt     DateTime @map("polled_at") @db.Timestamptz(3)
+
+  @@map("news_feed_state")
+}
+
+/// 매체 RSS 항목 — 제목 · 주소 · 시각만(본문 0) · 14일
+model NewsRssItem {
+  url         String   @id
+  outletId    String   @map("outlet_id")
+  title       String
+  publishedAt DateTime @map("published_at") @db.Timestamptz(3)
+  fetchedAt   DateTime @map("fetched_at") @db.Timestamptz(3)
+
+  @@index([outletId, publishedAt], map: "news_rss_item_outlet_published_idx")
+  @@map("news_rss_item")
+}
+
+/// AI 경로 본문(`SRV-REQ-058`) — 사람용 본문 캐시(`news_article_body`, 포털)와 표가 다르다. `via` 가 `portal` 인 행은 AI 가 읽지 않는다.
+/// 문단은 추출 뒤 또는 7일 뒤 지우고 해시 · 길이만
+model NewsAiBody {
+  key              String    @id
+  market           String
+  title            String
+  titlePublishedAt DateTime  @map("title_published_at") @db.Timestamptz(3)
+  outletId         String?   @map("outlet_id")
+  via              String?
+  status           String
+  itemUrl          String?   @map("item_url")
+  paragraphs       Json      @default("[]")
+  bodyHash         String?   @map("body_hash")
+  bodyChars        Int?      @map("body_chars")
+  attempts         Int       @default(0)
+  nextTryAt        DateTime? @map("next_try_at") @db.Timestamptz(3)
+  linkedAt         DateTime  @map("linked_at") @db.Timestamptz(3)
+  fetchedAt        DateTime? @map("fetched_at") @db.Timestamptz(3)
+  extractedAt      DateTime? @map("extracted_at") @db.Timestamptz(3)
+  purgedAt         DateTime? @map("purged_at") @db.Timestamptz(3)
+
+  @@index([status, nextTryAt], map: "news_ai_body_status_next_try_idx")
+  @@index([market, titlePublishedAt], map: "news_ai_body_market_published_idx")
+  @@map("news_ai_body")
+}

@@ -1,4 +1,9 @@
 import type {
+  AiBodyStore,
+  AiSourceStore,
+  AiTitleSource,
+  OutletDef,
+  OutletFeedPort,
   ArticleBodyQuery,
   ArticleBodyStore,
   ArticleBodyView,
@@ -11,6 +16,7 @@ import type {
   NewsFeedPort,
   SentimentArticleQuery,
 } from "../../domain";
+import { CollectAiBodies } from "../CollectAiBodies";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
 import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import {
@@ -65,6 +71,15 @@ export interface NewsDependencies {
   feed: NewsFeedPort;
   /** 기사 본문 — 포털 검색 · 페이지 추출 · 캐시(`SRV-REQ-054`) */
   body: { search: ArticleSearchPort; pages: ArticlePagePort; bodies: ArticleBodyStore };
+  /** AI 가 읽는 본문(`SRV-REQ-058`) — 매체 RSS 원문만. 포털 검색 포트를 받지 않는다(이 경로에 포털 0) */
+  aiBody: {
+    outlets: readonly OutletDef[];
+    titles: AiTitleSource;
+    feeds: OutletFeedPort;
+    pages: ArticlePagePort;
+    sources: AiSourceStore;
+    bodies: AiBodyStore;
+  };
 }
 
 export interface NewsUseCases {
@@ -78,6 +93,8 @@ export interface NewsUseCases {
   removeBookmark: RemoveBookmark;
   listBookmarks: ListBookmarks;
   getArticleBody: GetArticleBody;
+  /** AI 경로 본문 한 회차 — 뉴스 워커가 5분마다 */
+  collectAiBodies: CollectAiBodies;
 }
 
 /**
@@ -108,6 +125,7 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     removeBookmark: new RemoveBookmark(deps.bookmarks),
     listBookmarks: new ListBookmarks(deps.bookmarks),
     getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
+    collectAiBodies: new CollectAiBodies(deps.aiBody),
   };
 
   const api: NewsApi = {

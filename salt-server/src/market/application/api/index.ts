@@ -131,6 +131,8 @@ import { GetKrMarketSummary } from "../GetKrMarketSummary";
  * 부를 일이 없고, 열면 다른 컨텍스트가 우리 워커를 대신 돌리게 된다.
  */
 export interface MarketApi {
+  /** 국내 시황 제목 — AI 경로 본문 찾기(`SRV-REQ-058`)의 입력. 국내가 꺼져 있으면 빈 목록 */
+  krNewsTitlesForAiBody(since: Date, limit: number): Promise<Array<{ serial: string; providerName: string; title: string; publishedAt: Date }>>;
   /** 최신 기술 지표. 없으면 `null` — 신규 상장이나 캔들 부족이 정상 경로다. */
   latestIndicator(symbol: string): Promise<StoredIndicator | null>;
   /** 최신 시장 심리. 없으면 `null`. */
@@ -656,6 +658,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
   };
 
   const api: MarketApi = {
+    krNewsTitlesForAiBody: async (since, limit) => (deps.krStock ? deps.krStock.moveSources.newsTitlesForAiBody(since, limit) : []),
     latestIndicator: (symbol) => deps.indicators.findLatest(symbol),
     latestSentiment: (symbol) => deps.sentiments.findLatest(symbol),
     recentWhaleTransactions: (symbol, limit = 20) =>
