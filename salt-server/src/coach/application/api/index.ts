@@ -28,6 +28,7 @@ import type {
   TradeCheckLedger,
   MoveCardReader,
   CompanyFactReader,
+  CompanyFilingReader,
   ExtractedFactStore,
   FactExtractor,
   FactSourceReader,
@@ -138,6 +139,8 @@ export interface CoachDependencies {
   };
   /** 회사 사정 재료(F017 v4 2d) — 추출 사실 읽기 */
   companyFacts?: CompanyFactReader;
+  /** 공시 목록 사실(F017 v4 2b+) */
+  companyFilings?: CompanyFilingReader;
   /** 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14) — AI 경로 본문 → 사실. 없으면 배치 0 */
   factExtraction?: {
     sources: FactSourceReader;
@@ -328,6 +331,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     tradePlans: deps.tradePlans,
     // 회사 사정(F017 v4 2d) — 없으면 빈 재료(늘 결함 단)
     companyFacts: deps.companyFacts ?? { recent: async () => [] },
+    companyFilings: deps.companyFilings ?? { recent: async () => [] },
   });
 
   const useCases: CoachUseCases = {
@@ -371,6 +375,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       // 없으면 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않는다 — 화면은 사실표 문장
       llmEnabled: deps.llmEnabled !== false,
       causes: deps.moveCauses,
+      company: deps.companyFacts ? { facts: deps.companyFacts, filings: deps.companyFilings ?? { recent: async () => [] } } : undefined,
       generations: explanationGenerations,
     }),
     streamSymbolExplanation: new StreamSymbolExplanation({
@@ -380,6 +385,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       store: deps.explanations,
       generations: explanationGenerations,
       causes: deps.moveCauses,
+      company: deps.companyFacts ? { facts: deps.companyFacts, filings: deps.companyFilings ?? { recent: async () => [] } } : undefined,
       usage: deps.llmUsage,
       limits: deps.llmLimits,
       llmEnabled: deps.llmEnabled !== false,

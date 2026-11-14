@@ -7,11 +7,13 @@ import {
   type ExplanationSnapshotStore,
   type LlmBudgetLimits,
   type LlmUsageStore,
+  type CompanyFactReader,
+  type CompanyFilingReader,
   type MoveCauseReader,
   type TrackedAssetProbe,
 } from "../domain";
 import type { ExplanationDemand } from "./lib/explanationDemand";
-import { ExplanationGenerations, generateExplanation, llmBudget, withCause } from "./lib/explanationGeneration";
+import { ExplanationGenerations, generateExplanation, llmBudget, withCause, withCompany } from "./lib/explanationGeneration";
 import { loadExplanationBase, prepareExplanationMode, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
 
 /** 두 모드 다 — 국내 단타도 판단이 열려 있다(`ADR-010` v2) */
@@ -29,6 +31,8 @@ export interface GenerateExplanationSnapshotsDeps extends ExplanationMaterialsDe
   llmEnabled: boolean;
   /** 원인 → 근거 → 결과 재료(F017 v4 1f) — 없으면 원인 없이 */
   causes?: MoveCauseReader;
+  /** 회사 사정 재료(F017 v4 2b+ FR-16) — 생성할 때만 */
+  company?: { facts: CompanyFactReader; filings: CompanyFilingReader };
   /** 스트림과 같은 등록부 — 같은 지문은 생성 하나(F017 v4 1f) */
   generations: ExplanationGenerations;
   now?: () => Date;
@@ -128,7 +132,8 @@ export class GenerateExplanationSnapshots {
       }
 
       attempts += 1;
-      const input = await withCause(this.deps.causes, prepared, prepared.input);
+      const withCauseInput = await withCause(this.deps.causes, prepared, prepared.input);
+      const input = await withCompany(this.deps.company, prepared, withCauseInput, new Date());
       // 화면 스트림이 같은 지문을 이미 만들고 있으면 거기 붙는다 — LLM 두 번 0
       const { done } = this.deps.generations.join(ExplanationGenerations.key(prepared), (emit) =>
         generateExplanation(

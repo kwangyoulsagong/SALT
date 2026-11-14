@@ -26,8 +26,8 @@ import { MODE_DECISION_RULE_VERSION, type ModeDecisionAction } from "./modeDecis
  */
 
 /** 프롬프트(`explanationPrompt.ts`) · 검증기(`explanationTemplate.ts` `verifyExplanation`)가 바뀌면 올린다 — 지문이 바뀌어 다시 만든다 */
-export const EXPLANATION_PROMPT_VERSION = "explain-prompt@2";
-export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@3";
+export const EXPLANATION_PROMPT_VERSION = "explain-prompt@3"; // @3 2026-11-14 — 회사 사정 재료(F017 v4 2b+ FR-16)
+export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@4"; // @4 2026-11-14 — 회사 사정 인용(③')
 
 /** 지문에 넣는 뉴스 수 — 맨 위 몇 건이 바뀌면 다시 만든다(뒤쪽 순서 변화로 매번 다시 만들지 않게) */
 export const EXPLANATION_FINGERPRINT_NEWS = 3;
@@ -196,6 +196,10 @@ export const explanationFactCatalog = (input: CoachExplanationInput, asOf: Date)
   if (input.cause) {
     add({ id: "cause-result", label: "시세", at, url: null, news: false, texts: [input.cause.result], numbers: numericTokens(input.cause.result) });
   }
+  // 회사 사정(F017 v4 2b+) — 출처 이름 그대로("DART 공시" · 매체). 문장이 그 숫자를 말하면 그 이름으로 인용
+  (input.company?.lines ?? []).forEach((l, i) =>
+    add({ id: `company-${i + 1}`, label: l.source, at, url: null, news: false, texts: [l.text], numbers: numericTokens(l.text) })
+  );
   (input.news ?? []).forEach((n, i) =>
     add({
       id: `news-${i + 1}`,
@@ -233,7 +237,7 @@ const SMALL_COUNT_MAX = 12;
 
 /**
  * 문장 하나의 인용 — ① 사실 글이 문장 안에 있거나 문장이 사실 글 안에 있음 ② 남은 숫자가 맞는 사실(검증기와 같은 대조)
- * ③ 뉴스 칸이면 제목이 가장 많이 겹치는 기사 ④ 아무것도 없으면 규칙 판단. 인용 없는 문장 0
+ * ③ 뉴스 칸이면 제목이 가장 많이 겹치는 기사 ③' 회사 사정 사실과 글자가 겹치면 그 사실 ④ 아무것도 없으면 규칙 판단. 인용 없는 문장 0
  */
 export const citeSentence = (
   section: ExplanationSection,
@@ -268,6 +272,13 @@ export const citeSentence = (
       .sort((a, b) => b.score - a.score)[0];
     if (best && best.score >= NEWS_MATCH_MIN) hits.add(best.f.id);
   }
+  // ③' 회사 사정(F017 v4 2b+) — 숫자 없이 말을 바꿔 옮겨도 그 사실(공시 · 기사 이름)로. 뉴스와 같은 겹침 문턱 · 칸 무관
+  //   (실측 2026-11-14: "기업설명회(IR) 개최 안내공시처럼…" 문장이 '규칙 판단'으로 인용됐다)
+  const company = usable
+    .filter((f) => f.id.startsWith("company-"))
+    .map((f) => ({ f, score: Math.max(...f.texts.map((t) => bigramOverlap(plain, t))) }))
+    .sort((a, b) => b.score - a.score)[0];
+  if (company && company.score >= NEWS_MATCH_MIN) hits.add(company.f.id);
   if (hits.size === 0) {
     const fallback = catalog.find((f) => f.id === "judgment") ?? catalog[0];
     if (fallback) hits.add(fallback.id);

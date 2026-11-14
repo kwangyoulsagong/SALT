@@ -17,7 +17,7 @@ import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
 import { GetSymbolExplanation, trustInput } from "../GetSymbolExplanation";
 import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
 import { ExplanationDemand } from "../lib/explanationDemand";
-import { reservedCallsBehind } from "../../domain";
+import { DEFAULT_LLM_BUDGET, reservedCallsBehind } from "../../domain";
 import { ExplanationGenerations } from "../lib/explanationGeneration";
 
 /**
@@ -292,7 +292,7 @@ describe("GenerateExplanationSnapshots — 지문이 바뀐 것만 · 실패는 
   });
 
   it("상한 — 해설은 뒤 배치 둘(한 줄 · 사실 추출) 몫을 남기고 멈춘다(F017 v4 2c)", async () => {
-    const limit = 300 - reservedCallsBehind("explanation");
+    const limit = DEFAULT_LLM_BUDGET.totalCalls - reservedCallsBehind("explanation");
     const under = await setup().batch(spyExplainer(() => llmText).explainer, true, limit - 1).execute();
     assert.ok(under.generated > 0);
     const spy = spyExplainer(() => llmText);
