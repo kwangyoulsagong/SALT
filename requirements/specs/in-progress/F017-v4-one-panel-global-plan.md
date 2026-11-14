@@ -95,3 +95,4 @@ status: in-progress
 | 2026-11-13 | 순서 1c 3종 문장 done(`feat/f017-v4-s1-scenario-always`) — FR-16 나머지는 1f 로 |
 | 2026-11-14 | 순서 2a 기사 본문 AI 경로 done(`feat/f017-v4-s2-disclosure-body`) — 루트 슬라이스 `F017-v4-stage2-sources-slice.md`. **약관으로 원천이 줄었다**: 국내 3곳 · 코인 5곳만 켜짐 → 덮임 목표 = 켜진 매체 기준. 국내 원인 근거 1차 = 공시(2b) |
 | 2026-11-14 | 순서 2c 사실 추출(기사 본문) done — 2b(공시)는 OpenDART 키 대기라 2c 를 먼저 |
+| 2026-11-14 | 순서 2d 회사 사정 칸 done — 순서 2 에서 남은 것 2b 공시(OpenDART 키 대기) |

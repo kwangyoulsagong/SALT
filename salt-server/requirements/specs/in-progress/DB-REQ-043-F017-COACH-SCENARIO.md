@@ -44,7 +44,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR-8 | `cause_snapshot`(종목 · 거래일 · 지문 · `candidates jsonb` · 만든 시각) — 원인 후보 조립 결과(`SRV-REQ-053` FR-11). 덧붙이기만 · (종목, 거래일, 지문) 유일 | to-do |
 | FR-9 | `extracted_fact`(원천 kind(disclosure · article) · 원문 키 · 종목 · who · what · amount NUMERIC · unit · compared_to · event_kind · published_at · `available_at` · 원문 주소 · 추출기 버전) — **기사 문장 칸 없음**(`ADR-009` 개정). (원천, 원문 키, what) 유일 · 내 데이터 아님(시장 층) | **done 2026-11-14**(2c) — 마이그레이션 `20261114120000_extracted_fact`(+ `news_ai_body.symbols` · `extract_attempts`) · `20261114120100_ai_body_symbols_backfill`. 종목은 `symbols text[]`(GIN) — 한 사실이 종목 둘에 걸릴 수 있다 · 숫자 `amount NUMERIC` · 시점 `when_text`(원문 표기) |
 | FR-10 | `explanation_snapshot.sentences[].section` 값 개정 — `conclusion · cause · evidence · result · company · track · miss · caution`. 옛 값(modeReasoning …)은 읽기 호환만 · CHECK 는 새 값 | to-do |
-| FR-11 | `company_brief`(종목 · 기준일 · 네 칸 jsonb · 한 줄 · 만든 시각) — 회사 사정 저장본 | to-do |
+| FR-11 | `company_brief`(종목 · 기준일 · 네 칸 jsonb · 한 줄 · 만든 시각) — 회사 사정 저장본 | **정정 2026-11-14(2d) — 표 만들지 않음**: 읽을 때 `extracted_fact` 에서 조립(GIN 한 번 0.3ms · 패널 p95 277ms). 저장본이 필요한 LLM 한 줄이 없어졌다(`SRV-REQ-053` FR-12 정정) |
 | FR-12 | `forecast.coin_market_share`(종목 · 날 · β · 비트코인 수익 · 시장 몫 · 나머지 · available_at) + 뷰 `v_coin_market_share` — 예측이 쓰고 서버는 뷰만(`ADR-007`). DDL 은 서버 S5 전까지 `salt-server/prisma` | to-do |
 
 ## Changelog
@@ -66,3 +66,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `coach/application/api` 조립에서 `GetSymbolScenario` 가 기저율 리더를 같이 받는다 — 표 · 뷰 변경 0(읽는 뷰 `v_base_rate` · `v_base_rate_trigger` 그대로). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8 |
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coach/application/api/index.ts`(머리 주인) 조립: `getCoachPanel` · 의존 `moveCauses` · 해설 · 시나리오 · 점검 인스턴스를 패널과 칸별 경로가 같이 쓴다. 스키마 · 표 변경 0 |
 | 2026-11-14 | **FR-9 `extracted_fact` done**(F017 v4 2c) — 표 하나 · 인덱스 셋 · 사용자 열 0 · 문장 칸 0. 되돌리기 = 표 지우기 + `news_ai_body` 열 둘 |
+| 2026-11-14 | FR-11 `company_brief` 표는 만들지 않음 — 읽을 때 조립(2d) |
