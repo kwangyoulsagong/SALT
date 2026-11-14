@@ -22,7 +22,7 @@ export const PANEL_MESSAGES = {
   companyNone: "확인된 공시 · 기사 사실이 아직 없어요",
   companyNoneNote: "약관이 허락한 매체 기사와 공시에서 뽑은 사실만 보여요",
   companyDefect: "회사 사정을 지금 불러오지 못했어요",
-  companyGroups: { earnings: "실적", today: "오늘", sector: "업계", concern: "걸리는 점" },
+  companyGroups: { earnings: "실적", today: "오늘", recent: "최근", sector: "업계", concern: "걸리는 점" },
   companyWindow: (days: 90 | 365) => `최근 7일 안 사실이 없어 최근 ${days}일 사실이에요`,
   companyCount: (n: number) => `사실 ${n}개 중 일부`,
   companySourceSr: (name: string) => `${name} 원문(새 창)`,

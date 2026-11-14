@@ -72,6 +72,8 @@ export interface CompanyBrief {
   headline: CompanyFact | null;
   earnings: CompanyFact[];
   today: CompanyFact[];
+  /** 오늘이 아닌 창 안 사실(다른 칸과 겹치지 않음) */
+  recent: CompanyFact[];
   sector: Array<{ text: string; source: string; at: string | null }>;
   concern: CompanyFact[];
   /** 고른 창(일) — 7 · 90 · 365. 사실이 없으면 null */
