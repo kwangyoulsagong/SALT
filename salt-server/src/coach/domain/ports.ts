@@ -1106,3 +1106,7 @@ export interface ExtractedFactStore {
   saveMany(rows: ExtractedFactRow[], at: Date): Promise<number>;
 }
 
+/** 회사 사정 재료(F017 v4 2d) — 한 종목의 추출 사실(`extracted_fact`), `since` 뒤 · 알게 된 시각 최신순 · `limit` 건 */
+export interface CompanyFactReader {
+  recent(symbol: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
+}

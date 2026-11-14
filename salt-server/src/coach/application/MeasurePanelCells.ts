@@ -14,7 +14,7 @@ export interface PanelCheckSummary {
   runAt: string;
   symbols: number;
   rows: number;
-  /** 결함 단 칸 수(회사 사정 빼고 — 재료가 순서 2 라 늘 결함) */
+  /** 결함 단 칸 수(회사 사정 포함 — F017 v4 2d 부터 재료가 있다) */
   defects: number;
   stale: number;
   newSymbols: number;
@@ -69,7 +69,7 @@ export class MeasurePanelCells {
       runAt: runAt.toISOString(),
       symbols: symbols.length,
       rows: saved,
-      defects: rows.filter((r) => r.tier === "defect" && r.cellKey !== "company").length,
+      defects: rows.filter((r) => r.tier === "defect").length,
       stale: symbolsStale,
       newSymbols: symbolsNew,
       failed,

@@ -62,7 +62,7 @@ export class InvestmentInsightWorker {
     const measurePanelCells = async () => {
       const r = await this.coach.measurePanelCells.execute();
       console.log(
-        `🧮 Panel cells — 종목 ${r.symbols} · 칸 ${r.rows} · 결함 ${r.defects}(회사 사정 뺌) · 멈춘 종목 ${r.stale} · 새 종목 ${r.newSymbols} · 패널 실패 ${r.failed}`
+        `🧮 Panel cells — 종목 ${r.symbols} · 칸 ${r.rows} · 결함 ${r.defects} · 멈춘 종목 ${r.stale} · 새 종목 ${r.newSymbols} · 패널 실패 ${r.failed}`
       );
     };
     schedule("panel-cell-check", "30 12,16 * * *", measurePanelCells, { timezone: "Asia/Seoul", catchUp: true });

@@ -52,11 +52,12 @@ const setup = (opts: { symbols: string[]; previous?: string[]; fail?: string[]; 
 };
 
 describe("MeasurePanelCells", () => {
-  it("종목마다 칸 11줄 · 단은 패널 그대로 · 결함 수는 회사 사정 빼고", async () => {
+  it("종목마다 칸 11줄 · 단은 패널 그대로 · 결함 수는 회사 사정 포함(F017 v4 2d — 재료가 생겼다)", async () => {
     const { m, saved } = setup({ symbols: ["BTC", "005930"], lowered: { BTC: "cause" } });
     const r = await m.execute();
     assert.equal(saved[0]!.rows.length, 22);
-    assert.equal(r.defects, 1);
+    // BTC 원인 1 + 두 종목 회사 사정 2(이 시험 패널은 회사 사정을 늘 defect 로 준다)
+    assert.equal(r.defects, 3);
     assert.equal(saved[0]!.rows.find((x) => x.symbol === "BTC" && x.cellKey === "cause")!.tier, "defect");
     assert.equal(saved[0]!.rows.find((x) => x.symbol === "005930")!.market, "kr");
   });

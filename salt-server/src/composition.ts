@@ -7,6 +7,7 @@ import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplai
 import { FactSourceAdapter } from "./coach/infrastructure/FactSourceAdapter";
 import { LlmFactExtractor } from "./coach/infrastructure/LlmFactExtractor";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
+import { PrismaCompanyFactReader } from "./coach/infrastructure/PrismaCompanyFactReader";
 import { PrismaExtractedFactStore } from "./coach/infrastructure/PrismaExtractedFactStore";
 import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
@@ -326,6 +327,8 @@ const coach = createCoachApplication({
     // 해설 LLM 을 끄면 이것도 — LLM 두 길을 따로 켜 두는 경우가 없다
     enabled: env.MOVE_SUMMARY === "on" && env.COACH_EXPLAIN_LLM === "on",
   },
+  // 회사 사정 칸(F017 v4 2d) — 추출 사실을 읽는다(같은 coach 표)
+  companyFacts: new PrismaCompanyFactReader(),
   // 사실 추출(F017 v4 2c) — 재료는 news AI 경로 본문 · market 사건 종류 사전(공개 API), 사실 저장은 coach. 해설 LLM 을 끄면 같이
   factExtraction: {
     sources: new FactSourceAdapter(news.api, market.api),

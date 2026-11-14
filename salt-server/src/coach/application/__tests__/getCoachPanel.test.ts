@@ -43,6 +43,7 @@ const deps = (over: Partial<GetCoachPanelDeps> = {}, calls: string[] = []): GetC
     },
   },
   tradePlans: { listOwned: async () => [] },
+  companyFacts: { recent: async () => [] },
   now: () => new Date("2026-11-13T06:00:00Z"),
   ...over,
 });
@@ -67,11 +68,12 @@ describe("GetCoachPanel", () => {
     assert.equal(view.modes.longTerm.explanation.asOf, "2026-11-13T00:00:00.000Z");
     assert.equal(view.modes.scalp.explanation.asOf, null);
     assert.equal(view.scenario.horizons[2]!.status, "ok");
-    assert.equal(view.company.reason, "source_not_collected");
+    // 사실 0 = 결함 단 · 빈 칸들(빈 응답이 아니다 — 화면은 "확인된 사실이 아직 없어요")
+    assert.deepEqual([view.company.status, view.company.brief?.headline, view.company.brief?.factCount], ["degraded", null, 0]);
     assert.equal(view.mine, null);
   });
 
-  for (const broken of ["scenario", "check", "judgment", "explanation", "causes"] as const) {
+  for (const broken of ["scenario", "check", "judgment", "explanation", "causes", "companyFacts"] as const) {
     it(`${broken} 이 실패해도 200 — 그 칸만 결함`, async () => {
       const fail = async () => {
         throw new Error("down");
@@ -79,6 +81,8 @@ describe("GetCoachPanel", () => {
       const over: Partial<GetCoachPanelDeps> =
         broken === "causes"
           ? { causes: { cause: fail } }
+          : broken === "companyFacts"
+            ? { companyFacts: { recent: fail } }
           : broken === "explanation"
             ? { explanation: { executeModes: fail } }
             : ({ [broken]: { execute: fail } } as Partial<GetCoachPanelDeps>);
@@ -91,6 +95,7 @@ describe("GetCoachPanel", () => {
         judgment: ["company", "track.long_term", "track.scalp"],
         explanation: ["company", "explanation.long_term", "explanation.scalp"],
         causes: ["cause", "company"],
+        companyFacts: ["company"],
       }[broken];
       assert.deepEqual(defect, expected);
       for (const c of view.cells) assert.equal(c.status, c.tier === "defect" ? "degraded" : c.tier === "now" ? "ok" : "fallback");

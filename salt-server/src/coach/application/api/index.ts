@@ -27,6 +27,7 @@ import type {
   ShortHorizonReader,
   TradeCheckLedger,
   MoveCardReader,
+  CompanyFactReader,
   ExtractedFactStore,
   FactExtractor,
   FactSourceReader,
@@ -135,6 +136,8 @@ export interface CoachDependencies {
     names: (symbols: string[]) => Promise<Map<string, string>>;
     enabled: boolean;
   };
+  /** 회사 사정 재료(F017 v4 2d) — 추출 사실 읽기 */
+  companyFacts?: CompanyFactReader;
   /** 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14) — AI 경로 본문 → 사실. 없으면 배치 0 */
   factExtraction?: {
     sources: FactSourceReader;
@@ -323,6 +326,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     profiles: deps.profiles,
     portfolio: deps.portfolio,
     tradePlans: deps.tradePlans,
+    // 회사 사정(F017 v4 2d) — 없으면 빈 재료(늘 결함 단)
+    companyFacts: deps.companyFacts ?? { recent: async () => [] },
   });
 
   const useCases: CoachUseCases = {

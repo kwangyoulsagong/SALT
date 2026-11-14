@@ -1,7 +1,9 @@
 import { logger } from "../../shared/config/logger";
 import {
-  COMPANY_PENDING_REASON,
+  COMPANY_CELL_MAX,
+  COMPANY_LOOKBACK_DAYS,
   PANEL_CELL_KEYS_ALL,
+  assembleCompanyBrief,
   PANEL_HORIZON_MODE,
   causeTier,
   explanationTier,
@@ -11,6 +13,9 @@ import {
   verdictTier,
   type CoachMode,
   type CoachProfileStore,
+  type CompanyBriefView,
+  type CompanyFactReader,
+  type CompanySectorLine,
   type MoveCauseReader,
   type PanelCellKey,
   type PanelCellState,
@@ -69,8 +74,11 @@ export interface CoachPanelView {
   /** 점검 한 줄(사기 전) — 서버 문장 그대로 */
   verdict: CellBase & { check: TradeCheckView | null };
   cause: CellBase & { cause: PanelMoveCause | null };
-  /** 회사 사정(FR-12) — 재료가 순서 2. 지금은 늘 결함 단 + 이유 */
-  company: CellBase & { reason: typeof COMPANY_PENDING_REASON };
+  /**
+   * 회사 사정(FR-12 · F017 v4 2d) — 추출 사실(공시 · 기사)과 원인 칸 업종 근거. 사실이 없으면 `defect` + 빈 칸들(화면은 "확인된 사실이
+   * 아직 없어요"), 읽기 실패면 `brief: null` · `degraded`
+   */
+  company: CellBase & { brief: CompanyBriefView | null };
   modes: { scalp: PanelModeView; longTerm: PanelModeView };
   /**
    * 내 기준(FR-15) — 보유가 없으면 null. 나만 보인다(토큰의 사용자). 보유 · 계획을 못 읽었으면 `degraded` + `view: null` —
@@ -90,6 +98,7 @@ export interface GetCoachPanelDeps {
   profiles: Pick<CoachProfileStore, "findByUser">;
   portfolio: Pick<PortfolioProbe, "getHolding">;
   tradePlans: Pick<TradePlanStore, "listOwned">;
+  companyFacts: CompanyFactReader;
   now?: () => Date;
 }
 
@@ -106,6 +115,21 @@ const settle = async <T>(what: string, symbol: string, run: () => Promise<T>): P
 };
 
 const cell = (tier: PanelTier): CellBase => ({ tier, status: panelStatus(tier) });
+
+/** 한 종목이 읽을 사실 상한 — 창(365일) 안 칸 넷 · 같은 사실 겹침을 걸러도 남게 */
+const COMPANY_FACT_LIMIT = 60;
+/** KST 오늘 0시(UTC 시각) — '오늘' 칸 */
+const kstTodayStart = (now: Date) => {
+  const kst = new Date(now.getTime() + 9 * 3_600_000);
+  return new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) - 9 * 3_600_000);
+};
+/** 원인 칸의 업종 근거(지수 · 폭)를 회사 사정 '업계' 줄로 — 새로 읽지 않는다 */
+const sectorLines = (cause: PanelMoveCause | null): CompanySectorLine[] =>
+  (cause?.causes ?? [])
+    .flatMap((c) => c.evidence)
+    .filter((e) => e.kind === "sector_index" || e.kind === "sector_breadth")
+    .slice(0, COMPANY_CELL_MAX)
+    .map((e) => ({ text: e.compare ? `${e.value} · ${e.compare}` : e.value, source: e.source, at: e.at }));
 
 /**
  * 한 장 패널 한 번 응답(F017 v4 순서 1d · `SRV-REQ-053` FR-13).
@@ -126,13 +150,15 @@ export class GetCoachPanel {
 
     const scenarioP = settle("시나리오", symbol, () => this.deps.scenario.execute(user, symbol));
     const marketP = scenarioP.then((s) => s?.market ?? guessMarket(symbol));
-    const [scenario, check, judgment, explanations, cause, mine] = await Promise.all([
+    const since = new Date(now.getTime() - COMPANY_LOOKBACK_DAYS * 24 * 3_600_000);
+    const [scenario, check, judgment, explanations, cause, mine, facts] = await Promise.all([
       scenarioP,
       settle("점검", symbol, () => this.deps.check.execute(user.userId, { symbol, side: "buy" })),
       settle("판단", symbol, () => this.deps.judgment.execute(user.userId, { symbol, viewerEmail: user.email })),
       settle("해설", symbol, () => this.deps.explanation.executeModes(symbol, ["scalp", "long_term"])),
       marketP.then((market) => settle("원인", symbol, () => this.deps.causes.cause(market, symbol))),
       marketP.then((market) => settle("내 기준", symbol, () => this.mine(user.userId, symbol, market))),
+      settle("회사 사정", symbol, () => this.deps.companyFacts.recent(symbol, since, COMPANY_FACT_LIMIT)),
     ]);
     const market = await marketP;
     const [scalpExplain, longExplain] = explanations ?? [null, null];
@@ -142,7 +168,10 @@ export class GetCoachPanel {
       : [];
     const verdict = { ...cell(check ? verdictTier(check.status) : "defect"), check };
     const causeCell = { ...cell(causeTier(cause ? (cause.causes[0]?.strength ?? "none") : null)), cause };
-    const company = { ...cell("defect"), reason: COMPANY_PENDING_REASON };
+    const assembled = facts ? assembleCompanyBrief(facts, sectorLines(cause), now, kstTodayStart(now)) : null;
+    const company = assembled
+      ? { ...cell(assembled.tier), brief: assembled.brief }
+      : { tier: "defect" as const, status: "degraded" as const, brief: null };
     const modes = {
       scalp: this.modeView("scalp", judgment?.modes.scalp ?? null, scalpExplain),
       longTerm: this.modeView("long_term", judgment?.modes.longTerm ?? null, longExplain),
