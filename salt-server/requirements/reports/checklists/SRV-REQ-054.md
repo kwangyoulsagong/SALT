@@ -54,3 +54,8 @@
   - `salt-server/src/market/presentation/krStock.routes.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-14 — F017 v4 2a 걸침(`SRV-REQ-058`)
+
+- 규칙 판 7 → 8 — 매체가 가린 기자 메일 줄(`[email protected] … 기자`) 버림 · 국내 제목 1건 다시 찾아 확인. 공인 주소 에이전트를 `publicAgents()` 로 꺼내 AI 경로(`SRV-REQ-058`)와 같이 씀
+- 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음

@@ -61,3 +61,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-13 | **서버 S3d**(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-6 · 7 done(정정: 분류 표 대신 표 주석). 수용 기준 둘 |
 | 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `composition.ts` 등락 의존(`move`)에 원인 근거 리더(`PrismaMoveEvidenceReader`) 조립 한 줄. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coach/domain/ports.ts`(머리 주인)에 `MoveCauseReader` · `PanelMoveCause`(원인 칸 ACL 포트). identity · notification 변경 0 |
+| 2026-11-14 | `composition.ts` 에 `news` AI 경로 본문 조립(`SRV-REQ-058` 2a) — identity · notification 무변경 |

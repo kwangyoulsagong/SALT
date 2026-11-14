@@ -99,3 +99,8 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-14 — F017 v4 2a 걸침(`SRV-REQ-058`)
+
+- `PrismaKrMoveSourceStore.newsTitlesForAiBody` — `kr_news_title` 읽기 하나 더함(AI 경로 본문 입력, `SRV-REQ-058` 2a) · 표 · 쓰기 무변경
+- 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음

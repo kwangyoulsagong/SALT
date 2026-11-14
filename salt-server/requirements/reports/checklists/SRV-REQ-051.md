@@ -146,3 +146,8 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-14 — F017 v4 2a 걸침(`SRV-REQ-058`)
+
+- `KrMoveSourceStore.newsTitlesForAiBody` 포트 · `MarketApi.krNewsTitlesForAiBody` 더함(`SRV-REQ-058` 2a — 국내 제목을 `news` 가 공개 API 로 읽음)
+- 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음

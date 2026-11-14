@@ -98,3 +98,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-10 | `PrismaKrMoveSourceStore` 읽기 둘 — `sectorBoard`(업종 최신 값 + 이름, 20행 안팎) · `searchNewsTitles`(일주일 창 `ILIKE` · `published_at` 인덱스 0.26ms) — 검색 모달 `SRV-REQ-055` `dd0bbdcc`. DDL 0. 저장된 시황 제목 39행 제어 문자 정리(`0df7784e`, 규칙 주인 `SRV-REQ-051`) |
 | 2026-11-12 | 단계 D — FR-8 · FR-9 done. 정정: 실패 시도도 행으로(같은 지문 LLM 1회의 근거 · 품질 감사) · export 뷰 더함(예측 리포트) |
 | 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `kr_flow_intraday` 보관 7 → 35일(`KR_FLOW_INTRADAY_RETENTION_DAYS`) — 스키마 변경 0 · 정리 배치가 다음 회차부터 덜 지운다(유니버스 50 × 하루 약 40행 × 35일 ≈ 7만 행). 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |
+| 2026-11-14 | `PrismaKrMoveSourceStore.newsTitlesForAiBody` — `kr_news_title` 읽기 하나 더함(AI 경로 본문 입력, `SRV-REQ-058` 2a) · 표 · 쓰기 무변경 |
