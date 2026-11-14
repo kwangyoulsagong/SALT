@@ -82,7 +82,7 @@ describe("llmBudgetVerdict — 24시간 서버 전체 시도 · 토큰", () => {
     assert.equal(llmBudgetVerdict({ calls: 0, tokens: 1_500_000 }, DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
   });
 
-  it("남길 몫(reservedCalls) — 해설은 상한 끝 30회 앞에서 멈추고, 한 줄은 상한까지(F016 단계 D)", () => {
+  it("남길 몫(reservedCalls) — 몫 r 을 받으면 상한 끝 r 회 앞에서 멈춘다 · 몫 없이는 상한까지(F016 단계 D — 배치 순서 셋은 factExtraction.test)", () => {
     const r = LLM_RESERVED_CALLS.moveSummary;
     assert.equal(llmBudgetVerdict({ calls: 300 - r - 1, tokens: 0 }, DEFAULT_LLM_BUDGET, r).allowed, true);
     assert.equal(llmBudgetVerdict({ calls: 300 - r, tokens: 0 }, DEFAULT_LLM_BUDGET, r).exceeded, "total_calls");

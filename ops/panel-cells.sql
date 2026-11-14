@@ -1,6 +1,6 @@
 -- 패널 칸 채움 점검(OPS-004) — 마지막 실측 회차(`panel_cell_check`, 하루 두 번 서버 워커)만 읽는다. 읽기 전용 · 표 하나 · 5초 안.
 -- 줄 = 이름 | 코인 | 국내. 칸마다 "지금 n · 평소 n · 대체 n · 결함 n", 결함 > 0 이면 앞에 ✗ (FR-1).
--- 회사 사정은 재료(공시 · 본문)가 순서 2 라 늘 결함 — 숨기지 않는다.
+-- 회사 사정은 추출 사실(DART 공시 · 켜진 매체 본문 — F017 v4 2b · 2c)이 없는 종목이면 결함 — 숨기지 않는다.
 with last as (select max(run_at) as at from panel_cell_check),
 cur as (select c.* from panel_cell_check c, last where c.run_at = last.at),
 names(cell_key, label, ord) as (values
