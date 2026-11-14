@@ -95,11 +95,11 @@ describe("LLM 상한 — 세 배치 몫(해설 → 한 줄 → 사실 추출)", 
     assert.equal(reservedCallsBehind("moveSummary"), LLM_RESERVED_CALLS.factExtract);
     assert.equal(reservedCallsBehind("factExtract"), 0);
   });
-  it("경계 — 해설은 210 에서 멈추고, 한 줄은 240, 추출은 300", () => {
+  it("경계 — 해설은 270 에서 멈추고(사실 추출 전과 같은 몫), 한 줄은 300, 추출은 360", () => {
     const at = (calls: number, batch: Parameters<typeof reservedCallsBehind>[0]) =>
       llmBudgetVerdict({ calls, tokens: 0 }, DEFAULT_LLM_BUDGET, reservedCallsBehind(batch)).allowed;
-    assert.deepEqual([at(209, "explanation"), at(210, "explanation")], [true, false]);
-    assert.deepEqual([at(239, "moveSummary"), at(240, "moveSummary")], [true, false]);
-    assert.deepEqual([at(299, "factExtract"), at(300, "factExtract")], [true, false]);
+    assert.deepEqual([at(269, "explanation"), at(270, "explanation")], [true, false]);
+    assert.deepEqual([at(299, "moveSummary"), at(300, "moveSummary")], [true, false]);
+    assert.deepEqual([at(359, "factExtract"), at(360, "factExtract")], [true, false]);
   });
 });

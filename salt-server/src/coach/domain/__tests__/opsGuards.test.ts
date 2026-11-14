@@ -77,16 +77,16 @@ describe("judgmentCaveats — stale_inputs (ADR-010 v2: 막지 않고 꼬리표)
 
 describe("llmBudgetVerdict — 24시간 서버 전체 시도 · 토큰", () => {
   it("상한에 닿으면(같으면) 막고, 어느 상한인지 말한다", () => {
-    assert.deepEqual(llmBudgetVerdict({ calls: 299, tokens: 1_499_999 }, DEFAULT_LLM_BUDGET), { allowed: true, exceeded: null });
-    assert.equal(llmBudgetVerdict({ calls: 300, tokens: 0 }, DEFAULT_LLM_BUDGET).exceeded, "total_calls");
-    assert.equal(llmBudgetVerdict({ calls: 0, tokens: 1_500_000 }, DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
+    assert.deepEqual(llmBudgetVerdict({ calls: DEFAULT_LLM_BUDGET.totalCalls - 1, tokens: DEFAULT_LLM_BUDGET.totalTokens - 1 }, DEFAULT_LLM_BUDGET), { allowed: true, exceeded: null });
+    assert.equal(llmBudgetVerdict({ calls: DEFAULT_LLM_BUDGET.totalCalls, tokens: 0 }, DEFAULT_LLM_BUDGET).exceeded, "total_calls");
+    assert.equal(llmBudgetVerdict({ calls: 0, tokens: DEFAULT_LLM_BUDGET.totalTokens }, DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
   });
 
   it("남길 몫(reservedCalls) — 몫 r 을 받으면 상한 끝 r 회 앞에서 멈춘다 · 몫 없이는 상한까지(F016 단계 D — 배치 순서 셋은 factExtraction.test)", () => {
     const r = LLM_RESERVED_CALLS.moveSummary;
-    assert.equal(llmBudgetVerdict({ calls: 300 - r - 1, tokens: 0 }, DEFAULT_LLM_BUDGET, r).allowed, true);
-    assert.equal(llmBudgetVerdict({ calls: 300 - r, tokens: 0 }, DEFAULT_LLM_BUDGET, r).exceeded, "total_calls");
-    assert.equal(llmBudgetVerdict({ calls: 300 - r, tokens: 0 }, DEFAULT_LLM_BUDGET).allowed, true);
+    assert.equal(llmBudgetVerdict({ calls: DEFAULT_LLM_BUDGET.totalCalls - r - 1, tokens: 0 }, DEFAULT_LLM_BUDGET, r).allowed, true);
+    assert.equal(llmBudgetVerdict({ calls: DEFAULT_LLM_BUDGET.totalCalls - r, tokens: 0 }, DEFAULT_LLM_BUDGET, r).exceeded, "total_calls");
+    assert.equal(llmBudgetVerdict({ calls: DEFAULT_LLM_BUDGET.totalCalls - r, tokens: 0 }, DEFAULT_LLM_BUDGET).allowed, true);
     assert.equal(llmBudgetVerdict({ calls: 0, tokens: 0 }, { totalCalls: 5, totalTokens: 1 }, 99).allowed, false);
   });
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import type { ExtractedFactRow, FactSourceBody, LlmUsageStore } from "../../domain";
+import { DEFAULT_LLM_BUDGET, type ExtractedFactRow, type FactSourceBody, type LlmUsageStore } from "../../domain";
 import { ExtractArticleFacts } from "../ExtractArticleFacts";
 
 /** F017 v4 2c — 사실 추출 배치: 검사 통과만 저장 · 실패는 그 본문만 · 상한 · 종류는 사전 */
@@ -72,7 +72,7 @@ describe("ExtractArticleFacts", () => {
     assert.deepEqual(h.marks, [["kr:1", "failed"], ["kr:2", "failed"], ["kr:3", "done"]]);
   });
   it("상한에 닿으면 멈추고 남은 것은 다음 회차(표시 안 함)", async () => {
-    const h = harness({ bodies: [body("kr:1"), body("kr:2")], calls: 299 });
+    const h = harness({ bodies: [body("kr:1"), body("kr:2")], calls: DEFAULT_LLM_BUDGET.totalCalls - 1 });
     const r = await h.uc.execute();
     assert.deepEqual([r.extracted, r.deferred], [1, 1]);
     assert.deepEqual(h.marks, [["kr:1", "done"]]);

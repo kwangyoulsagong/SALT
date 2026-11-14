@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { reservedCallsBehind } from "../../domain";
+import { DEFAULT_LLM_BUDGET, reservedCallsBehind } from "../../domain";
 import { describe, it } from "node:test";
 
 import type {
@@ -114,7 +114,7 @@ describe("GenerateMoveSummaries", () => {
   });
 
   it("LLM 상한 — 뒤에 도는 사실 추출 몫을 남기고 멈춘다(F017 v4 2c)", async () => {
-    const limit = 300 - reservedCallsBehind("moveSummary");
+    const limit = DEFAULT_LLM_BUDGET.totalCalls - reservedCallsBehind("moveSummary");
     const under = setup({ "123456": cardOf("123456") });
     assert.equal((await under.batch(true, limit - 1).execute()).generated, 1);
     const at = setup({ "123456": cardOf("123456") });
