@@ -71,3 +71,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | **F017 v4 순서 1e**(`feat/f017-v4-s1d-coach-panel`) FR-6 마저 — 웹이 패널로 옮겨 칸별 `/api/app/ai-coach/scenario` · `/explanation` 소비처 0 → 라우트 · 서비스 메서드 삭제, 1주 410 + `replacement: /api/app/ai-coach/panel`(`RETIRED_PATHS`). 뷰모델 둘은 패널이 칸마다 쓰므로 남김. `/check` 는 목록 미리보기 패널(`coach-panel`)이 아직 써서 남김 |
 | 2026-11-13 | **F017 v4 순서 1f**(`feat/f017-v4-s1d-coach-panel`) FR-7 **done** — `GET /api/app/ai-coach/explain/stream` 중계(`openAuthStream` GET · 조용한 시간 30초 · 압축 없음 · `X-Accel-Buffering: no` · 15초 ping). 이벤트마다 뷰모델 검사 — 깨진 문장은 버림 · 깨진 한 벌은 `error {code}` · 서버 error 는 코드만. 화면이 떠나면 서버 연결도 끊음(생성은 서버가 끝까지) |
 | 2026-11-14 | F017 v4 2d — 패널 `company`: `reason` 대신 `brief`(사실 칸 · 출처 주소 검사) · 해설 뷰모델 `safeUrl` 공유 |
+| 2026-11-14 | F017 v4 2b — 회사 사정 `recent` 칸(오늘이 아닌 창 안 사실) |

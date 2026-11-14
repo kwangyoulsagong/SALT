@@ -118,3 +118,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-14 | FR-14 사실 추출의 본문 원천 2a done(`SRV-REQ-058` — 매체 RSS 원문 · `via` · `isAiReadable`). FR-14 자체는 2c |
 | 2026-11-14 | **F017 v4 2c — FR-14 사실 추출(기사 본문) done**(`feat/f017-v4-s2-disclosure-body`) — LLM 은 읽기만 · 숫자 · 단위 원문 대조 · 문장 저장 0 · 종류는 사전. LLM 하루 상한을 해설 → 한 줄 → 추출 순서 몫으로(해설 210 · 한 줄 240 · 추출 300). 공시 원천은 2b |
 | 2026-11-14 | **F017 v4 2d — FR-12 회사 사정 칸 done**(`feat/f017-v4-s2-disclosure-body`) — 패널 `company.brief` · 실데이터 결함 둘 고침(같은 사실 세 칸 반복 · 오늘 받은 어제 기사). **정정**: 한 줄은 서버 규칙(LLM 0). 상태 점검 결함 수에 회사 사정 포함 |
+| 2026-11-14 | F017 v4 2b — FR-14 공시 원천(`source_kind = disclosure` · 공시 종류 규칙) · FR-12 정정: 한 줄 순위 = 사전 종류 먼저 · '최근' 칸 더함(공시 실측 결함 둘) |
