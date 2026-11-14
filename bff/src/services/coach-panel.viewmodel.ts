@@ -13,7 +13,7 @@
  * 하지 않는 것: 확률 · 가격 · 원화 계산(공통 수용 기준 3) · 단 판정(서버 `coachPanel.ts`) · 문장.
  */
 
-import { toExplanationViewModel, ExplanationContractError, type ExplanationViewModel } from "./explanation.viewmodel";
+import { toExplanationViewModel, ExplanationContractError, safeUrl, type ExplanationViewModel } from "./explanation.viewmodel";
 import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 import { SCENARIO_HORIZONS, toScenarioViewModel, type ScenarioHorizon, type ScenarioHorizonView } from "./scenario.viewmodel";
 import { toCaveats, toTier, type CoachMode, type FailureCase, type JudgmentCaveat, type JudgmentTier, type JudgmentTierBasis } from "./symbol-coach.viewmodel";
@@ -82,6 +82,24 @@ export interface PanelMineView {
   unrealizedProfitRate: number | null;
 }
 
+export interface CompanyFactVM {
+  /** 서버가 만든 한 줄(사실 나열 — 숫자 · 단위 원문 그대로) */
+  text: string;
+  kind: string;
+  whenText: string | null;
+  source: { kind: "article" | "disclosure"; name: string; url: string; at: string };
+}
+
+export interface CompanyBriefVM {
+  headline: CompanyFactVM | null;
+  earnings: CompanyFactVM[];
+  today: CompanyFactVM[];
+  sector: Array<{ text: string; source: string; at: string | null }>;
+  concern: CompanyFactVM[];
+  windowDays: 7 | 90 | 365 | null;
+  factCount: number;
+}
+
 export interface CoachPanelViewModel {
   symbol: string;
   market: "crypto" | "kr";
@@ -90,7 +108,8 @@ export interface CoachPanelViewModel {
   scenario: { horizons: PanelScenarioCell[]; disclaimer: string };
   verdict: PanelCell & { check: TradeCheckViewModel | null };
   cause: PanelCell & { cause: MoveCauseViewVM | null };
-  company: PanelCell & { reason: string };
+  /** 회사 사정(F017 v4 2d · `SRV-REQ-053` FR-12) — 서버 문구 그대로. 사실 칸이 틀리면 그 사실만 버린다 · 칸 모양이 틀리면 `brief: null` */
+  company: PanelCell & { brief: CompanyBriefVM | null };
   modes: { scalp: PanelModeView; longTerm: PanelModeView };
   mine: { status: "ok" | "degraded"; view: PanelMineView | null } | null;
   cells: Array<{ key: PanelCellKey; tier: PanelTier; status: PanelStatus }>;
@@ -209,6 +228,46 @@ const mineView = (raw: unknown): CoachPanelViewModel["mine"] => {
   };
 };
 
+const companyFact = (v: unknown): CompanyFactVM | null => {
+  if (!isObj(v) || !isObj(v.source)) return null;
+  const text = str(v.text);
+  const url = safeUrl(v.source.url);
+  const name = str(v.source.name);
+  const at = str(v.source.at);
+  if (!text || !url || !name || !at) return null;
+  return {
+    text,
+    kind: str(v.kind) ?? "other",
+    whenText: str(v.whenText),
+    source: { kind: v.source.kind === "disclosure" ? "disclosure" : "article", name, url, at },
+  };
+};
+
+const companyFacts = (v: unknown): CompanyFactVM[] =>
+  (Array.isArray(v) ? v : []).map(companyFact).filter((f): f is CompanyFactVM => f !== null);
+
+/** 회사 사정 칸 — 모양(배열 넷 · 수)이 틀리면 null. 사실 하나가 틀리면 그 사실만 버린다(링크가 http(s) 가 아니면 버림) */
+const companyBrief = (v: unknown): CompanyBriefVM | null => {
+  if (!isObj(v)) return null;
+  if (!["earnings", "today", "sector", "concern"].every((k) => Array.isArray(v[k]))) return null;
+  const factCount = num(v.factCount);
+  if (factCount === null) return null;
+  const w = v.windowDays;
+  return {
+    headline: v.headline === null ? null : companyFact(v.headline),
+    earnings: companyFacts(v.earnings),
+    today: companyFacts(v.today),
+    sector: (v.sector as unknown[]).filter(isObj).flatMap((x) => {
+      const text = str(x.text);
+      const source = str(x.source);
+      return text && source ? [{ text, source, at: str(x.at) }] : [];
+    }),
+    concern: companyFacts(v.concern),
+    windowDays: w === 7 || w === 90 || w === 365 ? w : null,
+    factCount,
+  };
+};
+
 /**
  * 서버 `data` → 화면 한 장. 머리(심볼 · 시장 · 칸 묶음 모양)가 틀리면 `CoachPanelContractError`(502) — 칸 안이 틀린 것은 그 칸만 내린다
  */
@@ -255,7 +314,13 @@ export const toCoachPanelViewModel = (raw: unknown): CoachPanelViewModel => {
   if (!cause && cr.cause) lowered.push("cause");
 
   const co = raw.company as Obj;
-  const company = { ...cell(toTierValue(co.tier) ?? "defect"), reason: str(co.reason) ?? "source_not_collected" };
+  const brief = companyBrief(co.brief);
+  const companyServerTier = toTierValue(co.tier) ?? "defect";
+  // 칸 모양이 틀렸으면 결함으로 내린다(서버가 결함이 아닌 단을 줬을 때만 내린 칸으로 센다). 사실이 0 이어도 brief 는 있다
+  if (!brief && co.brief !== null && co.brief !== undefined && companyServerTier !== "defect") lowered.push("company");
+  const company = brief
+    ? { ...cell(companyServerTier), brief }
+    : { tier: "defect" as const, status: "degraded" as const, brief: null };
 
   const modesRaw = raw.modes as Obj;
   const mode = (key: "scalp" | "longTerm", m: CoachMode, cellKey: "scalp" | "long_term"): PanelModeView => {

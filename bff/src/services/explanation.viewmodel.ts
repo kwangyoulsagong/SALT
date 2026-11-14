@@ -52,7 +52,8 @@ const str = (v: unknown, field: string): string => {
   return v;
 };
 
-const safeUrl = (v: unknown): string | null => {
+/** http(s) 주소만 — 화면이 링크로 그린다(`javascript:` 0). 회사 사정 칸 출처(`coach-panel.viewmodel`)도 같이 쓴다 */
+export const safeUrl = (v: unknown): string | null => {
   if (typeof v !== "string") return null;
   try {
     const { protocol } = new URL(v);
