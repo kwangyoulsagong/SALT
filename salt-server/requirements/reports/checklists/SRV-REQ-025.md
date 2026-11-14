@@ -525,3 +525,7 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 ## 2026-11-14 — F017 v4 2c 걸침
 
 - LLM 남길 몫 = 배치 순서 셋(`reservedCallsBehind`) · 경계 표(해설 210 · 한 줄 240 · 추출 300) — 검증은 `SRV-REQ-053` 2c 체크리스트
+
+## 2026-11-14 — 상한 360
+
+- 경계 시험(해설 270 · 한 줄 300 · 추출 360) · 시험의 300 숫자를 `DEFAULT_LLM_BUDGET` 로 바꿈 · 변이(300 으로 되돌리면 실패)
