@@ -60,6 +60,25 @@ export interface PanelMine {
   unrealizedProfitRate: number | null;
 }
 
+/** 회사 사정 사실 한 줄 — 문구 · 숫자는 서버 것(원문 숫자 그대로) */
+export interface CompanyFact {
+  text: string;
+  kind: string;
+  whenText: string | null;
+  source: { kind: "article" | "disclosure"; name: string; url: string; at: string };
+}
+
+export interface CompanyBrief {
+  headline: CompanyFact | null;
+  earnings: CompanyFact[];
+  today: CompanyFact[];
+  sector: Array<{ text: string; source: string; at: string | null }>;
+  concern: CompanyFact[];
+  /** 고른 창(일) — 7 · 90 · 365. 사실이 없으면 null */
+  windowDays: 7 | 90 | 365 | null;
+  factCount: number;
+}
+
 export interface CoachPanel {
   symbol: string;
   market: "crypto" | "kr";
@@ -69,8 +88,8 @@ export interface CoachPanel {
   scenario: { horizons: PanelScenarioCell[]; disclaimer: string };
   verdict: PanelCell & { check: TradeCheckResult | null };
   cause: PanelCell & { cause: MoveCauseView | null };
-  /** 회사 사정 — 재료가 순서 2. 지금은 결함 단 + 이유 코드 */
-  company: PanelCell & { reason: string };
+  /** 회사 사정(F017 v4 2d) — 추출 사실 칸. 읽기 실패면 `brief: null` */
+  company: PanelCell & { brief: CompanyBrief | null };
   modes: { scalp: PanelModeView; longTerm: PanelModeView };
   /** 보유가 없으면 null · 못 읽었으면 `degraded` + `view: null` */
   mine: { status: "ok" | "degraded"; view: PanelMine | null } | null;

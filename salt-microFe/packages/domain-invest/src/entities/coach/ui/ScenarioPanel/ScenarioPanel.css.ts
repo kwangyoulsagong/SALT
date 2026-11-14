@@ -231,6 +231,11 @@ export const sourceChip = style({
   selectors: { "a&:hover": { background: vars.colors.brand.lighter, color: vars.colors.brand.active } },
 });
 
+// ③ 회사 사정 — 칸 묶음(실적 · 오늘 · 업계 · 걸리는 점). 이름은 줄 이름보다 한 단 작게
+export const companyGroup = style({ display: "flex", flexDirection: "column", gap: "2px" });
+export const companyGroupLabel = style([label, { margin: 0, fontWeight: vars.fontWeights.semibold, color: vars.colors.neutral[700] }]);
+export const companyList = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "2px" });
+
 // 내 기준
 export const mine = style({
   display: "flex",
