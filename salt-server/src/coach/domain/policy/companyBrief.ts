@@ -6,7 +6,7 @@
  * - **한 사실은 한 칸에만** — 걸리는 점이 먼저 갖고(늘 보이게), 남은 것에서 실적 · 오늘. 한 줄로 올린 사실은 실적 · 오늘에 다시 싣지 않는다
  *   (걸리는 점이면 그 칸에도 — 걸리는 점은 빠지지 않는다). 2026-11-14 실측: 같은 사실이 네 칸 중 셋에 반복됐다
  * - '오늘' 칸은 **게시 시각**이 KST 오늘인 사실 — 우리가 오늘 받은 어제 기사는 오늘 일이 아니다(실측 결함 2026-11-14)
- * - 단(`tier`): 7일 안 사실 = now · 90일 = usual · 365일 = longer · 없음 = defect("확인된 공시 · 기사 사실이 아직 없어요" — 빈 칸이 아니라 결함으로 센다)
+ * - 단(`tier`): 게시 7일 안 사실 = now · 90일 = usual · 365일 = longer · 없음 = defect("확인된 공시 · 기사 사실이 아직 없어요" — 빈 칸이 아니라 결함으로 센다)
  * - `available_at` 이 지금보다 뒤인 사실은 쓰지 않는다
  */
 
@@ -98,6 +98,15 @@ export const companyFactText = (f: CompanyFact): string => {
   return `${who}${f.what}${number}${compared}`;
 };
 
+/**
+ * 공시 목록 사실 + 추출 사실 — 같은 공시에서 숫자 사실을 이미 뽑았으면 목록 줄은 뺀다(같은 원문 주소). 목록 줄은
+ * 원문을 받기 전에도 칸이 서게 하는 몫(2026-11-14 사용자 "국내는 적어도 다 나와야지")
+ */
+export const mergeFilingFacts = (extracted: readonly CompanyFact[], filings: readonly CompanyFact[]): CompanyFact[] => {
+  const covered = new Set(extracted.map((f) => f.sourceUrl));
+  return [...extracted, ...filings.filter((f) => !covered.has(f.sourceUrl))];
+};
+
 const toView = (f: CompanyFact): CompanyFactView => ({
   text: companyFactText(f),
   who: f.who,
@@ -107,7 +116,7 @@ const toView = (f: CompanyFact): CompanyFactView => ({
   comparedTo: f.comparedTo,
   whenText: f.whenText,
   kind: f.eventKind,
-  source: { kind: f.sourceKind, name: f.sourceName, url: f.sourceUrl, at: f.availableAt.toISOString() },
+  source: { kind: f.sourceKind, name: f.sourceName, url: f.sourceUrl, at: f.publishedAt.toISOString() },
 });
 
 /** 사건 종류가 사전에 걸린 사실(실적 · 배당 · 계약 …)이 앞 · 공시가 기사보다 앞(1차 원천) · 숫자가 있는 사실 · 최근.
@@ -116,7 +125,7 @@ const rank = (a: CompanyFact, b: CompanyFact) =>
   (a.eventKind === "other" ? 1 : 0) - (b.eventKind === "other" ? 1 : 0) ||
   (a.sourceKind === "disclosure" ? 0 : 1) - (b.sourceKind === "disclosure" ? 0 : 1) ||
   (a.amount === null ? 1 : 0) - (b.amount === null ? 1 : 0) ||
-  b.availableAt.getTime() - a.availableAt.getTime();
+  b.publishedAt.getTime() - a.publishedAt.getTime();
 
 /** 같은 사실(누가 · 무엇 · 숫자)이 여러 기사에 나오면 한 번 — 가장 앞 순위만 */
 const dedupe = (facts: CompanyFact[]) => {
@@ -136,20 +145,21 @@ export const assembleCompanyBrief = (
   todayStart: Date,
 ): { tier: CompanyTier; brief: CompanyBriefView } => {
   const known = facts.filter((f) => f.availableAt.getTime() <= now.getTime());
-  const window = COMPANY_WINDOWS.find((w) => known.some((f) => now.getTime() - f.availableAt.getTime() <= w.days * DAY_MS));
+  // 창 · 최근은 **게시 시각**으로 — 1년 백필한 작년 공시가 받은 시각(오늘) 때문에 "7일 안"이 되지 않게. 아직 몰랐던 사실은 위에서 뺐다
+  const window = COMPANY_WINDOWS.find((w) => known.some((f) => now.getTime() - f.publishedAt.getTime() <= w.days * DAY_MS));
   if (!window) {
     return {
       tier: "defect",
       brief: { headline: null, earnings: [], today: [], recent: [], sector: [...sector], concern: [], windowDays: null, factCount: 0 },
     };
   }
-  const inWindow = known.filter((f) => now.getTime() - f.availableAt.getTime() <= window.days * DAY_MS);
+  const inWindow = known.filter((f) => now.getTime() - f.publishedAt.getTime() <= window.days * DAY_MS);
   // 최근 순(오늘 칸 · 한 줄) · 순위 순(실적 · 걸리는 점)
-  const recent = dedupe([...inWindow].sort((a, b) => b.availableAt.getTime() - a.availableAt.getTime()));
+  const recent = dedupe([...inWindow].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()));
   const ranked = dedupe([...inWindow].sort(rank));
   // 한 줄 = 가장 최근 날의 사실 중 순위가 가장 앞(숫자 있는 공시 → 숫자 있는 기사 → …)
-  const latestDay = recent[0]!.availableAt.getTime() - DAY_MS;
-  const headline = [...recent].filter((f) => f.availableAt.getTime() > latestDay).sort(rank)[0] ?? recent[0]!;
+  const latestDay = recent[0]!.publishedAt.getTime() - DAY_MS;
+  const headline = [...recent].filter((f) => f.publishedAt.getTime() > latestDay).sort(rank)[0] ?? recent[0]!;
   const taken = new Set<CompanyFact>([headline]);
   const take = (list: CompanyFact[]) => {
     const out = list.filter((f) => !taken.has(f)).slice(0, COMPANY_CELL_MAX);

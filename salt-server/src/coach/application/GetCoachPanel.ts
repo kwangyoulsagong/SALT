@@ -4,6 +4,7 @@ import {
   COMPANY_LOOKBACK_DAYS,
   PANEL_CELL_KEYS_ALL,
   assembleCompanyBrief,
+  mergeFilingFacts,
   PANEL_HORIZON_MODE,
   causeTier,
   explanationTier,
@@ -15,6 +16,7 @@ import {
   type CoachProfileStore,
   type CompanyBriefView,
   type CompanyFactReader,
+  type CompanyFilingReader,
   type CompanySectorLine,
   type MoveCauseReader,
   type PanelCellKey,
@@ -99,6 +101,8 @@ export interface GetCoachPanelDeps {
   portfolio: Pick<PortfolioProbe, "getHolding">;
   tradePlans: Pick<TradePlanStore, "listOwned">;
   companyFacts: CompanyFactReader;
+  /** 공시 목록 사실(F017 v4 2b+) — 국내만 */
+  companyFilings: CompanyFilingReader;
   now?: () => Date;
 }
 
@@ -158,7 +162,16 @@ export class GetCoachPanel {
       settle("해설", symbol, () => this.deps.explanation.executeModes(symbol, ["scalp", "long_term"])),
       marketP.then((market) => settle("원인", symbol, () => this.deps.causes.cause(market, symbol))),
       marketP.then((market) => settle("내 기준", symbol, () => this.mine(user.userId, symbol, market))),
-      settle("회사 사정", symbol, () => this.deps.companyFacts.recent(symbol, since, COMPANY_FACT_LIMIT)),
+      settle("회사 사정", symbol, async () =>
+        mergeFilingFacts(
+          await this.deps.companyFacts.recent(symbol, since, COMPANY_FACT_LIMIT),
+          // 공시 목록 실패는 목록 몫만 — 추출 사실은 그대로 싣는다
+          await this.deps.companyFilings.recent(symbol, since, COMPANY_FACT_LIMIT).catch((error: unknown) => {
+            logger.warn("패널 공시 목록 읽기 실패 — 추출 사실만", { symbol, error: String(error) });
+            return [];
+          }),
+        ),
+      ),
     ]);
     const market = await marketP;
     const [scalpExplain, longExplain] = explanations ?? [null, null];

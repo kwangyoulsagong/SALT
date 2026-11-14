@@ -4,6 +4,7 @@ import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
 import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
 import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
+import { CompanyFilingAdapter } from "./coach/infrastructure/CompanyFilingAdapter";
 import { FactSourceAdapter } from "./coach/infrastructure/FactSourceAdapter";
 import { LlmFactExtractor } from "./coach/infrastructure/LlmFactExtractor";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
@@ -75,6 +76,7 @@ import { createNewsApplication } from "./news/application/api";
 import { OUTLETS } from "./news/domain/Outlets";
 import { AiTitleAdapter } from "./news/infrastructure/AiTitleAdapter";
 import { DartClient } from "./news/infrastructure/DartClient";
+import { PrismaDartFilingStore } from "./news/infrastructure/PrismaDartFilingStore";
 import { KrUniverseAdapter } from "./news/infrastructure/KrUniverseAdapter";
 import { OutletFeedClient } from "./news/infrastructure/OutletFeedClient";
 import { PrismaAiBodyStore, PrismaAiSourceStore } from "./news/infrastructure/PrismaAiBodyStore";
@@ -138,7 +140,11 @@ const news = createNewsApplication({
     bodies: new PrismaAiBodyStore(),
   },
   // DART 공시(F017 v4 2b) — 키가 없으면 꺼짐. 유니버스는 market 공개 API(부를 때 찾는다)
-  dart: { port: env.DART_API_KEY ? new DartClient(env.DART_API_KEY) : null, universe: new KrUniverseAdapter(() => market.api) },
+  dart: {
+    port: env.DART_API_KEY ? new DartClient(env.DART_API_KEY) : null,
+    universe: new KrUniverseAdapter(() => market.api),
+    filings: new PrismaDartFilingStore(),
+  },
 });
 
 /**
@@ -333,6 +339,8 @@ const coach = createCoachApplication({
   },
   // 회사 사정 칸(F017 v4 2d) — 추출 사실을 읽는다(같은 coach 표)
   companyFacts: new PrismaCompanyFactReader(),
+  // 공시 목록 사실 — news 공개 API(목록) + market(공시 사건 규칙)
+  companyFilings: new CompanyFilingAdapter(news.api, market.api),
   // 사실 추출(F017 v4 2c) — 재료는 news AI 경로 본문 · market 사건 종류 사전(공개 API), 사실 저장은 coach. 해설 LLM 을 끄면 같이
   factExtraction: {
     sources: new FactSourceAdapter(news.api, market.api),

@@ -72,3 +72,38 @@ export const dartParagraphs = (html: string): string[] => {
   }
   return out;
 };
+
+// ── 1년 백필 · 공시 목록 사실(F017 v4 2b+ — 사용자 "국내는 적어도 다 나와야지", 2026-11-14) ──────────
+
+/** 종목마다 한 번 받는 과거 목록 길이 — 회사 사정 창의 가장 긴 단(365일)과 같다 */
+export const DART_BACKFILL_DAYS = 365;
+/** 한 회차에 백필하는 종목 수(종목당 목록 호출 2~4) */
+export const DART_BACKFILL_STOCKS_PER_TICK = 10;
+/** 과거 공시 원문(숫자 추출용)은 종목마다 최근 · 중요한 것 몇 건만 · 이 기간 안 */
+export const DART_BODY_BACKFILL_PER_STOCK = 2;
+export const DART_BODY_BACKFILL_DAYS = 120;
+
+/** 원인 · 회사 사정에 쓰는 공시 종류 — 보고서 이름 낱말. 나머지(기업설명회 일정 · 주주명부 · 기타경영사항 …)는 목록 사실로만 */
+const IMPORTANT = /실적|매출액|손익구조|단일판매|공급계약|배당|자기주식|자사주|유상증자|무상증자|전환사채|신주인수권|교환사채|합병|분할|최대주주|소송|거래정지|매매거래정지|관리종목|상장폐지|불성실|감자|타법인주식|유형자산|영업양수|영업양도|투자판단|횡령|배임|회생|파산|감사의견/;
+export const isImportantFiling = (reportName: string): boolean => IMPORTANT.test(reportName);
+
+/**
+ * 목록 사실의 '무엇' — 보고서 이름에서 정정 머리말 · 공백을 걷고 40자. 정정은 끝에 "(정정)"
+ * (예: "[기재정정]단일판매ㆍ공급계약체결" → "단일판매ㆍ공급계약체결 (정정)")
+ */
+export const dartFilingWhat = (reportName: string): string => {
+  const amended = /^\s*\[[^\]]*정정[^\]]*\]/.test(reportName);
+  const base = reportName.replace(/^\s*(\[[^\]]*\]\s*)+/, "").replace(/\s+/g, " ").trim();
+  const what = amended ? `${base} (정정)` : base;
+  return what.length > 40 ? `${what.slice(0, 39)}…` : what;
+};
+
+/** 공시 목록 한 줄(저장본) — 회사 사정 칸이 사실로 쓴다 */
+export interface StoredDartFiling {
+  rceptNo: string;
+  stockCode: string;
+  corpName: string;
+  reportName: string;
+  rceptDate: string;
+  firstSeenAt: Date;
+}

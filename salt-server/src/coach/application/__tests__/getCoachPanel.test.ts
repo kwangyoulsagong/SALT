@@ -44,6 +44,7 @@ const deps = (over: Partial<GetCoachPanelDeps> = {}, calls: string[] = []): GetC
   },
   tradePlans: { listOwned: async () => [] },
   companyFacts: { recent: async () => [] },
+  companyFilings: { recent: async () => [] },
   now: () => new Date("2026-11-13T06:00:00Z"),
   ...over,
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { type CompanyFact, assembleCompanyBrief, companyFactText, formatFactAmount, isConcernFact } from "..";
+import { type CompanyFact, assembleCompanyBrief, companyFactText, formatFactAmount, isConcernFact, mergeFilingFacts } from "..";
 
 /** F017 v4 2d — 회사 사정 칸(SRV-REQ-053 FR-12): 창 · 단 · 걸리는 점 늘 · 공시 먼저 · 숫자 원문 그대로 */
 
@@ -16,10 +16,10 @@ const f = (over: Partial<CompanyFact> = {}): CompanyFact => ({
 
 describe("단 — 창 7 · 90 · 365일", () => {
   const cases: Array<[string, CompanyFact[], string, number | null]> = [
-    ["7일 안", [f({ availableAt: day(6.9) })], "now", 7],
-    ["8일 전만", [f({ availableAt: day(8) })], "usual", 90],
-    ["100일 전만", [f({ availableAt: day(100) })], "longer", 365],
-    ["400일 전만", [f({ availableAt: day(400) })], "defect", null],
+    ["7일 안", [f({ availableAt: day(6.9), publishedAt: day(6.9) })], "now", 7],
+    ["8일 전만", [f({ availableAt: day(8), publishedAt: day(8) })], "usual", 90],
+    ["100일 전만", [f({ availableAt: day(100), publishedAt: day(100) })], "longer", 365],
+    ["400일 전만", [f({ availableAt: day(400), publishedAt: day(400) })], "defect", null],
     ["없음", [], "defect", null],
     ["아직 알 수 없던 사실(미래 available_at)", [f({ availableAt: new Date(NOW.getTime() + 60_000) })], "defect", null],
   ];
@@ -30,7 +30,7 @@ describe("단 — 창 7 · 90 · 365일", () => {
     });
   }
   it("창 밖 사실은 칸에 싣지 않는다", () => {
-    const r = assembleCompanyBrief([f({ availableAt: day(2) }), f({ what: "옛 영업손실", availableAt: day(50) })], [], NOW, TODAY);
+    const r = assembleCompanyBrief([f({ availableAt: day(2), publishedAt: day(2) }), f({ what: "옛 영업손실", availableAt: day(50), publishedAt: day(50) })], [], NOW, TODAY);
     const all = [r.brief.headline, ...r.brief.earnings, ...r.brief.today, ...r.brief.concern].map((e) => e?.what);
     assert.deepEqual(all, ["3분기 누적 연결 매출액"]);
   });
@@ -39,7 +39,7 @@ describe("단 — 창 7 · 90 · 365일", () => {
 describe("칸", () => {
   it("걸리는 점은 좋은 사실이 많아도 늘 싣는다", () => {
     const good = Array.from({ length: 5 }, (_, i) => f({ what: `신규 수주 ${i}`, amount: null, unit: null, eventKind: "contract" }));
-    const r = assembleCompanyBrief([...good, f({ what: "과징금 부과", amount: null, unit: null, eventKind: "legal", availableAt: day(5) })], [], NOW, TODAY);
+    const r = assembleCompanyBrief([...good, f({ what: "과징금 부과", amount: null, unit: null, eventKind: "legal", availableAt: day(5), publishedAt: day(5) })], [], NOW, TODAY);
     assert.deepEqual(r.brief.concern.map((c) => c.what), ["과징금 부과"]);
   });
   it("걸리는 점 낱말 — 감소 · 적자 · 순유출 / 종류 — 소송 · 증자", () => {
@@ -66,9 +66,10 @@ describe("칸", () => {
       ],
       [], NOW, TODAY,
     );
-    // 한 줄(가장 최근 · 순위 앞)은 오늘 칸에 다시 싣지 않는다
-    assert.equal(r.brief.headline?.what, "어제 발표");
-    assert.deepEqual(r.brief.today.map((t) => t.what).sort(), ["대표이사 선임", "주총 소집"]);
+    // 한 줄(게시가 가장 최근 · 순위 앞)은 오늘 칸에 다시 싣지 않는다 · 오늘 받은 어제 기사는 오늘 칸에 없다
+    assert.equal(r.brief.headline?.what, "대표이사 선임");
+    assert.deepEqual(r.brief.today.map((t) => t.what), ["주총 소집"]);
+    assert.ok(![r.brief.headline, ...r.brief.today].some((x) => x?.what === "어제 발표"));
   });
   it("오늘 받은 어제 기사 둘 — 오늘 칸은 비어 있다", () => {
     const late = { publishedAt: new Date(TODAY.getTime() - 3_600_000), availableAt: new Date(TODAY.getTime() + 3_600_000) };
@@ -78,9 +79,9 @@ describe("칸", () => {
   it("숫자가 둘 다 있으면 공시가 더 최근 기사보다 앞", () => {
     const r = assembleCompanyBrief(
       [
-        f({ what: "매출액", sourceKind: "disclosure", amount: "100", availableAt: day(5) }),
-        f({ what: "영업이익", amount: "52", availableAt: day(3) }),
-        f({ what: "신규 공장 준공", amount: null, unit: null, comparedTo: null, availableAt: day(1) }),
+        f({ what: "매출액", sourceKind: "disclosure", amount: "100", availableAt: day(5), publishedAt: day(5) }),
+        f({ what: "영업이익", amount: "52", availableAt: day(3), publishedAt: day(3) }),
+        f({ what: "신규 공장 준공", amount: null, unit: null, comparedTo: null, availableAt: day(1), publishedAt: day(1) }),
       ],
       [], NOW, TODAY,
     );
@@ -154,5 +155,17 @@ describe("한 줄 순위 · 최근 칸(2b 실측 결함)", () => {
     const shown = [r.brief.headline!.what, ...r.brief.recent.map((x) => x.what)];
     assert.deepEqual(shown.sort(), ["기업설명회 개최", "분기 현금배당 결정", "주주명부 폐쇄"].sort());
     assert.equal(new Set(shown).size, 3);
+  });
+});
+
+describe("공시 목록 사실(2b+ — 국내 전 종목)", () => {
+  it("1년 백필한 작년 공시는 받은 시각이 오늘이어도 '7일 안'이 아니다 — 창은 게시 시각", () => {
+    const r = assembleCompanyBrief([f({ what: "현금배당 결정", amount: null, unit: null, publishedAt: day(200), availableAt: day(0.01) })], [], NOW, TODAY);
+    assert.deepEqual([r.tier, r.brief.windowDays], ["longer", 365]);
+  });
+  it("같은 공시에서 숫자 사실을 뽑았으면 목록 줄은 뺀다 · 아니면 남긴다", () => {
+    const extracted = [f({ sourceUrl: "https://dart/1" })];
+    const filings = [f({ what: "영업(잠정)실적", amount: null, unit: null, sourceUrl: "https://dart/1" }), f({ what: "현금배당 결정", amount: null, unit: null, sourceUrl: "https://dart/2" })];
+    assert.deepEqual(mergeFilingFacts(extracted, filings).map((x) => x.sourceUrl), ["https://dart/1", "https://dart/2"]);
   });
 });

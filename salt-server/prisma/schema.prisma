@@ -1219,3 +1219,26 @@ model ExtractedFact {
   @@index([availableAt], map: "extracted_fact_available_idx")
   @@map("extracted_fact")
 }
+
+/// DART 공시 목록(F017 v4 2b — 유니버스 종목 1년 백필 + 회차마다). 회사 사정 칸이 목록 자체를 사실로 쓴다. 원문 · 숫자는 `news_ai_body` → `extracted_fact`
+model DartFiling {
+  rceptNo     String   @id @map("rcept_no")
+  stockCode   String   @map("stock_code")
+  corpName    String   @map("corp_name")
+  reportName  String   @map("report_name")
+  pblntfTy    String   @map("pblntf_ty")
+  rceptDate   DateTime @map("rcept_date") @db.Date
+  firstSeenAt DateTime @map("first_seen_at") @db.Timestamptz(3)
+
+  @@index([stockCode, rceptDate(sort: Desc)], map: "dart_filing_stock_date_idx")
+  @@map("dart_filing")
+}
+
+/// 종목마다 1년 공시 목록 백필을 마쳤는지(F017 v4 2b+)
+model DartBackfill {
+  stockCode String   @id @map("stock_code")
+  doneAt    DateTime @map("done_at") @db.Timestamptz(3)
+  filings   Int
+
+  @@map("dart_backfill")
+}

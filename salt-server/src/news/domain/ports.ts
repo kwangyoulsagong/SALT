@@ -187,6 +187,22 @@ export interface DartPort {
   list(type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
   /** 원문(본문 문서 HTML) — 문단으로 바꾼 것 */
   document(rceptNo: string): Promise<string[]>;
+  /** 종목 코드 → 고유번호(상장사, 하루 캐시) — 기간이 3개월을 넘는 목록은 고유번호가 있어야 한다 */
+  corpCodes(): Promise<Map<string, string>>;
+  /** 한 회사의 목록 한 쪽 */
+  listByCorp(corpCode: string, type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+}
+
+/** 공시 목록 저장(`dart_filing`) · 백필 표시(`dart_backfill`) */
+export interface DartFilingStore {
+  /** 한 문장 · 같은 접수번호 한 번. 넣은 수 */
+  save(filings: Array<import("./Dart").DartFiling & { type: import("./Dart").DartType }>, at: Date): Promise<number>;
+  backfilled(codes: string[]): Promise<Set<string>>;
+  markBackfilled(code: string, filings: number, at: Date): Promise<void>;
+  /** 원문을 아직 안 받은(`news_ai_body` 행 없음) 공시 — `since` 뒤 · 최신순(고르는 규칙은 부르는 쪽 `isImportantFiling`) */
+  withoutBody(codes: string[], since: Date): Promise<import("./Dart").DartFiling[]>;
+  /** 한 종목 공시 목록(최신순) */
+  recent(code: string, since: Date, limit: number): Promise<import("./Dart").StoredDartFiling[]>;
 }
 
 /** 국내 판단 유니버스(상위 N + 보유) — `market` 공개 API */

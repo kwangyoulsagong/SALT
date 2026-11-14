@@ -1,6 +1,7 @@
 import { createHttpClient } from "../../shared/infrastructure";
 import { logger } from "../../shared/config/logger";
 import { normalizeHomepageDomain, type KrCompanyHomepageSource, type KrLogoImageProbe } from "../domain";
+import { parseDartCorpCodes } from "../../shared/lib/dartCorpCode";
 import { unzipFirstEntry } from "./KisMasterFile";
 import { decodePng } from "./pngDecode";
 
@@ -45,13 +46,7 @@ export class DartHomepageSource implements KrCompanyHomepageSource {
     const body = Buffer.from(response.data);
     // 키 오류면 zip 대신 상태 XML/JSON 이 온다 — 내용(키)을 로그에 남기지 않는다
     if (body.subarray(0, 2).toString("latin1") !== "PK") throw new Error("DART corpCode 응답이 zip 이 아니다(키 확인)");
-    const xml = unzipFirstEntry(body).toString("utf8");
-    const map = new Map<string, string>();
-    for (const item of xml.matchAll(/<list>([\s\S]*?)<\/list>/g)) {
-      const corp = /<corp_code>\s*(\d{8})\s*<\/corp_code>/.exec(item[1]!)?.[1];
-      const stock = /<stock_code>\s*([0-9A-Z]{6})\s*<\/stock_code>/.exec(item[1]!)?.[1];
-      if (corp && stock) map.set(stock, corp);
-    }
+    const map = parseDartCorpCodes(unzipFirstEntry(body).toString("utf8"));
     this.corpCodes = map;
     return map;
   }

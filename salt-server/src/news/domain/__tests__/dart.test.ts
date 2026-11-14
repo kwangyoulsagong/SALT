@@ -35,3 +35,16 @@ describe("키 · 제목 · 시각", () => {
     assert.equal(kstYmd(new Date("2026-11-13T14:30:00Z")), "20261113");
   });
 });
+
+describe("목록 사실 · 중요 공시", async () => {
+  const { dartFilingWhat, isImportantFiling } = await import("..");
+  it("정정 머리말 → 끝에 (정정) · 공백 정리 · 40자", () => {
+    assert.equal(dartFilingWhat("[기재정정]단일판매ㆍ공급계약체결"), "단일판매ㆍ공급계약체결 (정정)");
+    assert.equal(dartFilingWhat("현금ㆍ현물배당결정"), "현금ㆍ현물배당결정");
+    assert.ok(dartFilingWhat("가".repeat(60)).length <= 40);
+  });
+  it("중요 공시 낱말", () => {
+    for (const n of ["연결재무제표기준영업(잠정)실적(공정공시)", "단일판매ㆍ공급계약체결", "현금ㆍ현물배당결정", "주요사항보고서(자기주식취득결정)", "최대주주변경"]) assert.equal(isImportantFiling(n), true, n);
+    for (const n of ["기업설명회(IR)개최(안내공시)", "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정".replace("배당", "X"), "기타경영사항(자율공시)"]) assert.equal(isImportantFiling(n), false, n);
+  });
+});

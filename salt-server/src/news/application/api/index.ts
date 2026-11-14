@@ -3,7 +3,9 @@ import type {
   AiBodyStore,
   AiSourceStore,
   AiTitleSource,
+  DartFilingStore,
   DartPort,
+  StoredDartFiling,
   KrUniverseSource,
   OutletDef,
   OutletFeedPort,
@@ -19,6 +21,7 @@ import type {
   NewsFeedPort,
   SentimentArticleQuery,
 } from "../../domain";
+import { dartFilingWhat, dartViewerUrl } from "../../domain";
 import { CollectAiBodies } from "../CollectAiBodies";
 import { CollectDartDisclosures } from "../CollectDartDisclosures";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
@@ -71,6 +74,8 @@ export interface NewsApi {
    */
   aiBodiesForExtraction(limit: number): Promise<AiBodyForExtraction[]>;
   markAiBodyExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
+  /** 한 종목의 DART 공시 목록(최신순) — 회사 사정 칸이 목록 자체를 사실로 쓴다(F017 v4 2b). 화면 링크는 `url` */
+  recentDartFilings(code: string, since: Date, limit: number): Promise<Array<StoredDartFiling & { url: string; what: string }>>;
 }
 
 export type { AiBodyForExtraction } from "../../domain";
@@ -92,7 +97,7 @@ export interface NewsDependencies {
     bodies: AiBodyStore;
   };
   /** DART 공시(F017 v4 2b) — 키가 없으면 `port: null`(회차가 아무것도 하지 않는다) */
-  dart: { port: DartPort | null; universe: KrUniverseSource };
+  dart: { port: DartPort | null; universe: KrUniverseSource; filings: DartFilingStore };
 }
 
 export interface NewsUseCases {
@@ -141,7 +146,7 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     listBookmarks: new ListBookmarks(deps.bookmarks),
     getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
     collectAiBodies: new CollectAiBodies(deps.aiBody),
-    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies }),
+    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies, filings: deps.dart.filings }),
   };
 
   const api: NewsApi = {
@@ -154,6 +159,8 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     // 읽기 · 표시 한 줄 — 유스케이스 없이 저장소 그대로(규칙은 SQL + `isAiReadable` 두 겹, `PrismaAiBodyStore.pendingExtraction`)
     aiBodiesForExtraction: (limit) => deps.aiBody.bodies.pendingExtraction(limit),
     markAiBodyExtraction: (key, outcome, at) => deps.aiBody.bodies.markExtraction(key, outcome, at),
+    recentDartFilings: async (code, since, limit) =>
+      (await deps.dart.filings.recent(code, since, limit)).map((f) => ({ ...f, url: dartViewerUrl(f.rceptNo), what: dartFilingWhat(f.reportName) })),
   };
 
   return { api, useCases };

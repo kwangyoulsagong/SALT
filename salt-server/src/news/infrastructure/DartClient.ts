@@ -1,6 +1,7 @@
 import { createHttpClient } from "../../shared/infrastructure/httpClient";
 import { withRetry } from "../../shared/infrastructure/retry";
 import { unzipFirstEntry } from "../../shared/infrastructure/zip";
+import { parseDartCorpCodes } from "../../shared/lib/dartCorpCode";
 import { type DartFiling, type DartPort, type DartType, dartParagraphs } from "../domain";
 import { decodeHtml } from "./ArticlePageFetcher";
 
@@ -23,19 +24,43 @@ interface ListResponse {
 export class DartClient implements DartPort {
   private readonly http = createHttpClient({ baseURL: BASE, timeoutMs: 15_000 });
 
-  constructor(private readonly key: string) {}
+  private corp: { at: number; map: Map<string, string> } | null = null;
+
+  constructor(
+    private readonly key: string,
+    private readonly now: () => number = () => Date.now(),
+  ) {}
 
   private retryable = (error: unknown) => {
     const status = (error as { response?: { status?: number } }).response?.status;
     return status === undefined || status === 429 || status >= 500;
   };
 
-  async list(type: DartType, bgnDe: string, endDe: string, page: number) {
+  list(type: DartType, bgnDe: string, endDe: string, page: number) {
+    return this.listWith({ bgn_de: bgnDe, end_de: endDe, pblntf_ty: type, page_no: page });
+  }
+
+  listByCorp(corpCode: string, type: DartType, bgnDe: string, endDe: string, page: number) {
+    return this.listWith({ corp_code: corpCode, bgn_de: bgnDe, end_de: endDe, pblntf_ty: type, page_no: page });
+  }
+
+  /** 고유번호 표 — 하루 한 번(약 3MB zip). 키 오류면 zip 대신 상태가 온다(키는 로그에 0) */
+  async corpCodes(): Promise<Map<string, string>> {
+    if (this.corp && this.now() - this.corp.at < 24 * 3_600_000) return this.corp.map;
     const res = await withRetry(
-      () =>
-        this.http.get<ListResponse>("/list.json", {
-          params: { crtfc_key: this.key, bgn_de: bgnDe, end_de: endDe, pblntf_ty: type, page_no: page, page_count: 100 },
-        }),
+      () => this.http.get<ArrayBuffer>("/corpCode.xml", { params: { crtfc_key: this.key }, responseType: "arraybuffer", maxContentLength: 50 * 1024 * 1024 }),
+      { isRetryable: this.retryable },
+    );
+    const body = Buffer.from(res.data);
+    if (body.subarray(0, 2).toString("latin1") !== "PK") throw Object.assign(new Error("DART corpCode not zip"), { code: "DART_CORPCODE" });
+    const map = parseDartCorpCodes(unzipFirstEntry(body).toString("utf8"));
+    this.corp = { at: this.now(), map };
+    return map;
+  }
+
+  private async listWith(params: Record<string, string | number>) {
+    const res = await withRetry(
+      () => this.http.get<ListResponse>("/list.json", { params: { crtfc_key: this.key, page_count: 100, ...params } }),
       { isRetryable: this.retryable },
     );
     const body = res.data;

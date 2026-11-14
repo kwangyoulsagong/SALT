@@ -329,6 +329,11 @@ export interface CoachExplanationInput {
     evidence: Array<{ value: string; compare: string | null; source: string }>;
     result: string;
   };
+  /**
+   * 회사 사정(F017 v4 2b+ · `SRV-REQ-053` FR-16) — 패널 회사 사정 칸과 같은 조립(`assembleCompanyBrief`)의 앞 몇 줄. 생성할 때만(원인과 같다).
+   * 숫자 · 단위는 원문 그대로 — 문장이 인용하면 출처 이름으로 단다. 걸리는 점은 늘 같이 간다(좋은 점만 싣지 않는다)
+   */
+  company?: { lines: Array<{ text: string; source: string; concern: boolean }> };
   news?: Array<{
     title: string;
     summary?: string;
@@ -1112,3 +1117,9 @@ export interface ExtractedFactStore {
 export interface CompanyFactReader {
   recent(symbol: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
 }
+
+/** 회사 사정 재료 둘째(F017 v4 2b+) — DART 공시 목록 자체를 사실로(LLM 0). `news` 공개 API · 사건 종류는 `market` 공시 규칙 */
+export interface CompanyFilingReader {
+  recent(code: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
+}
+
