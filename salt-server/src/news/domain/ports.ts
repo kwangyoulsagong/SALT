@@ -170,6 +170,10 @@ export interface AiBodyStore {
       | { status: "failed"; attempts: number; nextTryAt: Date | null },
     at: Date,
   ): Promise<void>;
+  /** 추출 대기 — 받았고(`ok`) · 문단이 있고 · 추출 전 · AI 경로(`isAiReadable`) · 시도 상한 안. 오래된 것부터 */
+  pendingExtraction(limit: number): Promise<import("./AiBody").AiBodyForExtraction[]>;
+  /** 추출 끝(`done`) 또는 실패 한 번(`failed` — 상한이면 끝으로 친다) */
+  markExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
   /** 문단을 지우고 해시 · 길이만 — 추출이 끝났거나 보관 기한이 지난 행. 지운 수 */
   purgeParagraphs(before: Date, at: Date): Promise<number>;
 }

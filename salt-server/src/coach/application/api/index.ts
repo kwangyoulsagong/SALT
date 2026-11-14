@@ -27,6 +27,9 @@ import type {
   ShortHorizonReader,
   TradeCheckLedger,
   MoveCardReader,
+  ExtractedFactStore,
+  FactExtractor,
+  FactSourceReader,
   MoveSummaryStore,
   MoveSummaryWriter,
   MoveCauseReader,
@@ -45,6 +48,7 @@ import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { ListCoachedUsers } from "../ListCoachedUsers";
 import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
+import { ExtractArticleFacts } from "../ExtractArticleFacts";
 import { GenerateMoveSummaries } from "../GenerateMoveSummaries";
 import { GetMoveSummary } from "../GetMoveSummary";
 import { MoveSummaryDemand } from "../lib/moveSummaryDemand";
@@ -131,6 +135,13 @@ export interface CoachDependencies {
     names: (symbols: string[]) => Promise<Map<string, string>>;
     enabled: boolean;
   };
+  /** 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14) — AI 경로 본문 → 사실. 없으면 배치 0 */
+  factExtraction?: {
+    sources: FactSourceReader;
+    extractor: FactExtractor;
+    facts: ExtractedFactStore;
+    enabled: boolean;
+  };
   gauges: GaugeTrackStore;
   generationLogs: CoachGenerationLogStore;
   /** 수동 재생성 쿨다운(초). **설정값**이다(`SRV-REQ-024` FR-82) — env 에서 온다 */
@@ -183,6 +194,8 @@ export interface CoachUseCases {
   getMoveSummary: GetMoveSummary;
   /** 오늘 등락 한 줄 배치 — 해설 배치 뒤 같은 LLM 워커 */
   generateMoveSummaries: GenerateMoveSummaries;
+  /** 사실 추출 — LLM 회차에서 한 줄 뒤에 */
+  extractArticleFacts: ExtractArticleFacts;
   analyzeNewsSentiment: AnalyzeNewsSentiment;
   analyzeTradingBehavior: AnalyzeTradingBehavior;
   getBehaviorCoach: GetBehaviorCoach;
@@ -371,6 +384,14 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       ...moveSummary,
       tracked: deps.tracked,
       demand: moveSummaryDemand,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
+    }),
+    extractArticleFacts: new ExtractArticleFacts({
+      sources: deps.factExtraction?.sources ?? { pending: async () => [], mark: async () => {}, kindsOf: async (_m, i) => i.map(() => "other") },
+      extractor: deps.factExtraction?.extractor ?? { extract: async () => ({ output: "[]", provider: "gemini", model: "none" }) },
+      facts: deps.factExtraction?.facts ?? { saveMany: async () => 0 },
+      enabled: deps.factExtraction?.enabled === true,
       usage: deps.llmUsage,
       limits: deps.llmLimits,
     }),

@@ -1,4 +1,5 @@
 import prisma from "../../shared/infrastructure/prisma";
+import { AI_EXTRACT_MAX_ATTEMPTS, type AiBodyForExtraction, type AiBodyVia, isAiReadable } from "../domain";
 import type {
   AiBodyDue,
   AiBodyLink,
@@ -102,17 +103,19 @@ export class PrismaAiBodyStore implements AiBodyStore {
     if (unique.length === 0) return;
     const col = <T,>(pick: (l: AiBodyLink) => T) => unique.map(pick);
     await prisma.$executeRaw`
-      INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, next_try_at, linked_at)
+      INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, next_try_at, linked_at, symbols)
       SELECT u.key, u.market, u.title, u.published_at, u.outlet_id, u.via, u.status, u.item_url,
-        CASE WHEN u.status = 'pending' THEN ${at}::timestamptz END, ${at}
+        CASE WHEN u.status = 'pending' THEN ${at}::timestamptz END, ${at},
+        COALESCE(string_to_array(NULLIF(u.symbols, ''), ','), '{}')
       FROM unnest(${col((l) => l.key)}::text[], ${col((l) => l.market)}::text[], ${col((l) => l.title)}::text[],
         ${col((l) => l.titlePublishedAt)}::timestamptz[], ${col((l) => l.outletId)}::text[], ${col((l) => l.via)}::text[],
-        ${col((l) => l.status)}::text[], ${col((l) => l.itemUrl)}::text[])
-        AS u(key, market, title, published_at, outlet_id, via, status, item_url)
+        ${col((l) => l.status)}::text[], ${col((l) => l.itemUrl)}::text[], ${col((l) => l.symbols.join(","))}::text[])
+        AS u(key, market, title, published_at, outlet_id, via, status, item_url, symbols)
       ON CONFLICT (key) DO UPDATE SET outlet_id = EXCLUDED.outlet_id, via = EXCLUDED.via, status = EXCLUDED.status,
-        item_url = EXCLUDED.item_url, next_try_at = EXCLUDED.next_try_at, linked_at = EXCLUDED.linked_at
+        item_url = EXCLUDED.item_url, next_try_at = EXCLUDED.next_try_at, linked_at = EXCLUDED.linked_at, symbols = EXCLUDED.symbols
       WHERE news_ai_body.status IN ('unmatched', 'blocked')
-        AND (news_ai_body.status, news_ai_body.item_url) IS DISTINCT FROM (EXCLUDED.status, EXCLUDED.item_url)`;
+        AND (news_ai_body.status, news_ai_body.item_url, news_ai_body.symbols)
+          IS DISTINCT FROM (EXCLUDED.status, EXCLUDED.item_url, EXCLUDED.symbols)`;
   }
 
   async dueForFetch(limit: number, now: Date): Promise<AiBodyDue[]> {
@@ -141,6 +144,48 @@ export class PrismaAiBodyStore implements AiBodyStore {
       return;
     }
     await prisma.$executeRaw`UPDATE news_ai_body SET status = ${result.status}, fetched_at = ${at}, next_try_at = NULL WHERE key = ${key}`;
+  }
+
+  async pendingExtraction(limit: number): Promise<AiBodyForExtraction[]> {
+    const rows = await prisma.$queryRaw<
+      Array<{ key: string; market: string; title: string; title_published_at: Date; fetched_at: Date; symbols: string[];
+        item_url: string; outlet_name: string | null; via: string; paragraphs: unknown; extract_attempts: number }>
+    >`
+      SELECT b.key, b.market, b.title, b.title_published_at, b.fetched_at, b.symbols, b.item_url, o.name AS outlet_name, b.via,
+        b.paragraphs, b.extract_attempts
+      FROM news_ai_body b LEFT JOIN news_outlet o ON o.id = b.outlet_id
+      WHERE b.status = 'ok' AND b.extracted_at IS NULL AND b.purged_at IS NULL AND b.via <> 'portal'
+        AND b.extract_attempts < ${AI_EXTRACT_MAX_ATTEMPTS} AND b.item_url IS NOT NULL AND cardinality(b.symbols) > 0
+      ORDER BY b.fetched_at ASC
+      LIMIT ${limit}`;
+    // 두 번 거른다 — SQL(`via <> 'portal'`)과 도메인 허용 목록. 모르는 via 값이 들어와도 AI 로 가지 않는다
+    return rows
+      .filter((r) => isAiReadable(r.via) && (r.market === "kr" || r.market === "coin"))
+      .map((r) => ({
+        key: r.key,
+        market: r.market as "kr" | "coin",
+        title: r.title,
+        publishedAt: r.title_published_at,
+        fetchedAt: r.fetched_at,
+        symbols: r.symbols,
+        url: r.item_url,
+        outletName: r.outlet_name ?? "",
+        via: r.via as AiBodyVia,
+        paragraphs: Array.isArray(r.paragraphs) ? r.paragraphs.filter((p): p is string => typeof p === "string") : [],
+        attempts: r.extract_attempts,
+      }));
+  }
+
+  async markExtraction(key: string, outcome: "done" | "failed", at: Date) {
+    if (outcome === "done") {
+      await prisma.$executeRaw`UPDATE news_ai_body SET extracted_at = ${at} WHERE key = ${key} AND extracted_at IS NULL`;
+      return;
+    }
+    // 실패 — 상한에 닿으면 끝으로 친다(같은 본문을 하루 종일 다시 보내지 않는다)
+    await prisma.$executeRaw`
+      UPDATE news_ai_body SET extract_attempts = extract_attempts + 1,
+        extracted_at = CASE WHEN extract_attempts + 1 >= ${AI_EXTRACT_MAX_ATTEMPTS} THEN ${at}::timestamptz ELSE NULL END
+      WHERE key = ${key} AND extracted_at IS NULL`;
   }
 
   async purgeParagraphs(before: Date, at: Date) {

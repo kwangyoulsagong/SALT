@@ -89,7 +89,7 @@ const outlet = (over: Partial<OutletDef> = {}): OutletDef => ({
 });
 const T0 = new Date("2026-11-13T00:30:00Z");
 const title = (over: Partial<AiTitle> = {}): AiTitle => ({
-  key: "kr:1", market: "kr", title: "씨티씨바이오 3분기 누적 영업익 182% 증가…수익성 개선", publishedAt: T0, outletName: "인포스탁", directUrl: null, ...over,
+  key: "kr:1", market: "kr", title: "씨티씨바이오 3분기 누적 영업익 182% 증가…수익성 개선", publishedAt: T0, outletName: "인포스탁", directUrl: null, symbols: ["000001"], ...over,
 });
 const item = (over: Partial<RssItem> = {}): RssItem => ({
   url: "https://f.example/news/1", outletId: "infostock", title: "씨티씨바이오 3분기 누적 영업익 182% 증가…수익성 개선", publishedAt: new Date(T0.getTime() + 60_000), ...over,

@@ -13,7 +13,7 @@ import {
   llmBudgetVerdict,
   llmSentenceCount,
   LLM_BUDGET_WINDOW_MS,
-  LLM_RESERVED_CALLS,
+  reservedCallsBehind,
   resolveLlmLimits,
   verifyExplanation,
   type CoachExplainer,
@@ -66,8 +66,8 @@ export const llmBudget = async (
     const verdict = llmBudgetVerdict(
       await usage.usageSince(new Date(now.getTime() - LLM_BUDGET_WINDOW_MS)),
       resolveLlmLimits(limits),
-      // 같은 워커 뒤에 도는 오늘 등락 한 줄 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
-      LLM_RESERVED_CALLS.moveSummary
+      // 같은 워커 뒤에 도는 오늘 등락 한 줄 · 사실 추출 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
+      reservedCallsBehind("explanation")
     );
     if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
     return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };

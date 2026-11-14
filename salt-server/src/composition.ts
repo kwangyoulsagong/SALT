@@ -4,7 +4,10 @@ import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
 import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
 import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
+import { FactSourceAdapter } from "./coach/infrastructure/FactSourceAdapter";
+import { LlmFactExtractor } from "./coach/infrastructure/LlmFactExtractor";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
+import { PrismaExtractedFactStore } from "./coach/infrastructure/PrismaExtractedFactStore";
 import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
 import { MoveCauseAdapter } from "./coach/infrastructure/MoveCauseAdapter";
@@ -254,6 +257,8 @@ const localCliGate = new LocalCliGate();
 const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), { gate: localCliGate });
 /** 오늘 등락 한 줄(F016 단계 D) — 해설과 같은 로컬 CLI → Gemini. 감지 결과를 같이 꽂는다 */
 const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
+/** 사실 추출(F017 v4 2c) — 같은 로컬 CLI → Gemini · 같은 게이트 */
+const factExtractor = new LlmFactExtractor(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
@@ -265,6 +270,7 @@ if (env.COACH_EXPLAIN_LLM === "on") {
         new LocalCliCoachExplainer(found.provider, found.bin, llmUsage, { model: env.COACH_LLM_LOCAL_MODEL })
       );
       moveSummaryWriter.useLocal({ provider: found.provider, bin: found.bin });
+      factExtractor.useLocal({ provider: found.provider, bin: found.bin });
       logger.info(`해설 로컬 CLI ${found.provider} ${found.version} (${found.bin})`);
     })
     .catch((error: unknown) => logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`));
@@ -319,6 +325,13 @@ const coach = createCoachApplication({
     names: async (symbols) => new Map((await market.api.assetLabels(symbols)).map((l) => [l.symbol, l.name])),
     // 해설 LLM 을 끄면 이것도 — LLM 두 길을 따로 켜 두는 경우가 없다
     enabled: env.MOVE_SUMMARY === "on" && env.COACH_EXPLAIN_LLM === "on",
+  },
+  // 사실 추출(F017 v4 2c) — 재료는 news AI 경로 본문 · market 사건 종류 사전(공개 API), 사실 저장은 coach. 해설 LLM 을 끄면 같이
+  factExtraction: {
+    sources: new FactSourceAdapter(news.api, market.api),
+    extractor: factExtractor,
+    facts: new PrismaExtractedFactStore(),
+    enabled: env.COACH_EXPLAIN_LLM === "on",
   },
   gauges: new PrismaGaugeTrackStore(),
   generationLogs: new PrismaCoachGenerationLogStore(),

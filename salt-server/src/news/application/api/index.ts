@@ -1,4 +1,5 @@
 import type {
+  AiBodyForExtraction,
   AiBodyStore,
   AiSourceStore,
   AiTitleSource,
@@ -61,8 +62,15 @@ export interface NewsApi {
   searchArticleTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]>;
   /** 한 종목이 붙은 기사들의 태그 목록(`SRV-REQ-055`) — `market` 이 함께 태그된 종목을 센다 */
   symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
+  /**
+   * 사실 추출(`SRV-REQ-053` FR-14)이 읽는 본문 — AI 경로(`via ≠ portal`)만 · 오래된 것부터. `coach` 가 부른다.
+   * 포털로 찾은 사람용 본문(`readArticleBody`)은 이 길로 나오지 않는다(표가 다르다 — `SRV-REQ-058` FR-5)
+   */
+  aiBodiesForExtraction(limit: number): Promise<AiBodyForExtraction[]>;
+  markAiBodyExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
 }
 
+export type { AiBodyForExtraction } from "../../domain";
 export type { ArticleBodyQuery, ArticleBodyView, ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
 
 export interface NewsDependencies {
@@ -135,6 +143,9 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     readArticleBody: (query) => readArticleBody.execute(query),
     searchArticleTitles: (q, since, limit) => searchArticleTitles.execute(q, since, limit),
     symbolTagLists: (symbol, since, limit) => listSymbolTagLists.execute(symbol, since, limit),
+    // 읽기 · 표시 한 줄 — 유스케이스 없이 저장소 그대로(규칙은 SQL + `isAiReadable` 두 겹, `PrismaAiBodyStore.pendingExtraction`)
+    aiBodiesForExtraction: (limit) => deps.aiBody.bodies.pendingExtraction(limit),
+    markAiBodyExtraction: (key, outcome, at) => deps.aiBody.bodies.markExtraction(key, outcome, at),
   };
 
   return { api, useCases };

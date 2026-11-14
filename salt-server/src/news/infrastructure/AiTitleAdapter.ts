@@ -28,6 +28,7 @@ export class AiTitleAdapter implements AiTitleSource {
     return [
       ...kr.map((t): AiTitle => ({
         key: `kr:${t.serial}`, market: "kr", title: t.title, publishedAt: t.publishedAt, outletName: t.providerName, directUrl: null,
+        symbols: t.codes,
       })),
       ...coin
         .filter((a) => a.symbols.length >= 1 && a.symbols.length <= 2)
@@ -41,6 +42,7 @@ export class AiTitleAdapter implements AiTitleSource {
             outletName: portal ? titleOutletSuffix(a.title) : a.source,
             // 구글 뉴스 주소는 중계 주소다 — 원문은 매체 RSS 로 잇는다(포털을 거치지 않는다)
             directUrl: portal ? null : a.url,
+            symbols: a.symbols.map((s) => s.toUpperCase()),
           };
         }),
     ];

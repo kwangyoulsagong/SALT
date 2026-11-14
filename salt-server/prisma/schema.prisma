@@ -1183,8 +1183,39 @@ model NewsAiBody {
   fetchedAt        DateTime? @map("fetched_at") @db.Timestamptz(3)
   extractedAt      DateTime? @map("extracted_at") @db.Timestamptz(3)
   purgedAt         DateTime? @map("purged_at") @db.Timestamptz(3)
+  /// 제목에 걸린 종목(국내 제목 연결 · 코인 원장 태그) — 사실 추출이 그대로 싣는다
+  symbols          String[]  @default([])
+  extractAttempts  Int       @default(0) @map("extract_attempts")
 
   @@index([status, nextTryAt], map: "news_ai_body_status_next_try_idx")
   @@index([market, titlePublishedAt], map: "news_ai_body_market_published_idx")
+  @@index([status, extractedAt], map: "news_ai_body_status_extracted_idx")
   @@map("news_ai_body")
+}
+
+/// 추출 사실(`DB-REQ-043` FR-9 · `SRV-REQ-053` FR-14) — 기사 · 공시 본문에서 뽑은 사실 단위만. **기사 문장 칸 없음**(`ADR-009` v4).
+/// 숫자는 원문 글자와 대조를 지난 것만. 시장 층 · 사용자 열 0
+model ExtractedFact {
+  id               String   @id
+  sourceKind       String   @map("source_kind")
+  sourceKey        String   @map("source_key")
+  symbols          String[]
+  who              String
+  what             String
+  amount           Decimal? @db.Decimal
+  unit             String?
+  comparedTo       String?  @map("compared_to")
+  whenText         String?  @map("when_text")
+  eventKind        String   @map("event_kind")
+  publishedAt      DateTime @map("published_at") @db.Timestamptz(3)
+  availableAt      DateTime @map("available_at") @db.Timestamptz(3)
+  sourceUrl        String   @map("source_url")
+  sourceName       String   @map("source_name")
+  extractorVersion String   @map("extractor_version")
+  createdAt        DateTime @map("created_at") @db.Timestamptz(3)
+
+  @@unique([sourceKind, sourceKey, what], map: "extracted_fact_source_what_key")
+  @@index([symbols], map: "extracted_fact_symbols_idx", type: Gin)
+  @@index([availableAt], map: "extracted_fact_available_idx")
+  @@map("extracted_fact")
 }

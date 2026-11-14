@@ -66,6 +66,8 @@ const harness = (opts: {
       if (result.status === "ok") r.paragraphs = result.paragraphs;
       if (result.status === "failed") r.attempts = result.attempts;
     },
+    pendingExtraction: async () => [],
+    markExtraction: async () => {},
     purgeParagraphs: async () => 0,
   };
   const feeds: OutletFeedPort = {
@@ -89,7 +91,7 @@ const harness = (opts: {
 };
 
 const t = (key: string, title: string, outletName: string, over: Partial<AiTitle> = {}): AiTitle => ({
-  key, market: "kr", title, publishedAt: new Date(NOW.getTime() - 10 * 60_000), outletName, directUrl: null, ...over,
+  key, market: "kr", title, publishedAt: new Date(NOW.getTime() - 10 * 60_000), outletName, directUrl: null, symbols: ["000001"], ...over,
 });
 
 describe("CollectAiBodies", () => {

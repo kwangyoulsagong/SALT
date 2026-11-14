@@ -50,8 +50,22 @@ export type LlmBudgetVerdict =
   | { allowed: true; exceeded: null }
   | { allowed: false; exceeded: LlmBudgetExceeded };
 
-/** 다른 배치 몫으로 남기는 시도 수 — 해설 배치가 이만큼 덜 쓴다 */
-export const LLM_RESERVED_CALLS = { moveSummary: 30 } as const;
+/**
+ * 다른 배치 몫으로 남기는 시도 수. 같은 LLM 회차가 해설 → 오늘 등락 한 줄 → 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14) 순서로
+ * 돈다 — 앞 배치는 **뒤에 오는 배치 몫 합**만큼 덜 쓴다(`reservedCallsBehind`). 사실 추출은 본문이 생길 때만이라 하루 수십 건(2026-11-14 실측 약 40)
+ */
+export const LLM_RESERVED_CALLS = { moveSummary: 30, factExtract: 60 } as const;
+
+/** 회차 순서 — 앞이 먼저 돈다 */
+export const LLM_BATCH_ORDER = ["explanation", "moveSummary", "factExtract"] as const;
+export type LlmBatch = (typeof LLM_BATCH_ORDER)[number];
+
+/** 이 배치가 남겨야 하는 시도 수 = 뒤에 도는 배치 몫의 합. 맨 뒤는 0(상한까지) */
+export const reservedCallsBehind = (batch: LlmBatch): number =>
+  LLM_BATCH_ORDER.slice(LLM_BATCH_ORDER.indexOf(batch) + 1).reduce(
+    (sum, b) => sum + (b === "explanation" ? 0 : LLM_RESERVED_CALLS[b]),
+    0,
+  );
 
 /**
  * 다음 시도를 해도 되나. 이미 상한에 **닿았으면**(같거나 크면) 막는다. `reservedCalls` — 다른 배치 몫으로 남길 시도 수(해설 배치가 준다)

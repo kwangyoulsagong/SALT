@@ -36,6 +36,8 @@ export interface AiTitle {
   outletName: string | null;
   /** 원장 주소가 이미 매체 원문(코인 영문 RSS)이면 그 주소 */
   directUrl: string | null;
+  /** 제목에 걸린 종목(국내 6자리 코드 · 코인 심볼) — 사실 추출이 그대로 싣는다 */
+  symbols: string[];
 }
 
 export interface RssItem {
@@ -50,6 +52,7 @@ export interface AiBodyLink {
   market: "kr" | "coin";
   title: string;
   titlePublishedAt: Date;
+  symbols: string[];
   outletId: string | null;
   via: AiBodyVia | null;
   status: Extract<AiBodyStatus, "pending" | "unmatched" | "blocked" | "no_outlet">;
@@ -73,7 +76,7 @@ export const linkTitle = (
   enabled: boolean,
   items: readonly RssItem[],
 ): AiBodyLink => {
-  const base = { key: title.key, market: title.market, title: title.title, titlePublishedAt: title.publishedAt };
+  const base = { key: title.key, market: title.market, title: title.title, titlePublishedAt: title.publishedAt, symbols: title.symbols };
   if (!outlet) return { ...base, outletId: null, via: null, status: "no_outlet", itemUrl: null };
   const head = { ...base, outletId: outlet.id, via: outlet.via };
   if (!enabled) return { ...head, status: "blocked", itemUrl: null };
@@ -84,6 +87,25 @@ export const linkTitle = (
   const same = pickSameArticle({ key: title.key, title: title.title, publishedAt: title.publishedAt }, candidates);
   return same ? { ...head, status: "pending", itemUrl: same.originalUrl } : { ...head, status: "unmatched", itemUrl: null };
 };
+
+/** 추출 시도 상한 — 넘으면 그 본문은 추출을 끝낸 것으로 친다(사실 0, `extracted_at` 찍힘) */
+export const AI_EXTRACT_MAX_ATTEMPTS = 3;
+
+/** 사실 추출이 읽는 본문 한 건(`SRV-REQ-053` FR-14) — `via` 가 AI 경로인 행만 */
+export interface AiBodyForExtraction {
+  key: string;
+  market: "kr" | "coin";
+  title: string;
+  publishedAt: Date;
+  /** 본문을 받은 시각 — 사실의 `available_at`(이 시각 전엔 우리가 몰랐다) */
+  fetchedAt: Date;
+  symbols: string[];
+  url: string;
+  outletName: string;
+  via: AiBodyVia;
+  paragraphs: string[];
+  attempts: number;
+}
 
 /** 실패 n 번째 뒤 다시 받을 시각 — 3회를 넘으면 `null`(끝) */
 export const nextFetchAt = (attempts: number, now: Date): Date | null =>
