@@ -94,6 +94,8 @@ export interface CompanyBriefVM {
   headline: CompanyFactVM | null;
   earnings: CompanyFactVM[];
   today: CompanyFactVM[];
+  /** 오늘이 아닌 창 안 사실 — 서버가 다른 칸과 겹치지 않게 골랐다 */
+  recent: CompanyFactVM[];
   sector: Array<{ text: string; source: string; at: string | null }>;
   concern: CompanyFactVM[];
   windowDays: 7 | 90 | 365 | null;
@@ -257,6 +259,8 @@ const companyBrief = (v: unknown): CompanyBriefVM | null => {
     headline: v.headline === null ? null : companyFact(v.headline),
     earnings: companyFacts(v.earnings),
     today: companyFacts(v.today),
+    // 옛 서버(칸 없음)는 빈 칸 — 모양 검사는 넷만 본다
+    recent: companyFacts(v.recent),
     sector: (v.sector as unknown[]).filter(isObj).flatMap((x) => {
       const text = str(x.text);
       const source = str(x.source);

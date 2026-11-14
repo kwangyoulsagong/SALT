@@ -105,7 +105,7 @@ const mode = (over: Record<string, unknown> = {}) => ({
   explanation: { tier: "now", status: "ok", asOf: null, view: explanation("latest") },
   ...over,
 });
-const emptyBrief = { headline: null, earnings: [], today: [], sector: [], concern: [], windowDays: null, factCount: 0 };
+const emptyBrief = { headline: null, earnings: [], today: [], recent: [], sector: [], concern: [], windowDays: null, factCount: 0 };
 const fact = (over: Record<string, unknown> = {}) => ({
   text: "차바이오텍 3분기 누적 연결 매출액 9,016억원 (전년 동기 대비 2% 감소)", who: "차바이오텍", what: "3분기 누적 연결 매출액",
   amount: "9016", unit: "억원", comparedTo: "전년 동기 대비 2% 감소", whenText: "3분기 누적", kind: "earnings",
@@ -285,6 +285,7 @@ describe("회사 사정 칸(F017 v4 2d)", () => {
     assert.equal(tierOf(vm, "company"), "now");
     assert.equal(vm.company.brief?.headline?.text, fact().text);
     assert.deepEqual(vm.company.brief?.concern.map((c) => c.text), ["매출 2% 감소"]);
+    assert.deepEqual(vm.company.brief?.recent, []);
     assert.deepEqual([vm.company.brief?.windowDays, vm.company.brief?.factCount, vm.company.brief?.sector[0]?.text], [7, 3, "제약 지수 +1.2%"]);
   });
   it("http(s) 가 아닌 출처 주소의 사실은 버린다(그 사실만)", () => {
