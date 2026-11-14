@@ -47,6 +47,11 @@ export class InvestmentInsightWorker {
         `🧾 Move summaries — 후보 ${m.candidates} · 생성 ${m.generated} · 검사 막음 ${m.blocked} · 건너뜀 ${m.skipped}` +
           ` · 실패 ${m.failed} · 다음 회차 ${m.deferred}`
       );
+      // 사실 추출(F017 v4 2c · SRV-REQ-053 FR-14) — 같은 LLM 회차에서 한 줄 뒤에. 상한은 앞 두 배치가 남겨 둔 몫까지
+      const f = await this.coach.extractArticleFacts.execute();
+      console.log(
+        `🧩 Article facts — 후보 ${f.candidates} · 추출 ${f.extracted} · 사실 ${f.facts} · 버림 ${f.dropped} · 실패 ${f.failed} · 다음 회차 ${f.deferred}`
+      );
     };
     schedule("explanation-snapshots", "5-59/10 * * * *", generateExplanations);
     void runGuarded("explanation-snapshots", generateExplanations);
@@ -57,7 +62,7 @@ export class InvestmentInsightWorker {
     const measurePanelCells = async () => {
       const r = await this.coach.measurePanelCells.execute();
       console.log(
-        `🧮 Panel cells — 종목 ${r.symbols} · 칸 ${r.rows} · 결함 ${r.defects}(회사 사정 뺌) · 멈춘 종목 ${r.stale} · 새 종목 ${r.newSymbols} · 패널 실패 ${r.failed}`
+        `🧮 Panel cells — 종목 ${r.symbols} · 칸 ${r.rows} · 결함 ${r.defects} · 멈춘 종목 ${r.stale} · 새 종목 ${r.newSymbols} · 패널 실패 ${r.failed}`
       );
     };
     schedule("panel-cell-check", "30 12,16 * * *", measurePanelCells, { timezone: "Asia/Seoul", catchUp: true });

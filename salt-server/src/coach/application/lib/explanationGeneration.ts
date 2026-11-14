@@ -13,7 +13,7 @@ import {
   llmBudgetVerdict,
   llmSentenceCount,
   LLM_BUDGET_WINDOW_MS,
-  LLM_RESERVED_CALLS,
+  reservedCallsBehind,
   resolveLlmLimits,
   verifyExplanation,
   type CoachExplainer,
@@ -23,6 +23,11 @@ import {
   type LlmBudgetLimits,
   type LlmUsageStore,
   type MoveCauseReader,
+  type CompanyFactReader,
+  type CompanyFilingReader,
+  COMPANY_LOOKBACK_DAYS,
+  assembleCompanyBrief,
+  mergeFilingFacts,
 } from "../../domain";
 import type { PreparedExplanation } from "./explanationMaterials";
 
@@ -55,6 +60,45 @@ export const withCause = async (
   };
 };
 
+/** 해설에 싣는 회사 사정 줄 수 — 한 줄 · 걸리는 점 · 실적 순으로 */
+const COMPANY_LINES_MAX = 3;
+
+/**
+ * 회사 사정을 해설 재료에(F017 v4 2b+ · `SRV-REQ-053` FR-16) — 패널 칸과 **같은 조립**(`assembleCompanyBrief`)의 한 줄 · 걸리는 점 · 실적.
+ * 생성할 때만. 못 읽으면 회사 사정 없이
+ */
+export const withCompany = async (
+  company: { facts: CompanyFactReader; filings: CompanyFilingReader } | undefined,
+  prepared: PreparedExplanation,
+  input: CoachExplanationInput,
+  now: Date
+): Promise<CoachExplanationInput> => {
+  if (!company) return input;
+  try {
+    const since = new Date(now.getTime() - COMPANY_LOOKBACK_DAYS * 86_400_000);
+    const facts = mergeFilingFacts(
+      await company.facts.recent(prepared.symbol, since, 60),
+      await company.filings.recent(prepared.symbol, since, 60).catch(() => []),
+    );
+    const kstToday = new Date(Math.floor((now.getTime() + 9 * 3_600_000) / 86_400_000) * 86_400_000 - 9 * 3_600_000);
+    const { brief } = assembleCompanyBrief(facts, [], now, kstToday);
+    const picked = [
+      ...(brief.headline ? [{ v: brief.headline, concern: brief.concern.some((c) => c.text === brief.headline!.text) }] : []),
+      ...brief.concern.map((v) => ({ v, concern: true })),
+      ...brief.earnings.map((v) => ({ v, concern: false })),
+    ];
+    const seen = new Set<string>();
+    const lines = picked
+      .filter((p) => !seen.has(p.v.text) && seen.add(p.v.text))
+      .slice(0, COMPANY_LINES_MAX)
+      .map((p) => ({ text: p.v.text, source: p.v.source.name, concern: p.concern }));
+    return lines.length > 0 ? { ...input, company: { lines } } : input;
+  } catch (error) {
+    logger.warn(`해설 회사 사정 재료 실패 — 회사 사정 없이: ${prepared.symbol} ${(error as Error).message}`);
+    return input;
+  }
+};
+
 /** 이번 시도에 LLM 을 불러도 되나 — 서버 전체 24시간 상한(배치 · 스트림 같은 원장). 원장을 못 읽으면 막는다 */
 export const llmBudget = async (
   usage: LlmUsageStore | undefined,
@@ -66,8 +110,8 @@ export const llmBudget = async (
     const verdict = llmBudgetVerdict(
       await usage.usageSince(new Date(now.getTime() - LLM_BUDGET_WINDOW_MS)),
       resolveLlmLimits(limits),
-      // 같은 워커 뒤에 도는 오늘 등락 한 줄 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
-      LLM_RESERVED_CALLS.moveSummary
+      // 같은 워커 뒤에 도는 오늘 등락 한 줄 · 사실 추출 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
+      reservedCallsBehind("explanation")
     );
     if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
     return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };

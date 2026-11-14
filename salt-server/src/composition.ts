@@ -4,7 +4,12 @@ import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
 import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
 import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
+import { CompanyFilingAdapter } from "./coach/infrastructure/CompanyFilingAdapter";
+import { FactSourceAdapter } from "./coach/infrastructure/FactSourceAdapter";
+import { LlmFactExtractor } from "./coach/infrastructure/LlmFactExtractor";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
+import { PrismaCompanyFactReader } from "./coach/infrastructure/PrismaCompanyFactReader";
+import { PrismaExtractedFactStore } from "./coach/infrastructure/PrismaExtractedFactStore";
 import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
 import { MoveCauseAdapter } from "./coach/infrastructure/MoveCauseAdapter";
@@ -68,6 +73,13 @@ import { PrismaNewsTagReader } from "./market/infrastructure/PrismaNewsTagReader
 import { ArticleBodyAdapter } from "./market/infrastructure/ArticleBodyAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
+import { OUTLETS } from "./news/domain/Outlets";
+import { AiTitleAdapter } from "./news/infrastructure/AiTitleAdapter";
+import { DartClient } from "./news/infrastructure/DartClient";
+import { PrismaDartFilingStore } from "./news/infrastructure/PrismaDartFilingStore";
+import { KrUniverseAdapter } from "./news/infrastructure/KrUniverseAdapter";
+import { OutletFeedClient } from "./news/infrastructure/OutletFeedClient";
+import { PrismaAiBodyStore, PrismaAiSourceStore } from "./news/infrastructure/PrismaAiBodyStore";
 import { createPortfolioApplication } from "./portfolio/application/api";
 import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdapter";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
@@ -117,6 +129,21 @@ const news = createNewsApplication({
     search: new NaverNewsSearch({ id: env.NAVER_CLIENT_ID, secret: env.NAVER_CLIENT_SECRET }),
     pages: new ArticlePageFetcher(),
     bodies: new PrismaArticleBodyStore(),
+  },
+  // AI 경로 본문(`SRV-REQ-058`) — 국내 제목은 `market` 공개 API 로(아래에서 조립 — 부를 때 찾는다)
+  aiBody: {
+    outlets: OUTLETS,
+    titles: new AiTitleAdapter(() => market.api),
+    feeds: new OutletFeedClient(),
+    pages: new ArticlePageFetcher(),
+    sources: new PrismaAiSourceStore(),
+    bodies: new PrismaAiBodyStore(),
+  },
+  // DART 공시(F017 v4 2b) — 키가 없으면 꺼짐. 유니버스는 market 공개 API(부를 때 찾는다)
+  dart: {
+    port: env.DART_API_KEY ? new DartClient(env.DART_API_KEY) : null,
+    universe: new KrUniverseAdapter(() => market.api),
+    filings: new PrismaDartFilingStore(),
   },
 });
 
@@ -241,6 +268,8 @@ const localCliGate = new LocalCliGate();
 const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), { gate: localCliGate });
 /** 오늘 등락 한 줄(F016 단계 D) — 해설과 같은 로컬 CLI → Gemini. 감지 결과를 같이 꽂는다 */
 const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
+/** 사실 추출(F017 v4 2c) — 같은 로컬 CLI → Gemini · 같은 게이트 */
+const factExtractor = new LlmFactExtractor(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
@@ -252,6 +281,7 @@ if (env.COACH_EXPLAIN_LLM === "on") {
         new LocalCliCoachExplainer(found.provider, found.bin, llmUsage, { model: env.COACH_LLM_LOCAL_MODEL })
       );
       moveSummaryWriter.useLocal({ provider: found.provider, bin: found.bin });
+      factExtractor.useLocal({ provider: found.provider, bin: found.bin });
       logger.info(`해설 로컬 CLI ${found.provider} ${found.version} (${found.bin})`);
     })
     .catch((error: unknown) => logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`));
@@ -306,6 +336,17 @@ const coach = createCoachApplication({
     names: async (symbols) => new Map((await market.api.assetLabels(symbols)).map((l) => [l.symbol, l.name])),
     // 해설 LLM 을 끄면 이것도 — LLM 두 길을 따로 켜 두는 경우가 없다
     enabled: env.MOVE_SUMMARY === "on" && env.COACH_EXPLAIN_LLM === "on",
+  },
+  // 회사 사정 칸(F017 v4 2d) — 추출 사실을 읽는다(같은 coach 표)
+  companyFacts: new PrismaCompanyFactReader(),
+  // 공시 목록 사실 — news 공개 API(목록) + market(공시 사건 규칙)
+  companyFilings: new CompanyFilingAdapter(news.api, market.api),
+  // 사실 추출(F017 v4 2c) — 재료는 news AI 경로 본문 · market 사건 종류 사전(공개 API), 사실 저장은 coach. 해설 LLM 을 끄면 같이
+  factExtraction: {
+    sources: new FactSourceAdapter(news.api, market.api),
+    extractor: factExtractor,
+    facts: new PrismaExtractedFactStore(),
+    enabled: env.COACH_EXPLAIN_LLM === "on",
   },
   gauges: new PrismaGaugeTrackStore(),
   generationLogs: new PrismaCoachGenerationLogStore(),

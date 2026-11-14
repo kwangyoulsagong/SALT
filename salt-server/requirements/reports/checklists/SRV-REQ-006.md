@@ -732,3 +732,8 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `pacer.ts` — 쉬기 `pauseUntil` · 동시 대기 상한 `maxInFlight`(KIS 모의 한도, `SRV-REQ-057` FR-3). 기존 간격 · 우선순위 동작 그대로(테스트 그대로 통과) · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |
+
+## 2026-11-14 — F017 v4 2a 걸침(`SRV-REQ-058`)
+
+- `news.test.ts` 조립 인자에 `aiBody` 자리(`SRV-REQ-058` 2a) — 이 REQ 의 확인 항목 무변경
+- 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음

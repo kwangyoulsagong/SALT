@@ -18,9 +18,14 @@ export const PANEL_MESSAGES = {
   },
   // ② 왜 움직였나 — 문장은 서버 것, 칸이 비면 이 한 줄
   causeDefect: "원인 칸을 지금 불러오지 못했어요",
-  // ③ 회사 사정 — 재료가 순서 2
-  companyPending: "확인된 공시가 아직 없어요",
-  companyPendingNote: "공시 · 기사에서 실적 · 오늘 일 · 업계 · 걸리는 점을 뽑는 일을 준비하고 있어요",
+  // ③ 회사 사정 — 문구 · 숫자는 서버가 원문에서 뽑은 사실(F017 v4 2d)
+  companyNone: "확인된 공시 · 기사 사실이 아직 없어요",
+  companyNoneNote: "약관이 허락한 매체 기사와 공시에서 뽑은 사실만 보여요",
+  companyDefect: "회사 사정을 지금 불러오지 못했어요",
+  companyGroups: { earnings: "실적", today: "오늘", recent: "최근", sector: "업계", concern: "걸리는 점" },
+  companyWindow: (days: 90 | 365) => `최근 7일 안 사실이 없어 최근 ${days}일 사실이에요`,
+  companyCount: (n: number) => `사실 ${n}개 중 일부`,
+  companySourceSr: (name: string) => `${name} 원문(새 창)`,
   // ④ 틀리는 때
   invalidationLine: (price: string, pct: string) => `${price} 아래 (${pct})`,
   invalidationNote: "과거 비슷한 날의 나쁜 쪽 10% 선이에요. 이 아래로 끝나면 틀린 것으로 채점해요.",

@@ -110,7 +110,7 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
       <PanelRow kind="cause">
         {data.cause.cause ? <MoveCauseFlow view={data.cause.cause} /> : <StatusLine kind="error">{M.causeDefect}</StatusLine>}
       </PanelRow>
-      <CompanyRow />
+      <CompanyRow company={data.company} />
       {view ? <InvalidationRow view={view} /> : null}
       <TrackRow track={mode.track} />
 

@@ -2,6 +2,7 @@ import { logger } from "../../shared/config/logger";
 import {
   LLM_BUDGET_WINDOW_MS,
   llmBudgetVerdict,
+  reservedCallsBehind,
   MOVE_SUMMARY_BATCH_MAX_PER_RUN,
   MOVE_SUMMARY_PROMPT_VERSION,
   MOVE_SUMMARY_VERIFIER_VERSION,
@@ -82,7 +83,9 @@ export class GenerateMoveSummaries {
     try {
       const verdict = llmBudgetVerdict(
         await usage.usageSince(new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS)),
-        resolveLlmLimits(this.deps.limits)
+        resolveLlmLimits(this.deps.limits),
+        // 뒤에 도는 사실 추출 몫(F017 v4 2c)
+        reservedCallsBehind("moveSummary")
       );
       if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
       return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };

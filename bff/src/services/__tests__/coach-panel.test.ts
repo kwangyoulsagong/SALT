@@ -105,6 +105,12 @@ const mode = (over: Record<string, unknown> = {}) => ({
   explanation: { tier: "now", status: "ok", asOf: null, view: explanation("latest") },
   ...over,
 });
+const emptyBrief = { headline: null, earnings: [], today: [], recent: [], sector: [], concern: [], windowDays: null, factCount: 0 };
+const fact = (over: Record<string, unknown> = {}) => ({
+  text: "차바이오텍 3분기 누적 연결 매출액 9,016억원 (전년 동기 대비 2% 감소)", who: "차바이오텍", what: "3분기 누적 연결 매출액",
+  amount: "9016", unit: "억원", comparedTo: "전년 동기 대비 2% 감소", whenText: "3분기 누적", kind: "earnings",
+  source: { kind: "article", name: "파이낸셜뉴스", url: "https://www.fnnews.com/news/1", at: "2026-11-14T06:00:00.000Z" }, ...over,
+});
 const panel = (over: Record<string, unknown> = {}) => ({
   symbol: "005930",
   market: "kr",
@@ -113,7 +119,7 @@ const panel = (over: Record<string, unknown> = {}) => ({
   scenario: { horizons: [horizon("1h", "longer"), horizon("4h", "longer"), horizon("1d", "now"), horizon("5d", "usual")], disclaimer: "d" },
   verdict: { tier: "now", status: "ok", check },
   cause: { tier: "now", status: "ok", cause },
-  company: { tier: "defect", status: "degraded", reason: "source_not_collected" },
+  company: { tier: "defect", status: "degraded", brief: emptyBrief },
   modes: { scalp: mode(), longTerm: mode({ mode: "long_term" }) },
   mine: null,
   cells: [],
@@ -271,3 +277,33 @@ describe("appAICoachService.getPanel", () => {
     await assert.rejects(appAICoachService.getPanel("t", { symbol: "BTC" }), (e) => e === unauthorized);
   });
 });
+
+describe("회사 사정 칸(F017 v4 2d)", () => {
+  const brief = { headline: fact(), earnings: [fact({ text: "영업손실 831억원" })], today: [], sector: [{ text: "제약 지수 +1.2%", source: "업종 지수", at: null }], concern: [fact({ text: "매출 2% 감소" })], windowDays: 7, factCount: 3 };
+  it("서버 단 · 문구 그대로", () => {
+    const vm = toCoachPanelViewModel(panel({ company: { tier: "now", status: "ok", brief } }));
+    assert.equal(tierOf(vm, "company"), "now");
+    assert.equal(vm.company.brief?.headline?.text, fact().text);
+    assert.deepEqual(vm.company.brief?.concern.map((c) => c.text), ["매출 2% 감소"]);
+    assert.deepEqual(vm.company.brief?.recent, []);
+    assert.deepEqual([vm.company.brief?.windowDays, vm.company.brief?.factCount, vm.company.brief?.sector[0]?.text], [7, 3, "제약 지수 +1.2%"]);
+  });
+  it("http(s) 가 아닌 출처 주소의 사실은 버린다(그 사실만)", () => {
+    const bad = fact({ text: "나쁜 링크", source: { kind: "article", name: "x", url: "javascript:alert(1)", at: "2026-11-14T06:00:00.000Z" } });
+    const vm = toCoachPanelViewModel(panel({ company: { tier: "now", status: "ok", brief: { ...brief, concern: [bad, fact({ text: "남는 사실" })] } } }));
+    assert.deepEqual(vm.company.brief?.concern.map((c) => c.text), ["남는 사실"]);
+  });
+  it("칸 모양이 틀리면 결함으로 내리고 내린 칸으로 센다", () => {
+    const vm = toCoachPanelViewModel(panel({ company: { tier: "now", status: "ok", brief: { headline: null } } }));
+    assert.deepEqual([vm.company.brief, tierOf(vm, "company"), vm.degradedBlocks.includes("company")], [null, "defect", true]);
+  });
+  it("서버가 읽기 실패(brief null · defect) — 내린 칸이 아니다", () => {
+    const vm = toCoachPanelViewModel(panel({ company: { tier: "defect", status: "degraded", brief: null } }));
+    assert.deepEqual([vm.company.brief, vm.degradedBlocks.includes("company")], [null, false]);
+  });
+  it("사실 0 은 빈 칸들(null 아님)", () => {
+    const vm = toCoachPanelViewModel(panel());
+    assert.deepEqual([vm.company.brief?.factCount, vm.company.brief?.headline, tierOf(vm, "company")], [0, null, "defect"]);
+  });
+});
+

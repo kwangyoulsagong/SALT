@@ -1,4 +1,14 @@
 import type {
+  AiBodyForExtraction,
+  AiBodyStore,
+  AiSourceStore,
+  AiTitleSource,
+  DartFilingStore,
+  DartPort,
+  StoredDartFiling,
+  KrUniverseSource,
+  OutletDef,
+  OutletFeedPort,
   ArticleBodyQuery,
   ArticleBodyStore,
   ArticleBodyView,
@@ -11,6 +21,9 @@ import type {
   NewsFeedPort,
   SentimentArticleQuery,
 } from "../../domain";
+import { dartFilingWhat, dartViewerUrl } from "../../domain";
+import { CollectAiBodies } from "../CollectAiBodies";
+import { CollectDartDisclosures } from "../CollectDartDisclosures";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
 import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import {
@@ -55,8 +68,17 @@ export interface NewsApi {
   searchArticleTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]>;
   /** 한 종목이 붙은 기사들의 태그 목록(`SRV-REQ-055`) — `market` 이 함께 태그된 종목을 센다 */
   symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
+  /**
+   * 사실 추출(`SRV-REQ-053` FR-14)이 읽는 본문 — AI 경로(`via ≠ portal`)만 · 오래된 것부터. `coach` 가 부른다.
+   * 포털로 찾은 사람용 본문(`readArticleBody`)은 이 길로 나오지 않는다(표가 다르다 — `SRV-REQ-058` FR-5)
+   */
+  aiBodiesForExtraction(limit: number): Promise<AiBodyForExtraction[]>;
+  markAiBodyExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
+  /** 한 종목의 DART 공시 목록(최신순) — 회사 사정 칸이 목록 자체를 사실로 쓴다(F017 v4 2b). 화면 링크는 `url` */
+  recentDartFilings(code: string, since: Date, limit: number): Promise<Array<StoredDartFiling & { url: string; what: string }>>;
 }
 
+export type { AiBodyForExtraction } from "../../domain";
 export type { ArticleBodyQuery, ArticleBodyView, ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
 
 export interface NewsDependencies {
@@ -65,6 +87,17 @@ export interface NewsDependencies {
   feed: NewsFeedPort;
   /** 기사 본문 — 포털 검색 · 페이지 추출 · 캐시(`SRV-REQ-054`) */
   body: { search: ArticleSearchPort; pages: ArticlePagePort; bodies: ArticleBodyStore };
+  /** AI 가 읽는 본문(`SRV-REQ-058`) — 매체 RSS 원문만. 포털 검색 포트를 받지 않는다(이 경로에 포털 0) */
+  aiBody: {
+    outlets: readonly OutletDef[];
+    titles: AiTitleSource;
+    feeds: OutletFeedPort;
+    pages: ArticlePagePort;
+    sources: AiSourceStore;
+    bodies: AiBodyStore;
+  };
+  /** DART 공시(F017 v4 2b) — 키가 없으면 `port: null`(회차가 아무것도 하지 않는다) */
+  dart: { port: DartPort | null; universe: KrUniverseSource; filings: DartFilingStore };
 }
 
 export interface NewsUseCases {
@@ -78,6 +111,10 @@ export interface NewsUseCases {
   removeBookmark: RemoveBookmark;
   listBookmarks: ListBookmarks;
   getArticleBody: GetArticleBody;
+  /** AI 경로 본문 한 회차 — 뉴스 워커가 5분마다 */
+  collectAiBodies: CollectAiBodies;
+  /** DART 공시 한 회차 — 같은 워커 5분 */
+  collectDartDisclosures: CollectDartDisclosures;
 }
 
 /**
@@ -108,6 +145,8 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     removeBookmark: new RemoveBookmark(deps.bookmarks),
     listBookmarks: new ListBookmarks(deps.bookmarks),
     getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
+    collectAiBodies: new CollectAiBodies(deps.aiBody),
+    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies, filings: deps.dart.filings }),
   };
 
   const api: NewsApi = {
@@ -117,6 +156,11 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     readArticleBody: (query) => readArticleBody.execute(query),
     searchArticleTitles: (q, since, limit) => searchArticleTitles.execute(q, since, limit),
     symbolTagLists: (symbol, since, limit) => listSymbolTagLists.execute(symbol, since, limit),
+    // 읽기 · 표시 한 줄 — 유스케이스 없이 저장소 그대로(규칙은 SQL + `isAiReadable` 두 겹, `PrismaAiBodyStore.pendingExtraction`)
+    aiBodiesForExtraction: (limit) => deps.aiBody.bodies.pendingExtraction(limit),
+    markAiBodyExtraction: (key, outcome, at) => deps.aiBody.bodies.markExtraction(key, outcome, at),
+    recentDartFilings: async (code, since, limit) =>
+      (await deps.dart.filings.recent(code, since, limit)).map((f) => ({ ...f, url: dartViewerUrl(f.rceptNo), what: dartFilingWhat(f.reportName) })),
   };
 
   return { api, useCases };

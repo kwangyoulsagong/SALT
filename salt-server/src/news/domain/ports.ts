@@ -105,3 +105,107 @@ export interface ArticleBodyStore {
   find(key: string): Promise<StoredArticleBody | null>;
   save(row: StoredArticleBody): Promise<void>;
 }
+
+// ── AI 가 읽는 기사 본문(`SRV-REQ-058`) — 포털 검색 API 를 거치지 않는 경로만 ─────────────────────────────
+
+/** 본문을 찾을 제목들 — 국내 시황 제목(`market` 공개 API) + 코인 원장. 관련 종목 1~2개 · 광고 아님 · 공시 아님 */
+export interface AiTitleSource {
+  recentTitles(since: Date): Promise<import("./AiBody").AiTitle[]>;
+}
+
+export type OutletFeedResult =
+  | { status: "not_modified" }
+  | { status: "ok"; items: Array<{ title: string; url: string; publishedAt: Date }>; etag: string | null; lastModified: string | null };
+
+/** 매체 RSS · robots 받기 — 실패는 던진다(부르는 쪽이 매체 하나만 건너뛴다) */
+export interface OutletFeedPort {
+  fetchFeed(url: string, state: { etag: string | null; lastModified: string | null } | null): Promise<OutletFeedResult>;
+  /** robots.txt — 연결 실패는 `status: 0`(던지지 않는다 — 판정이 "막힘"으로 읽는다) */
+  fetchRobots(origin: string): Promise<import("./Robots").RobotsSnapshot>;
+}
+
+export interface OutletRow {
+  id: string;
+  name: string;
+  market: "kr" | "coin";
+  enabled: boolean;
+  robotsVerdict: import("./Robots").RobotsVerdict | "no_feed";
+  termsVerdict: import("./Outlets").OutletTermsVerdict;
+  termsNote: string;
+}
+
+/** 매체 · robots · RSS 상태 · RSS 항목 */
+export interface AiSourceStore {
+  syncOutlets(rows: OutletRow[], at: Date): Promise<void>;
+  enabledOutletIds(): Promise<Set<string>>;
+  robots(origin: string): Promise<{ snapshot: import("./Robots").RobotsSnapshot; fetchedAt: Date } | null>;
+  saveRobots(origin: string, snapshot: import("./Robots").RobotsSnapshot, at: Date): Promise<void>;
+  feedState(url: string): Promise<{ etag: string | null; lastModified: string | null } | null>;
+  saveFeedState(url: string, outletId: string, state: { etag: string | null; lastModified: string | null; status: string }, at: Date): Promise<void>;
+  /** 한 문장 · 같은 주소 한 번(`ON CONFLICT DO NOTHING`) — 넣은 수 */
+  saveItems(items: import("./AiBody").RssItem[], at: Date): Promise<number>;
+  recentItems(outletIds: string[], since: Date): Promise<import("./AiBody").RssItem[]>;
+  pruneItems(before: Date): Promise<number>;
+}
+
+export interface AiBodyDue {
+  key: string;
+  outletId: string;
+  itemUrl: string;
+  title: string;
+  attempts: number;
+}
+
+/** AI 경로 본문 행 — 사실 추출(`SRV-REQ-053` FR-14)은 `via ≠ portal` 행만 읽는다 */
+export interface AiBodyStore {
+  statuses(keys: string[]): Promise<Map<string, import("./AiBody").AiBodyStatus>>;
+  /** 한 문장 upsert — 끝난 행(`ok` · `pending` · `failed` …)은 덮지 않는다(`WHERE` 로 다시 볼 상태만) */
+  saveLinks(links: import("./AiBody").AiBodyLink[], at: Date): Promise<void>;
+  dueForFetch(limit: number, now: Date): Promise<AiBodyDue[]>;
+  saveFetched(
+    key: string,
+    result:
+      | { status: "ok"; paragraphs: string[]; hash: string; chars: number }
+      | { status: "empty" | "robots_blocked" }
+      | { status: "failed"; attempts: number; nextTryAt: Date | null },
+    at: Date,
+  ): Promise<void>;
+  /** 추출 대기 — 받았고(`ok`) · 문단이 있고 · 추출 전 · AI 경로(`isAiReadable`) · 시도 상한 안. 오래된 것부터 */
+  pendingExtraction(limit: number): Promise<import("./AiBody").AiBodyForExtraction[]>;
+  /** 추출 끝(`done`) 또는 실패 한 번(`failed` — 상한이면 끝으로 친다) */
+  markExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
+  /** 공시 원문 행(`via: dart`, 받은 채 `ok`) — 같은 키는 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
+  saveDisclosures(rows: Array<{ key: string; title: string; publishedAt: Date; symbols: string[]; url: string; paragraphs: string[]; hash: string; chars: number }>, at: Date): Promise<number>;
+  /** 문단을 지우고 해시 · 길이만 — 추출이 끝났거나 보관 기한이 지난 행. 지운 수 */
+  purgeParagraphs(before: Date, at: Date): Promise<number>;
+}
+
+// ── DART 공시(F017 v4 2b) ─────────────────────────────────────────────────────
+
+/** OpenDART — 목록 한 쪽 · 원문 한 건. 키가 없으면 조립에서 빠진다(포트 자체가 없음). 실패는 던진다 */
+export interface DartPort {
+  list(type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+  /** 원문(본문 문서 HTML) — 문단으로 바꾼 것 */
+  document(rceptNo: string): Promise<string[]>;
+  /** 종목 코드 → 고유번호(상장사, 하루 캐시) — 기간이 3개월을 넘는 목록은 고유번호가 있어야 한다 */
+  corpCodes(): Promise<Map<string, string>>;
+  /** 한 회사의 목록 한 쪽 */
+  listByCorp(corpCode: string, type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+}
+
+/** 공시 목록 저장(`dart_filing`) · 백필 표시(`dart_backfill`) */
+export interface DartFilingStore {
+  /** 한 문장 · 같은 접수번호 한 번. 넣은 수 */
+  save(filings: Array<import("./Dart").DartFiling & { type: import("./Dart").DartType }>, at: Date): Promise<number>;
+  backfilled(codes: string[]): Promise<Set<string>>;
+  markBackfilled(code: string, filings: number, at: Date): Promise<void>;
+  /** 원문을 아직 안 받은(`news_ai_body` 행 없음) 공시 — `since` 뒤 · 최신순(고르는 규칙은 부르는 쪽 `isImportantFiling`) */
+  withoutBody(codes: string[], since: Date): Promise<import("./Dart").DartFiling[]>;
+  /** 한 종목 공시 목록(최신순) */
+  recent(code: string, since: Date, limit: number): Promise<import("./Dart").StoredDartFiling[]>;
+}
+
+/** 국내 판단 유니버스(상위 N + 보유) — `market` 공개 API */
+export interface KrUniverseSource {
+  codes(): Promise<string[]>;
+}

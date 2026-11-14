@@ -98,11 +98,7 @@ export const explanationTier = (tier: ExplanationTier): PanelTier =>
 export const causeTier = (topStrength: "likely" | "possible" | "none" | null): PanelTier =>
   topStrength === null ? "defect" : topStrength === "none" ? "usual" : "now";
 
-/**
- * 회사 사정(FR-12) — 재료(공시 추출 사실 · 기사 추출 사실)가 아직 없다. 공시 수집과 기사 본문 원천이
- * 순서 2 다. 그 전엔 늘 defect 로 센다 — 상태 점검이 "아직 빈 칸"을 숨기지 않게
- */
-export const COMPANY_PENDING_REASON = "source_not_collected" as const;
+// 회사 사정(FR-12) 단은 `companyBrief.ts` `assembleCompanyBrief` 가 정한다(F017 v4 2d — 추출 사실 창 7 · 90 · 365일)
 
 // ==================== 내 기준(FR-15) ====================
 

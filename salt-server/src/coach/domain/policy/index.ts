@@ -31,6 +31,8 @@ export * from "./signalPerformance";
 export * from "./symbolJudgment";
 export * from "./inputFreshness";
 export * from "./llmBudget";
+export * from "./factExtraction";
+export * from "./companyBrief";
 export * from "./zone";
 export * from "./macroEvents";
 export * from "./positioning";

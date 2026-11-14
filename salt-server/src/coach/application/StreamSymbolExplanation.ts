@@ -5,10 +5,12 @@ import type {
   ExplanationSnapshotStore,
   LlmBudgetLimits,
   LlmUsageStore,
+  CompanyFactReader,
+  CompanyFilingReader,
   MoveCauseReader,
 } from "../domain";
 import type { GetSymbolExplanation, SymbolExplanationView } from "./GetSymbolExplanation";
-import { ExplanationGenerations, generateExplanation, llmBudget, withCause } from "./lib/explanationGeneration";
+import { ExplanationGenerations, generateExplanation, llmBudget, withCause, withCompany } from "./lib/explanationGeneration";
 import { loadExplanationBase, prepareExplanationMode, type ExplanationMaterialsDeps } from "./lib/explanationMaterials";
 
 /** 스트림 이벤트를 받는 쪽 — 컨트롤러가 SSE 로 옮긴다 */
@@ -29,6 +31,8 @@ export interface StreamSymbolExplanationDeps extends ExplanationMaterialsDeps {
   store: ExplanationSnapshotStore;
   generations: ExplanationGenerations;
   causes?: MoveCauseReader;
+  /** 회사 사정 재료(F017 v4 2b+ FR-16) — 생성할 때만 */
+  company?: { facts: CompanyFactReader; filings: CompanyFilingReader };
   usage?: LlmUsageStore;
   limits?: Partial<LlmBudgetLimits>;
   llmEnabled: boolean;
@@ -72,7 +76,8 @@ export class StreamSymbolExplanation {
       sink.fallback(current);
       return;
     }
-    const input = await withCause(this.deps.causes, prepared, prepared.input);
+    const withCauseInput = await withCause(this.deps.causes, prepared, prepared.input);
+    const input = await withCompany(this.deps.company, prepared, withCauseInput, new Date());
     const { done, leave } = this.deps.generations.join(
       ExplanationGenerations.key(prepared),
       (emit) =>

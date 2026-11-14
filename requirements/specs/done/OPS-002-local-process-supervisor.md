@@ -55,3 +55,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `salt-platform/ops/run-platform.sh` — `IDENTITY_DB_PASSWORD`(← `.env` `LOCAL_DB_IDENTITY_PASSWORD`) `fc0207cb` |
 | 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-8 `usage` · `web-tips` 3005(사용자 "3000 으로 salt 켜 줘" 때 발견) |
+| 2026-11-14 | 상태 줄 둘 — AI 본문(매체 RSS) · DART 공시(F017 v4 2a · 2b) |

@@ -57,6 +57,19 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return row?.publishedAt ?? null;
   }
 
+  async newsTitlesForAiBody(since: Date, limit: number) {
+    // 게시 시각 인덱스로 창만 읽고, 관련 종목 수는 (serial, code) 기본 키로 센다
+    const rows = await prisma.$queryRaw<Array<{ serial: string; provider_name: string; title: string; published_at: Date; codes: string[] }>>`
+      SELECT t.serial, t.provider_name, t.title, t.published_at, c.codes
+      FROM kr_news_title t
+      CROSS JOIN LATERAL (SELECT array_agg(s.code ORDER BY s.code) AS codes FROM kr_news_title_symbol s WHERE s.serial = t.serial) c
+      WHERE t.published_at >= (${since}::timestamptz AT TIME ZONE 'UTC') AND t.kind = 'news' AND NOT t.promo
+        AND cardinality(c.codes) BETWEEN 1 AND 2
+      ORDER BY t.published_at ASC
+      LIMIT ${limit}`;
+    return rows.map((r) => ({ serial: r.serial, providerName: r.provider_name, title: r.title, publishedAt: r.published_at, codes: r.codes }));
+  }
+
   async newsCollectedAt() {
     // 매분 수집 행만(게시 뒤 하루 안에 받은 것) · 최근 8일 게시 범위만 — `KR_NEWS_LIVE_LAG_MS` 머리 주석
     const since = new Date(Date.now() - KR_NEWS_FRESHNESS_WINDOW_DAYS * 86_400_000);

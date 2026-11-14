@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+
+import { DEFAULT_LLM_BUDGET, reservedCallsBehind } from "../../domain";
 import { describe, it } from "node:test";
 
 import type {
@@ -55,8 +57,11 @@ const setup = (cards: Record<string, MoveCard | null>, reply: (p: MoveSummaryPro
   };
   const reader: MoveCardReader = { card: async (_a, s) => cards[s] ?? null };
   const demand = new MoveSummaryDemand();
-  const batch = (enabled = true) =>
+  const batch = (enabled = true, usedCalls?: number) =>
     new GenerateMoveSummaries({
+      ...(usedCalls === undefined
+        ? {}
+        : { usage: { record: async () => {}, markDropped: async () => {}, usageSince: async () => ({ calls: usedCalls, tokens: 0 }) } }),
       cards: reader,
       store,
       writer,
@@ -106,6 +111,15 @@ describe("GenerateMoveSummaries", () => {
     const r = await t.batch().execute();
     assert.equal(r.generated, 0);
     assert.equal(t.prompts.length, 0);
+  });
+
+  it("LLM 상한 — 뒤에 도는 사실 추출 몫을 남기고 멈춘다(F017 v4 2c)", async () => {
+    const limit = DEFAULT_LLM_BUDGET.totalCalls - reservedCallsBehind("moveSummary");
+    const under = setup({ "123456": cardOf("123456") });
+    assert.equal((await under.batch(true, limit - 1).execute()).generated, 1);
+    const at = setup({ "123456": cardOf("123456") });
+    assert.equal((await at.batch(true, limit).execute()).generated, 0);
+    assert.equal(at.prompts.length, 0);
   });
 
   it("회차 상한 — 남은 종목은 다음 회차", async () => {

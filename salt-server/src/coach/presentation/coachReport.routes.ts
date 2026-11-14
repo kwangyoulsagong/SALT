@@ -237,7 +237,9 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         `status`(`ok` · `fallback` · `degraded`). **한 칸 실패가 패널을 비우지 않는다** — 그 칸만 `defect`, 응답은 200
    *       - `cells` 는 상태 점검(`OPS-004`)이 세는 칸 표(11줄 — 지평 넷 · 점검 · 원인 · 회사 사정 · 성적 둘 · 해설 둘)
    *       - `horizonMode` — 기간 탭 → 판단 모드(1h · 4h = 단타, 1d · 5d = 장기). 성적 · 해설 칸은 모드마다 `modes` 에
-   *       - `company` 는 재료(공시 · 기사 추출 사실)가 순서 2 라 지금은 늘 `defect` + `reason: source_not_collected`
+   *       - `company` — 추출 사실(공시 · 기사 — `extracted_fact`)과 원인 칸 업종 근거로 `brief{ headline, earnings[], today[], recent[], sector[], concern[], windowDays, factCount }`.
+   *         단 = 7일 안 사실 `now` · 90일 `usual` · 365일 `longer` · 없음 `defect`(빈 칸들). **걸리는 점(`concern`)은 사실이 있으면 늘**.
+   *         숫자 · 단위는 원문 그대로 · 칸마다 출처(이름 · 주소 · 시각). 읽기 실패면 `brief: null` · `degraded`
    *       - `mine` 은 보유가 있을 때만(아니면 null) · 토큰의 사용자 것만 · 매입가 숨김이면 평단 · 평가 손익 null.
    *         보유를 못 읽었으면 `status: degraded` + `view: null`(보유 없음으로 접지 않는다)
    *       - 모델 확률은 소유자 + 시험을 넘은 칸만(`/api/coach/scenario` 와 같다). 한 점 목표가 · 매매 지시 필드는 없다
@@ -299,9 +301,21 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                     company:
    *                       type: object
    *                       properties:
-   *                         tier: { type: string, enum: [defect] }
-   *                         status: { type: string, enum: [degraded] }
-   *                         reason: { type: string, enum: [source_not_collected] }
+   *                         tier: { type: string, enum: [now, usual, longer, defect] }
+   *                         status: { type: string, enum: [ok, fallback, degraded] }
+   *                         brief:
+   *                           type: object
+   *                           nullable: true
+   *                           description: "칸마다 사실 `{ text, who, what, amount(원문 숫자 문자열), unit, comparedTo, whenText, kind, source{ kind, name, url, at } }`"
+   *                           properties:
+   *                             headline: { type: object, nullable: true }
+   *                             earnings: { type: array, items: { type: object } }
+   *                             today: { type: array, items: { type: object } }
+   *                             recent: { type: array, items: { type: object }, description: "오늘이 아닌 창 안 사실(다른 칸에 없는 것)" }
+   *                             sector: { type: array, items: { type: object, properties: { text: { type: string }, source: { type: string }, at: { type: string, nullable: true } } } }
+   *                             concern: { type: array, items: { type: object } }
+   *                             windowDays: { type: integer, nullable: true, enum: [7, 90, 365] }
+   *                             factCount: { type: integer }
    *                     modes:
    *                       type: object
    *                       description: "`scalp` · `longTerm` — 각 `{ mode, judgment, track{ tier, status, trackRecord, failureCases }, explanation{ tier, status, asOf, view } }`"

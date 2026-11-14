@@ -259,3 +259,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `news` 유스케이스 테스트 가짜 저장소에 `findHead` · 조립에 `body` 의존 |
 | 2026-11-10 | `PrismaPriceHistoryRepository.upsertCandles` — 단건 upsert 100개 `Promise.all` → 한 문장 `INSERT … ON CONFLICT`(포트 · 멱등 그대로, `DB-REQ-017` 4회차 `c602e97c`) |
 | 2026-11-11 | `feat/f017-s1c-collection`: `pacer.ts` — 쉬기 `pauseUntil` · 동시 대기 상한 `maxInFlight`(KIS 모의 한도, `SRV-REQ-057` FR-3). 기존 간격 · 우선순위 동작 그대로(테스트 그대로 통과) |
+| 2026-11-14 | `news.test.ts` 조립 인자에 `aiBody` 자리(`SRV-REQ-058` 2a) — 이 REQ 의 확인 항목 무변경 |

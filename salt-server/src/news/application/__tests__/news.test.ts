@@ -78,6 +78,16 @@ const build = (deps: {
       pages: { paragraphs: async () => [] },
       bodies: { find: async () => null, save: async () => {} },
     },
+    // AI 경로 본문(SRV-REQ-058)은 이 파일이 보지 않는다 — collectAiBodies.test.ts
+    aiBody: {
+      outlets: [],
+      titles: { recentTitles: async () => [] },
+      feeds: { fetchFeed: async () => ({ status: "not_modified" }), fetchRobots: async () => ({ status: 404, body: "" }) },
+      pages: { paragraphs: async () => [] },
+      sources: {} as never,
+      bodies: {} as never,
+    },
+    dart: { port: null, universe: { codes: async () => [] } },
   });
 
 describe("CrawlNews", () => {

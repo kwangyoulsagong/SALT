@@ -1,4 +1,4 @@
-import { KrStockDisabledError, KrStockNotAvailableError, UnknownMarketSymbolError, isKrStockCode, krStockLogoUrl } from "../../domain";
+import { KrStockDisabledError, KrStockNotAvailableError, NEWS_KIND_OTHER, UnknownMarketSymbolError, classifyNewsKind, isKrStockCode, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
 import type { KrArticleBodyPort, MarketScheduleReader, NewsTagReader, PriceFillMarkStore, UniverseSnapshotStore } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
@@ -131,6 +131,13 @@ import { GetKrMarketSummary } from "../GetKrMarketSummary";
  * 부를 일이 없고, 열면 다른 컨텍스트가 우리 워커를 대신 돌리게 된다.
  */
 export interface MarketApi {
+  /**
+   * 소식 제목 → 사건 종류 id(예측 사전 `news_kind_dict` — 화면 태그와 같은 규칙). 사전이 없으면 전부 `other`.
+   * 사실 추출(`SRV-REQ-053` FR-14)이 사실마다 종류를 붙인다 — LLM 이 종류를 정하지 않는다
+   */
+  newsKindsOf(market: "kr" | "crypto", origin: "news" | "disclosure", items: ReadonlyArray<{ title: string; codes: number }>): Promise<string[]>;
+  /** 국내 시황 제목 — AI 경로 본문 찾기(`SRV-REQ-058`)의 입력. 국내가 꺼져 있으면 빈 목록 */
+  krNewsTitlesForAiBody(since: Date, limit: number): Promise<Array<{ serial: string; providerName: string; title: string; publishedAt: Date; codes: string[] }>>;
   /** 최신 기술 지표. 없으면 `null` — 신규 상장이나 캔들 부족이 정상 경로다. */
   latestIndicator(symbol: string): Promise<StoredIndicator | null>;
   /** 최신 시장 심리. 없으면 `null`. */
@@ -656,6 +663,11 @@ export const createMarketApplication = (deps: MarketDependencies) => {
   };
 
   const api: MarketApi = {
+    newsKindsOf: async (market, origin, items) => {
+      const dict = await deps.newsTags.dict().catch(() => null);
+      return items.map((i) => (dict ? classifyNewsKind(dict, market, origin, i.codes, i.title) : NEWS_KIND_OTHER));
+    },
+    krNewsTitlesForAiBody: async (since, limit) => (deps.krStock ? deps.krStock.moveSources.newsTitlesForAiBody(since, limit) : []),
     latestIndicator: (symbol) => deps.indicators.findLatest(symbol),
     latestSentiment: (symbol) => deps.sentiments.findLatest(symbol),
     recentWhaleTransactions: (symbol, limit = 20) =>

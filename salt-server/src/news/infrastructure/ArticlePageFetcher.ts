@@ -59,6 +59,12 @@ const publicLookup = ((hostname: string, options: object, callback: (...args: un
   });
 }) as unknown as typeof dnsLookup;
 
+/** 공인 주소만 연결하는 에이전트 한 쌍 — 남이 정한 주소(검색 결과 · 매체 RSS 의 링크)를 받는 클라이언트가 같이 쓴다 */
+export const publicAgents = () => ({
+  httpAgent: new http.Agent({ lookup: publicLookup }),
+  httpsAgent: new https.Agent({ lookup: publicLookup }),
+});
+
 /** 응답 바이트를 글자로 — 머리 · 메타의 문자셋(국내 옛 언론사는 EUC-KR). 모르는 이름이면 UTF-8 */
 export const decodeHtml = (bytes: Buffer, contentType: string | undefined): string => {
   const head = bytes.subarray(0, 4096).toString("latin1");
@@ -105,10 +111,7 @@ export class ArticlePageFetcher implements ArticlePagePort {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; SaltReader/1.0)", Accept: "text/html" },
   });
 
-  private readonly agents = {
-    httpAgent: new http.Agent({ lookup: publicLookup }),
-    httpsAgent: new https.Agent({ lookup: publicLookup }),
-  };
+  private readonly agents = publicAgents();
 
   async paragraphs(url: string, portal: boolean): Promise<string[]> {
     const parsed = new URL(url);

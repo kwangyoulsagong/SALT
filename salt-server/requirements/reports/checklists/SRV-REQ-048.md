@@ -127,3 +127,8 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 포트 `MoveCauseReader` 만 — identity · notification 0 | 충족 | 주인 REQ 체크리스트 |
+
+## 2026-11-14 — F017 v4 2a 걸침(`SRV-REQ-058`)
+
+- `composition.ts` 에 `news` AI 경로 본문 조립(`SRV-REQ-058` 2a) — identity · notification 무변경
+- 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음

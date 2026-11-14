@@ -53,6 +53,7 @@ source: "`FE-REQ-066` FR-8(사용자 결정 D4 2026-11-09 — 2단계 포함) ·
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-10 | 신규 · done — FR-1~6 `dd0bbdcc`. 곁 칸 근거를 "뉴스 관련주"에서 같은 업종 · 함께 태그로(원천 실측 · 사용자 결정) |
+| 2026-11-14 | `news/domain/ports.ts` 에 AI 경로 포트 더함(`SRV-REQ-058` 2a) — 검색 묶음 포트 무변경 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `bff/src/services/app-search.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
   - `salt-server/src/market/application/SearchExtras.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

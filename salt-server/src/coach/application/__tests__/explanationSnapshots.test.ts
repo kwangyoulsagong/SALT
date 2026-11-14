@@ -17,6 +17,7 @@ import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
 import { GetSymbolExplanation, trustInput } from "../GetSymbolExplanation";
 import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
 import { ExplanationDemand } from "../lib/explanationDemand";
+import { DEFAULT_LLM_BUDGET, reservedCallsBehind } from "../../domain";
 import { ExplanationGenerations } from "../lib/explanationGeneration";
 
 /**
@@ -117,8 +118,13 @@ const setup = (opts: { prices?: Record<string, number | null>; tracked?: string[
   };
   const tracked: TrackedAssetProbe = { listTrackedSymbols: async () => opts.tracked ?? ["BTC"] };
   const read = new GetSymbolExplanation(deps);
-  const batch = (explainer: CoachExplainer, llmEnabled = true) =>
-    new GenerateExplanationSnapshots({ ...deps, explainer, tracked, llmEnabled, generations: new ExplanationGenerations() });
+  const batch = (explainer: CoachExplainer, llmEnabled = true, usedCalls?: number) =>
+    new GenerateExplanationSnapshots({
+      ...deps, explainer, tracked, llmEnabled, generations: new ExplanationGenerations(),
+      ...(usedCalls === undefined
+        ? {}
+        : { usage: { record: async () => {}, markDropped: async () => {}, usageSince: async () => ({ calls: usedCalls, tokens: 0 }) } }),
+    });
   return { read, batch, rows, demand };
 };
 
@@ -283,6 +289,16 @@ describe("GenerateExplanationSnapshots — 지문이 바뀐 것만 · 실패는 
     const r = await batch(spy.explainer).execute();
     assert.equal(r.generated, EXPLANATION_BATCH_MAX_PER_RUN);
     assert.equal(r.deferred, many.length * 2 + 1 - EXPLANATION_BATCH_MAX_PER_RUN);
+  });
+
+  it("상한 — 해설은 뒤 배치 둘(한 줄 · 사실 추출) 몫을 남기고 멈춘다(F017 v4 2c)", async () => {
+    const limit = DEFAULT_LLM_BUDGET.totalCalls - reservedCallsBehind("explanation");
+    const under = await setup().batch(spyExplainer(() => llmText).explainer, true, limit - 1).execute();
+    assert.ok(under.generated > 0);
+    const spy = spyExplainer(() => llmText);
+    const at = await setup().batch(spy.explainer, true, limit).execute();
+    assert.equal(at.generated, 0);
+    assert.equal(spy.calls.length, 0);
   });
 
   it("LLM 꺼짐 → 아무것도 하지 않는다(화면은 사실표 문장)", async () => {

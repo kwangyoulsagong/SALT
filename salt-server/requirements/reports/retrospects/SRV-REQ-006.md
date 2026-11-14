@@ -439,3 +439,7 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 
 - 닿은 것: `pacer.ts` — 쉬기 `pauseUntil` · 동시 대기 상한 `maxInFlight`(KIS 모의 한도, `SRV-REQ-057` FR-3). 기존 간격 · 우선순위 동작 그대로(테스트 그대로 통과)
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
+
+## 2026-11-14 — F017 v4 2a 걸침
+
+- 머리 주석이 이 REQ 를 가리키는 파일을 `SRV-REQ-058` 이 걸쳤다 — 동작 변경은 위 체크리스트 한 줄뿐

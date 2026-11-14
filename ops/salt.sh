@@ -154,6 +154,18 @@ latest() {
            case when max(created_at) < now() at time zone 'utc' - interval '3 hours' then '✗' else 'ok' end
       from news_articles
     union all
+    -- AI 경로 본문(SRV-REQ-058 · F017 v4 2a) — 켜진 매체 RSS 원문. timestamptz 열이라 now() 그대로
+    select 'AI 본문(매체 RSS) 마지막 받음', to_char(max(fetched_at) at time zone 'Asia/Seoul','MM-DD HH24:MI'),
+           round(extract(epoch from now() - max(fetched_at))/3600) || '시간 전',
+           case when max(fetched_at) < now() - interval '12 hours' then '✗' else 'ok' end
+      from news_ai_body where via <> 'dart' and status = 'ok'
+    union all
+    -- DART 공시 원문(F017 v4 2b) — 영업일에만 나온다. 3일(주말 + 하루) 넘게 없으면 ✗(키 · 한도 · 장애)
+    select 'DART 공시 마지막 받음', to_char(max(fetched_at) at time zone 'Asia/Seoul','MM-DD HH24:MI'),
+           round(extract(epoch from now() - max(fetched_at))/3600) || '시간 전',
+           case when max(fetched_at) is null or max(fetched_at) < now() - interval '3 days' then '✗' else 'ok' end
+      from news_ai_body where via = 'dart'
+    union all
     select '코인 시세 마지막 갱신', to_char(max(price_updated_at) + interval '9 hours','MM-DD HH24:MI'),
            round(extract(epoch from now() at time zone 'utc' - max(price_updated_at))/60) || '분 전',
            case when max(price_updated_at) < now() at time zone 'utc' - interval '10 minutes' then '✗' else 'ok' end

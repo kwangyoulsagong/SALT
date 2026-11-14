@@ -41,3 +41,7 @@
 
 - `kr_flow_intraday` 보관 7 → 35일(`KR_FLOW_INTRADAY_RETENTION_DAYS`) — 스키마 변경 0 · 정리 배치가 다음 회차부터 덜 지운다(유니버스 50 × 하루 약 40행 × 35일 ≈ 7만 행)
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## 2026-11-14 — F017 v4 2a 걸침
+
+- 머리 주석이 이 REQ 를 가리키는 파일을 `SRV-REQ-058` 이 걸쳤다 — 동작 변경은 위 체크리스트 한 줄뿐

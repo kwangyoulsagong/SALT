@@ -1114,3 +1114,131 @@ model NewsArticleBody {
 
   @@map("news_article_body")
 }
+
+/// AI 경로 매체 판정(`SRV-REQ-058` FR-1) — 원본은 코드 `news/domain/Outlets.ts`. 회차마다 목록 + robots 로 다시 쓴다
+model NewsOutlet {
+  id            String   @id
+  name          String
+  market        String
+  enabled       Boolean
+  robotsVerdict String   @map("robots_verdict")
+  termsVerdict  String   @map("terms_verdict")
+  termsNote     String   @map("terms_note")
+  checkedAt     DateTime @map("checked_at") @db.Timestamptz(3)
+
+  @@map("news_outlet")
+}
+
+/// origin 마다 robots.txt 저장본(하루 한 번)
+model NewsRobots {
+  origin    String   @id
+  status    Int
+  body      String
+  fetchedAt DateTime @map("fetched_at") @db.Timestamptz(3)
+
+  @@map("news_robots")
+}
+
+/// RSS 주소마다 조건부 GET 상태
+model NewsFeedState {
+  url          String   @id
+  outletId     String   @map("outlet_id")
+  etag         String?
+  lastModified String?  @map("last_modified")
+  status       String
+  polledAt     DateTime @map("polled_at") @db.Timestamptz(3)
+
+  @@map("news_feed_state")
+}
+
+/// 매체 RSS 항목 — 제목 · 주소 · 시각만(본문 0) · 14일
+model NewsRssItem {
+  url         String   @id
+  outletId    String   @map("outlet_id")
+  title       String
+  publishedAt DateTime @map("published_at") @db.Timestamptz(3)
+  fetchedAt   DateTime @map("fetched_at") @db.Timestamptz(3)
+
+  @@index([outletId, publishedAt], map: "news_rss_item_outlet_published_idx")
+  @@map("news_rss_item")
+}
+
+/// AI 경로 본문(`SRV-REQ-058`) — 사람용 본문 캐시(`news_article_body`, 포털)와 표가 다르다. `via` 가 `portal` 인 행은 AI 가 읽지 않는다.
+/// 문단은 추출 뒤 또는 7일 뒤 지우고 해시 · 길이만
+model NewsAiBody {
+  key              String    @id
+  market           String
+  title            String
+  titlePublishedAt DateTime  @map("title_published_at") @db.Timestamptz(3)
+  outletId         String?   @map("outlet_id")
+  via              String?
+  status           String
+  itemUrl          String?   @map("item_url")
+  paragraphs       Json      @default("[]")
+  bodyHash         String?   @map("body_hash")
+  bodyChars        Int?      @map("body_chars")
+  attempts         Int       @default(0)
+  nextTryAt        DateTime? @map("next_try_at") @db.Timestamptz(3)
+  linkedAt         DateTime  @map("linked_at") @db.Timestamptz(3)
+  fetchedAt        DateTime? @map("fetched_at") @db.Timestamptz(3)
+  extractedAt      DateTime? @map("extracted_at") @db.Timestamptz(3)
+  purgedAt         DateTime? @map("purged_at") @db.Timestamptz(3)
+  /// 제목에 걸린 종목(국내 제목 연결 · 코인 원장 태그) — 사실 추출이 그대로 싣는다
+  symbols          String[]  @default([])
+  extractAttempts  Int       @default(0) @map("extract_attempts")
+
+  @@index([status, nextTryAt], map: "news_ai_body_status_next_try_idx")
+  @@index([market, titlePublishedAt], map: "news_ai_body_market_published_idx")
+  @@index([status, extractedAt], map: "news_ai_body_status_extracted_idx")
+  @@map("news_ai_body")
+}
+
+/// 추출 사실(`DB-REQ-043` FR-9 · `SRV-REQ-053` FR-14) — 기사 · 공시 본문에서 뽑은 사실 단위만. **기사 문장 칸 없음**(`ADR-009` v4).
+/// 숫자는 원문 글자와 대조를 지난 것만. 시장 층 · 사용자 열 0
+model ExtractedFact {
+  id               String   @id
+  sourceKind       String   @map("source_kind")
+  sourceKey        String   @map("source_key")
+  symbols          String[]
+  who              String
+  what             String
+  amount           Decimal? @db.Decimal
+  unit             String?
+  comparedTo       String?  @map("compared_to")
+  whenText         String?  @map("when_text")
+  eventKind        String   @map("event_kind")
+  publishedAt      DateTime @map("published_at") @db.Timestamptz(3)
+  availableAt      DateTime @map("available_at") @db.Timestamptz(3)
+  sourceUrl        String   @map("source_url")
+  sourceName       String   @map("source_name")
+  extractorVersion String   @map("extractor_version")
+  createdAt        DateTime @map("created_at") @db.Timestamptz(3)
+
+  @@unique([sourceKind, sourceKey, what], map: "extracted_fact_source_what_key")
+  @@index([symbols], map: "extracted_fact_symbols_idx", type: Gin)
+  @@index([availableAt], map: "extracted_fact_available_idx")
+  @@map("extracted_fact")
+}
+
+/// DART 공시 목록(F017 v4 2b — 유니버스 종목 1년 백필 + 회차마다). 회사 사정 칸이 목록 자체를 사실로 쓴다. 원문 · 숫자는 `news_ai_body` → `extracted_fact`
+model DartFiling {
+  rceptNo     String   @id @map("rcept_no")
+  stockCode   String   @map("stock_code")
+  corpName    String   @map("corp_name")
+  reportName  String   @map("report_name")
+  pblntfTy    String   @map("pblntf_ty")
+  rceptDate   DateTime @map("rcept_date") @db.Date
+  firstSeenAt DateTime @map("first_seen_at") @db.Timestamptz(3)
+
+  @@index([stockCode, rceptDate(sort: Desc)], map: "dart_filing_stock_date_idx")
+  @@map("dart_filing")
+}
+
+/// 종목마다 1년 공시 목록 백필을 마쳤는지(F017 v4 2b+)
+model DartBackfill {
+  stockCode String   @id @map("stock_code")
+  doneAt    DateTime @map("done_at") @db.Timestamptz(3)
+  filings   Int
+
+  @@map("dart_backfill")
+}

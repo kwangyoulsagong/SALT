@@ -329,6 +329,11 @@ export interface CoachExplanationInput {
     evidence: Array<{ value: string; compare: string | null; source: string }>;
     result: string;
   };
+  /**
+   * 회사 사정(F017 v4 2b+ · `SRV-REQ-053` FR-16) — 패널 회사 사정 칸과 같은 조립(`assembleCompanyBrief`)의 앞 몇 줄. 생성할 때만(원인과 같다).
+   * 숫자 · 단위는 원문 그대로 — 문장이 인용하면 출처 이름으로 단다. 걸리는 점은 늘 같이 간다(좋은 점만 싣지 않는다)
+   */
+  company?: { lines: Array<{ text: string; source: string; concern: boolean }> };
   news?: Array<{
     title: string;
     summary?: string;
@@ -456,8 +461,8 @@ export interface LlmCallRecord {
   userId: string | null;
   /** 어느 공급자의 시도인가(`SRV-REQ-050` FR-9). 토큰 상한은 `gemini` 만 센다 */
   provider: ExplainProvider;
-  /** 어느 기능의 호출인가 — 해설(`coach_explain`) · 오늘 등락 한 줄(`move_summary`, F016 단계 D) */
-  purpose: "coach_explain" | "move_summary";
+  /** 어느 기능의 호출인가 — 해설(`coach_explain`) · 오늘 등락 한 줄(`move_summary`, F016 단계 D) · 사실 추출(`fact_extract`, F017 v4 2c) */
+  purpose: "coach_explain" | "move_summary" | "fact_extract";
   model: string;
   requestedAt: Date;
   durationMs: number;
@@ -1054,3 +1059,67 @@ export interface MoveSummaryPrompt {
 export interface MoveSummaryWriter {
   write(prompt: MoveSummaryPrompt, options: { geminiAllowed: boolean }): Promise<{ text: string; provider: ExplainProvider; model: string | null }>;
 }
+
+// ── 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14 · `DB-REQ-043` FR-9) ────────────────────────────────
+
+/** 추출할 본문 한 건 — `news` 공개 API 의 AI 경로 본문을 우리 모양으로(포털 본문은 이 길에 없다) */
+export interface FactSourceBody {
+  key: string;
+  market: "kr" | "coin";
+  title: string;
+  publishedAt: Date;
+  /** 우리가 본문을 받은 시각 = 사실의 `available_at` */
+  fetchedAt: Date;
+  symbols: string[];
+  url: string;
+  sourceName: string;
+  paragraphs: string[];
+  /** 원천 — 공시(`dart`)면 사실의 `source_kind = disclosure` */
+  via: "rss_direct" | "dart" | "coin_rss" | "outlet_list";
+}
+
+export interface FactSourceReader {
+  pending(limit: number): Promise<FactSourceBody[]>;
+  mark(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
+  /** 제목 → 사건 종류(예측 사전) — 제목 순서 그대로 */
+  kindsOf(market: "kr" | "coin", origin: "news" | "disclosure", items: ReadonlyArray<{ title: string; codes: number }>): Promise<string[]>;
+}
+
+/** 사실 추출 LLM — 원문을 읽고 JSON 배열 글자를 돌려준다(검사는 도메인 `checkExtractedFacts`). 트랜잭션 밖에서만 */
+export interface FactExtractor {
+  extract(input: { title: string; source: string }, options: { geminiAllowed: boolean }): Promise<{ output: string; provider: ExplainProvider; model: string }>;
+}
+
+export interface ExtractedFactRow {
+  sourceKind: "article" | "disclosure";
+  sourceKey: string;
+  symbols: string[];
+  who: string;
+  what: string;
+  amount: string | null;
+  unit: string | null;
+  comparedTo: string | null;
+  whenText: string | null;
+  eventKind: string;
+  publishedAt: Date;
+  availableAt: Date;
+  sourceUrl: string;
+  sourceName: string;
+  extractorVersion: string;
+}
+
+export interface ExtractedFactStore {
+  /** 한 문장 · 같은 (원천, 원문 키, 무엇)은 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
+  saveMany(rows: ExtractedFactRow[], at: Date): Promise<number>;
+}
+
+/** 회사 사정 재료(F017 v4 2d) — 한 종목의 추출 사실(`extracted_fact`), `since` 뒤 · 알게 된 시각 최신순 · `limit` 건 */
+export interface CompanyFactReader {
+  recent(symbol: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
+}
+
+/** 회사 사정 재료 둘째(F017 v4 2b+) — DART 공시 목록 자체를 사실로(LLM 0). `news` 공개 API · 사건 종류는 `market` 공시 규칙 */
+export interface CompanyFilingReader {
+  recent(code: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
+}
+

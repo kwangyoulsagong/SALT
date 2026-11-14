@@ -3,3 +3,7 @@ export * from "./ArticleBody";
 export * from "./errors";
 export * from "./NewsSource";
 export * from "./ports";
+export * from "./AiBody";
+export * from "./Dart";
+export * from "./Outlets";
+export * from "./Robots";

@@ -404,3 +404,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - 2026-11-11(1c): `feat/f017-s1c-collection`: 판단 원장 테스트 가짜 시장에 `dailyBarCounts` — 코인 장기 이력 꼬리표(`SRV-REQ-057` FR-1)가 MA50 없는 코인의 일봉을 센다. 원장 동작 변경 0
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `opsGuards.test.ts` 에 LLM 상한 예약 경계 표 한 줄(`reservedCalls`) — 해설 · 한 줄이 같은 상한을 나눠 쓴다 |
 | 2026-11-13 | F017 v4 1f 짝(`SRV-REQ-053` FR-16) — `modeDecision.ts`(머리 주인) `displayName` — 판단 머리말이 이름으로("삼성전자 장기 관점은"). 판정 · 점수 · 원장 변경 0 · 백테스트는 코드 그대로 |
+| 2026-11-14 | `opsGuards.test` 시험 이름만 정정 — 남길 몫이 배치 순서 셋이 됨(F017 v4 2c `reservedCallsBehind`, 경계는 `factExtraction.test`) |
