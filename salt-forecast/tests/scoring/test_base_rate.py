@@ -125,3 +125,14 @@ def test_kr_k6_only_after_two_down_days() -> None:
 def test_triggers_carry_last_bar_time() -> None:
     p = _panel(60, 3)
     assert {t.ref_at for t in crypto_triggers(p)} == {int(p.dates[-1])}
+
+
+def test_size_groups_small_is_exactly_bottom_two_thirds() -> None:
+    """n = 3k 에서도 소형 = 2k — 부동소수 ceil 이 한 칸 밀던 결함(2026-11-16)."""
+    from salt_forecast.scoring.base_rate import size_groups
+
+    for n in (3, 9, 30, 31, 32, 300):
+        avg = np.arange(n, dtype=np.float64)[None, :]
+        large, small = size_groups(avg, np.ones_like(avg, dtype=np.bool_))
+        assert small[0].sum() == (2 * n) // 3, n
+        assert large[0].sum() == min(10, n), n

@@ -1,0 +1,188 @@
+# 사전등록 — 장중 조건부 기저율 5분봉 (F017 v4 순서 3 · FC-REQ-028 FR-7)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 조건 · 임계 · 지평 · 비용 · 문턱을 바꾸려면 새 키(`base-rate@4`).
+#
+# 왜: 패널 기간 탭 1시간 · 4시간 칸은 지금까지 하루 값으로 내려갔다(`longer`). 같은 서술(지금과 비슷한 상황에서 과거에
+# 어떻게 됐나)을 1시간 · 4시간 지평으로 낸다. 엔진 실력에 기대지 않는 서술이라 결과를 보고 조건을 고르면 주장이 된다.
+#
+# 키 이력:
+# - `base-rate@2`(커밋 f6e92a03, 같은 날) — 1시간봉 판. **실행 전 철회**(DB 등록 0 · 결과 0). 사용자 "5분봉으로 다 해야" —
+#   5분봉 이력이 없어 1시간봉으로 내린 것이었는데, 이력을 쌓고 백필하면 FR-7 원문(5분봉 · 30분 조건 · VI) 그대로 된다.
+#   철회한 키는 다시 쓰지 않는다 — 그래서 이 파일은 @3 이다
+# - 5분봉 이력: 코인 = forecast 가 업비트 5분봉을 2024-11 부터 백필해 지우지 않고 쌓는다(서버 표는 30일).
+#   국내 = 서버 5분봉 보관을 400일로 · KIS 일별분봉 1년 백필(서버) · forecast 가 지우지 않고 옮긴다(유니버스 약 50종목)
+# - 조건 출처: FR-7(30분 ±3% · 거래대금 급증 · VI 발동 뒤 · 시가 갭) + `base-rate@1` [decision].apply 가 미룬 장중 조건
+#   (리서치 `2026-11-10-v2-signal-validation.md` §3-3 K5 · K7 · C4 · C6). **C5(거래량 시계 첫 집중 30분)는 뺀다** —
+#   리서치 표에 정의가 없어(어느 30분이 '집중'인가) 여기서 정하면 결과를 보고 고르는 것과 같다. @4 후보
+# - 지평: 리서치 표의 '당일 종가 · 마지막 30분 · 1d'는 패널 기간 탭(1시간 · 4시간)에 맞춰 1시간 · 4시간으로 통일한다.
+#   국내는 장 마감에서 끊으니 4시간이 곧 '당일 종가까지'인 경우가 많다
+
+key = "base-rate@3"
+registered = 2026-11-16
+
+[question]
+text = """
+사전등록한 장중 조건이 성립한 시각(5분봉 마감), 그 종목의 이후 1시간 · 4시간 수익(비용 뒤)은 어떤 분포였나 —
+오른 비율 · 평균 · q10 · q50 · q90 · 표본. '평소'(같은 시장 · 같은 지평 전체 시각)와 다르다고 말하는 것은 Holm 보정 뒤에만.
+"""
+
+[protocol]
+crypto_source = "forecast.price_bar upbit 5m(원화 마켓, 2024-11-01 ~). available_at = 봉 마감. 격자 = 5분(domain/panel.build_panel step 300). 업비트는 체결 없는 5분에 봉을 주지 않는다 — 그 칸은 결측(앞 값으로 채우지 않는다)"
+kr_source = "forecast.price_bar kis 5m — 서버 5분봉(price_history kr_stock 5m)을 그대로 옮긴 봉(jobs/ingest_kr_minutes). 정규장 09:00 ~ 15:30. available_at = 봉 마감. 격자 = 봉이 하나라도 있는 5분 칸만(장 밖 · 휴장 행 없음)"
+vi_source = "public.v_kr_vi_export(서버 kr_vi_event — 2026-11-16 부터 400일 보관, KIS 는 지난 VI 를 주지 않아 백필 없음). 정적 VI(kind static · both)만. available_at = triggered_at"
+macro_source = "forecast.scheduled_event kind ∈ {cpi, fomc, jobs}, symbol = ''(미국 거시 — 시각까지 있는 행)"
+crypto_universe = "그 칸 봉이 있고, 같은 시각(분 단위 칸) 직전 20일 30분 거래대금이 전부 있는 업비트 원화 종목(폐지 종목 포함 — 원천에 남은 만큼)"
+kr_universe = "그 칸 봉이 있고, 같은 시각 직전 20거래일 30분 거래대금이 전부 있는 종목(서버 5분봉 대상 = 유니버스 종목)"
+as_of = "봉 마감 뒤. 조건 · 문턱은 available_at <= as_of 봉 · 사건만"
+r30 = "30분 수익 r30_t = ln(C_t / C_{t−6}) — 6칸 전 봉이 없으면 결측(조건 불성립). 국내 그날 첫 6칸의 C_{t−6} 은 전 거래일 끝 칸들(격자가 장중 칸만이라 이어진다)"
+r60 = "1시간 수익 r60_t = ln(C_t / C_{t−12}) — 같은 규칙"
+value30 = "30분 거래대금 = 직전 6칸(t 포함) Σ 종가 × 거래량. 칸이 빠지면 0 으로 더한다(체결 없음). 평균 = **같은 시각** 직전 20일(코인) · 20거래일(국내) 값의 평균(오늘 제외)"
+value60 = "1시간 거래대금 = 직전 12칸 같은 방식 · 같은 시각 평균"
+size_group = "코인만. 그 칸 대상 종목을 직전 20일 일평균 거래대금(직전 5,760칸 Σ 종가 × 거래량 / 20, 빈 칸 0)으로 순위 — 상위 10 = 대형, 하위 2/3 = 소형, 나머지는 CM1 · CM2 에 안 든다"
+label = "로그수익 ln(C_{t+h} / C_t), h = 12칸(1시간) · 48칸(4시간). 코인: t+h 칸 봉이 없으면 그 앞 가장 가까운 봉(h 안 · 체결 없음 = 가격 그대로). 국내: **오늘 장 마감까지**로 끊는다 — t+h 가 그날 마지막 칸을 넘으면 그날 마지막 칸 종가, t 가 그날 마지막 칸이면 라벨 없음. 진입 = 조건이 성립한 칸 종가(라이브는 지금 가격) — 근사를 리포트에"
+cooldown = "같은 종목 · 같은 조건은 h 칸 안에 한 번만 센다. '평소' 행은 쿨다운 없음 — 대신 평소 행은 **12칸(1시간)마다 한 칸**만 표본으로(정각 칸) — 5분마다 겹치는 라벨로 평소 표본이 12배로 부풀지 않게"
+cost_kr = "base-rate@1 cost_kr 그대로(수수료 × 2 + 그날 거래세 + 반 틱 × 2) — 매도일 = 사건 날"
+cost_crypto = "base-rate@1 cost_crypto 그대로 — 왕복 0.15%"
+net = "base-rate@1 net 그대로 — 사기 전 = 라벨 − 왕복 비용, 팔기 전 보유 연장 = 라벨 그대로"
+cluster = "유효 n 군집 = 사건 날(KST 날짜 — 코인도 KST 날짜). 같은 날 여러 시각 사건은 한 군집"
+n_eff = "base-rate@1 n_eff 그대로(날짜 군집 ICC · 설계 효과)"
+min_sample = "base-rate@1 그대로 — 유효 n ≥ 100 그리고 서로 다른 날 ≥ 60, 못 넘으면 status = below_min(행은 낸다)"
+wilson = "base-rate@1 그대로"
+shrink = "base-rate@1 그대로(κ = 100, p₀ = 같은 시장 · 같은 지평 '평소')"
+differs = "base-rate@1 그대로 — 시장마다 조건 × 지평 가족 Holm α 0.05"
+recent = "최근 90일 사건만의 원비율이 전체 Wilson 구간 밖이면 recent_differs = true(최근 유효 n < 30 이면 null)"
+trigger = "라이브 판정 — 5분마다 마지막 칸 T 기준. next = 다음 칸에서 '30분' 조건이 성립하는 가격 문턱(기준 = C_{T−5}, 다음 칸의 30분 전 종가 · price_at_least = 기준 × 1.03 · price_at_most = 기준 × 0.97). closed = 마지막 칸에 이미 성립(거래대금 · 시가 갭 · VI · 첫 30분 · 거시 일정 · 1시간 펌프는 closed 만). 서버는 기준 칸이 15분보다 오래되면 판정하지 않는다. 통계 실행(하루 한 번)과 문턱 실행(5분마다)은 나눈다 — 문턱 행의 as_of 는 마지막 통계 실행의 as_of"
+horizon_unit = "뷰 v_base_rate 에 horizon_unit = 'hour', horizon = 1 · 4(@1 행은 'day')"
+
+[decision]
+show = "status = ok 행만 비율 · 분위를 화면에(서술). 패널 1시간 · 4시간 칸의 tier: 조건 성립 + ok = now · 평소 ok = usual · 평소도 below_min = longer(하루 값). 'differs' 는 표지만 — 판정 · 명령 아님"
+below_min = "화면은 '비슷한 상황이 아직 n번뿐이에요' — 숫자 0"
+apply = "조건 추가 · 임계 변경 = 새 키"
+
+# ── 코인 (5분봉) ──
+[[condition]]
+id = "ALL"
+market = "crypto"
+text = "평소 — 대상 전체 시각(정각 칸)"
+horizons = [1, 4]
+kind = "usual"
+
+[[condition]]
+id = "CM1S"
+market = "crypto"
+text = "작은 코인이 30분에 3% 넘게 오름"
+rule = "r30_t >= ln(1.03) and size = small"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "CM1L"
+market = "crypto"
+text = "큰 코인이 30분에 3% 넘게 오름"
+rule = "r30_t >= ln(1.03) and size = large"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "CM2S"
+market = "crypto"
+text = "작은 코인이 30분에 3% 넘게 내림"
+rule = "r30_t <= ln(0.97) and size = small"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "CM2L"
+market = "crypto"
+text = "큰 코인이 30분에 3% 넘게 내림"
+rule = "r30_t <= ln(0.97) and size = large"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "CM3"
+market = "crypto"
+text = "30분 거래대금이 같은 시각 평소의 3배 넘게 몰림"
+rule = "value30_t >= 3 * value30_same_time_avg20"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "C4"
+market = "crypto"
+text = "1시간에 3% 넘게 오르며 거래대금이 평소 3배(펌프 추격 장면)"
+rule = "r60_t >= ln(1.03) and value60_t >= 3 * value60_same_time_avg20"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "C6U"
+market = "crypto"
+text = "미국 거시 발표(CPI · FOMC · 고용) 뒤 첫 1시간에 오른 경우"
+rule = "사건 칸 = 발표 시각 + 1시간이 끝나는 칸, r60 > 0"
+horizons = [4]
+kind = "test"
+
+[[condition]]
+id = "C6D"
+market = "crypto"
+text = "미국 거시 발표 뒤 첫 1시간에 내린 경우"
+rule = "사건 칸 = 발표 시각 + 1시간이 끝나는 칸, r60 < 0"
+horizons = [4]
+kind = "test"
+
+# ── 국내 주식 (5분봉 — 서버 1년 백필 · 400일 보관) ──
+[[condition]]
+id = "ALL"
+market = "kr"
+text = "평소 — 대상 전체 장중 시각(정각 칸)"
+horizons = [1, 4]
+kind = "usual"
+
+[[condition]]
+id = "KM1"
+market = "kr"
+text = "30분에 3% 넘게 오름"
+rule = "r30_t >= ln(1.03)"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "KM2"
+market = "kr"
+text = "30분에 3% 넘게 내림"
+rule = "r30_t <= ln(0.97)"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "KM3"
+market = "kr"
+text = "30분 거래대금이 같은 시각 평소의 3배 넘게 몰림"
+rule = "value30_t >= 3 * value30_same_time_avg20"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "KM4"
+market = "kr"
+text = "시가가 어제 종가보다 3% 넘게 높게 시작"
+rule = "그날 첫 칸(09:00)의 O >= 1.03 * 전 거래일 마지막 칸 C — 사건 = 첫 칸 마감(09:05)"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "K5"
+market = "kr"
+text = "정적 VI 가 걸린 뒤"
+rule = "그날 그 종목 첫 정적 VI 발동 시각이 든 칸 — 사건 = 그 칸 마감"
+horizons = [1, 4]
+kind = "test"
+
+[[condition]]
+id = "K7"
+market = "kr"
+text = "첫 30분에 2% 넘게 오름"
+rule = "09:25 칸 마감(09:30) 종가 >= 1.02 × 그날 첫 칸(09:00) 시가 — 갭은 빼고 장중 30분만(리서치 §3-3 K7 '첫 30분 수익'). 사건 = 09:30"
+horizons = [1, 4]
+kind = "test"

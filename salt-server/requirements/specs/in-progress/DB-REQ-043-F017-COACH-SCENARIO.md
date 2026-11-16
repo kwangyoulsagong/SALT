@@ -67,3 +67,5 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coach/application/api/index.ts`(머리 주인) 조립: `getCoachPanel` · 의존 `moveCauses` · 해설 · 시나리오 · 점검 인스턴스를 패널과 칸별 경로가 같이 쓴다. 스키마 · 표 변경 0 |
 | 2026-11-14 | **FR-9 `extracted_fact` done**(F017 v4 2c) — 표 하나 · 인덱스 셋 · 사용자 열 0 · 문장 칸 0. 되돌리기 = 표 지우기 + `news_ai_body` 열 둘 |
 | 2026-11-14 | FR-11 `company_brief` 표는 만들지 않음 — 읽을 때 조립(2d) |
+| 2026-11-16 | FR-3 개정(F017 v4 순서 3a · 루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `base_rate_stat.horizon_unit`(day · hour, 기본 day) · `v_base_rate` 끝 열 · export 뷰 `public.v_kr_vi_export`(예측이 VI 를 읽음). 추가만 — 되돌리기 = 뷰 원래 정의 + 열 지우기 · 뷰 지우기 |
+| 2026-11-16 | **FR-13 신규**(F017 v4 순서 3b · 루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `forecast.event_window` · `event_window_stat` · 뷰 `v_event_window_stat`(시장마다 최신 실행) · export 뷰 `public.v_dart_filing_export`(+ `rcept_date` 끝 열). 추가만 |

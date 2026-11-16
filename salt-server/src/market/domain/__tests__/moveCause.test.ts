@@ -174,6 +174,18 @@ describe("근거 한 줄 = 사실 + 숫자 + 비교 + 출처 · 시각", () => {
     assert.equal(c.evidence[0].at, "2026-11-13T01:12:00.000Z");
   });
 
+  it("미리 움직인 폭 — 같은 선반영 삼분위 과거 5거래일(event-window@2)이 있으면 비교 칸에 · 여전히 받치지 않음", () => {
+    const pr = { tercile: "high" as const, days: 5 as const, sample: 180, upRate: 0.38, kindUpRate: 0.47, differs: "lower" as const };
+    const c = top(base({ events: [{ ...event(), preMoveReaction: pr }] }));
+    const pre = c.evidence.find((e) => e.kind === "pre_move")!;
+    assert.equal(
+      pre.compare,
+      "시장 대비 · 이만큼 미리 움직인 같은 종류 소식 뒤 5거래일 시장보다 더 오른 경우 100번 중 38번 · 같은 종류 전체 47번"
+    );
+    assert.equal(pre.supports, false); // 원인 단계(likely · possible)를 바꾸지 않는다
+    assert.equal(top(base({ events: [{ ...event(), preMoveReaction: null }] })).evidence.find((e) => e.kind === "pre_move")!.compare, "시장 대비 · 소식 전에 이미 움직인 폭이에요");
+  });
+
   it("장 밖 소식 — 다음 장 첫 봉부터 재고 그렇게 말한다 · 읽은 가격 → 등락 · 분", () => {
     const at = new Date("2026-11-12T22:30:00Z"); // 07:30 KST — 장 전
     const pre = toAfterMove(at, { before: 85_000, after: 88_900, afterAt: new Date("2026-11-13T00:35:00Z"), firstBarAt: new Date("2026-11-13T00:05:00Z") });

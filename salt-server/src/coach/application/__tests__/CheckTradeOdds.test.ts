@@ -46,6 +46,7 @@ const stat = (p: Partial<BaseRateRow>): BaseRateRow => ({
   market: "crypto",
   conditionId: "ALL",
   horizon: 1,
+  horizonUnit: "day",
   asOf: NOW,
   kind: "usual",
   status: "ok",

@@ -62,3 +62,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 |---|---|
 | 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `ops/daily.sh` 에 `news_reaction`(국내 일봉 옮긴 뒤 · 22초) — 뉴스 원장 · 감성(`news_item`)은 건드리지 않음 |
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `ops/daily.sh`(머리 주인)에 주간 단계 하나 — `move_explanation_report`(6.5일마다, `due`) |
+| 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `ops/daily.sh`(머리 주인)에 장중 기저율 통계(`base_rate_intraday stats` · 국내 5분봉 400일 옮기기) — 뉴스 원장 · 감성 무변경 |

@@ -95,4 +95,24 @@ describe("toNewsTag — 종류 · 1봉 라벨 · 5봉 펼침 · 선반영", () =
   it("문구에 호재 · 악재 단어 0 — 종류 이름까지", () => {
     for (const r of DICT.rules) assert.doesNotMatch(r.text, /호재|악재/);
   });
+
+  it("선반영 삼분위 — 경계로 고르고 5봉 서술을 싣는다 · 표본이 모자라면 null (event-window@2)", () => {
+    const w = (tercile: "low" | "mid" | "high" | "all", status: "ok" | "below_min", upRate: number | null) => ({
+      market: "kr" as const, origin: "disclosure", kind: "contract", tercile, horizon: 5, status, sample: 200,
+      upRate, baseUpRate: tercile === "all" ? null : 0.47, differs: null, preLowMax: -0.02, preHighMin: 0.03,
+    });
+    const windows = [w("all", "ok", 0.47), w("low", "ok", 0.52), w("mid", "ok", 0.48), w("high", "below_min", null)];
+    assert.deepEqual(toNewsTag(DICT, [], item, -0.05, windows)?.preMoveReaction, {
+      tercile: "low", days: 5, sample: 200, upRate: 0.52, kindUpRate: 0.47, differs: null,
+    });
+    assert.equal(toNewsTag(DICT, [], item, 0.03, windows)?.preMoveReaction?.tercile, "mid"); // 경계 이하 = mid
+    assert.equal(toNewsTag(DICT, [], item, 0.031, windows)?.preMoveReaction, null); // high 는 below_min — 숫자 0
+    assert.equal(toNewsTag(DICT, [], item, null, windows)?.preMoveReaction, null);
+    assert.equal(toNewsTag(DICT, [], item, -0.05)?.preMoveReaction, null); // 뷰 없음
+    // 공시 제목 행이 모자라면 같은 공시의 DART 행 — DART 경계로 삼분위
+    const dart = windows.map((x) => ({ ...x, origin: "dart", preLowMax: -0.1, preHighMin: 0.1, upRate: x.upRate === null ? null : x.upRate + 0.01 }));
+    const few = windows.map((x) => ({ ...x, status: "below_min" as const, upRate: null }));
+    assert.deepEqual(toNewsTag(DICT, [], item, -0.05, [...few, ...dart])?.preMoveReaction?.tercile, "mid");
+    assert.equal(toNewsTag(DICT, [], { ...item, origin: "news" }, -0.05, [...few, ...dart])?.preMoveReaction, null); // 뉴스는 대신 안 씀
+  });
 });

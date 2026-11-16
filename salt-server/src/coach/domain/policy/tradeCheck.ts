@@ -13,6 +13,11 @@
 
 /** 사전등록 키 — 조건 정의 · 문턱이 바뀌면 새 키(`base-rate@2`). 원장도 키로 갈린다 */
 export const BASE_RATE_KEY = "base-rate@1";
+/**
+ * 장중 기저율(F017 v4 순서 3 · `FC-REQ-028` FR-7) — 5분봉 · 지평 1시간 · 4시간. 시나리오 1h · 4h 칸만 읽는다.
+ * 점검 한 줄(하루 지평)은 `BASE_RATE_KEY` 그대로 — 두 키의 지평 숫자(1)가 단위가 달라 섞이면 1시간을 하루로 읽는다
+ */
+export const INTRADAY_BASE_RATE_KEY = "base-rate@3";
 
 export type TradeCheckMarket = "kr" | "crypto";
 export type TradeCheckSide = "buy" | "sell";
@@ -24,6 +29,8 @@ export interface BaseRateRow {
   market: TradeCheckMarket;
   conditionId: string;
   horizon: number;
+  /** 지평 단위 — `base-rate@1` day(국내 거래일 · 코인 하루) · `base-rate@3` hour */
+  horizonUnit: "day" | "hour";
   asOf: Date;
   kind: "usual" | "test" | "describe";
   status: "ok" | "below_min";
@@ -86,6 +93,33 @@ export const CONDITION_PHRASE: Readonly<Record<string, string>> = {
   C3L: "큰 코인이 하루 새 평소보다 크게 내린 때",
   C7: "새로 상장한 다음 날",
   C8: "RSI 70 이상에 하루 새 5% 넘게 오른 때",
+  // 장중(`base-rate@3` — salt-forecast/preregistration/2026-11-16-base-rate-intraday.toml)
+  KM1: "30분 새 3% 넘게 오른 때",
+  KM2: "30분 새 3% 넘게 내린 때",
+  KM3: "30분 거래대금이 같은 시각 평소의 3배를 넘은 때",
+  KM4: "시가가 어제 종가보다 3% 넘게 높게 시작한 날 장 초반",
+  K5: "정적 VI 가 걸린 뒤",
+  K7: "장 시작 30분에 2% 넘게 오른 날",
+  CM1S: "작은 코인이 30분 새 3% 넘게 오른 때",
+  CM1L: "큰 코인이 30분 새 3% 넘게 오른 때",
+  CM2S: "작은 코인이 30분 새 3% 넘게 내린 때",
+  CM2L: "큰 코인이 30분 새 3% 넘게 내린 때",
+  CM3: "30분 거래대금이 같은 시각 평소의 3배를 넘은 때",
+  C4: "1시간 새 3% 넘게 오르며 거래가 평소 3배로 몰린 때",
+  C6U: "미국 지표 발표 뒤 첫 1시간에 오른 때",
+  C6D: "미국 지표 발표 뒤 첫 1시간에 내린 때",
+};
+
+/** 장중 조건 겹침 순서 — 드문 · 사용자가 겪는 장면 먼저(VI · 펌프 · 발표 → 30분 급변 → 거래대금 → 장 초반) */
+export const INTRADAY_CONDITION_PRIORITY: Readonly<Record<TradeCheckMarket, readonly string[]>> = {
+  kr: ["K5", "KM1", "KM2", "KM4", "K7", "KM3"],
+  crypto: ["C6U", "C6D", "C4", "CM1L", "CM2L", "CM1S", "CM2S", "CM3"],
+};
+
+/** 장중 문턱은 5분마다 바뀐다 — 기준 칸이 15분보다 묵으면 판정하지 않는다(사전등록 trigger) */
+export const INTRADAY_STALE_REFERENCE_MS: Readonly<Record<TradeCheckMarket, number>> = {
+  kr: 15 * 60_000,
+  crypto: 15 * 60_000,
 };
 
 /** 요약 문장의 기간 — 지평 1(국내 거래일 · 코인 하루) */
@@ -125,21 +159,26 @@ export interface ConditionMatch {
   reason: TradeCheckNoConditionReason | null;
 }
 
-/** 지금 성립한 조건(우선순위 순). 모르는 값(시가 · 거래대금 없음)은 성립으로 치지 않는다 */
+/**
+ * 지금 성립한 조건(우선순위 순). 모르는 값(시가 · 거래대금 없음)은 성립으로 치지 않는다.
+ * `intraday` — 장중 문턱(`base-rate@3`): 순서 · 신선도 15분이 다르다
+ */
 export const matchConditions = (
   market: TradeCheckMarket,
   triggers: readonly BaseRateTriggerRow[],
   quote: LiveQuote,
-  now: Date
+  now: Date,
+  intraday = false
 ): ConditionMatch => {
   if (triggers.length === 0) return { matched: [], refAt: null, reason: "not_covered" };
   const refAt = triggers.reduce((a, t) => (t.refAt > a ? t.refAt : a), triggers[0].refAt);
-  if (now.getTime() - refAt.getTime() > STALE_REFERENCE_MS[market]) {
+  const staleMs = (intraday ? INTRADAY_STALE_REFERENCE_MS : STALE_REFERENCE_MS)[market];
+  if (now.getTime() - refAt.getTime() > staleMs) {
     return { matched: [], refAt, reason: "stale_reference" };
   }
   const set = triggerSet(refAt, quote.updatedAt);
   const hit = new Set(triggers.filter((t) => t.appliesTo === set && meets(t, quote)).map((t) => t.conditionId));
-  const matched = CONDITION_PRIORITY[market].filter((id) => hit.has(id));
+  const matched = (intraday ? INTRADAY_CONDITION_PRIORITY : CONDITION_PRIORITY)[market].filter((id) => hit.has(id));
   return { matched, refAt, reason: matched.length === 0 ? "none_matched" : null };
 };
 

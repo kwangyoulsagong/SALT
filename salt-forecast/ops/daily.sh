@@ -29,7 +29,8 @@ rc=0
 # 조건부 기저율(base_rate, FC-REQ-028 FR-2)은 국내 일봉 옮긴 뒤 — 문턱의 기준 종가가 그 일봉이다. 23초
 # 판단 라벨 등급(judgment_tier, FC-REQ-028 FR-6)은 점검 채점 뒤 — 서버가 채점을 끝낸 판단 원장(export 뷰)을 읽는다. 1초
 # 소식 측정 태그(news_reaction, FC-REQ-028 FR-3)는 국내 일봉 옮긴 뒤 — 반응 · 선반영의 마지막 봉이 그 일봉이다. 23초
-steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction events signals volatility market_regime move_beta target_weight_live)
+# 사건 반응 창 · 선반영 삼분위(event_window, FC-REQ-028 FR-8)는 그 뒤 — 같은 사전 · 같은 초과. 약 5초
+steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction event_window events signals volatility market_regime move_beta target_weight_live)
 # 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
 # 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
 "$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
@@ -45,6 +46,11 @@ for step in "${steps[@]}"; do
   echo "[$(date -u +%FT%TZ)] ${step} 시작"
   "$UV" run --frozen python -m "salt_forecast.jobs.${step}" || { echo "[$(date -u +%FT%TZ)] ${step} 실패"; rc=1; }
 done
+# 장중 기저율 통계(base-rate@3, FC-REQ-028 FR-7) — 인자가 있어 루프 밖. 먼저 국내 5분봉을 서버 보관 전부(400일)로 다시 옮긴다:
+# 서버 밤 백필(kr-minute-backfill 22:00)이 지난 날을 채우면 5분 실행(최근 3일)은 그 날을 못 본다. 코인 5분봉 2년 · 구간 60일씩
+echo "[$(date -u +%FT%TZ)] base_rate_intraday 시작"
+"$UV" run --frozen python -m salt_forecast.jobs.ingest_kr_minutes --days 400 >/dev/null || { echo "[$(date -u +%FT%TZ)] 국내 5분봉 전부 옮기기 실패"; rc=1; }
+"$UV" run --frozen python -m salt_forecast.jobs.base_rate_intraday stats || { echo "[$(date -u +%FT%TZ)] base_rate_intraday 실패"; rc=1; }
 # 단타 방향 확률 전진 시험(short-direction@3)은 매일 — 마지막 적합 · 판정 날짜면 판정. 전 이력 walk-forward 약 2분 — 인자가 있어 루프 밖
 echo "[$(date -u +%FT%TZ)] short_direction test 시작"
 "$UV" run --frozen python -m salt_forecast.jobs.short_direction test || { echo "[$(date -u +%FT%TZ)] short_direction test 실패"; rc=1; }

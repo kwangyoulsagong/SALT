@@ -78,6 +78,62 @@ export interface NewsReactionView {
   baseUpRate: number | null;
 }
 
+/** 사건 반응 창 키 — @1 은 DART 게시 시각 결함으로 첫 실행(전부 below_min) 뒤 @2 로 대체(2026-11-16). 서버는 이 키만 읽는다 */
+export const EVENT_WINDOW_KEY = "event-window@2";
+
+/**
+ * 사건 반응 창 · 선반영 삼분위 서술 한 줄 — `forecast.v_event_window_stat`(사전등록 `event-window@2`, F017 v4 순서 3b).
+ * 삼분위 경계는 시장 × 출처마다 같은 값이 행마다 실린다(로그 초과 등락)
+ */
+export interface EventWindowStat {
+  market: NewsTagMarket;
+  origin: string;
+  kind: string;
+  tercile: "low" | "mid" | "high" | "all";
+  horizon: number;
+  status: "ok" | "below_min";
+  sample: number;
+  upRate: number | null;
+  baseUpRate: number | null;
+  differs: "higher" | "lower" | null;
+  preLowMax: number;
+  preHighMin: number;
+}
+
+/** 이 소식만큼 미리 움직였던 같은 종류 소식 뒤 5봉 — below_min 이면 null(근거 줄을 내지 않는다) */
+export interface PreMoveReactionView {
+  tercile: "low" | "mid" | "high";
+  days: 5;
+  sample: number;
+  upRate: number;
+  /** 그 종류 전체(삼분위 합) — 비교 기준 */
+  kindUpRate: number | null;
+  differs: "higher" | "lower" | null;
+}
+
+/** 로그 선반영 → 삼분위(사전등록 tercile — 경계 이하 low · 둘째 경계 이하 mid · 그 위 high) */
+export const preMoveTercile = (pre5Log: number, lowMax: number, highMin: number): "low" | "mid" | "high" =>
+  pre5Log <= lowMax ? "low" : pre5Log <= highMin ? "mid" : "high";
+
+export const toPreMoveReaction = (
+  windows: readonly EventWindowStat[],
+  item: { market: NewsTagMarket; origin: string; kind: string },
+  pre5Log: number | null
+): PreMoveReactionView | null => {
+  if (pre5Log === null) return null;
+  const pick = (origin: string): PreMoveReactionView | null => {
+    const rows = windows.filter((w) => w.market === item.market && w.origin === origin && w.kind === item.kind && w.horizon === 5);
+    const any = rows[0];
+    if (!any) return null;
+    const tercile = preMoveTercile(pre5Log, any.preLowMax, any.preHighMin);
+    const row = rows.find((w) => w.tercile === tercile);
+    if (!row || row.status !== "ok" || row.upRate === null) return null;
+    return { tercile, days: 5, sample: row.sample, upRate: row.upRate, kindUpRate: row.baseUpRate, differs: row.differs };
+  };
+  // 거래소 공시 제목(KIS)과 DART 공시는 같은 공시다 — 제목 이력이 모자라면 DART 행(그 출처의 삼분위 경계)으로
+  return pick(item.origin) ?? (item.origin === "disclosure" ? pick("dart") : null);
+};
+
 export interface NewsTag {
   eventKind: string;
   eventKindText: string;
@@ -86,6 +142,8 @@ export interface NewsTag {
   reaction5d: NewsReactionView | null;
   /** 소식 전 5봉 초과 수익 — **단순 비율**(e^x − 1). 게시 전 마지막 봉까지. 봉이 없으면 null */
   preMove5d: number | null;
+  /** 이만큼 미리 움직인 같은 종류 소식 뒤 5봉(`event-window@2`). 표본이 모자라면 null */
+  preMoveReaction: PreMoveReactionView | null;
   asOf: string | null;
   preregKey: string;
 }
@@ -104,7 +162,8 @@ export const toNewsTag = (
   dict: NewsKindDict,
   stats: readonly NewsReactionStat[],
   item: { market: NewsTagMarket; origin: NewsOrigin; codes: number; title: string },
-  preMove5d: number | null
+  preMove5d: number | null,
+  windows: readonly EventWindowStat[] = []
 ): NewsTag | null => {
   const kind = classifyNewsKind(dict, item.market, item.origin, item.codes, item.title);
   if (kind === NEWS_KIND_OTHER) return null;
@@ -119,6 +178,7 @@ export const toNewsTag = (
     reaction: toView(one) ?? { days: 1, sample: 0, upRate: null, mean: null, baseUpRate: null },
     reaction5d: toView(five),
     preMove5d: simple(preMove5d),
+    preMoveReaction: toPreMoveReaction(windows, { market: item.market, origin: item.origin, kind }, preMove5d),
     asOf: one?.asOf.toISOString() ?? null,
     preregKey: dict.preregKey,
   };
@@ -130,6 +190,8 @@ export interface NewsTagReader {
   dict(): Promise<NewsKindDict | null>;
   /** 최신 서술(가장 최근 등록 키) */
   reactions(): Promise<NewsReactionStat[]>;
+  /** 사건 반응 창 · 선반영 삼분위(`v_event_window_stat` — 시장마다 최신 실행). 뷰가 없으면 빈 배열 */
+  eventWindows(): Promise<EventWindowStat[]>;
   /** 종목 × 게시 시각 → 그 시각 전 마지막 봉의 선반영. 키 = `${symbol}|${publishedAt ISO}` */
   preMoves(market: NewsTagMarket, items: ReadonlyArray<{ symbol: string; publishedAt: Date }>): Promise<Map<string, number>>;
   /** 코인 — 가격 시계열이 있는 심볼(관련 종목 수를 예측과 같게 센다: 태깅 잡음 BIT · CEO 는 빠진다) */

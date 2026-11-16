@@ -7,7 +7,8 @@
  * ## 불변식 — 칸이 비는 응답 0 · 어느 단을 썼는지 늘 실린다
  *
  * 내려가는 순서: 지금 성립한 조건(유효 n ≥ 100 = 예측 배치의 `ok`) → 그 시장 평소 → 한 단계 긴 지평 → 결함("아직 n번뿐").
- * 장중 지평(1h · 4h)의 기저율은 순서 3(`FC-REQ-028` FR-7)에서 생긴다 — 그 전엔 하루 값으로 내려가고 `fallbackFrom` 으로 말한다.
+ * 장중 지평(1h · 4h)은 `base-rate@3`(5분봉 · 순서 3, 2026-11-16) — 그 키의 평소가 아직 `below_min` 이면(국내 5분봉 백필 전 ·
+ * 첫 통계 실행 전) 하루 값으로 내려가고 `fallbackFrom` 으로 말한다.
  *
  * ## 숫자는 가격이 실제로 움직인 분포(비용 전)
  *
@@ -26,8 +27,13 @@ export type PanelHorizon = (typeof PANEL_HORIZONS)[number];
 export type ScenarioTier = "now" | "usual" | "longer" | "defect";
 export type ScenarioSource = "model" | "base_rate";
 
-/** 지평 → `base-rate@1` 의 지평(거래일 · 일). 장중은 아직 없다(순서 3) */
-export const BASE_RATE_HORIZON: Readonly<Record<PanelHorizon, number | null>> = { "1h": null, "4h": null, "1d": 1, "5d": 5 };
+/** 지평 → 기저율 행의 (단위, 지평). 1h · 4h = `base-rate@3` 시간 · 1d · 5d = `base-rate@1` 하루 */
+export const BASE_RATE_HORIZON: Readonly<Record<PanelHorizon, { unit: "hour" | "day"; n: number }>> = {
+  "1h": { unit: "hour", n: 1 },
+  "4h": { unit: "hour", n: 4 },
+  "1d": { unit: "day", n: 1 },
+  "5d": { unit: "day", n: 5 },
+};
 
 export const PANEL_HORIZON_LABEL: Readonly<Record<TradeCheckMarket, Readonly<Record<PanelHorizon, string>>>> = {
   crypto: { "1h": "다음 1시간", "4h": "다음 4시간", "1d": "다음 24시간", "5d": "다음 5일" },
@@ -144,9 +150,9 @@ const EMPTY: ScenarioBaseRate = {
 };
 
 export interface ScenarioBaseRateInput {
-  /** 그 시장의 기저율 행 전부(조건 × 지평 + 평소 `ALL`) */
+  /** 그 시장의 기저율 행 전부(조건 × 지평 + 평소 `ALL`) — 하루(`base-rate@1`) · 시간(`base-rate@3`) 둘 다. 단위로 가른다 */
   stats: readonly BaseRateRow[];
-  /** 지금 성립한 조건 — 우선순위 순(`matchConditions`) */
+  /** 지금 성립한 조건 — 우선순위 순(`matchConditions`). 하루 · 장중 조건 id 는 겹치지 않는다(사전등록 둘) */
   matched: readonly string[];
   price: number | null;
 }
@@ -159,9 +165,8 @@ interface Picked {
 
 /** 제 지평에서: 지금 조건 → 평소. 없으면 null */
 const pickAt = (horizon: PanelHorizon, { stats, matched, price }: ScenarioBaseRateInput): Picked | null => {
-  const days = BASE_RATE_HORIZON[horizon];
-  if (days === null) return null;
-  const at = (id: string) => stats.find((r) => r.conditionId === id && r.horizon === days);
+  const { unit, n } = BASE_RATE_HORIZON[horizon];
+  const at = (id: string) => stats.find((r) => r.conditionId === id && r.horizon === n && r.horizonUnit === unit);
   const usual = at("ALL");
   const condition = matched.map(at).find(usable);
   if (condition) return { tier: "now", fallbackFrom: null, baseRate: toBaseRate(condition, usual, price, true) };
@@ -181,9 +186,12 @@ export const scenarioBaseRate = (horizon: PanelHorizon, input: ScenarioBaseRateI
     if (picked) return { tier: "longer", fallbackFrom: longer, baseRate: picked.baseRate };
   }
   // 말할 수 있는 행이 어디에도 없다 — 표본이 가장 큰 행의 n 만
-  const days = BASE_RATE_HORIZON[horizon] ?? 1;
+  const { unit, n } = BASE_RATE_HORIZON[horizon];
   const near = input.stats
-    .filter((r) => r.horizon === days && (r.conditionId === "ALL" || input.matched.includes(r.conditionId)))
+    .filter(
+      (r) =>
+        r.horizon === n && r.horizonUnit === unit && (r.conditionId === "ALL" || input.matched.includes(r.conditionId))
+    )
     .sort((a, b) => b.sampleEff - a.sampleEff)[0];
   return {
     tier: "defect",

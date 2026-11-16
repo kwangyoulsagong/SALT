@@ -42,7 +42,6 @@ WINDOW = 20
 K3_SINCE = date(2025, 3, 4)  # 대체거래소 출범 — 그 전 시가 갭은 다른 뜻(사전등록 K3 since)
 LISTING_WARMUP_DAYS = 30  # 원천 첫 30일의 "첫 봉"은 상장이 아니라 원천 시작이다(업비트 2017-09 개장일 수십 종목)
 LARGE_TOP = 10
-SMALL_FRACTION = 2.0 / 3.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,7 +118,7 @@ def _events(mask: NDArray[np.bool_], label: Mat, cost: Mat, days: NDArray[np.int
     return Events(days[rows], gross - cost[ok], gross)
 
 
-def _summarize(
+def summarize(
     market: str,
     conditions: tuple[Condition, ...],
     masks: Mapping[str, NDArray[np.bool_]],
@@ -252,7 +251,7 @@ def run_kr(ohlcv: Mapping[str, OhlcvSeries], start: datetime, as_of: datetime) -
     costs = {h: kr_costs(p, h) for h in horizons}
     days = _day_keys(p)
     run = MarketRun("kr", (_date_of(int(p.dates[0])), _date_of(int(p.dates[-1]))))
-    run.stats = _summarize("kr", KR_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
+    run.stats = summarize("kr", KR_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
     run.triggers = kr_triggers(p, universe) + closed_triggers("kr", p, masks, KR_CONDITIONS)
     run.universe_mean = float(universe.sum(axis=1)[universe.any(axis=1)].mean()) if universe.any() else 0.0
     run.rows = int(p.dates.size)
@@ -280,7 +279,10 @@ def size_groups(avg_value: Mat, universe: NDArray[np.bool_]) -> tuple[NDArray[np
             continue
         order = cols[np.argsort(-avg_value[t, cols], kind="stable")]
         large[t, order[:LARGE_TOP]] = True
-        cut = int(np.ceil(order.size * (1 - SMALL_FRACTION)))
+        # 정수로 — ceil(n × (1 − 2/3)) 은 n 이 3의 배수일 때 부동소수(10.000000000000002)로
+        # 한 칸 밀려 소형이 하나 빠졌다
+        # (2026-11-16 정정 — 사전등록 '하위 2/3' 원문에 맞춤, 이전 실행은 n = 3k 인 날 소형 k−1 … 2k−1 이었다)
+        cut = order.size - (2 * order.size) // 3
         small[t, order[cut:]] = True
     return large, small
 
@@ -366,7 +368,7 @@ def run_crypto(ohlcv: Mapping[str, OhlcvSeries], as_of: datetime) -> MarketRun:
     costs = {h: np.full(p.close.shape, CRYPTO_ROUND_TRIP) for h in horizons}
     days = _day_keys(p)
     run = MarketRun("crypto", (_date_of(int(p.dates[0])), _date_of(int(p.dates[-1]))))
-    run.stats = _summarize("crypto", CRYPTO_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
+    run.stats = summarize("crypto", CRYPTO_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
     run.triggers = crypto_triggers(p) + closed_triggers("crypto", p, masks, CRYPTO_CONDITIONS)
     run.universe_mean = float(universe.sum(axis=1)[universe.any(axis=1)].mean()) if universe.any() else 0.0
     run.rows = int(p.dates.size)

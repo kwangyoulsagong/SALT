@@ -18,7 +18,8 @@ import { crossedKst, onWake, type WakeEvent } from "../shared/infrastructure/wak
  * | `kr-calendar-sync` | 평일 09:10 | KIS 휴장일 조회(권고 1일 1회) — 거부되면 일봉 역산 + 오늘 개장 관측 |
  * | `kr-daily-candles` | 평일 15:45 | 정규장 15:30 마감 + 정정 여유 |
  * | `kr-full-daily-candles` | 평일 18:00 · 주말 08:00 → 다음 07:20 KST 멈춤 | 상장 보통주 전 종목 일봉 5년(FR-40) — 모의 키 약 2건/s 라 밤에만. 회차가 겹치면 건너뛴다 |
- * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 30일 빈 날 백필(회차 1,200 호출 상한) |
+ * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 ~~30일~~ 1년 빈 날 백필(회차 1,200 호출 상한) |
+ * | `kr-minute-backfill` | 매일 22:00 | 5분봉 1년 백필 큰 회차(2만 호출) — 장중 기저율 이력(F017 v4 순서 3, 2026-11-16). 다 차면 할 일 0 |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분). 뒤이어 국내 주식 보유 평가 |
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 REST 10분 — 아래) |
@@ -56,6 +57,9 @@ export const startKrStockWorkers = () => {
     { name: "kr-full-daily-candles-weekend", expression: "0 8 * * 0,6", run: () => kr.syncFullDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
     { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute(), catchUp: true },
+    // 5분봉 1년 백필(2026-11-16 F017 v4 순서 3) — 밤 22:00 매일, 회차 2만 호출. 다 채우면 할 일이 0 이라 바로 끝난다.
+    // catchUp 없음 — 낮에 따라 돌면 장중 한도를 먹는다(전 종목 일봉과 같은 이유)
+    { name: "kr-minute-backfill", expression: "0 22 * * *", run: () => kr.syncMinuteBars.backfillNight() },
     // 실시간 슬롯 밖 종목 장중 5분봉(SRV-REQ-057 FR-5) — 장 밖이면 바로 끝난다
     { name: "kr-slotless-minute-bars", expression: "*/10 9-15 * * 1-5", run: () => kr.syncSlotlessMinuteBars.execute() },
     // 유니버스에 새로 든 종목 즉시 백필(FR-4) — 관심 추가 · 보유 · 시총 순위 변화. 새 종목이 없으면 조회 둘

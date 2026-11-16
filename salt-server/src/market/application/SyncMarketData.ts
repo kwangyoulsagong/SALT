@@ -83,9 +83,14 @@ const COLLECT_TARGETS: Array<{ timeframe: PriceTimeframe; count: number }> = [
 /**
  * 보관 정책. 5분봉 30일 · 일봉 2년 (원문). **국내 주식 일봉은 지우지 않는다** — 전 종목 5년 백필(SRV-REQ-040 FR-40)이
  * 전망 학습 · 채점 창이고(`FC-REQ-020`), 2년에 자르면 밤마다 받은 3년치를 다음 정리가 지운다. 약 2,450종목 × 250봉/년
+ *
+ * **국내 주식 5분봉은 400일**(2026-11-16 F017 v4 순서 3 · `FC-REQ-028` FR-7) — 장중 기저율이 서로 다른 날 60 을 넘으려면
+ * 5분봉 이력이 필요하고, KIS 일별분봉은 1년까지 준다(`SyncKrMinuteBars` 1년 백필). 유니버스 약 50종목 × 78봉 × 250일 ≈ 100만 행.
+ * 코인 5분봉 이력은 예측(`forecast.price_bar` upbit 5m)이 따로 쌓는다 — 서버 표는 30일 그대로
  */
-const RETENTION = [
-  { timeframe: "5m", interval: "30 days" },
+export const RETENTION = [
+  { timeframe: "5m", interval: "30 days", exceptAssetType: "kr_stock" as const },
+  { timeframe: "5m", interval: "400 days" },
   { timeframe: "1d", interval: "2 years", exceptAssetType: "kr_stock" as const },
 ];
 

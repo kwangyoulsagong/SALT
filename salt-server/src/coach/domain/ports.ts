@@ -914,10 +914,13 @@ export interface StoredMonthlyReview {
  * 뷰가 없는 DB 면 던진다 — 유스케이스가 `no_condition`(not_covered)으로 받는다
  */
 export interface BaseRateReader {
-  /** 시장의 조건 · 지평 행 전부(평소 ALL 포함) — 시장마다 20행 안쪽 */
-  stats(market: TradeCheckMarket): Promise<BaseRateRow[]>;
+  /**
+   * 시장의 조건 · 지평 행 전부(평소 ALL 포함) — 시장마다 20행 안쪽.
+   * `key` 기본 `base-rate@1`(하루). 장중은 `INTRADAY_BASE_RATE_KEY`(시간 — 행마다 `horizonUnit`)
+   */
+  stats(market: TradeCheckMarket, key?: string): Promise<BaseRateRow[]>;
   /** 한 종목의 최신 실행 문턱. 코치 심볼(`BTC` · `005930`)로 묻는다 */
-  triggers(symbol: string, market: TradeCheckMarket): Promise<BaseRateTriggerRow[]>;
+  triggers(symbol: string, market: TradeCheckMarket, key?: string): Promise<BaseRateTriggerRow[]>;
 }
 
 /**

@@ -484,6 +484,7 @@ base_rate_stat = Table(
     Column("window_start", Date, nullable=False),
     Column("window_end", Date, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
+    Column("horizon_unit", Text, nullable=False),  # day(base-rate@1) · hour(base-rate@2)
 )
 
 base_rate_trigger = Table(
@@ -664,4 +665,57 @@ news_pre_move = Table(
     Column("bar_at", DateTime(timezone=True), primary_key=True),
     Column("pre_move_5d", Float, nullable=False),
     Column("written_at", DateTime(timezone=True), nullable=False),
+)
+
+# 사건 반응 창 · 선반영 삼분위(F017 v4 순서 3b · FC-REQ-028 FR-8 · 마이그레이션 20261116150000_forecast_event_window)
+event_window = Table(
+    "event_window",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("origin", Text, primary_key=True),
+    Column("kind", Text, primary_key=True),
+    Column("symbol", Text, primary_key=True),
+    Column("ref_at", DateTime(timezone=True), primary_key=True),
+    Column("published_at", DateTime(timezone=True), nullable=False),
+    Column("pre20", Float),
+    Column("pre5", Float),
+    Column("pre1", Float),
+    Column("post30m", Float),
+    Column("post1", Float),
+    Column("post5", Float),
+    Column("tercile", Text),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+event_window_stat = Table(
+    "event_window_stat",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("origin", Text, primary_key=True),
+    Column("kind", Text, primary_key=True),
+    Column("tercile", Text, primary_key=True),
+    Column("horizon", Integer, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("status", Text, nullable=False),
+    Column("sample", Integer, nullable=False),
+    Column("sample_eff", Float, nullable=False),
+    Column("sample_days", Integer, nullable=False),
+    Column("up_rate", Float),
+    Column("up_low", Float),
+    Column("up_high", Float),
+    Column("mean", Float),
+    Column("q10", Float),
+    Column("q50", Float),
+    Column("q90", Float),
+    Column("pre5_median", Float),
+    Column("base_up_rate", Float),
+    Column("p_holm", Float),
+    Column("differs", Text),
+    Column("pre_low_max", Float, nullable=False),
+    Column("pre_high_min", Float, nullable=False),
+    Column("window_from", DateTime(timezone=True)),
+    Column("window_to", DateTime(timezone=True)),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
 )

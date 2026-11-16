@@ -15,6 +15,7 @@ const row = (p: Partial<BaseRateRow>): BaseRateRow => ({
   market: "kr",
   conditionId: "ALL",
   horizon: 1,
+  horizonUnit: "day",
   asOf: AS_OF,
   kind: "usual",
   status: "ok",

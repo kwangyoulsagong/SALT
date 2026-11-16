@@ -7,7 +7,7 @@ UTC 이고 거래일 00:00 KST 다(2026-10-07 = 2026-10-06 15:00). 날짜 변환
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import Engine, text
@@ -111,3 +111,46 @@ def kr_tracked_symbols(engine: Engine) -> list[str]:
             )
         ).all()
     return [str(r[0]) for r in rows]
+
+
+@dataclass(frozen=True, slots=True)
+class KrMinuteRow:
+    """서버 5분봉 한 행. start = 봉 시작(UTC, tz-aware)."""
+
+    code: str
+    start: datetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: Decimal | None
+
+
+def kr_minute_rows(engine: Engine, since: datetime) -> list[KrMinuteRow]:
+    """`since` 이후 시작한 국내 5분봉(장중 기저율 base-rate@3, FC-REQ-028 FR-7).
+
+    `timestamp` 는 봉 시작 UTC(시간대 없음)."""
+    sql = (
+        "SELECT ph.symbol, ph.timestamp, ph.open, ph.high, ph.low, ph.close, ph.volume FROM public.price_history ph"
+        " WHERE ph.asset_type = 'kr_stock' AND ph.timeframe = '5m' AND ph.timestamp >= :since"
+        " ORDER BY ph.symbol, ph.timestamp"
+    )
+    naive = since.astimezone(UTC).replace(tzinfo=None)
+    with engine.connect() as conn:
+        rows = conn.execute(text(sql), {"since": naive}).all()
+    return [KrMinuteRow(str(r[0]), r[1].replace(tzinfo=UTC), r[2], r[3], r[4], r[5], r[6]) for r in rows]
+
+
+def kr_static_vi(engine: Engine, start: datetime, as_of: datetime) -> list[tuple[str, datetime]]:
+    """정적 VI 발동(kind static · both) — (종목, 발동 시각 UTC). export 뷰로만 읽는다(base-rate@3 vi_source).
+
+    `triggered_at` 은 UTC 벽시계(시간대 없음). available_at = triggered_at(발동이 곧 공개)."""
+    sql = (
+        "SELECT code, triggered_at FROM public.v_kr_vi_export"
+        " WHERE kind IN ('static', 'both') AND triggered_at >= :start AND triggered_at <= :as_of"
+        " ORDER BY code, triggered_at"
+    )
+    params = {"start": start.astimezone(UTC).replace(tzinfo=None), "as_of": as_of.astimezone(UTC).replace(tzinfo=None)}
+    with engine.connect() as conn:
+        rows = conn.execute(text(sql), params).all()
+    return [(str(r[0]), r[1].replace(tzinfo=UTC)) for r in rows]

@@ -185,8 +185,11 @@ export interface KrProgramFlowFact {
  * (유니버스 50종목 × 하루 약 40행 × 35일 ≈ 7만 행)
  */
 export const KR_FLOW_INTRADAY_RETENTION_DAYS = 35;
-/** VI 사건 보관 일수 — 단계 A 가 남긴 정리(시장 전체 하루 수백 행) */
-export const KR_VI_RETENTION_DAYS = 30;
+/**
+ * VI 사건 보관 일수 — ~~30일(단계 A)~~ **400일(2026-11-16 F017 v4 순서 3)**. 장중 기저율 'VI 발동 뒤'(`FC-REQ-028` FR-7)가
+ * 서로 다른 날 60 을 넘으려면 이력이 쌓여야 한다 — KIS 는 지난 VI 를 주지 않아 백필이 없다. 시장 전체 하루 수백 행 × 400일 ≈ 10만 행
+ */
+export const KR_VI_RETENTION_DAYS = 400;
 /** 정리 한 번에 지우는 행 수 — 긴 트랜잭션 · 대량 죽은 튜플을 피한다(`performance-database.md` §8) */
 export const KR_PRUNE_BATCH = 5_000;
 

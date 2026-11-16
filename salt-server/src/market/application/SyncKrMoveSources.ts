@@ -340,7 +340,7 @@ export class SupplementFailures {
 
 const shiftDate = (iso: string, days: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
 
-/** 보관 기한 정리 — 제목 30일 · 장중 수급 7일 · VI 사건 30일(단계 A 가 남긴 것). 장 마감 뒤 하루 한 번 */
+/** 보관 기한 정리 — 제목 30일 · 장중 수급(`KR_FLOW_INTRADAY_RETENTION_DAYS`) · VI 사건(`KR_VI_RETENTION_DAYS` 400일). 장 마감 뒤 하루 한 번 */
 export class PruneKrMoveSources {
   constructor(
     private readonly store: KrMoveSourceStore,
