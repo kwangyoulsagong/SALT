@@ -9,7 +9,7 @@ from datetime import datetime
 from sqlalchemy import Engine, and_, exists, select
 from sqlalchemy.dialects.postgresql import insert
 
-from salt_forecast.store.tables import news_item, news_score
+from salt_forecast.store.tables import news_item, news_score, source_status
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,3 +109,9 @@ def insert_scores(engine: Engine, rows: Sequence[ScoreRow]) -> int:
     with engine.begin() as conn:
         stmt = insert(news_score).values(values).on_conflict_do_nothing()
         return len(conn.execute(stmt.returning(news_score.c.item_id)).all())
+
+
+def last_fetch_success(engine: Engine, source: str) -> datetime | None:
+    """수집 소스의 마지막 성공 시각(`source_status`) — 잠든 동안 빈 날을 고르는 기준. 없으면 None."""
+    with engine.connect() as conn:
+        return conn.execute(select(source_status.c.last_success_at).where(source_status.c.source == source)).scalar()

@@ -105,3 +105,13 @@
 ## 2026-11-16 — F017 v4 순서 4 짝
 
 - daily.sh 단계 둘 — zsh -n 통과 · 두 작업 실 실행 13초 · 7초. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`
+
+## 2026-11-16 — 잠든 동안 빈 날 메우기
+
+- 날짜 범위 검색 실측: `비트코인 after:2026-11-10 before:2026-11-11` → 100건 · 11-10 08:01 ~ 11-11 08:00 UTC(경계가 UTC 아님 → 앞뒤 하루 겹침)
+- `gap_feeds` 실호출(11-14, 검색어 3개): 28 · 75 · 100건
+- 경계 표 시험(첫 수집 · 70분 · 15시간 · 주말 · 40일 상한) · 같은 source 이름 · URL 날짜 — `tests/ingest/test_rss.py`
+- `news --dry-run --no-score`: 빈 기간 없음(마지막 성공 16:05) → 평소대로 365건 · 12초
+- 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부
+- 미검증: 실제 수면 뒤 첫 실행의 "빈 기간 메우기" 로그 · 늘어난 행 — 다음 출근 뒤 `salt-forecast-daily.log` 로 닫는다
+

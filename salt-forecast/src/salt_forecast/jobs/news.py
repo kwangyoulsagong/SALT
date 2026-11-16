@@ -22,7 +22,7 @@ from salt_forecast.ingest.upbit import Pacer as UpbitPacer
 from salt_forecast.ingest.upbit import UpbitDaily
 from salt_forecast.jobs._common import base_parser, logger, run_job
 from salt_forecast.store.db import engine
-from salt_forecast.store.news import NewsRow, insert_items, insert_scores, unscored
+from salt_forecast.store.news import NewsRow, insert_items, insert_scores, last_fetch_success, unscored
 from salt_forecast.store.runs import mark_source
 
 JOB = "news"
@@ -51,9 +51,17 @@ def main(argv: list[str] | None = None) -> int:
                 items: list[rss.NewsItem] = []
                 failed: list[str] = []
                 pacer = Pacer(1.0)
-                for source, url in rss.feeds():
+                # 잠든 동안 빈 날을 날짜 검색으로 다시 받는다 — 받은 시각(available)은 지금이라
+                # 피처 시점은 늦게 안 것으로 남는다(누수 없음)
+                gap = rss.gap_days(last_fetch_success(eng, SOURCE), fetched_at)
+                if gap:
+                    log.info("빈 기간 메우기", extra={"fields": {"job": JOB, "days": [d.isoformat() for d in gap]}})
+                plan = [(s, u, rss.GAP_PER_FEED) for s, u in rss.gap_feeds(gap)] + [
+                    (s, u, rss.PER_FEED) for s, u in rss.feeds()
+                ]
+                for source, url, limit in plan:
                     try:
-                        items.extend(rss.fetch_feed(client, source, url, pacer, fetched_at))
+                        items.extend(rss.fetch_feed(client, source, url, pacer, fetched_at, limit))
                     except SourceError as e:
                         failed.append(source)
                         log.warning("피드 실패", extra={"fields": {"job": JOB, "source": source, "error": str(e)}})
