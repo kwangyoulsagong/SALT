@@ -353,8 +353,9 @@ def test_replay_hours_boundary_table() -> None:
 def test_may_replay_only_same_code() -> None:
     from salt_forecast.domain.short_direction import may_replay
 
-    assert may_replay("short-direction@4+abc1234", "short-direction@4+abc1234")
-    assert not may_replay("short-direction@4+abc1234", "short-direction@4+def5678")  # 결과를 본 뒤 바뀐 코드
+    assert may_replay("short-direction@5+abc1234", "short-direction@5+abc1234", code_changed=True)  # 같은 커밋
+    assert may_replay("short-direction@5+abc1234", "short-direction@5+def5678", code_changed=False)  # 문서 커밋만
+    assert not may_replay("short-direction@5+abc1234", "short-direction@5+def5678", code_changed=True)  # 예측 코드 바뀜
 
 
 def test_realtime_vs_replay_rows() -> None:

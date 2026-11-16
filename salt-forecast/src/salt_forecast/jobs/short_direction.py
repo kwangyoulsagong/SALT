@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
+import sys
 import tomllib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -75,9 +77,40 @@ from salt_forecast.store.short_direction import (
 )
 
 JOB = "short_direction"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-short-direction-4.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-short-direction-5.toml"
 HOURS = {"1h": 1, "4h": 4, "1d": 24}
 KST = timedelta(hours=9)
+
+
+# 예측 숫자를 바꿀 수 있는 것 = 이 작업이 실제로 불러온 salt_forecast 모듈 파일 + 의존성 잠금.
+# 그 밖(문서 · 서버 · 다른 실험 모듈 · 사전등록 문장)만 바뀐 커밋은 같은 코드로 본다(@5)
+LOCK_FILES = ("salt-forecast/pyproject.toml", "salt-forecast/uv.lock")
+
+
+def prediction_code_paths() -> list[str]:
+    """지금 프로세스에 올라온 salt_forecast 모듈 파일(저장소 기준 경로)."""
+    src = (ROOT / "src").resolve()
+    paths = {
+        str(Path(f).resolve().relative_to(ROOT.parent.resolve()))
+        for name, mod in list(sys.modules.items())
+        if name.startswith("salt_forecast") and (f := getattr(mod, "__file__", None))
+        and Path(f).resolve().is_relative_to(src)
+    }  # fmt: skip
+    return sorted(paths) + list(LOCK_FILES)
+
+
+def code_changed_since(model_version: str) -> bool:
+    """model_version 의 커밋(`…+<sha>`) 뒤 예측 코드가 바뀌었나. 알 수 없으면(커밋 없음 · git 실패) 바뀐 것으로."""
+    sha = model_version.rsplit("+", 1)[-1]
+    try:
+        out = subprocess.run(
+            ["git", "diff", "--quiet", sha, "HEAD", "--", *prediction_code_paths()],
+            cwd=ROOT.parent,
+            capture_output=True,
+        )
+    except OSError:
+        return True
+    return out.returncode != 0
 
 
 def model_version(sha: str) -> str:
@@ -316,6 +349,7 @@ def main(argv: list[str] | None = None) -> int:
         closed = set(krx_closed_dates(eng))
         total = 0
         skipped_code = 0
+        changed: dict[str, bool] = {}  # 적합의 model_version → 그 뒤 예측 코드가 바뀌었나(커밋마다 git 한 번)
         targets: list[tuple[str, datetime, int]] = []  # (시장, 계산 시각, 기대 기준 시각)
         if args.market in ("crypto", "all"):
             missing: set[int] = set()
@@ -333,7 +367,10 @@ def main(argv: list[str] | None = None) -> int:
                     targets.append(("kr", at, int(session.timestamp())))
         for market, at, expect in targets:
             cells = [c for c in active_cells(eng, KEY, at) if c.market == market]
-            ok = [c for c in cells if may_replay(c.model_version, mv_now)]
+            for c in cells:
+                if c.model_version not in changed:
+                    changed[c.model_version] = code_changed_since(c.model_version)
+            ok = [c for c in cells if may_replay(c.model_version, mv_now, changed[c.model_version])]
             skipped_code += len(cells) - len(ok)
             if not ok:
                 continue

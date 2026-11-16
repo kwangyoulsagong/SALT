@@ -10,10 +10,10 @@
  */
 
 /**
- * 사전등록 @4(2026-11-16) = @3 전진 시험 + 동결 재생 — @1 · @2 · 진단으로 과거 기간을 세 번 봐서, 등록 뒤 낸 예측만으로 판정 날짜
+ * 사전등록 @5(2026-11-16 — @4 의 코드 가드를 예측 코드 변경으로) = @3 전진 시험 + 동결 재생 — @1 · @2 · 진단으로 과거 기간을 세 번 봐서, 등록 뒤 낸 예측만으로 판정 날짜
  * (2027-01-10 · 02-09 · 03-11)에 판정한다. 맥이 잠든 동안 놓친 시각은 그 시각 전 적합 · 봉 · 같은 코드로 다시 쓴다(예측 배치 몫). 그 전 칸은 status `forward` · 사유 `awaiting_live`(예측은 쌓되 확률 없음). 통과하면 예측 배치가 `live_ready` 를 켠다
  */
-export const SHORT_DIRECTION_KEY = "short-direction@4";
+export const SHORT_DIRECTION_KEY = "short-direction@5";
 export const SCENARIO_HORIZONS = ["1h", "4h", "1d"] as const;
 export type ScenarioHorizon = (typeof SCENARIO_HORIZONS)[number];
 export type ScenarioMarket = "crypto" | "kr";

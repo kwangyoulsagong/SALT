@@ -34,6 +34,7 @@ from salt_forecast.domain.vol_range import (
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
+from salt_forecast.jobs.short_direction import code_changed_since
 from salt_forecast.scoring.vol_range import (
     LiveCell,
     crypto_panel,
@@ -132,7 +133,8 @@ def main(argv: list[str] | None = None) -> int:
             have = {int(r.ref_at.timestamp()) for r in have_rows if r.market == m}
             for i in replay_bars(dates, have, int(REGISTERED_AT.timestamp()), int(now.timestamp())):
                 at = datetime.fromtimestamp(int(dates[i]), UTC)
-                if model_version_at(eng, KEY, at) != mv:
+                then = model_version_at(eng, KEY, at)
+                if then is None or (then != mv and code_changed_since(then)):
                     skipped += 1
                     continue
                 rows_t = [
