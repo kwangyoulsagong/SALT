@@ -59,3 +59,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-11 | F017 v2 단계 5 — `store/tables.py` 에 단타 확률 표 셋 선언(이 REQ 표 변경 0, 머리 주석 주인) |
 | 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `store/tables.py`(머리 주인) `base_rate_stat.horizon_unit` 선언 — 이 REQ 표 변경 0 |
 | 2026-11-16 | F017 v4 순서 4 짝(루트 `requirements/specs/in-progress/F017-v4-stage4-experiment-slice.md`) — `store/tables.py`(머리 주인)에 예측 실험 표 넷 선언(`DB-REQ-043` FR-14) — 사건 일정 · 반응 표 무변경 |
+| 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `store/tables.py`(머리 주인)에 온톨로지 표 여섯 · 채점 표 하나 선언(`FC-REQ-022` · `DB-REQ-043` FR-15) — 사건 일정 · 반응 표 무변경 |

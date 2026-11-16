@@ -64,3 +64,7 @@
 
 - `schema.prisma` 끝에 `news_*` 표 다섯 모델을 더함(`SRV-REQ-058` 2a) — 이 REQ 의 identity 모델 무변경
 - 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 5 짝
+
+- 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`

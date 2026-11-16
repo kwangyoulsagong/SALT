@@ -4,7 +4,8 @@
 설계 `salt-forecast/docs/2026-10-30-ontology-agent.html`. 시간 규칙은 `time-and-leakage.md` 가 이 문서보다 위다.
 
 > 2026-10-30 개정 — 9월 초안(서버 `intelligence` 컨텍스트 · `v_symbol_facts` · `v_symbol_actors`)을 ADR-007 로 바꿨다.
-> 코드는 아직 없다(`ontology/__init__.py` 0줄). 착수는 마스터 인덱스 §4-1 순위 3a.
+> 첫 코드 2026-11-16(F017 v4 순서 5): 표 셋 + v4 네 층(`cause_candidate` · `evidence` · `outcome`) · `ontology/build.py` · 매일 `ontology_build`.
+> 원천은 아직 종목 마스터 · 업비트 심볼 · 서버 원인 스냅샷(`v_cause_snapshot_export`)뿐 — 뉴스 `mentions` · 공시 사실은 `FC-REQ-022` FR-16.
 
 ## 1. 목적
 
@@ -37,7 +38,7 @@
 | `available_at` | 우리가 **알 수 있게 된** 시각 | **as-of 거르기의 유일한 기준** |
 | `ingested_at` | 우리 DB 에 들어온 시각 | 감사 · 재적재 추적용. as-of 기준으로 쓰지 않는다 |
 
-- `v_entity_asof(as_of)` 는 `available_at <= as_of` 행만, 그 시점 최신 버전만. `ingested_at` 으로 거르면 백필한 과거 사실이 과거 as-of 에서 사라져 백테스트가 틀린다(`time-and-leakage.md` §1 — `FC-REQ-022` FR-4 정정 2026-10-30)
+- as-of 는 **함수**(뷰는 인자를 못 받는다 — FR-4 정정 2026-11-16): `f_fact_asof(as_of)` · `f_relation_asof(as_of)` · `f_neighbors(id, depth ≤ 3, as_of)`. `available_at <= as_of` 행만, 그 시점 최신 버전만. `ingested_at` 으로 거르면 백필한 과거 사실이 과거 as-of 에서 사라져 백테스트가 틀린다(`time-and-leakage.md` §1 — `FC-REQ-022` FR-4 정정 2026-10-30)
 - 원천에 게시 시각이 없으면 `observed_at + 소스별 지연 상한`(`data-pipeline.md` §4)
 - 수용 기준: 무작위 as-of 1,000회에서 미래 `available_at` 행 0(`FC-REQ-022` 누수 테스트)
 
@@ -58,7 +59,7 @@
 
 - **이미 있는 데이터만**: 종목 마스터 · 업비트 마켓 → `asset` · `company` · `listed_as` · `belongs_to` / 뉴스 · 감성 점수 → `document` · `mentions` · 감성 fact /
   일정 · 신호 사건 → `event` · `affects` / 사건 반응 → 반응 fact. 새 원천은 `security-sources.md` 표에 행부터
-- 멱등 — 원천 키를 `external_ids` 에 두고 upsert. 재적재 2회 뒤 행 수 동일
+- 멱등 — 원천 키를 `external_ids` 에 두고 upsert. 재적재 2회 뒤 행 수 동일. **처음 안 값을 지킨다**(`bulk_upsert(keep_existing=True)` — 나중 기록이 available_at 을 늦추면 과거 as-of 에서 사라진다). 지금 값만 주는 원천(마스터 소속)은 바뀔 때만 옛 관계 `valid_to` + 새 행
 - LLM 으로 엔티티 · 관계를 추출해 바로 저장하지 않는다 — 규칙 · 원천 구조화 필드로. LLM 추출이 필요해지면 `confidence` + 검토 전 `unverified`
 - 파이프라인 층(`architecture.md`)은 그대로: `ingest` → `store` → `ontology` → `features`. `ontology` 는 `models` 를 모른다
 

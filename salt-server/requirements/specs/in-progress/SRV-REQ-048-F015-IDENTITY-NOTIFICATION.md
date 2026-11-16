@@ -65,3 +65,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-16 | 새 맥 이전(루트 `requirements/specs/done/OPS-002-new-mac-setup-slice.md`) — `ops/salt.sh` 머리가 이 REQ 를 가리켜 걸림: plist 의 node 를 루트 `.node-version` 으로. identity · notification 무변경 |
 | 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `ops/salt.sh`(머리 주인)에 `forecast-intraday`(5분 · `StartInterval 300`) 이름 · plist · 상태 줄 — identity · notification 무변경 |
 | 2026-11-16 | `SRV-REQ-057` FR-8 짝(`fix/news-crawler-sleep-gap`) — `composition.ts`(머리 주인)에 뉴스 빈 날 메우기 조립(같은 수집기 · 기사 저장소) — identity · notification 무변경 |
+| 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `coach/domain/ports.ts` · `composition.ts`(머리 주인)에 원인 스냅샷 포트 둘 · 조립(원인 칸과 같은 ACL 하나) — identity · notification 무변경 |

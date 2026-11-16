@@ -89,3 +89,7 @@
 ## 2026-11-16 — F017 v4 순서 4 짝
 
 - tables.py 에 표 넷 선언 — 스키마 계약 시험 통과. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`
+
+## 2026-11-16 — F017 v4 순서 5 짝
+
+- 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`
