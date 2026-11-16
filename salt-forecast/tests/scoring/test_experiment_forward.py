@@ -61,7 +61,7 @@ def test_score_open_fills_closed_labels_and_in_time() -> None:
     assert math.isnan(by[(_ts(int(d[0])), 1, "KRW-ZZ")].realized_rv or math.nan)
 
 
-def test_forward_rows_keep_only_registered_in_time_closed() -> None:
+def test_forward_rows_keep_registered_closed_with_replay_and_cutoff() -> None:
     p, prep = _vol_prep()
     d = p.dates
     before = int(REGISTERED_AT.timestamp()) - DAY
@@ -72,7 +72,11 @@ def test_forward_rows_keep_only_registered_in_time_closed() -> None:
                          _ts(before + 60), 1e-4, 0.01, True, _ts(before + DAY))  # fmt: skip
     got = forward_rows([*scored, fake], "crypto", 1)
     assert [r.ref_at for r in got] == [int(d[0])]
-    assert forward_rows(scored, "crypto", 5) == []  # 늦게 쓴 것
+    # @3 — 늦게 쓴 행(동결 재생)도 판정 표본, 실시간만(민감도)에서는 빠진다
+    assert [r.ref_at for r in forward_rows(scored, "crypto", 5)] == [int(d[0])]
+    assert forward_rows(scored, "crypto", 5, realtime_only=True) == []
+    # 판정 날짜 표본 끝 — 그 시각 이후 기준 봉은 빠진다
+    assert forward_rows([*scored, fake], "crypto", 1, cutoff=int(d[0])) == []
 
 
 def _md(n: int = 12) -> MarketData:

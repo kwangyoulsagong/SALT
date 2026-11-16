@@ -226,3 +226,27 @@ def test_forward_judge_pass_and_last_look_fail() -> None:
     assert forward_judge({"kr:1": few}, 2)["kr:1"] == ("fail", "below_min")
     empty = ForwardResult("kr", 5)
     assert forward_judge({"kr:5": empty}, 2)["kr:5"] == ("fail", "below_min")
+
+
+def test_replay_bars_boundary_table() -> None:
+    """동결 재생(@3) — 등록 뒤 · 14일 안 · 예측 없는 봉 전부(이미 쓴 봉 · 등록 전 · 상한 밖은 빼고)."""
+    import numpy as np
+
+    from salt_forecast.domain.vol_range import REPLAY_CAP_DAYS, replay_bars
+
+    day = 86_400
+    dates = np.arange(0, 40 * day, day, dtype=np.int64)  # 0 … 39일
+    now = int(dates[-1]) + 3_600
+    assert replay_bars(dates, set(), 30 * day, now) == list(range(30, 40))  # 등록 뒤만
+    assert replay_bars(dates, {int(dates[35]), int(dates[39])}, 30 * day, now) == [30, 31, 32, 33, 34, 36, 37, 38]
+    far = replay_bars(dates, set(), 0, now)
+    assert far[0] == 40 - REPLAY_CAP_DAYS and far[-1] == 39  # 상한 14일
+    assert replay_bars(dates, {int(d) for d in dates}, 0, now) == []  # 다 찼다 — 할 일 0
+
+
+def test_look_cutoff_is_kst_midnight() -> None:
+    from datetime import UTC, datetime
+
+    from salt_forecast.domain.vol_range import look_cutoff
+
+    assert datetime.fromtimestamp(look_cutoff(0), tz=UTC).isoformat() == "2027-01-11T15:00:00+00:00"

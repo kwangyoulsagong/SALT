@@ -74,6 +74,17 @@ class Previous:
     looks_done: int
 
 
+def model_version_at(engine: Engine, key: str, at: datetime) -> str | None:
+    """그 시각에 돌던 코드 — at 전 마지막 시험 실행의 model_version(동결 재생 가드)."""
+    sql = text(
+        "SELECT model_version FROM forecast.vol_range_test WHERE prereg_key = :key AND run_as_of <= :at "
+        "AND model_version IS NOT NULL ORDER BY run_as_of DESC LIMIT 1"
+    )
+    with engine.connect() as conn:
+        v = conn.execute(sql, {"key": key, "at": at}).scalar()
+    return None if v is None else str(v)
+
+
 def previous(engine: Engine, key: str, before: datetime) -> dict[tuple[str, int], Previous]:
     """칸마다 이번 실행 직전 상태 — 판정 날짜에 정한 pass · fail · 끝낸 판정 수를 이어 간다."""
     sql = text(
