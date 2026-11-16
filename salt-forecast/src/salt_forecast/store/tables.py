@@ -939,3 +939,14 @@ cause_explain_test = Table(
     Column("looks_done", Integer, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )
+
+entity_alias = Table(
+    "entity_alias",
+    metadata,
+    Column("entity", Text, primary_key=True),
+    Column("alias", Text, primary_key=True),
+    Column("alias_kind", Text, nullable=False),
+    Column("source_kind", Text, nullable=False),
+    Column("available_at", DateTime(timezone=True), nullable=False),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+)

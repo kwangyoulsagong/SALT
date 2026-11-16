@@ -20,16 +20,21 @@ pytestmark = pytest.mark.db
 T0 = datetime(2000, 1, 3, tzinfo=UTC)
 
 
+def _cleanup(e: Engine) -> None:
+    with e.begin() as conn:
+        conn.execute(text("DELETE FROM forecast.fact WHERE entity LIKE 'test:%'"))
+        conn.execute(text("DELETE FROM forecast.relation WHERE subject LIKE 'test:%'"))
+        conn.execute(text("DELETE FROM forecast.entity WHERE id LIKE 'test:%'"))
+
+
 @pytest.fixture
 def eng() -> Iterator[Engine]:
     if not os.environ.get("FORECAST_DATABASE_URL"):
         pytest.skip("FORECAST_DATABASE_URL 없음")
     e = create_engine(Settings().sqlalchemy_url())  # pyright: ignore[reportCallIssue]
+    _cleanup(e)  # 끊긴 앞 실행이 남긴 시험 행
     yield e
-    with e.begin() as conn:
-        conn.execute(text("DELETE FROM forecast.fact WHERE entity LIKE 'test:%'"))
-        conn.execute(text("DELETE FROM forecast.relation WHERE subject LIKE 'test:%'"))
-        conn.execute(text("DELETE FROM forecast.entity WHERE id LIKE 'test:%'"))
+    _cleanup(e)
 
 
 def _seed(eng: Engine, rng: np.random.Generator) -> list[datetime]:
@@ -74,16 +79,11 @@ def test_fact_asof_never_returns_future(eng: Engine) -> None:
     with eng.connect() as conn:
         for _ in range(1000):
             as_of = T0 + timedelta(seconds=int(rng.integers(0, span)))
-            rows = conn.execute(
-                text("SELECT available_at FROM forecast.f_fact_asof(:t) WHERE entity = 'test:a'"), {"t": as_of}
-            ).all()
+            rows = conn.execute(text("SELECT available_at FROM forecast.f_fact_asof(:t, 'test:a')"), {"t": as_of}).all()
             assert all(r[0] <= as_of for r in rows)
             # 그 시점 최신 버전 하나씩 — (속성, valid_from) 중복 0
         dup = conn.execute(
-            text(
-                "SELECT count(*) - count(DISTINCT (attribute, valid_from)) FROM forecast.f_fact_asof(:t) "
-                "WHERE entity = 'test:a'"
-            ),
+            text("SELECT count(*) - count(DISTINCT (attribute, valid_from)) FROM forecast.f_fact_asof(:t, 'test:a')"),
             {"t": T0 + timedelta(days=90)},
         ).scalar_one()
         assert dup == 0
@@ -113,3 +113,22 @@ def test_neighbors_asof_and_p95(eng: Engine) -> None:
             took.append((time.perf_counter() - t) * 1000)
         if took:
             assert float(np.percentile(took, 95)) < 200, np.percentile(took, 95)
+
+
+def test_build_at_past_as_of_reads_nothing_from_the_future(eng: Engine) -> None:
+    """과거 as_of 로 전체 적재(dry-run)를 돌리면 시각 있는 원천의 행은 전부 available_at ≤ as_of.
+
+    as_of 뒤 시각을 갖는 것은 '지금 값'만 주는 정적 원천(종목 마스터 · 코인 이름)뿐 —
+    그 행은 as-of 함수가 거른다(소급 0)."""
+    from salt_forecast.domain.ontology import SOURCE_CRYPTO, SOURCE_MASTER
+    from salt_forecast.domain.ontology_sources import SRC_STATUS
+    from salt_forecast.ontology.build import build_ontology
+
+    as_of = datetime(2026, 11, 1, tzinfo=UTC)
+    _, g, outs = build_ontology(eng, as_of, dry_run=True)
+    static = {SOURCE_MASTER, SOURCE_CRYPTO, SRC_STATUS}
+    late_rel = [r for r in g.relations if r.available_at > as_of and r.source_kind not in static]
+    late_fact = [f for f in g.facts if f.available_at > as_of and f.source_kind not in static]
+    assert late_rel == [] and late_fact == []
+    assert all(o.available_at <= as_of for o in outs)
+    assert len(g.relations) > 1000 and len(g.facts) > 1000  # 과거에도 원천이 실제로 읽혔다(빈 통과 아님)

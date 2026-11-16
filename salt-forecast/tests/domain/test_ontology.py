@@ -71,13 +71,13 @@ def test_ids_are_deterministic_and_closed_lists() -> None:
     g1 = build_graph(MASTER, ["BTC"], [snap()])
     g2 = build_graph(MASTER, ["BTC"], [snap()])
     assert g1.entities == g2.entities
-    assert {"asset:kr:005930", "asset:crypto:BTC", "sector:kr:0013", "event:dart:1"} <= set(g1.entities)
+    assert {"asset:kr:005930", "asset:crypto:BTC", "sector:kr:0013", "document:dart:1"} <= set(g1.entities)
     assert all(e.kind in ENTITY_KINDS for e in g1.entities.values())
     assert all(r.predicate in PREDICATES for r in g1.relations)
     # 소속은 업종 있는 종목만 · 사건 → 종목 affects
     preds = {(r.subject, r.predicate, r.object) for r in g1.relations}
     assert ("asset:kr:005930", "belongs_to", "sector:kr:0013") in preds
-    assert ("event:dart:1", "affects", "asset:kr:005930") in preds
+    assert ("document:dart:1", "affects", "asset:kr:005930") in preds
     assert not any(r.subject == "asset:kr:999999" for r in g1.relations)
 
 
@@ -86,7 +86,7 @@ def test_layers_from_snapshot() -> None:
     assert {f.attribute for f in g.facts} == {"change_pct", "move_market_pct", "move_sector_pct", "move_idio_pct"}
     assert all(f.available_at == T for f in g.facts)  # 알 수 있게 된 시각 = 서버가 찍은 시각
     (c,) = g.candidates
-    assert c.supports == 1 and c.event_entity == "event:dart:1"
+    assert c.supports == 1 and c.event_entity == "document:dart:1"
     assert len(g.evidence) == 2  # 깨진 항목은 빠진다(죽지 않는다)
     affects = next(r for r in g.relations if r.predicate == "affects")
     assert affects.valid_from == datetime(2026, 11, 16, 0, 42, tzinfo=UTC) and affects.available_at == T

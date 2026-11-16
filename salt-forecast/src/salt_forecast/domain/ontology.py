@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal, cast
 
@@ -53,6 +53,10 @@ PREDICATES: tuple[Predicate, ...] = (
 HORIZONS = (1, 5)
 SOURCE_SNAPSHOT = "cause_snapshot"
 SOURCE_MASTER = "kr_stock_master"
+SOURCE_CRYPTO = "upbit_market"
+# 시각 없는 정적 원천(코인 이름 · 시장 소속)의 available_at —
+# 온톨로지를 처음 만든 날. 그 전 as-of 에는 안 보인다(보수적)
+EPOCH_KNOWN = datetime(2026, 11, 16, tzinfo=UTC)
 _KST = timedelta(hours=9)
 
 
@@ -66,6 +70,30 @@ def sector_id(code: str) -> str:
 
 def event_id(fact_id: str) -> str:
     return f"event:{fact_id}"
+
+
+# 서버 사실 id 의 앞자리 → 문서 원천(`GetWhyMoved` 의 id 규칙).
+# 문서면 사건이 아니라 그 문서 엔티티로 잇는다 — 같은 기사 ·
+# 공시가
+# 온톨로지 안에서 한 점이 된다(소식 적재 · 원인 후보 · 추출 사실이 같은 id)
+DOC_PREFIXES = ("kr-news", "crypto-news", "dart", "kr-article")
+
+
+def document_id(prefix: str, key: str) -> str:
+    return f"document:{prefix}:{key}"
+
+
+def cause_entity_id(fact_id: str) -> tuple[str, EntityKind]:
+    """원인 후보의 사실 id → (엔티티 id, kind). 문서 원천이면 문서, 아니면(VI · 수급 · 상태 · 경보) 사건."""
+    prefix, _, key = fact_id.partition(":")
+    if prefix in DOC_PREFIXES and key:
+        return document_id(prefix, key), "document"
+    return event_id(fact_id), "event"
+
+
+def market_id(market: str) -> str:
+    """시장 전체 엔티티 — 'kr:KOSPI' · 'kr:KOSDAQ' · 'crypto'."""
+    return f"asset:market:{market}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,6 +114,15 @@ class RelationRow:
     available_at: datetime
     source_kind: str
     confidence: float = 1.0
+
+
+@dataclass(frozen=True, slots=True)
+class AliasRow:
+    entity: str
+    alias: str
+    alias_kind: Literal["code", "ko_name", "en_name", "symbol", "market_code"]
+    source_kind: str
+    available_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,6 +186,14 @@ class MasterRow:
     name: str
     sector_mid_code: str | None
     synced_at: datetime
+    market: str = ""  # KOSPI · KOSDAQ · KONEX
+
+
+@dataclass(frozen=True, slots=True)
+class CryptoName:
+    symbol: str
+    korean_name: str | None
+    english_name: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -174,6 +219,7 @@ class Graph:
     facts: list[FactRow]
     candidates: list[CandidateRow]
     evidence: list[EvidenceRow]
+    aliases: list[AliasRow] = field(default_factory=list[AliasRow])
 
 
 def _ts(x: object) -> datetime | None:
@@ -209,27 +255,60 @@ def latest_per_day(snaps: Sequence[Snapshot]) -> list[Snapshot]:
     return sorted(best.values(), key=lambda s: (s.market, s.symbol, s.trade_date))
 
 
-def build_graph(master: Sequence[MasterRow], crypto_symbols: Sequence[str], snaps: Sequence[Snapshot]) -> Graph:
-    """① 엔티티 · 관계 · 사실 + ② 근거 + ③ 원인 후보. 스냅샷은 지문마다 전부(그날 중간 기록도 — 근거의 이력)."""
+def build_graph(master: Sequence[MasterRow], crypto: Sequence[CryptoName | str], snaps: Sequence[Snapshot]) -> Graph:
+    """① 엔티티 · 관계 · 사실 · 별칭 + ② 근거 + ③ 원인 후보. 스냅샷은 지문마다 전부(그날 중간 기록도 — 근거의 이력).
+
+    국내 종목은 회사(`company`) `listed_as` 종목 · 종목 `belongs_to` 업종 · 시장(코스피 ·
+    코스닥) — 마스터는 지금 값만 주므로
+    관계는 처음 안 동기화 시각부터(소급 0), 바뀌면 `reconcile_membership` 이 옛 관계를 닫는다."""
     ents: dict[str, EntityRow] = {}
     rels: list[RelationRow] = []
     facts: list[FactRow] = []
     cands: list[CandidateRow] = []
     evs: list[EvidenceRow] = []
+    aliases: list[AliasRow] = []
+    crypto_mkt = market_id("crypto")
+    ents[crypto_mkt] = EntityRow(crypto_mkt, "asset", "코인 시장(업비트 원화)", {"market": "crypto"})
 
     for m in master:
         a = asset_id("kr", m.code)
+        t = m.synced_at
         ents[a] = EntityRow(a, "asset", m.name, {"kr_code": m.code})
+        co = f"company:kr:{m.code}"
+        ents[co] = EntityRow(co, "company", m.name, {"kr_code": m.code})
+        rels.append(RelationRow(co, "listed_as", a, t, t, t, SOURCE_MASTER))
+        aliases += [AliasRow(a, m.code, "code", SOURCE_MASTER, t), AliasRow(a, m.name, "ko_name", SOURCE_MASTER, t)]
+        if m.market:
+            mk = market_id(f"kr:{m.market}")
+            ents.setdefault(mk, EntityRow(mk, "asset", m.market, {"market": m.market}))
+            rels.append(RelationRow(a, "belongs_to", mk, t, t, t, SOURCE_MASTER))
         if m.sector_mid_code:
-            s = sector_id(m.sector_mid_code)
+            sc = sector_id(m.sector_mid_code)
             ents.setdefault(
-                s, EntityRow(s, "sector", f"업종 {m.sector_mid_code}", {"kis_sector_mid": m.sector_mid_code})
+                sc, EntityRow(sc, "sector", f"업종 {m.sector_mid_code}", {"kis_sector_mid": m.sector_mid_code})
             )
             # 마스터는 지금 값만 준다 — 관계는 우리가 처음 안 동기화 시각부터(소급 0)
-            rels.append(RelationRow(a, "belongs_to", s, m.synced_at, m.synced_at, m.synced_at, SOURCE_MASTER))
-    for sym in crypto_symbols:
-        a = asset_id("crypto", sym)
-        ents.setdefault(a, EntityRow(a, "asset", sym, {"upbit_market": f"KRW-{sym}"}))
+            rels.append(RelationRow(a, "belongs_to", sc, t, t, t, SOURCE_MASTER))
+    for c in crypto:
+        cn = c if isinstance(c, CryptoName) else CryptoName(c, None, None)
+        # 원천마다 표기가 다르다(업비트 마켓 `KRW-BTC` · 심볼 `BTC`) — id 는 늘 맨 심볼
+        # (2026-11-16 첫 판이 `KRW-` 째로 만들었다)
+        cn = CryptoName(cn.symbol.removeprefix("KRW-").upper(), cn.korean_name, cn.english_name)
+        a = asset_id("crypto", cn.symbol)
+        ents.setdefault(a, EntityRow(a, "asset", cn.korean_name or cn.symbol, {"upbit_market": f"KRW-{cn.symbol}"}))
+        # 코인 이름 · 시장 소속은 원천에 시각이 없다 —
+        # 이름은 바뀌지 않는 식별자라 별칭 시각을 오래전(UNIX 0)으로 두지 않고
+        # 등록 시점 이후만 쓰는 온톨로지 기준 시각(EPOCH_KNOWN)으로 둔다
+        t = EPOCH_KNOWN
+        rels.append(RelationRow(a, "belongs_to", crypto_mkt, t, t, t, SOURCE_CRYPTO))
+        aliases += [
+            AliasRow(a, cn.symbol, "symbol", SOURCE_CRYPTO, t),
+            AliasRow(a, f"KRW-{cn.symbol}", "market_code", SOURCE_CRYPTO, t),
+        ]
+        if cn.korean_name:
+            aliases.append(AliasRow(a, cn.korean_name, "ko_name", SOURCE_CRYPTO, t))
+        if cn.english_name and cn.english_name != cn.symbol:
+            aliases.append(AliasRow(a, cn.english_name, "en_name", SOURCE_CRYPTO, t))
 
     for s in snaps:
         a = asset_id(s.market, s.symbol)
@@ -260,18 +339,20 @@ def build_graph(master: Sequence[MasterRow], crypto_symbols: Sequence[str], snap
             ev_ent: str | None = None
             when = _ts(c.get("at"))
             if isinstance(fact_id, str) and fact_id:
-                ev_ent = event_id(fact_id)
+                ev_ent, ev_kind = cause_entity_id(fact_id)
                 ents.setdefault(
                     ev_ent,
                     EntityRow(
                         ev_ent,
-                        "event",
+                        ev_kind,
                         str(c.get("headline", "")),
                         {"server_fact_id": fact_id, "cause_kind": str(c.get("kind"))},
                     ),
                 )
                 # 사건 → 종목(FR-14 사건 ↔ 종목 ↔ 업종). 사건 시각부터 · 알게 된 시각 = 서버가 찍은 시각
-                rels.append(RelationRow(ev_ent, "affects", a, when or start, when or start, at, SOURCE_SNAPSHOT))
+                # 확신은 단계로 — 가장 유력 1.0 · 가능성 0.5 · 없음 0.2(받치는 근거 없이 '소식은 있었다')
+                conf = {"likely": 1.0, "possible": 0.5}.get(str(c.get("strength")), 0.2)
+                rels.append(RelationRow(ev_ent, "affects", a, when or start, when or start, at, SOURCE_SNAPSHOT, conf))
             ev_list = _mappings(c.get("evidence"))
             cands.append(
                 CandidateRow(
@@ -288,7 +369,7 @@ def build_graph(master: Sequence[MasterRow], crypto_symbols: Sequence[str], snap
                         _ts(e.get("at")), at,
                     )
                 )  # fmt: skip
-    return Graph(ents, rels, facts, cands, evs)
+    return Graph(ents, rels, facts, cands, evs, aliases)
 
 
 def bar_trade_dates(market: str, available_at: NDArray[np.int64]) -> list[date]:
@@ -349,6 +430,10 @@ class OpenRelation:
     valid_from: datetime
 
 
+def _slot(entity_id: str) -> str:
+    return entity_id.rsplit(":", 1)[0]
+
+
 def reconcile_membership(
     open_now: Sequence[OpenRelation], seen: Sequence[RelationRow]
 ) -> tuple[list[RelationRow], list[tuple[OpenRelation, datetime]]]:
@@ -357,11 +442,12 @@ def reconcile_membership(
 
     마스터에서 사라진 종목(상장폐지)은 닫지 않는다 — 폐지 이력은 `delisted_at` 이 따로 말하고,
     소속이 끝난 것은 아니다."""
-    by_subject = {(o.subject, o.predicate): o for o in open_now}
+    # 자리(slot) = 대상 종류 — 한 종목이 업종 하나 · 시장 하나에 같이 속한다(업종이 바뀌어도 시장 소속은 그대로)
+    by_slot = {(o.subject, o.predicate, _slot(o.object)): o for o in open_now}
     inserts: list[RelationRow] = []
     closes: list[tuple[OpenRelation, datetime]] = []
     for r in seen:
-        cur = by_subject.get((r.subject, r.predicate))
+        cur = by_slot.get((r.subject, r.predicate, _slot(r.object)))
         if cur is not None and cur.object == r.object:
             continue
         if cur is not None:
