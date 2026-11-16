@@ -104,3 +104,4 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 | 2026-11-12 | 서버 S3b — B1 FK 끊기 · 옛 사용자 표 drop 로컬 운영 적용(사용자 승인). Express 표의 user_id 는 FK 없는 열 |
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 예측 `store/ontology.py` 가 `public.kr_stock_master` 를 읽는다: **부록 B8 에 이미 있는 표**(새 직접 읽기 0). 원인 스냅샷은 새 export 뷰 `public.v_cause_snapshot_export`(사용자 열 0)로만 — FR-3 목록 무증가 |
 | 2026-11-16 | F017 v4 순서 5b-2 짝 — 예측이 새로 읽는 서버 표는 **export 뷰로만**: `public.v_extracted_fact_export`(coach `extracted_fact`) · `v_crypto_name_export`(market `market_assets` 이름 열만). FR-3 직접 읽기 목록 무증가 |
+| 2026-11-16 | F017 v4 순서 5b-3 짝 — 수급 export 뷰 둘(`v_kr_investor_flow_export` · `v_kr_program_flow_export`, 주인 market). FR-3 직접 읽기 목록 무증가 |

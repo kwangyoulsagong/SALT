@@ -156,3 +156,7 @@
 
 - VI 사건 보관 30일 → 400일(`KR_VI_RETENTION_DAYS` — 장중 기저율 K5 표본, KIS 는 지난 VI 를 주지 않음). 정리 규칙 · 다른 표 무변경
 - 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 5b-3 짝
+
+- 공유 파일 한 자리 — 이 REQ 기능 변경 없음. 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`

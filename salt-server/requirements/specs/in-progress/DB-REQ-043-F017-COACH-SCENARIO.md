@@ -75,3 +75,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-16 | **FR-14 신규**(F017 v4 순서 4 · 루트 `requirements/specs/in-progress/F017-v4-stage4-experiment-slice.md`) — 예측 실험 H1 · H3 표 넷. 추가만 — 되돌리기 = 표 넷 지우기 |
 | 2026-11-16 | FR-8 done · **FR-15 신규**(F017 v4 순서 5 · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 원인 스냅샷 · 온톨로지 표 일곱 · as-of 함수 셋. 추가만 |
 | 2026-11-16 | FR-15 확대(순서 5b-2) — 별칭 표 · export 뷰 둘 · 3홉 · as-of 함수 다시 씀. 추가만(함수는 CREATE OR REPLACE) |
+| 2026-11-16 | FR-15 — 수급 export 뷰 둘(`v_kr_investor_flow_export` · `v_kr_program_flow_export`, 마이그레이션 `20261116210200`) · `forecast.fact.value_num` double → numeric(`20261116210300` — 원화 금액이 들어와서, db-contract §3) |
