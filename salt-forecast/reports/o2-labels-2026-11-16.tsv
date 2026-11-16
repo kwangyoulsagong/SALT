@@ -1,0 +1,351 @@
+set	doc_id	gold	note
+tune	document:kr-news:2026110607523679973	017670	
+tune	document:kr-news:2026110608515117590	016360	
+tune	document:kr-news:2026110608585265023	251270	
+tune	document:kr-news:2026110609150849904	000080	
+tune	document:kr-news:2026110609283318410	035720	
+tune	document:kr-news:2026110610402011479	182400	
+tune	document:kr-news:2026110613321317304	048410	
+tune	document:kr-news:2026110809513615388		
+tune	document:kr-news:2026110809534522297	005380	
+tune	document:kr-news:2026110810003963240	000270	
+tune	document:kr-news:2026110811000032725	161890	
+tune	document:kr-news:2026110811021959547	005380	
+tune	document:kr-news:2026110905000400513	000660,005930	
+tune	document:kr-news:2026110907000029493		
+tune	document:kr-news:2026110907562208159	112610	
+tune	document:kr-news:2026110908000041391	030520	
+tune	document:kr-news:2026110908290348605	0181B0	
+tune	document:kr-news:2026110909052118840	286750	
+tune	document:kr-news:2026110909440240506	030520	
+tune	document:kr-news:2026110909543773817	077500	
+tune	document:kr-news:2026110909592475706	005500	
+tune	document:kr-news:2026110910061390675		
+tune	document:kr-news:2026110910061522577		
+tune	document:kr-news:2026110913061354953		
+tune	document:kr-news:2026110913183825652	031310	
+tune	document:kr-news:2026110913595785233	272110	
+tune	document:kr-news:2026110914065069851		
+tune	document:kr-news:2026110915240247768	016670	
+tune	document:kr-news:2026110917362954103	005380,005930	
+tune	document:kr-news:2026110917384589488	279570	
+tune	document:kr-news:2026111007562390863	122870	
+tune	document:kr-news:2026111008490009287		
+tune	document:kr-news:2026111009002205000	466410	
+tune	document:kr-news:2026111009512935371	005380	
+tune	document:kr-news:2026111010000513318		
+tune	document:kr-news:2026111010181383883	316140	
+tune	document:kr-news:2026111010181546707	097950	
+tune	document:kr-news:2026111010284664805	071050	
+tune	document:kr-news:2026111011180061059	013870	
+tune	document:kr-news:2026111011180140455	013580	
+tune	document:kr-news:2026111011335246570	020150	
+tune	document:kr-news:2026111013171231167	004020	
+tune	document:kr-news:2026111014075438745	322310	
+tune	document:kr-news:2026111014233382306	059100	
+tune	document:kr-news:2026111014242443395	417180	
+tune	document:kr-news:2026111015363735161		
+tune	document:kr-news:2026111107331837765	005380,006400	
+tune	document:kr-news:2026111107420023351	006400	
+tune	document:kr-news:2026111108300006835	001780	
+tune	document:kr-news:2026111108354456138	004170	
+tune	document:kr-news:2026111108392166366	181710	
+tune	document:kr-news:2026111109160226920	036540	
+tune	document:kr-news:2026111109172929770	005380	
+tune	document:kr-news:2026111109194514001	095660	
+tune	document:kr-news:2026111109325535587	003470	
+tune	document:kr-news:2026111109403161891	281740	
+tune	document:kr-news:2026111110084744159	000270	
+tune	document:kr-news:2026111110325946898	004020	
+tune	document:kr-news:2026111111012018324	000990	
+tune	document:kr-news:2026111111182959923	104620	
+tune	document:kr-news:2026111112012998059		
+tune	document:kr-news:2026111112041020121	007660	
+tune	document:kr-news:2026111114511320735	100590	
+tune	document:kr-news:2026111115154484183	151860	
+tune	document:kr-news:2026111115173601509	174900	
+tune	document:kr-news:2026111115372597880	036530,064960	
+tune	document:kr-news:2026111117243691248		
+tune	document:kr-news:2026111117381016839	021240	
+tune	document:kr-news:2026111118022819351	036570	
+tune	document:kr-news:2026111207174999832	125490	
+tune	document:kr-news:2026111208300131358		
+tune	document:kr-news:2026111208343569843	494120	
+tune	document:kr-news:2026111208532588120	487230	
+tune	document:kr-news:2026111208533896365	030200	
+tune	document:kr-news:2026111209054713863		
+tune	document:kr-news:2026111209440992211		
+tune	document:kr-news:2026111210103218412	035420	
+tune	document:kr-news:2026111210245460929	252990	
+tune	document:kr-news:2026111210350770729	058610	
+tune	document:kr-news:2026111210432770752		
+tune	document:kr-news:2026111214135438422	035900	
+tune	document:kr-news:2026111214500068130	036620	
+tune	document:kr-news:2026111215335413340	003850	
+tune	document:kr-news:2026111215405253552	003550	
+tune	document:kr-news:2026111216113720262	005380	
+tune	document:kr-news:2026111216474133310	003550	
+tune	document:kr-news:2026111217255617780	105760	
+tune	document:kr-news:2026111217545922956	263750	
+tune	document:kr-news:2026111223000002399	005930	
+tune	document:kr-news:2026111308342540043	192080	
+tune	document:kr-news:2026111308452310739	483650	
+tune	document:kr-news:2026111308582756565	0222F0	
+tune	document:kr-news:2026111309052327560	071970,100090,101000,443060,474170	
+tune	document:kr-news:2026111309100165834	089980,107640,290550,298040,416180	
+tune	document:kr-news:2026111309430015329	047920	
+tune	document:kr-news:2026111309515724154	005380,403550	
+tune	document:kr-news:2026111310234448891	417840	
+tune	document:kr-news:2026111310295351327	0158S0	
+tune	document:kr-news:2026111310360094794	012030	
+tune	document:kr-news:2026111310472780983	373220	
+tune	document:kr-news:2026111311191799002	267250	
+tune	document:kr-news:2026111311405914199	000660,005930	
+tune	document:kr-news:2026111315302760081	000080	
+tune	document:kr-news:2026111316311432748	023530	
+tune	document:kr-news:2026111316451289651	003670	
+tune	document:kr-news:2026111320113228815	090370	
+tune	document:kr-news:2026111410370341698		
+tune	document:kr-news:2026111506030184323		
+tune	document:kr-news:2026111506151165047		
+tune	document:kr-news:2026111521271387679	005930	
+tune	document:kr-news:2026111606375893005		
+tune	document:kr-news:2026111607054524107		
+tune	document:kr-news:2026111608000055972	000990,005930	
+tune	document:kr-news:2026111608221330223	005930	
+tune	document:kr-news:2026111608342817303	001450	
+tune	document:kr-news:2026111608342823710	141080	
+tune	document:kr-news:2026111608574892156	035420	
+tune	document:kr-news:2026111609233415352	003470	
+tune	document:kr-news:2026111610064027922		
+tune	document:kr-news:2026111610121119036	090430	
+tune	document:kr-news:2026111610121141337	259960	
+tune	document:kr-news:2026111610450303789	150900	
+tune	document:kr-news:2026111613120426380	226400	
+tune	document:kr-news:2026111615052996166	445680	
+tune	document:kr-news:2026111615062019647	013720	
+tune	document:kr-news:2026111615114586152	105740	
+tune	document:kr-news:2026111615500053498	006400	
+tune	document:kr-news:2026111615500338900	000270	
+tune	document:kr-news:2026111615593217827		
+tune	document:kr-news:2026111617331745216	089140	
+tune	document:crypto-news:05e19c99-f7d7-47e5-97d9-8efd88bbcb80	BTC,ETH,XRP	
+tune	document:crypto-news:0747c946-57a7-418f-92d4-3f3264aa8c65	BTC	
+tune	document:crypto-news:0ea2c336-4ec1-4922-87bc-5a9c877666f3	KAVA	
+tune	document:crypto-news:12af07c8-9446-446c-8858-e6168b7f6a4e		
+tune	document:crypto-news:15f22814-116f-44fb-a432-daa48b98d6b9	BTC	
+tune	document:crypto-news:19f6680b-d1f6-4f6c-aad3-259aaf48a825		
+tune	document:crypto-news:208f6879-b786-4ba9-a31e-f76cfb5adb67	BTC	
+tune	document:crypto-news:220566f2-8b55-4c46-97e7-d6848ed5354a	BTC	
+tune	document:crypto-news:2579029f-0ce1-4a4c-913a-8e40a709066a	BTC	
+tune	document:crypto-news:2f660240-edf5-4377-bfa6-8a6abdda3224	ETH,USDC,USDT	
+tune	document:crypto-news:30684d04-966e-4241-a29b-5772a0ad2f3e	SOL	
+tune	document:crypto-news:3181a070-938b-4ca5-86fa-436459ca8600	SOPH	
+tune	document:crypto-news:3325a648-133c-4844-adea-9393351d8e99	BTC	
+tune	document:crypto-news:37bdd848-3f0e-445b-b4e1-4dc4a9bbfa2f		
+tune	document:crypto-news:3edd850e-5b97-4e21-9767-59f1c87c5602	BTC	
+tune	document:crypto-news:4b6b80ae-d717-4a9e-b75e-5421165a5d26	ETH	
+tune	document:crypto-news:520a04e1-845b-4b4a-b61d-7a05f912cc70		
+tune	document:crypto-news:5321b173-0cc3-4871-986b-ef3a83926352	BTC	
+tune	document:crypto-news:55c8055e-8150-42eb-a1e8-9a2c9a9cff0a		
+tune	document:crypto-news:569adaca-dd26-458f-ac71-32b99bc5279c	ETH	
+tune	document:crypto-news:56ffe596-879d-4697-99ec-042a9fb416f2	BTC	
+tune	document:crypto-news:5ab63f88-b1cb-4f25-a2a2-e67027626f89	XRP	
+tune	document:crypto-news:5cecf428-1ecd-4131-97ab-f7dec76e3581		
+tune	document:crypto-news:5ea7ecad-88d6-49de-8220-6827121d9dc0	BTC	
+tune	document:crypto-news:609eff9f-5640-40d7-8f50-942976dcdfd0		
+tune	document:crypto-news:63348c18-23ff-4773-8467-c725f835b3b8	BTC	
+tune	document:crypto-news:6655e4fe-3529-4cd8-a54d-e319bbc80874	DRV,NCT	
+tune	document:crypto-news:68910636-4c78-4886-a121-adc09c816a95	KAVA	
+tune	document:crypto-news:68a47011-b504-4720-b1b5-c54d4dce7b76	BTC	
+tune	document:crypto-news:68b66cfa-7ced-41e1-a79b-f39de6ad523c		
+tune	document:crypto-news:726160fc-6a51-4d64-9381-f9bff56b9593	BTC,DOGE,ETH,XRP	
+tune	document:crypto-news:7580ec6d-6d35-4ac7-88a0-2272c6597ffa	BTC	
+tune	document:crypto-news:75caad1a-dddf-477b-bd31-3919f4862258	SOL	
+tune	document:crypto-news:764fd3a2-f493-427a-84cd-664fc101046f	ETH	
+tune	document:crypto-news:7cb781d7-56c2-4abc-8733-70bddb50d1f5	BTC	
+tune	document:crypto-news:7dbc0b32-a74b-4390-a8a0-7142533ac1c4	BTC	
+tune	document:crypto-news:80e6100a-4040-4e71-9344-e52d727fcc4e	BTC	
+tune	document:crypto-news:81aa7fce-8682-4753-8416-0aaeed6d1405	BTC	
+tune	document:crypto-news:859068a0-e715-4cfb-92e2-af8ca7b30570	ETH	
+tune	document:crypto-news:88ed9532-9158-4b51-8fac-52b64db70a49	ETH	
+tune	document:crypto-news:8f2c2f15-7a7e-4c53-a637-5f1d6f251dea	ETH	
+tune	document:crypto-news:9c2ec203-c4a6-423f-a412-ed0e8f78845c	BTC	
+tune	document:crypto-news:a10bc169-758f-4355-9cd7-5bf5c3e2d275	BTC	
+tune	document:crypto-news:a300ea6d-e1f5-4a9c-aac6-750ea15f127e	USDT	
+tune	document:crypto-news:ac8cb4de-8846-4e09-bed8-1c62ab71f7b4		
+tune	document:crypto-news:acf278ae-ffc8-4101-8898-127051129965	BTC	
+tune	document:crypto-news:adcb0187-6c72-4400-92a3-7269488828da	ETH	
+tune	document:crypto-news:b00f1a28-3740-4c0d-9b9f-f557ef7d752f	BTC	
+tune	document:crypto-news:b0628f85-dc51-4516-a286-0eecd0cbff86	ETH	
+tune	document:crypto-news:b14dfc56-80d1-4d5d-836d-4867b0e50fc6	BTC	
+tune	document:crypto-news:b2f48d06-7603-416f-b522-61acd498e508	BTC	
+tune	document:crypto-news:b2feb4aa-7c7f-422a-a9fa-4c08fd1d86bd	BTC	
+tune	document:crypto-news:bb54f183-3a36-4951-b080-ea92baf0d5ad		
+tune	document:crypto-news:bb853ff0-011c-48be-a6ed-4649e649bb9d	ETH	
+tune	document:crypto-news:c12f567d-d979-48b1-bf7c-e27510ebf9d7	BTC	
+tune	document:crypto-news:c8df9036-8031-4899-a033-d7bc4fed75e4	BTC	
+tune	document:crypto-news:c96253ae-a3d9-44be-885f-85caaaea4c4d	BTC	
+tune	document:crypto-news:c9a22f8f-ccea-4eee-94d2-91c8cc71fc1b	BTC,XRP	
+tune	document:crypto-news:d39e25e7-bba8-469f-a33c-f73d8b39e278	ETH	
+tune	document:crypto-news:d53df5f9-6bb1-46e9-a5d8-525fbd54e15c	BTC	
+tune	document:crypto-news:d6de911c-aced-4420-8f2d-b50da3700ace	BTC	
+tune	document:crypto-news:d913e955-43f8-4c90-9ef1-a7cdf7b49e6d	BTC	
+tune	document:crypto-news:daa8da68-6c5a-41ea-ba76-fb03aeaea41e		
+tune	document:crypto-news:de2ee60f-d7d7-430a-b83d-2bdc9df6a37e	DOGE	
+tune	document:crypto-news:df3e5e22-5ec4-43d3-9b69-a5a6c5cf0e54	BTC	
+tune	document:crypto-news:eaea60f2-a395-46ff-933d-38940a03f8bd		
+tune	document:crypto-news:edb80762-6bbe-402c-bd1d-38c9c3fd46e4	BTC	
+tune	document:crypto-news:edeb30fd-4807-4978-ba83-a5fd192175f8		
+tune	document:crypto-news:ee500afc-5150-4dad-b1fe-cda4bd881a5e	BTC	
+tune	document:crypto-news:f59c6d7e-bdd7-4c49-8c83-23237f23a964	ADA	
+holdout	document:kr-news:2026110606050163803		
+holdout	document:kr-news:2026110609071193159	360350,452190	
+holdout	document:kr-news:2026110609093477715	243070	
+holdout	document:kr-news:2026110610361169395		
+holdout	document:kr-news:2026110611142194324	214450	
+holdout	document:kr-news:2026110613481453898	140700	
+holdout	document:kr-news:2026110620003391455	180640	
+holdout	document:kr-news:2026110623493286099	096770,361610	
+holdout	document:kr-news:2026110907000037916	018000	
+holdout	document:kr-news:2026110908123179578	005930	
+holdout	document:kr-news:2026110908273193630	0252V0	
+holdout	document:kr-news:2026110909501725734		
+holdout	document:kr-news:2026110910013857083	072950	
+holdout	document:kr-news:2026110910041382033		
+holdout	document:kr-news:2026110911094674147	005830	
+holdout	document:kr-news:2026110912194460437	134580	
+holdout	document:kr-news:2026110912582045636	214450	
+holdout	document:kr-news:2026110913321147989	294870	
+holdout	document:kr-news:2026110914340101993	290650	
+holdout	document:kr-news:2026110914415135623	006800	
+holdout	document:kr-news:2026110915035240341		
+holdout	document:kr-news:2026110915095579724	010120,417200	
+holdout	document:kr-news:2026110916193941779	296640	
+holdout	document:kr-news:2026110916550591748	458870	
+holdout	document:kr-news:2026110919111508765	003490	
+holdout	document:kr-news:2026111009000103681	032640	
+holdout	document:kr-news:2026111009202153070	042000	
+holdout	document:kr-news:2026111009292743641	001750	
+holdout	document:kr-news:2026111010202536009	096770	
+holdout	document:kr-news:2026111011021152702		
+holdout	document:kr-news:2026111011021245033	456070	
+holdout	document:kr-news:2026111011154825421		skip
+holdout	document:kr-news:2026111011483387983	0035S0	
+holdout	document:kr-news:2026111014023145307	318020	
+holdout	document:kr-news:2026111014025183709	453450	
+holdout	document:kr-news:2026111015013510781	272450	
+holdout	document:kr-news:2026111015242725415	001520	
+holdout	document:kr-news:2026111015442486594	023530	
+holdout	document:kr-news:2026111016183564108		
+holdout	document:kr-news:2026111109103160011		
+holdout	document:kr-news:2026111109530886905	456160	
+holdout	document:kr-news:2026111110295240054	159010	
+holdout	document:kr-news:2026111110364660252	039030	
+holdout	document:kr-news:2026111110365135265	111110	
+holdout	document:kr-news:2026111111030433747	214180	
+holdout	document:kr-news:2026111112184807311		
+holdout	document:kr-news:2026111115105369002	086450	
+holdout	document:kr-news:2026111115240219248	358570	
+holdout	document:kr-news:2026111116160245479	280360	
+holdout	document:kr-news:2026111116473344846	001520	
+holdout	document:kr-news:2026111117114862674	033310	
+holdout	document:kr-news:2026111120003687484	250930	
+holdout	document:kr-news:2026111208072188939	139480	
+holdout	document:kr-news:2026111208495219004	357230	
+holdout	document:kr-news:2026111208570760453	002380,329180	
+holdout	document:kr-news:2026111209000171401	032640	
+holdout	document:kr-news:2026111210000037083		
+holdout	document:kr-news:2026111210051984737	005690	
+holdout	document:kr-news:2026111210100444138	200670	
+holdout	document:kr-news:2026111214503918416	003850	
+holdout	document:kr-news:2026111214511472134	377480	
+holdout	document:kr-news:2026111214591902354	089230	
+holdout	document:kr-news:2026111215190614884	052300	
+holdout	document:kr-news:2026111215350612475	100090	
+holdout	document:kr-news:2026111215420296980	215090	
+holdout	document:kr-news:2026111216455421374	071200	
+holdout	document:kr-news:2026111217084646796	073570	
+holdout	document:kr-news:2026111219481639540		
+holdout	document:kr-news:2026111308342561022	483650	
+holdout	document:kr-news:2026111308581583055	0177A0	
+holdout	document:kr-news:2026111310105857537	267250	
+holdout	document:kr-news:2026111310265646599	490470	
+holdout	document:kr-news:2026111310290402893	240810	
+holdout	document:kr-news:2026111310491321788		
+holdout	document:kr-news:2026111311061476610		
+holdout	document:kr-news:2026111311312529967	021880	
+holdout	document:kr-news:2026111311433278630	059120	
+holdout	document:kr-news:2026111313221159440	336570	
+holdout	document:kr-news:2026111313221604141	0162D0	
+holdout	document:kr-news:2026111315305399105		
+holdout	document:kr-news:2026111315341133840		
+holdout	document:kr-news:2026111316285321942	424760	
+holdout	document:kr-news:2026111317134427073		
+holdout	document:kr-news:2026111319003003739	298040	
+holdout	document:kr-news:2026111607110007198	066360	
+holdout	document:kr-news:2026111608000071068	478560	
+holdout	document:kr-news:2026111608013975662	016360,039490	
+holdout	document:kr-news:2026111608342840793	139480	
+holdout	document:kr-news:2026111608591776191	064290	
+holdout	document:kr-news:2026111609000094400	000660	
+holdout	document:kr-news:2026111609273102627	178320	
+holdout	document:kr-news:2026111609283378639	082800	
+holdout	document:kr-news:2026111609492988392	189330	
+holdout	document:kr-news:2026111611335054508	003220	
+holdout	document:kr-news:2026111614325208461	131970	
+holdout	document:kr-news:2026111614425735770	008770	
+holdout	document:kr-news:2026111614452841603		
+holdout	document:kr-news:2026111615242983561	017670,298040	
+holdout	document:kr-news:2026111616040371467	075130	
+holdout	document:kr-news:2026111616332085205	404990	
+holdout	document:crypto-news:0c5620e5-0cb9-4e67-98ec-79ddb2154b5b	XRP	
+holdout	document:crypto-news:0c8b2743-f265-41ce-b3db-df7f54e2fc4c	LINK	
+holdout	document:crypto-news:14121623-ae06-493f-892d-c504a7e5e339	BTC	
+holdout	document:crypto-news:15fd4376-416d-4c3d-97bd-3674e0b338e4	BTC,PEPE	
+holdout	document:crypto-news:20f3fc05-c7c5-4a69-94f8-eabdae1b3bc6	BTC	
+holdout	document:crypto-news:279dbe77-5795-4ef6-a77b-7146bdfc9a32	SOL	
+holdout	document:crypto-news:3ac4aced-6bfd-411d-94ea-c111864dcb75		
+holdout	document:crypto-news:3f9ec41e-8de0-408d-8491-b8b291099d63		
+holdout	document:crypto-news:4314d6ff-a525-4d8f-adfd-6ce4c9046aab	BTC	
+holdout	document:crypto-news:438099c2-5cf6-4dad-9c96-bdab24935b25	BTC	
+holdout	document:crypto-news:4d3a782b-8b53-4b98-9d5e-e6f5c4300f01	BTC	
+holdout	document:crypto-news:64ec0846-8992-4731-ae29-14444bc0203b	ETH,USDC,USDT	
+holdout	document:crypto-news:72c2ae5c-0179-4f24-9ed1-e0f4ac9b1f14	BTC	
+holdout	document:crypto-news:72e0abc5-dd85-4182-ad93-c234de606411	BTC	
+holdout	document:crypto-news:756ef2bc-5f6b-43ba-8191-84611ed001a5	ETH	
+holdout	document:crypto-news:76c84d8c-7062-4716-a880-cd39eeeff4da	ETH	
+holdout	document:crypto-news:7d3d964e-a7df-4c20-a7bb-00fbb65d17be	BTC	
+holdout	document:crypto-news:8c3f3926-eee0-4c2e-ab3e-479538e28a6e		
+holdout	document:crypto-news:90f21032-3ff1-4b64-8a84-813fb6e1ae3f	BTC	
+holdout	document:crypto-news:9532c9e7-e1c4-430d-96d1-de45b4b32acf	BTC,ETH	
+holdout	document:crypto-news:9551ed28-fbd4-44be-b832-49940bf092d3	ETH	
+holdout	document:crypto-news:97151e34-15d7-460c-b10e-3324e824002a	BTC	
+holdout	document:crypto-news:9b061ddc-56be-473d-9598-f253051c5427		
+holdout	document:crypto-news:a61f1b90-7d9d-486a-8210-bab9622fb891	BTC	
+holdout	document:crypto-news:a73566d1-0c9b-49cf-b1e1-fc52cf25b10c	ETH	
+holdout	document:crypto-news:abec086c-fe51-4fcf-9fdb-1c37882a615d	KAVA	
+holdout	document:crypto-news:b907e446-8609-4736-9ad8-1036b790e03c	BTC	
+holdout	document:crypto-news:c23ce02c-a6f9-43b7-b3f8-8bc06daaac6c	ADA	
+holdout	document:crypto-news:c28fa9b4-1982-4699-b1f6-ff26e4ff35ac		
+holdout	document:crypto-news:c42fcde8-adba-4983-8bf9-13c8254c778b	POKT	
+holdout	document:crypto-news:c706bf72-68cb-4882-9795-0991a5c01448	LINK	
+holdout	document:crypto-news:d30ada43-cecc-4e57-abe4-d8f89101b673	NCT,XRP	
+holdout	document:crypto-news:d30fd158-ce0a-4d27-9982-359dd4d3ebbe	SOL	
+holdout	document:crypto-news:d352e3fb-37af-4df8-8707-1775a58982f2		
+holdout	document:crypto-news:d3fa84fa-c9f3-46b3-952a-703a8b054020	BTC	
+holdout	document:crypto-news:d4751edf-c6fd-4578-bfcb-2a8f9eafc1e5	BTC	
+holdout	document:crypto-news:d7301a6d-3da1-42ca-9db1-9d22e1ad8aa5	BTC	
+holdout	document:crypto-news:e34524b7-20a4-420a-9448-95cac9785c86	BTC	
+holdout	document:crypto-news:ebce8c35-4ecd-4376-9f9d-5557f1757a0c	BTC	
+holdout	document:crypto-news:ed0cda21-e0f4-413f-8e7a-94a512756613	BTC	
+holdout	document:crypto-news:f3aad8f5-bd7c-4bc7-85fb-e5adc9359be0	BTC	
+holdout	document:crypto-news:f739daf8-a26e-49b8-8e4c-076bc548b674	BTC	
+holdout	document:crypto-news:f7ebf7fa-47c4-447d-be61-9432eba1e9aa		
+holdout	document:crypto-news:f9b278be-632e-40cf-b321-6e31cb7ff5d3	DOGE	
+holdout	document:crypto-news:fab6f950-e253-4f32-a6eb-c99f549b2346	ETH	
+holdout	document:crypto-news:fc20a0b9-1002-4c0b-90a8-4978fd221bdc	AAVE	
+holdout	document:crypto-news:fcb6ed82-9d2c-4b8c-a0cc-bf8a75ccf7d1	SOL	
+holdout	document:crypto-news:fde32144-513e-4707-9dac-d0ea1d7ac8bd		
+holdout	document:crypto-news:fe4eab9c-8579-43a3-ad11-5346369eafff		
+holdout	document:crypto-news:ff37e859-1acd-41bc-a9b3-4c5f4c1890b0	BTC,ETH	

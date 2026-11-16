@@ -43,6 +43,8 @@ weekly_check_report=0
 # 오늘 등락 한 줄(③) 운영 리포트(move-explain-*.md, FC-REQ-027 FR-4~6)도 6.5일마다 — 켜기 문턱이 아니라 나빠짐 감시
 weekly_move_report=0
 "$UV" run --frozen python -m salt_forecast.jobs.due --job move_explanation_report --hours 156 >/dev/null && weekly_move_report=1
+# 온톨로지 식별자 해소 품질(O2 — 라벨 재채점 · 이름 충돌, FC-REQ-022 FR-10~12)은 주 1회
+"$UV" run --frozen python -m salt_forecast.jobs.due --job ontology_quality --hours 156 >/dev/null && steps+=(ontology_quality)
 # 운영 점검은 일일 작업 뒤에도 한 번 — 방금 돈 결과를 같은 시간 행에 덮어쓴다
 steps+=(ops_monitor)
 for step in "${steps[@]}"; do

@@ -13,6 +13,7 @@
 - 일정 반응 통계 — 종목에 `event.<종류>.h<n>.*` · 통계 as_of
 - 쏠림 신호 — 사건 `event:signal:<종류>:<종목>:<시각>` · `affects` 종목 · 사건에 `value` · 신호 봉 마감
 - 거시 · 시장 시계열 — 지수 · 환율 · 금리 · 시장 엔티티에 값 · 시계열 `available_at`
+- 국내 수급(투자자 확정 · 프로그램 장중) — 종목에 `flow.*`(원) · 서버가 받은 시각
 - 등락 분해 — 종목에 `beta_market` · `beta_sector` · `sigma_daily` · 계산 as_of
 - 거래소 경보 · 국내 종목 상태 — 종목에 `exchange_warning` · `kr_status.*` — **바뀔 때만 새 행** · 받은 · 동기화 시각
 
@@ -30,8 +31,9 @@
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from salt_forecast.domain.ontology import (
@@ -56,6 +58,7 @@ SRC_SERIES = "series_point"
 SRC_BETA = "move_beta"
 SRC_WARNING = "market_warning_snapshot"
 SRC_STATUS = "kr_stock_master"
+SRC_FLOW = "kr_flow"
 
 # 일정 종류 → 닿는 시장(국내 일정은 국내 시장 · 미국 거시는 둘 다). 종목 지정 일정(`symbol`)은 그 종목에도
 SCHED_MARKETS: Mapping[str, tuple[str, ...]] = {
@@ -217,7 +220,18 @@ def _kr_or_crypto(symbol: str) -> str:
     return asset_id("crypto", symbol.removeprefix("KRW-").upper())
 
 
-def add_documents(g: Graph, dart: Sequence[DartRow], titles: Sequence[TitleRow]) -> None:
+def add_documents(
+    g: Graph,
+    dart: Sequence[DartRow],
+    titles: Sequence[TitleRow],
+    kr_idx: NameIndex | None = None,
+    coin_idx: NameIndex | None = None,
+) -> int:
+    """문서 · 언급. 제목 언급은 `resolve_mentions` 로 고친 확신(1.0 ·
+    0.3)을 싣는다 — 이름표가 없으면(시험) 원천 그대로 1/n.
+
+    반환: 버린 미해소 연결 수(업비트에 없는 약어 · 상장폐지)."""
+    dropped = 0
     for d in dart:
         doc = document_id("dart", d.rcept_no)
         g.entities.setdefault(doc, EntityRow(doc, "document", d.report_name, {"dart_rcept_no": d.rcept_no}))
@@ -228,16 +242,23 @@ def add_documents(g: Graph, dart: Sequence[DartRow], titles: Sequence[TitleRow])
                 g.relations.append(RelationRow(co, "issued", doc, t, t, t, SRC_DART))
             g.relations.append(RelationRow(doc, "mentions", asset_id("kr", d.stock_code), t, t, t, SRC_DART))
     for n in titles:
-        prefix = "crypto-news" if n.origin == "crypto" else "kr-news"
+        crypto = n.origin == "crypto"
+        prefix = "crypto-news" if crypto else "kr-news"
         doc = document_id(prefix, n.key)
         g.entities.setdefault(doc, EntityRow(doc, "document", n.title[:200], {prefix: n.key, "origin": n.origin}))
         codes = [c for c in n.codes if c]
-        conf = 1.0 / len(codes) if codes else 0.0
-        src = SRC_CRYPTO_NEWS if n.origin == "crypto" else SRC_KR_NEWS
-        for c in codes:
-            a = asset_id("crypto", c.upper()) if n.origin == "crypto" else asset_id("kr", c)
-            t = n.published_at
+        idx = coin_idx if crypto else kr_idx
+        if idx is None:
+            links = {c: 1.0 / len(codes) for c in codes}
+        else:
+            links = resolve_mentions(n.title, codes, idx, market="crypto" if crypto else "kr")
+            dropped += sum(1 for c in codes if (c.removeprefix("KRW-").upper() if crypto else c) not in idx.known)
+        src = SRC_CRYPTO_NEWS if crypto else SRC_KR_NEWS
+        t = n.published_at
+        for key, conf in links.items():
+            a = asset_id("crypto", key.upper()) if crypto else asset_id("kr", key)
             g.relations.append(RelationRow(doc, "mentions", a, t, t, t, src, conf))
+    return dropped
 
 
 def _xf_doc(r: XfRow) -> tuple[str, str]:
@@ -341,6 +362,27 @@ def add_betas(g: Graph, rows: Sequence[BetaRow]) -> None:
                 g.facts.append(FactRow(a, attr, fv, None, None, r.as_of, None, r.as_of, r.as_of, SRC_BETA))
 
 
+@dataclass(frozen=True, slots=True)
+class FlowRow:
+    """국내 수급 한 줄 — 투자자 확정(거래일) 또는 프로그램 장중 누적(시각).
+
+    금액은 원 정수 그대로(사실 행 · 연산 0). DB 는 numeric — float 는 정수 원을 정확히 담는 범위(< 2^53)."""
+
+    code: str
+    attribute: str  # flow.foreign_value · flow.institution_value · flow.individual_value · flow.program_net_value
+    value: float
+    observed_at: datetime
+    available_at: datetime
+
+
+def add_flows(g: Graph, rows: Sequence[FlowRow]) -> None:
+    """수급 사실 — 원인 칸의 '수급' 근거와 같은 원천. available_at = 서버가 받은 시각(보수적)."""
+    for r in rows:
+        a = asset_id("kr", r.code)
+        g.facts.append(FactRow(a, r.attribute, r.value, None, "KRW", r.observed_at, None, r.observed_at, r.available_at,
+                               SRC_FLOW))  # fmt: skip
+
+
 def changed_states(rows: Sequence[StateRow], latest: Mapping[tuple[str, str], str]) -> list[FactRow]:
     """지금 값 원천 — 시각 순으로 직전 값(이미 저장된 마지막 값 포함)과 다를 때만 새 사실(불변식 3)."""
     last = dict(latest)
@@ -370,3 +412,188 @@ def ensure_entities(g: Graph) -> int:
         g.entities[ref] = EntityRow(ref, kind, ref.rsplit(":", 1)[-1], {"unresolved": "true"})
         made += 1
     return made
+
+
+# ---- 식별자 해소 — 제목 → 종목(FC-REQ-022 FR-10~12 · `ontology.md` §4) ----
+#
+# 원천이 붙인 종목(KIS 관련 종목 · 서버 코인 키워드)을 그대로 믿지 않는다. 2026-11-16 표본 200건(라벨러 Claude ·
+# 사람 검수 전):
+# 국내 정밀도 0.81(순위 · 시황 목록 제목에 첫 종목 · 다른 종목) · 코인 0.61(MBC · WFE · ETF · CEO 같은 약어를 코인으로 ·
+# 'Bitcoin' → BIT).
+# 규칙(기계만 — 표본을 보고 손 별칭을 넣지 않는다):
+# 1. 원천 연결은 제목이 받칠 때만 1.0, 아니면 0.3(지우지 않는다 — 브랜드 · 자회사일 수 있다).
+#    국내(KIS 관련 종목)는 종목명 또는 **같이 나온 말**(전체 제목에서 그 말이 나오면 80% 이상 그 종목이 붙었던 말 —
+# '엔씨' → NC · '제네시스' → 현대차,
+# `mine_cooccurring_words`)이 제목에 있으면 받친다. 같이 나온 말로 새 종목을 더하지는 않는다
+#    (주제어 '안경' · '청약률' 도 섞여 있다). 코인(서버 키워드)은 이름 · 별칭만. 순위 · 시황 목록 제목은 늘 0.3
+# 2. 제목에 나온 다른 상장사 · 코인 이름은 원천이 빠뜨려도 1.0 으로 더한다(재현율) — 목록 제목 제외
+# 3. 미해소 키(업비트 원화 목록에 없는 약어 · 상장폐지)는 버린다
+# 4. 이름 — 국내 종목명 / 코인 한글명 · 괄호 속 별칭('엑스알피(리플)' → 리플) · 영문명(대소문자 그대로) · 심볼(3자 이상)
+# 5. 경계 — 라틴 · 숫자 이름은 앞뒤가 글자 · 숫자가 아니어야. 한글 이름은 앞이 한글이 아니고, 뒤가 한글이면 조사일 때만.
+#    긴 이름 먼저. 제목 끝 출처 꼬리(' - 키움증권' · '-NH')는 떼고 본다
+
+LINK_CONFIDENT = 1.0
+LINK_WEAK = 0.3
+LINK_THRESHOLD = 0.5  # 이 이상만 '언급'으로 센다(에이전트 · 채점 재료)
+_LIST_TITLE = re.compile(r"상위\s*\d+\s*종목|상승률 상위|하락률 상위|시황|주요\s*이슈|신용비율 상위|거래량 갱신")
+_HANGUL = re.compile(r"[가-힣]")
+_PARTICLE = re.compile(r"(은|는|이|가|을|를|의|에|와|과|도|로|만|측|에서|으로|까지|부터|보다|처럼)(?![가-힣])")
+_SOURCE_TAIL = re.compile(r"\s*[-–]\s*[^-–\s][^-–]{0,24}$")
+_WORD = re.compile(r"[0-9A-Za-z]")
+
+
+@dataclass(frozen=True, slots=True)
+class NameIndex:
+    """이름 → 종목 키(국내 코드 · 코인 심볼). 긴 이름 먼저. `cooc` = 키마다 같이 나온 말(원천 연결 확인에만)."""
+
+    names: tuple[tuple[str, str, bool], ...]  # (이름, 키, 대소문자 무시)
+    known: frozenset[str]
+    cooc: Mapping[str, frozenset[str]] = field(default_factory=dict[str, frozenset[str]])
+    # 이름 충돌(FR-12 — 일반어 · 그룹명: '대상' · '한화' · 'SK') — 제목에 나와도 새로 더하지 않는다
+    # (원천 연결 확인에는 쓴다)
+    ambiguous: frozenset[str] = frozenset()
+
+
+COOC_MIN = 5
+COOC_SHARE = 0.8
+_TOKEN = re.compile(r"[가-힣A-Za-z0-9]{2,}")
+
+
+def mine_cooccurring_words(titles: Sequence[tuple[str, Sequence[str]]]) -> dict[str, frozenset[str]]:
+    """제목 전체에서 '이 말이 나오면 거의 늘 이 종목이 붙었다'(≥ COOC_MIN 번 · ≥ COOC_SHARE) — 종목 키 → 말들."""
+    total: dict[str, int] = {}
+    pair: dict[tuple[str, str], int] = {}
+    for title, codes in titles:
+        toks = {t for t in _TOKEN.findall(title) if not t.isdigit()}
+        for t in toks:
+            total[t] = total.get(t, 0) + 1
+            for c in codes:
+                pair[(t, c)] = pair.get((t, c), 0) + 1
+    out: dict[str, set[str]] = {}
+    for (t, c), n in pair.items():
+        if n >= COOC_MIN and n / total[t] >= COOC_SHARE:
+            out.setdefault(c, set()).add(t)
+    return {c: frozenset(v) for c, v in out.items()}
+
+
+def kr_name_index(master: Sequence[tuple[str, str]], cooc: Mapping[str, frozenset[str]] | None = None) -> NameIndex:
+    pairs = [(name, code, False) for code, name in master if len(name) >= 2]
+    return NameIndex(tuple(sorted(pairs, key=lambda p: -len(p[0]))), frozenset(c for c, _ in master), dict(cooc or {}))
+
+
+def coin_name_index(names: Sequence[tuple[str, str | None, str | None]]) -> NameIndex:
+    pairs: list[tuple[str, str, bool]] = []
+    for sym, ko, en in names:
+        s = sym.removeprefix("KRW-").upper()
+        if len(s) >= 3:
+            pairs.append((s, s, False))
+        for k in (ko or "",):
+            m = re.match(r"^(.+?)\((.+)\)$", k)
+            for part in (m.group(1), m.group(2)) if m else (k,):
+                if len(part) >= 2:
+                    pairs.append((part, s, False))
+        if en and len(en) >= 3 and en.upper() != s:
+            pairs.append((en, s, False))  # 대소문자 그대로 — 'momentum' 같은 일반어가 코인 'Momentum' 이 되지 않게
+    known = frozenset(s.removeprefix("KRW-").upper() for s, _, _ in names)
+    return NameIndex(tuple(sorted(pairs, key=lambda p: -len(p[0]))), known)
+
+
+def _bounded(title: str, i: int, j: int, name: str) -> bool:
+    before = title[i - 1] if i > 0 else " "
+    after = title[j] if j < len(title) else " "
+    if _HANGUL.match(name[0]):
+        if _HANGUL.match(before) or _WORD.match(before):
+            return False
+        return not _HANGUL.match(after) or bool(_PARTICLE.match(title, j))
+    if _WORD.match(before) or _WORD.match(after):
+        return False
+    return not _HANGUL.match(after) or bool(_PARTICLE.match(title, j))  # 'LG엔솔' 의 'LG' 아님 · 'LG는' 은 LG
+
+
+def names_in_title(title: str, idx: NameIndex) -> set[str]:
+    """제목에 나온 종목 키 — 긴 이름이 먼저 자리를 차지한다(‘LG엔솔’ 안의 ‘LG’ 를 따로 세지 않음)."""
+    title = _SOURCE_TAIL.sub("", title)
+    taken = [False] * len(title)
+    low = title.lower()
+    found: set[str] = set()
+    for name, key, ci in idx.names:
+        hay, needle = (low, name.lower()) if ci else (title, name)
+        start = 0
+        while (i := hay.find(needle, start)) >= 0:
+            j = i + len(needle)
+            start = i + 1
+            if any(taken[i:j]) or not _bounded(title, i, j, name):
+                continue
+            for k in range(i, j):
+                taken[k] = True
+            found.add(key)
+    return found
+
+
+def resolve_mentions(title: str, linked: Sequence[str], idx: NameIndex, *, market: str) -> dict[str, float]:
+    """제목 하나의 언급 → {종목 키: 확신}. 원천 연결(linked)을 규칙 1~5 로 고친다. market = 'kr' | 'crypto'."""
+    in_title = names_in_title(title, idx)
+    words = {t for t in _TOKEN.findall(title) if not t.isdigit()}
+    listy = market == "kr" and bool(_LIST_TITLE.search(title))
+    out: dict[str, float] = {}
+    for k in linked:
+        key = k if market == "kr" else k.removeprefix("KRW-").upper()
+        if key not in idx.known:
+            continue  # 미해소(업비트에 없는 약어 · 상장폐지) — 언급으로 세지 않는다
+        trusted = key in in_title or bool(idx.cooc.get(key, frozenset()) & words)
+        out[key] = LINK_CONFIDENT if trusted and not listy else LINK_WEAK
+    if not listy:
+        for key in in_title - idx.ambiguous:
+            out[key] = LINK_CONFIDENT
+    return out
+
+
+@dataclass(frozen=True, slots=True)
+class LinkScore:
+    tp: int
+    fp: int
+    fn: int
+
+    @property
+    def precision(self) -> float:
+        return self.tp / (self.tp + self.fp) if self.tp + self.fp else float("nan")
+
+    @property
+    def recall(self) -> float:
+        return self.tp / (self.tp + self.fn) if self.tp + self.fn else float("nan")
+
+
+def score_links(pairs: Sequence[tuple[set[str], set[str]]]) -> LinkScore:
+    """(예측, 정답) 묶음 → 정밀도 · 재현율(종목 연결 단위)."""
+    tp = sum(len(p & g) for p, g in pairs)
+    fp = sum(len(p - g) for p, g in pairs)
+    fn = sum(len(g - p) for p, g in pairs)
+    return LinkScore(tp, fp, fn)
+
+
+O2_PRECISION = 0.9  # FC-REQ-022 FR-11 — 미달이면 mentions 를 에이전트 도구에 쓰지 않는다
+O2_RECALL = 0.7
+COLLISION_MIN = 10
+COLLISION_SHARE = 0.3
+
+
+def with_ambiguous(idx: NameIndex, titles: Sequence[tuple[str, Sequence[str]]]) -> NameIndex:
+    """이름 충돌 목록(`name_collisions`)을 색인에 싣는다 — 제목 전체 통계라 as_of 까지의 제목으로만."""
+    amb = frozenset(k for _, k, _, _ in name_collisions(titles, idx))
+    return NameIndex(idx.names, idx.known, idx.cooc, amb)
+
+
+def name_collisions(titles: Sequence[tuple[str, Sequence[str]]], idx: NameIndex) -> list[tuple[str, str, int, float]]:
+    """FR-12 — 제목에 이름이 자주 나오는데 원천이 그 종목을 거의 안 붙인 이름(일반어 · 동명 의심).
+
+    (이름, 키, 나온 제목 수, 그중 원천이 붙인 비율) — 나온 수 ≥ COLLISION_MIN · 비율 < COLLISION_SHARE."""
+    seen: dict[tuple[str, str], list[int]] = {}
+    single = {key: [(n, k, ci) for n, k, ci in idx.names if k == key] for key in {k for _, k, _ in idx.names}}
+    for title, codes in titles:
+        for key in names_in_title(title, idx):
+            name = single[key][0][0] if single.get(key) else key
+            c = seen.setdefault((name, key), [0, 0])
+            c[0] += 1
+            c[1] += 1 if key in codes else 0
+    out = [(n, k, a, b / a) for (n, k), (a, b) in seen.items() if a >= COLLISION_MIN and b / a < COLLISION_SHARE]
+    return sorted(out, key=lambda x: (x[3], -x[2]))

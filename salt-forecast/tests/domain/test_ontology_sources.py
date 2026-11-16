@@ -140,3 +140,20 @@ def test_unresolved_and_endpoint_integrity() -> None:
     ids = set(g.entities)
     assert all(r.subject in ids and r.object in ids for r in g.relations)
     assert all(f.entity in ids for f in g.facts)
+
+
+def test_flows_are_facts_known_when_collected() -> None:
+    from salt_forecast.domain.ontology_sources import FlowRow, add_flows
+
+    g = build_graph(MASTER, [], [])
+    tick = datetime(2026, 11, 16, 7, 3, 31, tzinfo=UTC)
+    got = datetime(2026, 11, 16, 7, 3, 48, tzinfo=UTC)
+    add_flows(g, [FlowRow("005930", "flow.program_net_value", -38044959600.0, tick, got)])
+    (f,) = g.facts
+    assert (f.entity, f.attribute, f.value_num, f.unit) == (
+        "asset:kr:005930",
+        "flow.program_net_value",
+        -38044959600.0,
+        "KRW",
+    )
+    assert f.observed_at == tick and f.available_at == got  # 알 수 있게 된 시각 = 서버가 받은 시각

@@ -34,6 +34,7 @@ from salt_forecast.domain.ontology_sources import (
     SRC_WARNING,
     BetaRow,
     DartRow,
+    FlowRow,
     SchedRow,
     SeriesRow,
     SignalRow,
@@ -420,3 +421,48 @@ def save_aliases(engine: Engine, rows: Sequence[AliasRow]) -> int:
     values: list[Sequence[Any]] = [(r.entity, r.alias, r.alias_kind, r.source_kind, r.available_at) for r in rows]
     cols = ("entity", "alias", "alias_kind", "source_kind", "available_at")
     return bulk_upsert(engine, entity_alias, cols, values, ("entity", "alias"), keep_existing=True)
+
+
+def load_label_titles(engine: Engine, doc_ids: Sequence[str]) -> dict[str, tuple[str, tuple[str, ...]]]:
+    """O2 라벨 문서 → (제목, 원천 연결). 국내 `kr-news` · 코인 `crypto-news` 만."""
+    kr = [d.split(":", 2)[2] for d in doc_ids if d.startswith("document:kr-news:")]
+    coin = [d.split(":", 2)[2] for d in doc_ids if d.startswith("document:crypto-news:")]
+    out: dict[str, tuple[str, tuple[str, ...]]] = {}
+    for serial, title, codes in _rows(
+        engine, "SELECT serial, title, codes FROM public.v_kr_news_title_export WHERE serial = ANY(:k)", {"k": kr}
+    ):
+        out[f"document:kr-news:{serial}"] = (str(title), _strs(codes))
+    for i, title, syms in _rows(
+        engine, "SELECT id, title, symbols FROM public.v_news_article_export WHERE id = ANY(:k)", {"k": coin}
+    ):
+        out[f"document:crypto-news:{i}"] = (str(title), _strs(syms))
+    return out
+
+
+def load_flows(engine: Engine, *, as_of: datetime) -> list[FlowRow]:
+    """투자자 확정(거래일 · 받은 시각) + 프로그램 장중 누적(시각) — 받은 시각 ≤ as_of."""
+    t = _naive_utc(as_of)
+    out: list[FlowRow] = []
+    inv = _rows(
+        engine,
+        "SELECT code, trade_date, individual_value, foreign_value, institution_value, collected_at "
+        "FROM public.v_kr_investor_flow_export WHERE collected_at <= :t",
+        {"t": t},
+    )
+    for code, d, ind, fo, ins, col in inv:
+        day = datetime(d.year, d.month, d.day, 6, 30, tzinfo=UTC)  # 15:30 KST 마감
+        for attr, v in (("flow.individual_value", ind), ("flow.foreign_value", fo), ("flow.institution_value", ins)):
+            if v is not None:
+                out.append(FlowRow(str(code), attr, float(v), day, _utc(col)))
+    prog = _rows(
+        engine,
+        "SELECT code, at, program_net_value, collected_at FROM public.v_kr_program_flow_export "
+        "WHERE collected_at <= :t",
+        {"t": t},
+    )
+    out += [
+        FlowRow(str(c), "flow.program_net_value", float(v), _utc(a), _utc(col))
+        for c, a, v, col in prog
+        if v is not None
+    ]
+    return out

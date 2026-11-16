@@ -859,7 +859,7 @@ fact = Table(
     metadata,
     Column("entity", Text, primary_key=True),
     Column("attribute", Text, primary_key=True),
-    Column("value_num", Float),
+    Column("value_num", Numeric),  # 금액 · 비율 — numeric(db-contract §3)
     Column("value_text", Text),
     Column("unit", Text),
     Column("valid_from", DateTime(timezone=True), primary_key=True),
