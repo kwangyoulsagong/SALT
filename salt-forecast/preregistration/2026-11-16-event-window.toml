@@ -1,0 +1,43 @@
+# 사전등록 — 사건 반응 창 · 선반영 삼분위 (F017 v4 순서 3b · FC-REQ-028 FR-8)
+#
+# 이 파일은 **반응 숫자를 한 번도 계산하기 전에** 커밋한다. 창 · 삼분위 · 지평 · 문턱을 바꾸려면 새 키(`event-window@2`).
+# 본 것: DART 보고서 이름이 `news-reaction@2` 사전으로 몇 개나 분류되나(54% — 종류별 개수)뿐. 반응 · 선반영 숫자는 0.
+#
+# 왜: 원인 카드(SRV-REQ-053 FR-11)의 "같은 종류 사건 과거 반응"은 지금 종류 하나의 평균(news-reaction@2)이다.
+# 리서치 E(2026-11-13 딥리서치 — 국내 직접 연구 없음): 발표 전에 이미 많이 움직인 소식은 뒤에 되돌리는가 이어지는가가 종류보다 크게
+# 갈린다. 그래서 같은 종류를 **발표 전 초과 등락 삼분위**로 나눠 뒤 1 · 5일을 서술한다. 판정 · 명령 아님 — 지난 기록의 비율.
+
+key = "event-window@1"
+registered = 2026-11-16
+
+[question]
+text = """
+같은 사건 종류의 소식 · 공시 중, 발표 전 5봉 초과 등락이 낮음 · 가운데 · 높음(삼분위)이었던 경우 각각,
+발표 뒤 1 · 5 봉 초과 등락은 어땠나 — 오른 비율 · 평균 · q10 · q50 · q90 · 표본.
+그 종류 전체(삼분위 합)와 다르다고 말하는 것은 Holm 보정 뒤에만.
+"""
+
+[sources]
+dict = "news-reaction@2 사전 그대로(preregistration/2026-11-12-news-reaction-2.toml [classify] · [[kind]]) — 공시 보고서 이름도 같은 사전, 출처 disclosure"
+kr_titles = "public.v_kr_news_title_export — news-reaction@2 와 같은 읽기 · 같은 거름(관련 종목 2개 이하 뉴스). 출처 = 원천 origin(시황 news · 공시 disclosure)"
+dart = "public.v_dart_filing_export(서버 market 주인 dart_filing — 유니버스 · 1년). 게시 시각 = first_seen_at(서버가 처음 본 시각 — 접수일 날짜만 있어 보수적으로). 출처 = dart"
+crypto_titles = "public.v_news_article_export — news-reaction@2 와 같은 읽기(업비트 원화 일봉이 있는 심볼만)"
+kr_bars = "forecast.price_bar kis 1d(수정주가) — 끊김(> 1.31) 걸친 창은 NaN"
+crypto_bars = "forecast.price_bar upbit 1d"
+minute_bars = "+30분 칸만: forecast.price_bar kis 5m · upbit 5m(base-rate@3 이력). 없으면 그 칸 NaN"
+
+[protocol]
+ref = "기준 봉 = 게시 시각 전 마지막 일봉(news-reaction@2 events 그대로). 같은 (출처, 종류, 종목)은 앞 사건에서 5봉 안이면 뺀다"
+excess = "news-reaction@2 excess 그대로 — 종목 로그수익 − 시장 로그수익(국내 KR-EW · 코인 업비트 원화 동일가중)"
+window = "한 사건 한 행: pre20 = 초과(ref−20 → ref) · pre5 = 초과(ref−5 → ref) · pre1 = 초과(ref−1 → ref) · post30m = 게시 시각 뒤 첫 5분봉 시가 → 30분 뒤 종가 원 로그수익 − 같은 30분 시장 5분봉 동일가중(종목 5분봉 있는 날만) · post1 = 초과(ref → ref+1) · post5 = 초과(ref → ref+5). 0 칸(기준 봉)은 정의상 0 이라 저장하지 않는다"
+tercile = "선반영 삼분위 = 시장 × 출처마다 as_of 까지 pre5 가 있는 사건 전체의 33.3% · 66.7% 분위(np.quantile linear)로 low ≤ 첫째 < mid ≤ 둘째 < high. 경계값을 통계 행에 싣는다 — 서버가 지금 소식의 선반영(v_news_pre_move)을 같은 경계로 나눈다"
+horizons = [1, 5]
+min_sample = "news-reaction@2 그대로 — 유효 n(날짜 군집) ≥ 30 그리고 서로 다른 날 ≥ 20. 못 넘으면 below_min(비율 · 분위 null)"
+baseline = "p₀ = 같은 시장 · 출처 · 종류 · 지평의 삼분위 합 원비율(그 종류 전체). 종류 전체가 below_min 이면 검정 없음"
+differs = "유효 n 으로 원비율 vs p₀ 양측 z → 시장 × 지평 가족 Holm α 0.05. 통과 + 부호 = higher | lower"
+as_of = "창 끝 봉 available_at <= as_of 인 칸만 값. 게시 시각 > as_of 인 사건은 없다"
+
+[decision]
+show = "status = ok 인 삼분위 행만 원인 카드 근거 한 줄로(서버 SRV-REQ-053 FR-11): '발표 전 이미 +x% — 이렇게 미리 움직인 같은 종류 소식 뒤 5일은 100번 중 n번 더 올랐어요'. differs 는 '보통과 달라요' 표지만"
+below_min = "근거 줄을 내지 않는다(숫자 0) — 종류 전체 반응 줄(news-reaction@2)은 그대로"
+apply = "창 · 삼분위 · 문턱 변경 = 새 키"
