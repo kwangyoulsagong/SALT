@@ -155,6 +155,14 @@ def previous_status(engine: Engine, key: str, before: datetime) -> dict[tuple[st
     return {(str(m), str(h)): (str(st), None if r is None else str(r)) for m, h, st, r in rows}
 
 
+def last_run(engine: Engine, key: str, before: datetime) -> datetime | None:
+    """이번 실행 직전 시험 실행 시각 — 판정 날짜를 지난 첫 실행인지 가른다."""
+    sql = text("SELECT max(run_as_of) FROM forecast.short_horizon_test WHERE prereg_key = :key AND run_as_of < :before")
+    with engine.connect() as conn:
+        v = conn.execute(sql, {"key": key, "before": before}).scalar()
+    return v if isinstance(v, datetime) else None
+
+
 @dataclass(frozen=True, slots=True)
 class PredictionRow:
     symbol: str

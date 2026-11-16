@@ -205,7 +205,7 @@ def render_report(
         "",
         f"- 사전등록 `preregistration/2026-11-11-short-direction-3.toml`"
         f" · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
-        f"- 판정 날짜 {' · '.join(LOOKS)} 에만 판정(α 0.05/3 · 그날 칸들 Holm). 오늘은 "
+        f"- 판정 날짜 {' · '.join(LOOKS)}(그날 잠들었으면 그 뒤 첫 실행)에만 판정(α 0.05/3 · 그날 칸들 Holm). 오늘은 "
         + (
             f"**판정 날짜 {look + 1}번째**"
             if look is not None

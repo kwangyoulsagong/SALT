@@ -189,7 +189,13 @@ def test_forward_judge_holm_across_cells() -> None:
 
 
 def test_look_dates() -> None:
-    assert is_look("2027-01-10") == 0 and is_look("2027-03-11") == 2 and is_look("2027-01-11") is None
+    assert is_look("2027-01-10", "2027-01-09") == 0 and is_look("2027-03-11", "2027-03-10") == 2
+    assert is_look("2027-01-09", "2027-01-08") is None
+    assert is_look("2027-01-12", "2027-01-08") == 0  # 판정 날짜에 잠들었어도 그 뒤 첫 실행이 판정
+    assert is_look("2027-01-12", "2027-01-10") is None  # 이미 판정한 날짜
+    assert is_look("2027-01-10", "2027-01-10") is None  # 같은 날 두 번째 실행
+    assert is_look("2027-02-20", "2027-01-05") == 1  # 둘 지났으면 마지막 것
+    assert is_look("2027-01-10") == 0
 
 
 def test_forward_metrics_majority_side_not_always_up() -> None:
