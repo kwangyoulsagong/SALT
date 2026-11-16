@@ -23,8 +23,13 @@ from salt_forecast.store.prices import Bar
 SOURCE = "upbit"
 INTERVAL = "1d"
 HOUR = "1h"
+FIVE = "5m"  # 장중 기저율(base-rate@3) — 서버 5분봉은 30일만 남아 forecast 가 2년 이력을 따로 쌓는다
 PAGE = 200
-_PATHS = {INTERVAL: ("/candles/days", timedelta(days=1)), HOUR: ("/candles/minutes/60", timedelta(hours=1))}
+_PATHS = {
+    INTERVAL: ("/candles/days", timedelta(days=1)),
+    HOUR: ("/candles/minutes/60", timedelta(hours=1)),
+    FIVE: ("/candles/minutes/5", timedelta(minutes=5)),
+}
 
 
 class _Market(BaseModel):

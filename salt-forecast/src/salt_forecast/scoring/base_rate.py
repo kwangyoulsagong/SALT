@@ -119,7 +119,7 @@ def _events(mask: NDArray[np.bool_], label: Mat, cost: Mat, days: NDArray[np.int
     return Events(days[rows], gross - cost[ok], gross)
 
 
-def _summarize(
+def summarize(
     market: str,
     conditions: tuple[Condition, ...],
     masks: Mapping[str, NDArray[np.bool_]],
@@ -252,7 +252,7 @@ def run_kr(ohlcv: Mapping[str, OhlcvSeries], start: datetime, as_of: datetime) -
     costs = {h: kr_costs(p, h) for h in horizons}
     days = _day_keys(p)
     run = MarketRun("kr", (_date_of(int(p.dates[0])), _date_of(int(p.dates[-1]))))
-    run.stats = _summarize("kr", KR_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
+    run.stats = summarize("kr", KR_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
     run.triggers = kr_triggers(p, universe) + closed_triggers("kr", p, masks, KR_CONDITIONS)
     run.universe_mean = float(universe.sum(axis=1)[universe.any(axis=1)].mean()) if universe.any() else 0.0
     run.rows = int(p.dates.size)
@@ -366,7 +366,7 @@ def run_crypto(ohlcv: Mapping[str, OhlcvSeries], as_of: datetime) -> MarketRun:
     costs = {h: np.full(p.close.shape, CRYPTO_ROUND_TRIP) for h in horizons}
     days = _day_keys(p)
     run = MarketRun("crypto", (_date_of(int(p.dates[0])), _date_of(int(p.dates[-1]))))
-    run.stats = _summarize("crypto", CRYPTO_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
+    run.stats = summarize("crypto", CRYPTO_CONDITIONS, masks, labels, costs, days, (t_end - RECENT_DAYS * DAY) // DAY)
     run.triggers = crypto_triggers(p) + closed_triggers("crypto", p, masks, CRYPTO_CONDITIONS)
     run.universe_mean = float(universe.sum(axis=1)[universe.any(axis=1)].mean()) if universe.any() else 0.0
     run.rows = int(p.dates.size)

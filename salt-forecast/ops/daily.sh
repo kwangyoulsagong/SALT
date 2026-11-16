@@ -45,6 +45,11 @@ for step in "${steps[@]}"; do
   echo "[$(date -u +%FT%TZ)] ${step} 시작"
   "$UV" run --frozen python -m "salt_forecast.jobs.${step}" || { echo "[$(date -u +%FT%TZ)] ${step} 실패"; rc=1; }
 done
+# 장중 기저율 통계(base-rate@3, FC-REQ-028 FR-7) — 인자가 있어 루프 밖. 먼저 국내 5분봉을 서버 보관 전부(400일)로 다시 옮긴다:
+# 서버 밤 백필(kr-minute-backfill 22:00)이 지난 날을 채우면 5분 실행(최근 3일)은 그 날을 못 본다. 코인 5분봉 2년 · 구간 60일씩
+echo "[$(date -u +%FT%TZ)] base_rate_intraday 시작"
+"$UV" run --frozen python -m salt_forecast.jobs.ingest_kr_minutes --days 400 >/dev/null || { echo "[$(date -u +%FT%TZ)] 국내 5분봉 전부 옮기기 실패"; rc=1; }
+"$UV" run --frozen python -m salt_forecast.jobs.base_rate_intraday stats || { echo "[$(date -u +%FT%TZ)] base_rate_intraday 실패"; rc=1; }
 # 단타 방향 확률 전진 시험(short-direction@3)은 매일 — 마지막 적합 · 판정 날짜면 판정. 전 이력 walk-forward 약 2분 — 인자가 있어 루프 밖
 echo "[$(date -u +%FT%TZ)] short_direction test 시작"
 "$UV" run --frozen python -m salt_forecast.jobs.short_direction test || { echo "[$(date -u +%FT%TZ)] short_direction test 실패"; rc=1; }

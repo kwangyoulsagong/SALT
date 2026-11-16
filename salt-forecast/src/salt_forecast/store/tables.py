@@ -484,6 +484,7 @@ base_rate_stat = Table(
     Column("window_start", Date, nullable=False),
     Column("window_end", Date, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
+    Column("horizon_unit", Text, nullable=False),  # day(base-rate@1) · hour(base-rate@2)
 )
 
 base_rate_trigger = Table(

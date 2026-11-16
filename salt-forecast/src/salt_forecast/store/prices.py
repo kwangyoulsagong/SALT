@@ -156,6 +156,43 @@ def load_ohlcv_series(
     return {s: OhlcvSeries(s, t, *v) for s, (t, v) in _read_grouped(engine, stmt, 5).items()}
 
 
+def load_ohlcv_window(
+    engine: Engine, source: str, interval: str, start: datetime, end: datetime
+) -> dict[str, OhlcvSeries]:
+    """`start <= available_at <= end` 봉만.
+
+    5분봉 2년(약 6천만 행)은 한 번에 못 든다 — 장중 기저율(base-rate@3)이 구간마다 읽는다."""
+    stmt = (
+        select(
+            price_bar.c.symbol,
+            func.extract("epoch", price_bar.c.available_at),
+            price_bar.c.open,
+            price_bar.c.high,
+            price_bar.c.low,
+            price_bar.c.close,
+            price_bar.c.volume,
+        )
+        .where(
+            price_bar.c.source == source,
+            price_bar.c.interval == interval,
+            price_bar.c.available_at >= start,
+            price_bar.c.available_at <= end,
+        )
+        .order_by(price_bar.c.symbol, price_bar.c.available_at)
+    )
+    return {s: OhlcvSeries(s, t, *v) for s, (t, v) in _read_grouped(engine, stmt, 5).items()}
+
+
+def available_span(engine: Engine, source: str, interval: str) -> tuple[datetime, datetime] | None:
+    """그 원천 · 봉 길이의 첫 · 마지막 available_at."""
+    stmt = select(func.min(price_bar.c.available_at), func.max(price_bar.c.available_at)).where(
+        price_bar.c.source == source, price_bar.c.interval == interval
+    )
+    with engine.connect() as conn:
+        row = conn.execute(stmt).one()
+    return None if row[0] is None else (row[0], row[1])
+
+
 _CHUNK = 100_000
 
 
