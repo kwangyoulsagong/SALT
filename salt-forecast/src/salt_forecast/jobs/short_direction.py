@@ -13,8 +13,10 @@ import json
 import tomllib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+from sqlalchemy import Engine
 
 from salt_forecast.domain.base_rate import CRYPTO_ROUND_TRIP, kr_round_trip
 from salt_forecast.domain.calendar import report_day
@@ -24,14 +26,19 @@ from salt_forecast.domain.short_direction import (
     HOUR,
     KEY,
     KR_SPEC,
+    REPLAY_CAP_S,
     Fit,
     ForwardMetrics,
     ForwardSample,
     forward_judge,
     forward_metrics,
     is_look,
+    is_realtime,
     live_track,
     live_underperforms,
+    look_cutoff,
+    may_replay,
+    replay_hours,
     written_in_time,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
@@ -46,25 +53,29 @@ from salt_forecast.scoring.short_direction import (
     run_test,
 )
 from salt_forecast.store.db import engine
-from salt_forecast.store.kr_stock import krx_closed_dates
+from salt_forecast.store.kr_stock import krx_closed_dates, krx_open_dates
 from salt_forecast.store.predictions import register_model
 from salt_forecast.store.prices import load_ohlcv_series
 from salt_forecast.store.rule_ic import Registration, register
 from salt_forecast.store.short_direction import (
+    ActiveCell,
     CellTestRow,
     LiveOutcome,
     PredictionRow,
     active_cells,
+    first_run,
+    insert_new_predictions,
     last_run,
     live_outcomes,
     previous_status,
     save_predictions,
     save_test,
     score_due,
+    written_as_of,
 )
 
 JOB = "short_direction"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-11-short-direction-3.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-short-direction-4.toml"
 HOURS = {"1h": 1, "4h": 4, "1d": 24}
 KST = timedelta(hours=9)
 
@@ -108,8 +119,8 @@ def sample_of(market: str, live: list[LiveOutcome]) -> ForwardSample:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("단타 방향 확률(사전등록 short-direction@3 전진 시험)")
-    p.add_argument("command", choices=("test", "live"))
+    p = base_parser("단타 방향 확률(사전등록 short-direction@4 전진 시험 · 동결 재생)")
+    p.add_argument("command", choices=("test", "live", "replay"))
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("crypto", "kr", "all"), default="all")
     p.add_argument("--no-report", action="store_true", help="리포트 파일을 쓰지 않는다")
@@ -135,14 +146,22 @@ def main(argv: list[str] | None = None) -> int:
         look = is_look((as_of + KST).date().isoformat(), None if last is None else (last + KST).date().isoformat())
         lives: dict[str, list[LiveOutcome]] = {}
         forward: dict[str, ForwardMetrics] = {}
+        realtime: dict[str, ForwardMetrics] = {}  # 실시간 행만 — 민감도(판정 아님)
         for c in run.cells:
             r = c.result
             if r.status == "not_tested":
                 continue
             k = f"{r.market}:{r.horizon}"
             spec = CRYPTO_SPECS[r.horizon] if r.market == "crypto" else KR_SPEC
-            lives[k] = live_outcomes(eng, r.market, r.horizon, KEY)
-            forward[k] = forward_metrics(sample_of(r.market, lives[k]), spec.boot_block)
+            outs = live_outcomes(eng, r.market, r.horizon, KEY)
+            if look is not None:  # 판정 표본 = 판정 날짜 전에 낸 예측(늦게 돌아도 같다, @4)
+                cut = look_cutoff(look)
+                outs = [x for x in outs if x.as_of.timestamp() < cut]
+            lives[k] = outs
+            forward[k] = forward_metrics(sample_of(r.market, outs), spec.boot_block)
+            rt = [x for x in outs if is_realtime(r.market, int(x.as_of.timestamp()), int(x.expires_at.timestamp()),
+                                                 int(x.available_at.timestamp()))]  # fmt: skip
+            realtime[k] = forward_metrics(sample_of(r.market, rt), spec.boot_block)
             # 판정 날짜에 정해진 pass · fail 은 그대로 — 판정은 날짜에만(사전등록 [looks])
             before = prev.get((r.market, r.horizon))
             if before is not None and before[0] in ("pass", "fail"):
@@ -204,9 +223,51 @@ def main(argv: list[str] | None = None) -> int:
         written = len(rows) if args.dry_run else save_test(eng, KEY, mv, as_of, rows, datetime.now(UTC))
         if not args.no_report:
             path = REPORTS / f"short-direction-{KEY.replace('@', '-')}-{report_day(as_of)}.md"
-            path.write_text(render_report(KEY, sha, as_of, run, forward, look), encoding="utf-8")
+            path.write_text(render_report(KEY, sha, as_of, run, forward, look, realtime), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return written
+
+    def predict_at(
+        eng: Engine, cells: list[ActiveCell], as_of: datetime, cache: dict[str, Any], closed: set[date]
+    ) -> list[PredictionRow]:
+        """칸들의 as_of 시점 예측 — 실시간과 재생이 같은 함수를 쓴다.
+
+        입력은 그 시각 전 적합 · 그 시각까지 알 수 있던 봉뿐."""
+        preds: list[PredictionRow] = []
+        crypto_cp = None
+        kr_cp = None
+        for c in cells:
+            fit = Fit.from_json(c.live_params)
+            ref_raw = c.live_params.get("ref")
+            ref = Fit.from_json(ref_raw) if isinstance(ref_raw, dict) else None  # pyright: ignore[reportUnknownArgumentType]
+            if c.market == "crypto":
+                if crypto_cp is None:
+                    if "crypto" not in cache:
+                        cache["crypto"] = load_ohlcv_series(eng, "upbit", "1h")
+                    start = int((as_of - timedelta(hours=LIVE_HOURS)).timestamp())
+                    crypto_cp = crypto_panel(cache["crypto"], start, as_of)
+                h = HOURS[c.horizon]
+                out = live_predictions(crypto_cp, "crypto", c.horizon, h, fit, c.z_quantiles, ref)
+                preds += [
+                    PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "crypto", x.p_up, x.q10, x.q50, x.q90,
+                                  x.ref_price, x.invalidation, x.as_of + timedelta(seconds=h * HOUR),
+                                  None if np.isnan(x.p_ref) else x.p_ref)
+                    for x in out
+                ]  # fmt: skip
+            else:
+                if kr_cp is None:
+                    if "kr" not in cache:
+                        cache["kr"] = load_ohlcv_series(eng, "kis", "1d")
+                    start = int((as_of - timedelta(days=KR_LIVE_SESSIONS * 7 // 5 + 30)).timestamp())
+                    kr_cp, _ = kr_panel(cache["kr"], start, as_of)
+                out = live_predictions(kr_cp, "kr", c.horizon, 1, fit, c.z_quantiles, ref)
+                preds += [
+                    PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "kr", x.p_up, x.q10, x.q50, x.q90,
+                                  x.ref_price, x.invalidation, next_kr_close(x.as_of, closed),
+                                  None if np.isnan(x.p_ref) else x.p_ref)
+                    for x in out
+                ]  # fmt: skip
+        return preds
 
     def live() -> int:
         eng = engine()
@@ -221,38 +282,9 @@ def main(argv: list[str] | None = None) -> int:
         )  # fmt: skip
         if not cells:
             return scored
-        preds: list[PredictionRow] = []
         closed = set(krx_closed_dates(eng)) if any(c.market == "kr" for c in cells) else set[date]()
-        crypto_cp = None
-        kr_cp = None
-        for c in cells:
-            fit = Fit.from_json(c.live_params)
-            ref_raw = c.live_params.get("ref")
-            ref = Fit.from_json(ref_raw) if isinstance(ref_raw, dict) else None  # pyright: ignore[reportUnknownArgumentType]
-            if c.market == "crypto":
-                if crypto_cp is None:
-                    start = int((as_of - timedelta(hours=LIVE_HOURS)).timestamp())
-                    crypto_cp = crypto_panel(load_ohlcv_series(eng, "upbit", "1h"), start, as_of)
-                h = HOURS[c.horizon]
-                out = live_predictions(crypto_cp, "crypto", c.horizon, h, fit, c.z_quantiles, ref)
-                preds += [
-                    PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "crypto", x.p_up, x.q10, x.q50, x.q90,
-                                  x.ref_price, x.invalidation, x.as_of + timedelta(seconds=h * HOUR),
-                                  None if np.isnan(x.p_ref) else x.p_ref)
-                    for x in out
-                ]  # fmt: skip
-            else:
-                if kr_cp is None:
-                    start = int((as_of - timedelta(days=KR_LIVE_SESSIONS * 7 // 5 + 30)).timestamp())
-                    kr_cp, _ = kr_panel(load_ohlcv_series(eng, "kis", "1d"), start, as_of)
-                out = live_predictions(kr_cp, "kr", c.horizon, 1, fit, c.z_quantiles, ref)
-                preds += [
-                    PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "kr", x.p_up, x.q10, x.q50, x.q90,
-                                  x.ref_price, x.invalidation, next_kr_close(x.as_of, closed),
-                                  None if np.isnan(x.p_ref) else x.p_ref)
-                    for x in out
-                ]  # fmt: skip
-        # 결과를 조금이라도 알 수 있는 시각이면 쓰지 않는다(늦은 회차 · 국내 장 열린 뒤 — 전진 시험 표본 무결성)
+        preds = predict_at(eng, cells, as_of, {}, closed)
+        # 결과를 조금이라도 알 수 있는 시각이면 쓰지 않는다(늦은 회차 · 국내 장 열린 뒤 — 놓친 시각은 replay 몫)
         t_now = int(now.timestamp())
         late = [
             x
@@ -266,8 +298,65 @@ def main(argv: list[str] | None = None) -> int:
             return scored + len(preds)
         return scored + save_predictions(eng, KEY, preds, now)
 
+    def replay() -> int:
+        """동결 재생(@4) — 맥이 잠든 동안 놓친 기준 시각 전부를 다시 만든다.
+
+        그 시각 전 적합 · 그 시각까지의 봉 · 같은 코드(model_version)로만.
+
+        이미 쓴 행은 건드리지 않는다. available_at = 지금(쓴 시각) — 실시간 행과 언제든 구분된다."""
+        eng = engine()
+        now = datetime.now(UTC)
+        reg = first_run(eng, KEY)
+        if reg is None:
+            return 0
+        mv_now = model_version(_git_sha())
+        t_now = int(now.timestamp())
+        since = max(reg, now - timedelta(seconds=REPLAY_CAP_S))
+        cache: dict[str, Any] = {}
+        closed = set(krx_closed_dates(eng))
+        total = 0
+        skipped_code = 0
+        targets: list[tuple[str, datetime, int]] = []  # (시장, 계산 시각, 기대 기준 시각)
+        if args.market in ("crypto", "all"):
+            missing: set[int] = set()
+            for h in HOURS:
+                done = {int(x.timestamp()) for x in written_as_of(eng, KEY, "crypto", h, since)}
+                missing |= set(replay_hours(int(reg.timestamp()), done, t_now))
+            # 실시간 회차와 같은 :02 에 계산한다 — 그 시각까지 마감된 봉만 본다
+            targets += [("crypto", datetime.fromtimestamp(t + 120, UTC), t) for t in sorted(missing)]
+        if args.market in ("kr", "all"):
+            done_kr = written_as_of(eng, KEY, "kr", "1d", since)
+            for d in krx_open_dates(eng, (now + KST).date()):
+                session = datetime(d.year, d.month, d.day, tzinfo=UTC)  # 국내 예측의 기준 시각(패널 행)
+                at = session + timedelta(hours=7, minutes=30)  # 16:30 KST — 그날 봉이 공개된 뒤
+                if since <= at and at < now and session not in done_kr:
+                    targets.append(("kr", at, int(session.timestamp())))
+        for market, at, expect in targets:
+            cells = [c for c in active_cells(eng, KEY, at) if c.market == market]
+            ok = [c for c in cells if may_replay(c.model_version, mv_now)]
+            skipped_code += len(cells) - len(ok)
+            if not ok:
+                continue
+            preds = predict_at(eng, ok, at, cache, closed)
+            # 실시간 기록 창이 지난 행만 — 창이 아직 열린 시각은 live 몫
+            preds = [
+                x
+                for x in preds
+                if int(x.as_of.timestamp()) == expect
+                and not written_in_time(x.market, int(x.as_of.timestamp()), int(x.expires_at.timestamp()), t_now)
+            ]
+            total += len(preds) if args.dry_run else insert_new_predictions(eng, KEY, preds, now)
+        log.info(
+            "동결 재생",
+            extra={
+                "fields": {"job": JOB, "targets": len(targets), "rows": total, "skipped_code_changed": skipped_code}
+            },
+        )
+        return total
+
     # 작업 이름을 둘로 — 매시 게이트(`due --job short_direction_live`)와 매일 시험이 서로의 마지막 성공을 보지 않게
-    return run_job(JOB if args.command == "test" else f"{JOB}_live", args, test if args.command == "test" else live)
+    body = {"test": test, "live": live, "replay": replay}[args.command]
+    return run_job(JOB if args.command == "test" else f"{JOB}_{args.command}", args, body)
 
 
 if __name__ == "__main__":

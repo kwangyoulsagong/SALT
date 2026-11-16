@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import Engine, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from salt_forecast.store.bulk import bulk_upsert
 from salt_forecast.store.tables import short_horizon_prediction, short_horizon_test
@@ -212,6 +213,46 @@ def save_predictions(engine: Engine, key: str, rows: Sequence[PredictionRow], no
     )
 
 
+def first_run(engine: Engine, key: str) -> datetime | None:
+    """이 키의 첫 시험 실행 — 동결 재생은 이 시각 뒤만(등록 전 예측은 없다)."""
+    sql = text("SELECT min(run_as_of) FROM forecast.short_horizon_test WHERE prereg_key = :key")
+    with engine.connect() as conn:
+        v = conn.execute(sql, {"key": key}).scalar()
+    return v if isinstance(v, datetime) else None
+
+
+def written_as_of(engine: Engine, key: str, market: str, horizon: str, since: datetime) -> set[datetime]:
+    """이 키 · 칸으로 이미 쓴 기준 시각 — 재생은 이 밖의 시각만."""
+    sql = text(
+        "SELECT DISTINCT as_of FROM forecast.short_horizon_prediction "
+        "WHERE prereg_key = :key AND market = :market AND horizon = :horizon AND as_of >= :since"
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(sql, {"key": key, "market": market, "horizon": horizon, "since": since}).all()
+    return {r[0] for r in rows}
+
+
+def insert_new_predictions(engine: Engine, key: str, rows: Sequence[PredictionRow], now: datetime) -> int:
+    """재생 행 — 이미 있는 행(실시간)은 건드리지 않는다(DO NOTHING). available_at = 지금(쓴 시각)."""
+    if not rows:
+        return 0
+    values = [
+        {
+            "symbol": r.symbol, "horizon": r.horizon, "as_of": r.as_of, "model_version": r.model_version,
+            "prereg_key": key, "market": r.market, "p_up": r.p_up, "q10": r.q10, "q50": r.q50, "q90": r.q90,
+            "ref_price": r.ref_price, "invalidation": r.invalidation, "expires_at": r.expires_at,
+            "available_at": now, "p_ref": r.p_ref,
+        }
+        for r in rows
+    ]  # fmt: skip
+    written = 0
+    with engine.begin() as conn:
+        for i in range(0, len(values), 5_000):
+            stmt = pg_insert(short_horizon_prediction).values(values[i : i + 5_000]).on_conflict_do_nothing()
+            written += len(conn.execute(stmt.returning(short_horizon_prediction.c.as_of)).all())
+    return written
+
+
 def score_due(engine: Engine, now: datetime) -> int:
     """만료가 지난 예측 → 결과 한 줄. 끝 가격 = 만료 시각에 마감한 봉 종가(코인 1시간봉
     · 국내 일봉). 봉이 없으면 다음 실행에."""
@@ -245,13 +286,14 @@ class LiveOutcome:
     realized: float
     ref_price: float
     expires_at: datetime
+    available_at: datetime  # 쓴 시각 — 실시간 · 재생 구분(@4)
 
 
 def live_outcomes(engine: Engine, market: str, horizon: str, prereg_key: str) -> list[LiveOutcome]:
     """이 키로 낸 예측 중 채점이 끝난 것 — 전진 판정 · 소등 · 라이브 성적의 입력. 시각 순."""
     sql = text(
         """
-        SELECT p.as_of, p.symbol, p.p_up, p.p_ref, o.realized, p.ref_price::float8, p.expires_at
+        SELECT p.as_of, p.symbol, p.p_up, p.p_ref, o.realized, p.ref_price::float8, p.expires_at, p.available_at
         FROM forecast.short_horizon_outcome o
         JOIN forecast.short_horizon_prediction p USING (symbol, horizon, as_of, model_version)
         WHERE p.market = :market AND p.horizon = :horizon AND p.prereg_key = :key ORDER BY p.as_of
@@ -260,7 +302,9 @@ def live_outcomes(engine: Engine, market: str, horizon: str, prereg_key: str) ->
     with engine.connect() as conn:
         rows = conn.execute(sql, {"market": market, "horizon": horizon, "key": prereg_key}).all()
     return [
-        LiveOutcome(r[0], str(r[1]), float(r[2]), None if r[3] is None else float(r[3]), float(r[4]), float(r[5]), r[6])
+        LiveOutcome(
+            r[0], str(r[1]), float(r[2]), None if r[3] is None else float(r[3]), float(r[4]), float(r[5]), r[6], r[7]
+        )
         for r in rows
     ]
 

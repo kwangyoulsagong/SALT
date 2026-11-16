@@ -1,4 +1,5 @@
-"""단타 방향 확률 전진 시험 · 라이브 예측 — 사전등록 short-direction@3 을 그대로 실행한다(FC-REQ-028 FR-1 · FR-4).
+"""단타 방향 확률 전진 시험 · 라이브 예측 — 사전등록 short-direction@4(@3 + 동결 재생)를 그대로 실행한다
+(FC-REQ-028 FR-1 · FR-4).
 
 매일: 전 이력 walk-forward 로 칸마다 마지막 블록 적합(원래 + 피처 없는 모델)과 '본 기간 검산
 — 참고' 성적을 만든다(판정 아님).
@@ -199,11 +200,12 @@ def render_report(
     run: TestRun,
     forward: Mapping[str, ForwardMetrics],
     look: int | None,
+    realtime: Mapping[str, ForwardMetrics] | None = None,
 ) -> str:
     lines = [
         f"# 단타 방향 확률 전진 시험 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-11-short-direction-3.toml`"
+        f"- 사전등록 `preregistration/2026-11-16-short-direction-4.toml`"
         f" · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
         f"- 판정 날짜 {' · '.join(LOOKS)}(그날 잠들었으면 그 뒤 첫 실행)에만 판정(α 0.05/3 · 그날 칸들 Holm). 오늘은 "
         + (
@@ -214,6 +216,9 @@ def render_report(
         "- 기준: 피처 없는 같은 모델(같은 오프셋 · 같은 Beta 보정) · 확신 적중은 **늘 많은 쪽**(늘 오른다"
         " · 늘 안 오른다 중 큰 쪽) 대비",
         "- 라벨 = 오름(r > 0) — '그대로'는 안 오름 쪽이다(화면 '안 올랐어요(내렸거나 그대로)')",
+        "",
+        "- 표본 = 실시간 기록 + **동결 재생**(맥이 잠든 동안 놓친 시각 — 그 시각 전 적합 · 그 시각까지의 봉"
+        " · 같은 코드). 판정 날짜엔 그 날짜 전에 낸 예측만",
         "",
         "## 라이브(등록 뒤 낸 예측만)",
         "",
@@ -238,6 +243,22 @@ def render_report(
             f"{_num(m.bss_hi)} | {m.ece:.4f} | {m.confident:,} | {_pct(hit)} | {_pct(maj)} | {_pct(m.edge_lo)} ~ "
             f"{_pct(m.edge_hi)} | {m.up_calls:,} | {_pct(m.net_mean, 3)} |"
         )
+    if realtime:
+        lines += [
+            "",
+            "## 실시간 기록만 — 민감도(판정 아님 · 재생 행을 뺀 같은 지표)",
+            "",
+            "| 칸 | 채점 행 | 날 | BSS(피처 몫) | 95% | ECE | 확신 행 | 차 95% |",
+            "|---|---|---|---|---|---|---|---|",
+        ]
+        for k, m in realtime.items():
+            if m.rows == 0:
+                lines.append(f"| {k} | 0 |" + " — |" * 6)
+                continue
+            lines.append(
+                f"| {k} | {m.rows:,} | {m.days} | {_num(m.bss)} | {_num(m.bss_lo)} ~ {_num(m.bss_hi)} | {m.ece:.4f}"
+                f" | {m.confident:,} | {_pct(m.edge_lo)} ~ {_pct(m.edge_hi)} |"
+            )
     lines += [
         "",
         "## 본 기간 검산 — 참고(판정 아님 · @1 · @2 · 진단으로 이미 본 기간)",
