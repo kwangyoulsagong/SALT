@@ -160,4 +160,10 @@
 - 누수 시험: 그 시각 예측 = 며칠 뒤 봉까지 있는 DB 에서 다시 만든 예측(바이트 같음, `test_replay_equals_realtime_when_future_bars_arrive`) · 흔들림은 기존 미래 행 시험
 - 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부 · 서버 `shortHorizon.test.ts` 16 · `tsc` 0
 - 미검증: 실제 재생(새 키 첫 시험 실행 뒤 다음 수면 → 깸) — 머지 뒤 첫 월요일 `salt-forecast-live.log` "동결 재생" 행 수 · `vol_range` 로그로 닫는다. `move-news` 새 키는 서버 크롤러 메우기 결정 뒤
+### move-news@3
+
+- 시험: 늦은 사건은 late_ok 일 때만 · 깨어남 경계 표(연속 2시간 · 20분 틈 · 기록 없음 · 16분 전) · 재생 포함 표본 · 실시간만 · 판정 표본 끝
+- `move_news --dry-run --no-report`: 기록 0(등록 뒤 봉 없음) · 2.6초
+- 돌고 있던 `backfill.sh` 는 새 inode 로 바꿔치기(같은 inode 덮어쓰기는 돌던 셸이 엉뚱한 줄을 읽는다)
+- 미검증: 서버 크롤러 메우기 뒤 늦은 사건 '소식 있음' 비율 — 서버 브랜치 머지 · 재시작 뒤 첫 주말 지나 월요일 11시 이후 로그로
 

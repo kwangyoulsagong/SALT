@@ -1,4 +1,4 @@
-"""H3 큰 움직임 × 소식 실행 — 사전등록 `move-news@1`(FC-REQ-028 FR-9 · F017 v4 순서 4).
+"""H3 큰 움직임 × 소식 실행 — 사전등록 `move-news@3`(@1 + 늦은 사건 재생 · FC-REQ-028 FR-9 · F017 v4 순서 4).
 
 - 패널(국내 kis 1d · 코인 upbit 1d) → 사건 · 소식 유무 · 거래량 · 덮임 · 라벨(지평 1 · 5) · 비용.
 - 기록: 아직 기록 안 한 사건 봉(라벨 닫히기 전 = 판정 표본 후보)을 그 시각 값으로.
@@ -21,6 +21,7 @@ from salt_forecast.domain.move_news import (
     PLACEBO_REPS,
     PLACEBO_SEED,
     REGISTERED_AT,
+    REPLAY_CAP_DAYS,
     CellRun,
     Group,
     cooldown,
@@ -135,11 +136,18 @@ def build(
 # ── 기록 · 채점 ──
 
 
-def new_events(md: MarketData, known: set[tuple[str, int]], since: int, at: datetime) -> list[EventRow]:
-    """since(이 시각 뒤 봉) 의 사건 중 아직 기록 안 한 것 — 지금 값 그대로."""
+def new_events(
+    md: MarketData, known: set[tuple[str, int]], since: int, at: datetime, late_ok: bool = True
+) -> list[EventRow]:
+    """since(이 시각 뒤 봉) 의 사건 중 아직 기록 안 한 것 — 지금 값 그대로.
+
+    @3: 다음 봉이 이미 열린(늦은) 사건은 late_ok 일 때만(깨어난 지 2시간 — 소식 메우기 뒤) · 14일 안만."""
     out: list[EventRow] = []
-    rows = np.flatnonzero(md.dates > since)
+    rows = np.flatnonzero(md.dates > max(since, int(at.timestamp()) - REPLAY_CAP_DAYS * 86_400))
+    n = md.dates.size
     for t in rows:
+        if not late_ok and t + 1 < n and int(md.dates[t + 1]) <= int(at.timestamp()):
+            continue
         for j in np.flatnonzero(md.event[t]):
             sym = md.symbols[j]
             if (sym, int(md.dates[t])) in known:
@@ -212,11 +220,18 @@ def history_sample(md: MarketData, h: int) -> Sample:
     )  # fmt: skip
 
 
-def forward_sample(md: MarketData, rows: Sequence[EventRow], h: int) -> Sample:
-    """전진 — 등록 뒤 봉 · 제때 기록 · 원천 돈 날 · 라벨 있음 · 기록 사건 위 쿨다운 h. 소식 · 거래량은 기록 값."""
+def forward_sample(
+    md: MarketData, rows: Sequence[EventRow], h: int, cutoff: int | None = None, realtime_only: bool = False
+) -> Sample:
+    """전진 — 등록 뒤 봉 · 원천 돈 날 · 라벨 있음 · 기록 사건 위 쿨다운 h. 소식 · 거래량은 기록 값.
+
+    @3: 늦게 기록한 사건(동결 재생 — 깨어난 뒤 그 봉까지의 값)도 표본. realtime_only 는 민감도,
+    cutoff 는 판정 날짜 00:00 KST(그 전 봉만)."""
     keep = [
         e for e in rows
-        if e.ref_at >= REGISTERED_AT and e.source_ok and (e.in_time1 if h == 1 else e.in_time5)
+        if e.ref_at >= REGISTERED_AT and e.source_ok
+        and (not realtime_only or (e.in_time1 if h == 1 else e.in_time5))
+        and (cutoff is None or e.ref_at.timestamp() < cutoff)
         and (e.s1 if h == 1 else e.s5) is not None
     ]  # fmt: skip
     idx = {int(d): i for i, d in enumerate(md.dates)}
@@ -302,7 +317,7 @@ def render_report(
     lines = [
         f"# H3 큰 움직임 × 소식 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-13-move-news.toml` · 코드 `{sha}` · as_of {as_of.isoformat()}",
+        f"- 사전등록 `preregistration/2026-11-16-move-news-3.toml` · 코드 `{sha}` · as_of {as_of.isoformat()}",
         "- 사건 = |r| ≥ 2σ(직전 20 · 오늘 제외) · s = 움직인 방향 × (h 봉 수익 − 같은 날 시장 평균) · 쿨다운 h",
         "- 소식 = 국내 (전 거래일 15:30, 그날 15:30] 시황 · 공시 제목 / 코인 그 하루 심볼 제목."
         " 움직임을 전하는 제목 · 묶음 기사 제외",

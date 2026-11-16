@@ -123,3 +123,11 @@ def previous(engine: Engine, key: str, before: datetime) -> dict[tuple[str, int,
     with engine.connect() as conn:
         rows = conn.execute(sql, {"key": key, "before": before}).all()
     return {(str(m), int(h), str(t)): (str(s), None if r is None else str(r), int(n)) for m, h, t, s, r, n in rows}
+
+
+def beats(engine: Engine, job: str, since: datetime) -> list[int]:
+    """5분마다 도는 작업의 끝난 시각(epoch) — 맥이 언제부터 깨어 있었나(move-news@3 늦은 사건 기록 조건)."""
+    sql = text("SELECT finished_at FROM forecast.job_run WHERE job = :job AND finished_at >= :since")
+    with engine.connect() as conn:
+        rows = conn.execute(sql, {"job": job, "since": since}).all()
+    return [int(r[0].timestamp()) for r in rows if r[0] is not None]

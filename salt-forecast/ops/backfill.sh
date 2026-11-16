@@ -16,7 +16,12 @@ rc=0
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 5m --since 2024-11-01 --days 0 \
   || { echo "[$(ts)] 업비트 5분봉 빈 곳 메우기 실패 — 다음 시에 잇는다"; rc=1; }
 
-# 2) 국내 백테스트 — 서버 밤 전 종목 일봉 5년(여러 밤)이 다 받은 뒤 한 번. 빈 데이터로 돌면 틀린 성적이 원장에 들어간다.
+# 2) 큰 움직임 × 소식(move-news@3) 늦은 사건 — 맥이 잠든 날의 사건은 깨어난 지 2시간 뒤에 기록한다(작업이 판단).
+#    매일 배치는 깨자마자 돌아 늘 2시간 전이라, 매시 여기서 한 번 더 부른다. 기록할 게 없으면 약 10초
+"$UV" run --frozen python -m salt_forecast.jobs.move_news --no-report >/dev/null \
+  || { echo "[$(ts)] move_news 늦은 사건 기록 실패 — 다음 시에"; rc=1; }
+
+# 3) 국내 백테스트 — 서버 밤 전 종목 일봉 5년(여러 밤)이 다 받은 뒤 한 번. 빈 데이터로 돌면 틀린 성적이 원장에 들어간다.
 #    조건: 마지막 전 종목 회차가 "남음 0"(07:20 멈춤 아님) · 국내 일봉 2,000종목 이상 · 국내 판단 과거 검산 행이 아직 없음.
 #    base_rate · short_direction · events 는 daily.sh 가 매일 다시 돈다 — 여기는 매일 돌지 않는 셋만
 kr_backtest_ready() {

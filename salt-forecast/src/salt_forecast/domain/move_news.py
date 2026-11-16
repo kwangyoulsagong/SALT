@@ -1,4 +1,6 @@
-"""H3 큰 움직임 × 소식 유무 × 거래량 — 사전등록 `move-news@1`(FC-REQ-028 FR-9 · F017 v4 순서 4). 순수 계산, I/O 없음.
+"""H3 큰 움직임 × 소식 유무 × 거래량 — 사전등록 `move-news@3`(@1 + 늦은 사건 재생 · FC-REQ-028 FR-9).
+
+F017 v4 순서 4. 순수 계산, I/O 없음.
 
 행렬은 (봉, 종목). 사건 = |r_t| ≥ 2σ_t(σ = 직전 20개 r, 오늘 제외).
 라벨 s = sign(r_t) · (h 봉 수익 − 같은 날 시장 평균).
@@ -32,7 +34,7 @@ from numpy.typing import NDArray
 from salt_forecast.domain.base_rate import holm
 from salt_forecast.domain.vol_range import newey_west_se
 
-KEY = "move-news@1"
+KEY = "move-news@3"
 HORIZONS = (1, 5)
 TESTS = ("news_up", "quiet_down", "diff")
 SIGMA_WINDOW = 20
@@ -46,9 +48,33 @@ PLACEBO_SEED = 20261113
 COVERED_TITLES = 3
 COVERED_DAYS = 30
 KR_NEWS_CUTOFF_S = 30 * 60  # 15:30 KST = 봉 available_at(16:00) − 30분
-REGISTERED_AT = datetime(2026, 11, 13, 2, 49, 40, tzinfo=UTC)  # 등록 커밋 51f6018d
+# @3(2026-11-16) — 전진 표본은 이 뒤 봉만(@1 은 2026-11-13 02:49:40Z 커밋 51f6018d). @2 는 '소식 종류별'로 예약
+REGISTERED_AT = datetime(2026, 11, 17, 0, 0, tzinfo=UTC)
+# @3 늦은 사건(맥이 잠든 날) — 깨어난 뒤 이 시간이 지나야 기록한다. 서버 크롤러가 잠든 동안 기사를 날짜 검색으로
+# 메우기 전에 기록하면 '소식 없음'으로 굳는다(2026-11-16 실측: 소식 있음 10건 중 7건이 잠든 시간 기사)
+LATE_AFTER_AWAKE_S = 2 * 3600
+REPLAY_CAP_DAYS = 14
 LOOKS = (date(2027, 1, 12), date(2027, 2, 11), date(2027, 3, 13))
 ALPHA_PER_LOOK = 0.0166667
+
+
+def look_cutoff(look: int) -> int:
+    """판정 표본 끝 — 판정 날짜 00:00 KST 전 봉만(판정이 늦게 돌아도 같은 표본, @3)."""
+    d = LOOKS[look]
+    return int(datetime(d.year, d.month, d.day, tzinfo=UTC).timestamp()) - 9 * 3600
+
+
+def awake_since(beats: Sequence[int], now: int, gap: int = 15 * 60) -> int:
+    """지금 깨어 있는 구간의 시작 — 5분마다 도는 작업 기록(beats, epoch)을 거슬러 gap 보다 긴 틈이 나오는 곳.
+
+    기록이 없으면 now(방금 깬 것으로 — 늦은 사건을 미룬다)."""
+    t = now
+    for b in sorted((x for x in beats if x <= now), reverse=True):
+        if t - b > gap:
+            break
+        t = b
+    return t
+
 
 Mat = NDArray[np.float64]
 Vec = NDArray[np.float64]

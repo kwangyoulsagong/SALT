@@ -130,9 +130,12 @@ def test_score_events_and_forward_sample() -> None:
     open_ = out[("KRW-B", _ts(int(d[10])))]
     assert open_.s1 == 0.01 and open_.s5 is None and open_.scored_at is None  # 5봉은 아직 — 다시 채점
     s1 = forward_sample(md, list(out.values()), 1)
-    assert s1.s.size == 3 and int(s1.has.sum()) == 1  # 늦은 B 제외 · A 둘 · B(10)
+    assert s1.s.size == 4 and int(s1.has.sum()) == 1  # @3 — 늦은 B(2)(재생)도 · A 둘 · B(10)
+    rt = forward_sample(md, list(out.values()), 1, realtime_only=True)
+    assert rt.s.size == 3  # 실시간만(민감도) — 늦은 B 제외
+    assert forward_sample(md, list(out.values()), 1, cutoff=int(d[4])).s.size == 2  # 판정 날짜 전 봉만 — A(2) · B(2)
     s5 = forward_sample(md, list(out.values()), 5)
-    assert s5.s.size == 1  # A(2) — A(4) 는 쿨다운 5 안 · B(10) 라벨 없음
+    assert s5.s.size == 2  # A(2) · 늦은 B(2) — A(4) 는 쿨다운 5 안 · B(10) 라벨 없음
     assert math.isclose(float(s5.net[0]), -0.02 - 0.0015)
 
 
@@ -151,3 +154,26 @@ def test_title_times_filters_moves_bundles_and_future() -> None:
     pub, every = title_times("kr", raw, d, ["005930", "000660"], now)
     assert pub["005930"].size == 2 and pub["000660"].size == 1
     assert every.size == 4  # 덮임은 거르기 전 · as_of 뒤는 뺀다
+
+
+def test_new_events_late_only_when_allowed() -> None:
+    """@3 — 다음 봉이 이미 열린(늦은) 사건은 깨어난 지 2시간 뒤(late_ok)에만 기록한다."""
+    md = _md()
+    d = md.dates
+    at = _ts(int(d[-1]) + 60)
+    every = new_events(md, set(), 0, at, late_ok=True)
+    fresh_only = new_events(md, set(), 0, at, late_ok=False)
+    assert len(every) == 3 and fresh_only == []  # 사건 봉(2 · 4)은 다 지나간 봉 — 늦은 사건뿐
+
+
+def test_awake_since_boundary_table() -> None:
+    from salt_forecast.domain.move_news import awake_since
+
+    now = 100_000
+    five = 300
+    beats = [now - k * five for k in range(0, 25)]  # 2시간 연속
+    assert awake_since(beats, now) == now - 24 * five
+    gap = [*beats, now - 24 * five - 20 * 60, now - 24 * five - 25 * 60]  # 20분 틈 — 잠
+    assert awake_since(gap, now) == now - 24 * five
+    assert awake_since([], now) == now  # 기록 없음 — 방금 깬 것으로
+    assert awake_since([now - 16 * 60], now) == now  # 마지막 기록이 16분 전 — 지금 막 깼다
