@@ -698,9 +698,14 @@ def forward_metrics(s: ForwardSample, block: int) -> ForwardMetrics:
     )
 
 
-def is_look(day_iso: str) -> int | None:
-    """판정 날짜면 몇 번째(0부터), 아니면 None."""
-    return LOOKS.index(day_iso) if day_iso in LOOKS else None
+def is_look(day_iso: str, last_run_day: str | None = None) -> int | None:
+    """이번 실행이 판정할 날짜 번호(0부터), 아니면 None.
+
+    판정 날짜 당일 · **또는 그 뒤 첫 실행**(직전 실행이 그 날짜 전) — 맥이 판정 날짜에 잠들어도 판정을 건너뛰지 않는다
+    (2026-11-16, vol-range@1 · move-news@1 과 같은 규칙). 둘 이상 지났으면 마지막 것.
+    같은 날 두 번째 실행은 판정하지 않는다."""
+    due = [i for i, d in enumerate(LOOKS) if d <= day_iso and (last_run_day is None or last_run_day < d)]
+    return due[-1] if due else None
 
 
 def forward_judge(cells: dict[str, ForwardMetrics], look: int) -> dict[str, tuple[str, str | None]]:

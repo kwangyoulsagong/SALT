@@ -55,6 +55,7 @@ from salt_forecast.store.short_direction import (
     LiveOutcome,
     PredictionRow,
     active_cells,
+    last_run,
     live_outcomes,
     previous_status,
     save_predictions,
@@ -130,7 +131,8 @@ def main(argv: list[str] | None = None) -> int:
         run = run_test(crypto, kr, as_of)
         stage("test")
         prev = previous_status(eng, KEY, as_of)
-        look = is_look((as_of + KST).date().isoformat())
+        last = last_run(eng, KEY, as_of)
+        look = is_look((as_of + KST).date().isoformat(), None if last is None else (last + KST).date().isoformat())
         lives: dict[str, list[LiveOutcome]] = {}
         forward: dict[str, ForwardMetrics] = {}
         for c in run.cells:
