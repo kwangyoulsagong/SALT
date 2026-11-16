@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { GetSymbolScenario } from "../GetSymbolScenario";
+import { INTRADAY_BASE_RATE_KEY } from "../../domain";
 import type { BaseRateReader, BaseRateRow, BaseRateTriggerRow, MarketProbe, ShortHorizonReader } from "../../domain";
 
 const NOW = new Date("2026-11-13T03:00:00Z");
@@ -29,6 +30,7 @@ const usual = (m: "kr" | "crypto", horizon: number): BaseRateRow => ({
   market: m,
   conditionId: "ALL",
   horizon,
+  horizonUnit: "day",
   asOf: NOW,
   kind: "usual",
   status: "ok",
@@ -61,13 +63,22 @@ const trigger: BaseRateTriggerRow = {
   valueAtLeast: null,
 };
 
-const rates = (calls: string[], rows: BaseRateRow[], triggers: BaseRateTriggerRow[] = [], fail = false): BaseRateReader => ({
-  stats: async (m) => {
+/** 장중 키(`base-rate@3`)는 `intraday` 로 따로 — 기록(calls)엔 하루 키만 남긴다(기존 단정 그대로) */
+const rates = (
+  calls: string[],
+  rows: BaseRateRow[],
+  triggers: BaseRateTriggerRow[] = [],
+  fail = false,
+  intraday: { rows: BaseRateRow[]; triggers: BaseRateTriggerRow[] } = { rows: [], triggers: [] }
+): BaseRateReader => ({
+  stats: async (m, key) => {
+    if (key === INTRADAY_BASE_RATE_KEY) return intraday.rows;
     calls.push(`stats:${m}`);
     if (fail) throw new Error("view missing");
     return rows;
   },
-  triggers: async (s, m) => {
+  triggers: async (s, m, key) => {
+    if (key === INTRADAY_BASE_RATE_KEY) return intraday.triggers;
     calls.push(`triggers:${s}:${m}`);
     return triggers;
   },
@@ -124,5 +135,28 @@ describe("GetSymbolScenario — 모든 종목 · 지평 넷에 늘(SRV-REQ-053 F
     const v = await uc.execute(owner, "BTC");
     assert.equal(v.horizons[2].tier, "usual");
     assert.equal(v.horizons[2].model?.blockedReason, "not_tested");
+  });
+
+  it("1h · 4h 는 장중 기저율(base-rate@3) — 5분마다 바뀌는 문턱이 지금 성립하면 그 조건, 15분 넘게 묵으면 평소", async () => {
+    const hour = (h: number): BaseRateRow => ({ ...usual("crypto", h), horizonUnit: "hour", holdUpRate: 0.47 });
+    const cm1: BaseRateRow = { ...hour(1), conditionId: "CM1L", kind: "test", holdUpRate: 0.42 };
+    const fresh: BaseRateTriggerRow = { ...trigger, conditionId: "CM1L", refClose: 9_500, refAt: new Date(NOW.getTime() - 5 * 60_000), priceAtMost: null, priceAtLeast: 9_785 };
+    const intraday = { rows: [hour(1), hour(4), cm1], triggers: [fresh] };
+    const uc = new GetSymbolScenario(models([]), rates([], [usual("crypto", 1), usual("crypto", 5)], [], false, intraday), market("crypto"), OWNERS, () => NOW);
+    const v = await uc.execute(friend, "BTC");
+    const [h1, h4, d1] = v.horizons;
+    assert.deepEqual([h1.tier, h1.fallbackFrom, h1.baseRate?.condition?.id, h1.baseRate?.upCount100], ["now", null, "CM1L", 42]);
+    assert.deepEqual([h4.tier, h4.fallbackFrom, h4.baseRate?.upCount100], ["usual", null, 47]); // 4시간 조건 행이 없다 → 장중 평소
+    assert.equal(d1.baseRate?.upCount100, 44); // 하루 칸은 base-rate@1 그대로
+
+    const stale = { ...intraday, triggers: [{ ...fresh, refAt: new Date(NOW.getTime() - 16 * 60_000) }] };
+    const old = await new GetSymbolScenario(models([]), rates([], [usual("crypto", 1)], [], false, stale), market("crypto"), OWNERS, () => NOW).execute(friend, "BTC");
+    assert.deepEqual([old.horizons[0].tier, old.horizons[0].baseRate?.condition], ["usual", null]);
+  });
+
+  it("장중 통계가 아직 없으면(첫 실행 · 국내 백필 전) 1h · 4h 는 하루 값으로 — fallbackFrom 1d", async () => {
+    const uc = new GetSymbolScenario(models([]), rates([], [usual("kr", 1), usual("kr", 5)]), market("kr_stock"), OWNERS, () => NOW);
+    const v = await uc.execute(friend, "005930");
+    assert.deepEqual(v.horizons.slice(0, 2).map((h) => [h.tier, h.fallbackFrom]), [["longer", "1d"], ["longer", "1d"]]);
   });
 });

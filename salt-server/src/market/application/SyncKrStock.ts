@@ -226,8 +226,16 @@ export class SyncKrDailyCandles {
     private readonly now: () => Date = () => new Date()
   ) {}
 
-  /** `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부 */
-  async execute(only?: string[]) {
+  /**
+   * `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부.
+   * `calls` — 회차 호출 상한(기본 장 마감 회차 1,200 · 밤 백필 `MINUTE_BACKFILL_CALLS_PER_NIGHT`)
+   */
+  /** 밤 백필 회차 — 1년 창의 빈 날을 큰 상한으로(`kr-minute-backfill`) */
+  backfillNight() {
+    return this.execute(undefined, MINUTE_BACKFILL_CALLS_PER_NIGHT);
+  }
+
+  async execute(only?: string[], calls: number = MINUTE_CALLS_PER_RUN) {
     const today = kstDateOf(this.now());
     const codes = only ?? (await this.universe.execute());
     const [range, stored] = await Promise.all([
@@ -563,12 +571,18 @@ export class ReportKrProviderMetrics {
 }
 
 /**
- * 5분봉 보관 — 코인과 같은 30일. 정리 작업(`CollectPriceHistory.purgeOlderThan`)이 자산군 구분 없이 5분봉 30일을 지운다.
- * 기획의 "1년 백필"은 보관 정책과 어긋나 30일로 맞췄다(기획 정정 — 코인과 같은 기능)
+ * 5분봉 백필 창 — ~~코인과 같은 30일~~ **1년(2026-11-16, 기획 원문 FR-21 으로 되돌림)**. 30일로 줄였던 이유는 보관 정책이었다 —
+ * 국내 5분봉 보관을 400일로 늘려(`SyncMarketData` `RETENTION`) 장중 기저율(`FC-REQ-028` FR-7)이 1년 이력을 쓴다.
+ * KIS 일별분봉(`FHKST03010230`)이 주는 끝이 1년이다
  */
-const MINUTE_BACKFILL_DAYS = 30;
+const MINUTE_BACKFILL_DAYS = 365;
 /** 한 회차 KIS 호출 상한 — 실측 처리량 약 2건/s 에서 10분 남짓. 남은 날은 다음 회차가 잇는다 */
 const MINUTE_CALLS_PER_RUN = 1_200;
+/**
+ * 밤 백필 회차 상한(`kr-minute-backfill`) — 1년 × 유니버스 약 50종목 × 4쪽 ≈ 5만 호출을 밤 2~3번에 나눈다.
+ * 2만 = 약 2건/s 에서 3시간 남짓(전 종목 일봉 밤 회차와 한도를 나눠 쓰면 더 길다 — 07:20 전에 끝나는 크기)
+ */
+const MINUTE_BACKFILL_CALLS_PER_NIGHT = 20_000;
 /** 하루 1분봉 390개 = 120 × 4 페이지 */
 const MINUTE_PAGES_PER_DAY = 4;
 /** 이만큼 있고 종가 봉(15:25)이 있으면 그날은 채워진 것으로 본다 — 체결 없는 5분이 드물게 있다 */
@@ -585,7 +599,8 @@ const MINUTE_CLOSE_RETRY_OPEN_DAYS = 5;
  *
  * - **오늘**(개장일 · 15:35 뒤): 실시간 집계를 KIS 1분봉에서 만든 5분봉으로 덮어쓴다 — 재시작 · 끊김으로 빈 버킷과
  *   슬롯 밖 종목(실시간 집계가 없다)을 채운다
- * - **지난 29일**(보관 30일 중 정리가 아직 안 지운 날): 봉이 모자란 날 · 종가 봉이 없는 최근 5개장일만, 최신 날부터. 회차 호출 상한을 넘으면 다음 회차가 잇는다
+ * - **지난 1년**: 봉이 모자란 날 · 종가 봉이 없는 최근 5개장일만, 최신 날부터. 회차 호출 상한을 넘으면 다음 회차가 잇는다.
+ *   장 마감 회차(15:40 · 20:40)는 1,200 호출, 밤 백필 회차(`kr-minute-backfill`)는 2만 호출
  */
 export class SyncKrMinuteBars {
   constructor(
@@ -596,13 +611,21 @@ export class SyncKrMinuteBars {
     private readonly now: () => Date = () => new Date()
   ) {}
 
-  /** `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부 */
-  async execute(only?: string[]) {
+  /**
+   * `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부.
+   * `calls` — 회차 호출 상한(기본 장 마감 회차 1,200 · 밤 백필 `MINUTE_BACKFILL_CALLS_PER_NIGHT`)
+   */
+  /** 밤 백필 회차 — 1년 창의 빈 날을 큰 상한으로(`kr-minute-backfill`) */
+  backfillNight() {
+    return this.execute(undefined, MINUTE_BACKFILL_CALLS_PER_NIGHT);
+  }
+
+  async execute(only?: string[], calls: number = MINUTE_CALLS_PER_RUN) {
     const at = this.now();
     const today = kstDateOf(at);
     const kstMinutes = Math.floor(((at.getTime() + 9 * 3_600_000) % 86_400_000) / 60_000);
-    // 정리는 "지금 − 30일" 앞을 지운다 — 어느 시각에 돌든 30일 전 날은 장중 봉이 이미 없거나 몇 시간 안에 사라진다.
-    // 그날까지 창에 넣으면 회차마다 전 종목을 다시 받고 정리가 다시 지운다(2026-11-02 실측: 회차 호출의 절반)
+    // 창 끝 날은 넣지 않는다 — 보관(400일)보다 짧은 1년이라 정리와 겹치지 않지만, 30일 때 끝 날을 넣어 회차마다 다시 받고
+    // 정리가 다시 지우던 낭비(2026-11-02 실측: 회차 호출의 절반)를 같은 모양으로 막아 둔다
     const from = addKstDays(today, -(MINUTE_BACKFILL_DAYS - 1));
     const openDays = (await this.calendar.days(from, today))
       .filter((d) => d.isOpen && (d.date < today || kstMinutes >= 15 * 60 + 35))
@@ -622,18 +645,18 @@ export class SyncKrMinuteBars {
       }
     }
 
-    let calls = 0;
+    let used = 0;
     let days = 0;
     let bars = 0;
     let failed = 0;
-    const budget = Math.floor(MINUTE_CALLS_PER_RUN / MINUTE_PAGES_PER_DAY);
+    const budget = Math.floor(calls / MINUTE_PAGES_PER_DAY);
     await mapConcurrent(work.slice(0, budget), KIS_CONCURRENCY, async ({ code, date }) => {
       try {
         const minutes = [];
         let cursor = "153100";
         for (let page = 0; page < MINUTE_PAGES_PER_DAY; page++) {
           const batch = await this.kis.dayMinuteCandles(code, date, cursor);
-          calls++;
+          used++;
           if (batch.length === 0) break;
           minutes.push(...batch);
           const earliest = batch.reduce((a, b) => (a.timestamp < b.timestamp ? a : b)).timestamp;
@@ -653,8 +676,8 @@ export class SyncKrMinuteBars {
 
     // 남은 = 다음 회차가 받을 것 — 상한에 걸려 못 고른 것 + 실패한 것. 실패를 빼면 "남은 0" 이 다 된 것처럼 읽힌다
     const remaining = work.length - days;
-    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${calls} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)`);
-    return { days, calls, bars, failed, remaining };
+    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${used} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)`);
+    return { days, calls: used, bars, failed, remaining };
   }
 }
 

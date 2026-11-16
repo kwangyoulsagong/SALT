@@ -1,5 +1,6 @@
 import { logger } from "../../shared/config/logger";
 import {
+  INTRADAY_BASE_RATE_KEY,
   isForecastOwner,
   judgmentAssetClassFor,
   matchConditions,
@@ -29,8 +30,8 @@ const DISCLAIMER =
  * 시나리오 — 모든 종목 · 지평 넷에 늘(F017 v4 순서 1 · `SRV-REQ-053` FR-10 · `ADR-010` v4).
  *
  * 로그인한 누구나 본다. 칸마다 출처가 실린다: 모델 확률은 **소유자 + 시험을 넘은 칸**만(`ADR-003` — 소유자가 아니면 모델 뷰를
- * 읽지도 않는다), 나머지는 과거 실제 결과(`base-rate@1` — 점검 한 줄과 같은 뷰 · 같은 조건 판정).
- * 요청 경로는 저장값만: 저장 시세 1 + 기저율 뷰 2 (+ 소유자면 모델 뷰 2). 읽기가 실패해도 500 이 아니라 그 칸이 결함 단으로 내려간다.
+ * 읽지도 않는다), 나머지는 과거 실제 결과(1d · 5d `base-rate@1` — 점검 한 줄과 같은 뷰 · 같은 조건 판정, 1h · 4h `base-rate@3` 5분봉).
+ * 요청 경로는 저장값만: 저장 시세 1 + 기저율 뷰 4(하루 · 장중 × 통계 · 문턱) (+ 소유자면 모델 뷰 2). 읽기가 실패해도 500 이 아니라 그 칸이 결함 단으로 내려간다.
  */
 export class GetSymbolScenario {
   constructor(
@@ -47,29 +48,39 @@ export class GetSymbolScenario {
     const quote = (await this.market.quotes([normalized])).get(normalized);
     const market: ScenarioMarket = judgmentAssetClassFor(quote?.assetType) === "kr_stock" ? "kr" : "crypto";
 
-    const [models, rates] = await Promise.all([
+    const [models, rates, intraday] = await Promise.all([
       isForecastOwner(user.email, this.ownerEmails) ? this.models(normalized, market, now) : Promise.resolve(null),
       Promise.all([this.baseRates.stats(market), this.baseRates.triggers(normalized, market)]).catch((error: unknown) => {
         logger.warn("시나리오 기저율 읽기 실패 — 결함 단으로", { symbol: normalized, error: String(error) });
         return null;
       }),
+      // 장중(1h · 4h — `base-rate@3`). 실패하면 그 두 칸만 하루 값으로 내려간다
+      Promise.all([
+        this.baseRates.stats(market, INTRADAY_BASE_RATE_KEY),
+        this.baseRates.triggers(normalized, market, INTRADAY_BASE_RATE_KEY),
+      ]).catch((error: unknown) => {
+        logger.warn("시나리오 장중 기저율 읽기 실패 — 하루 값으로", { symbol: normalized, error: String(error) });
+        return null;
+      }),
     ]);
     const [stats, triggers] = rates ?? [[], []];
-    const match = matchConditions(
-      market,
-      triggers,
-      {
-        price: quote?.currentPrice ?? null,
-        open: quote?.openPrice ?? null,
-        tradeValue: quote?.tradeValue24h ?? null,
-        updatedAt: quote?.priceUpdatedAt ?? null,
-      },
-      now
-    );
+    const [intradayStats, intradayTriggers] = intraday ?? [[], []];
+    const live = {
+      price: quote?.currentPrice ?? null,
+      open: quote?.openPrice ?? null,
+      tradeValue: quote?.tradeValue24h ?? null,
+      updatedAt: quote?.priceUpdatedAt ?? null,
+    };
+    const match = matchConditions(market, triggers, live, now);
+    const intradayMatch = matchConditions(market, intradayTriggers, live, now, true);
     return {
       symbol: normalized,
       market,
-      horizons: toScenarioCells(market, models, { stats, matched: match.matched, price: quote?.currentPrice ?? null }),
+      horizons: toScenarioCells(market, models, {
+        stats: [...stats, ...intradayStats],
+        matched: [...intradayMatch.matched, ...match.matched],
+        price: quote?.currentPrice ?? null,
+      }),
       disclaimer: DISCLAIMER,
     };
   }

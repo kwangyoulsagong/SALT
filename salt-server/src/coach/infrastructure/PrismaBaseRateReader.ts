@@ -22,7 +22,7 @@ const num = (v: Prisma.Decimal | number | null): number | null => (v === null ? 
  * 요청 경로라 한 문장씩 · 시장 통계 ≤ 20행 · 종목 문턱 ≤ 12행. 숫자 비교 외 계산 0
  */
 export class PrismaBaseRateReader implements BaseRateReader {
-  async stats(market: TradeCheckMarket): Promise<BaseRateRow[]> {
+  async stats(market: TradeCheckMarket, key: string = BASE_RATE_KEY): Promise<BaseRateRow[]> {
     const rows = await prisma.$queryRaw<
       Array<{
         condition_id: string;
@@ -46,15 +46,17 @@ export class PrismaBaseRateReader implements BaseRateReader {
         hold_q90: number | null;
         differs: "higher" | "lower" | null;
         recent_differs: boolean | null;
+        horizon_unit: "day" | "hour";
       }>
     >`
       SELECT condition_id, horizon, as_of, kind, status, sample, sample_eff, sample_days, up_rate, up_low, up_high,
-             mean, q10, q50, q90, hold_up_rate, hold_q10, hold_q50, hold_q90, differs, recent_differs
-      FROM forecast.v_base_rate WHERE prereg_key = ${BASE_RATE_KEY} AND market = ${market}`;
+             mean, q10, q50, q90, hold_up_rate, hold_q10, hold_q50, hold_q90, differs, recent_differs, horizon_unit
+      FROM forecast.v_base_rate WHERE prereg_key = ${key} AND market = ${market}`;
     return rows.map((r) => ({
       market,
       conditionId: r.condition_id,
       horizon: r.horizon,
+      horizonUnit: r.horizon_unit,
       asOf: r.as_of,
       kind: r.kind,
       status: r.status,
@@ -77,7 +79,7 @@ export class PrismaBaseRateReader implements BaseRateReader {
     }));
   }
 
-  async triggers(symbol: string, market: TradeCheckMarket): Promise<BaseRateTriggerRow[]> {
+  async triggers(symbol: string, market: TradeCheckMarket, key: string = BASE_RATE_KEY): Promise<BaseRateTriggerRow[]> {
     const rows = await prisma.$queryRaw<
       Array<{
         condition_id: string;
@@ -92,7 +94,7 @@ export class PrismaBaseRateReader implements BaseRateReader {
     >`
       SELECT condition_id, applies_to, ref_close, ref_at, price_at_least, price_at_most, open_at_least, value_at_least
       FROM forecast.v_base_rate_trigger
-      WHERE prereg_key = ${BASE_RATE_KEY} AND market = ${market} AND symbol = ${forecastKey(symbol, market)}`;
+      WHERE prereg_key = ${key} AND market = ${market} AND symbol = ${forecastKey(symbol, market)}`;
     return rows.map((r) => ({
       conditionId: r.condition_id,
       appliesTo: r.applies_to,
