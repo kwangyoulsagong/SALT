@@ -824,3 +824,118 @@ move_news_test = Table(
     Column("looks_done", Integer, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )
+
+# ---- 온톨로지 네 층 · 원인 설명 채점(FC-REQ-022 FR-1~4 · 13 · 14 · 15 · F017 v4 순서 5) ----
+
+entity = Table(
+    "entity",
+    metadata,
+    Column("id", Text, primary_key=True),
+    Column("kind", Text, nullable=False),
+    Column("canonical_name", Text, nullable=False),
+    Column("external_ids", JSONB, nullable=False),
+    Column("merged_into", Text),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+)
+
+relation = Table(
+    "relation",
+    metadata,
+    Column("subject", Text, primary_key=True),
+    Column("predicate", Text, primary_key=True),
+    Column("object", Text, primary_key=True),
+    Column("valid_from", DateTime(timezone=True), primary_key=True),
+    Column("valid_to", DateTime(timezone=True)),
+    Column("observed_at", DateTime(timezone=True), nullable=False),
+    Column("available_at", DateTime(timezone=True), nullable=False),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+    Column("source_kind", Text, nullable=False),
+    Column("source_url", Text),
+    Column("confidence", Float, nullable=False),
+)
+
+fact = Table(
+    "fact",
+    metadata,
+    Column("entity", Text, primary_key=True),
+    Column("attribute", Text, primary_key=True),
+    Column("value_num", Float),
+    Column("value_text", Text),
+    Column("unit", Text),
+    Column("valid_from", DateTime(timezone=True), primary_key=True),
+    Column("valid_to", DateTime(timezone=True)),
+    Column("observed_at", DateTime(timezone=True), nullable=False),
+    Column("available_at", DateTime(timezone=True), primary_key=True),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+    Column("source_kind", Text, nullable=False),
+    Column("source_url", Text),
+)
+
+cause_candidate = Table(
+    "cause_candidate",
+    metadata,
+    Column("entity", Text, primary_key=True),
+    Column("trade_date", Date, primary_key=True),
+    Column("fingerprint", Text, primary_key=True),
+    Column("rank", Integer, primary_key=True),
+    Column("kind", Text, nullable=False),
+    Column("strength", Text, nullable=False),
+    Column("headline", Text, nullable=False),
+    Column("event_entity", Text),
+    Column("supports", Integer, nullable=False),
+    Column("available_at", DateTime(timezone=True), nullable=False),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+)
+
+evidence = Table(
+    "evidence",
+    metadata,
+    Column("entity", Text, primary_key=True),
+    Column("trade_date", Date, primary_key=True),
+    Column("fingerprint", Text, primary_key=True),
+    Column("rank", Integer, primary_key=True),
+    Column("ord", Integer, primary_key=True),
+    Column("kind", Text, nullable=False),
+    Column("value_text", Text, nullable=False),
+    Column("compare_text", Text),
+    Column("supports", Boolean, nullable=False),
+    Column("source_name", Text, nullable=False),
+    Column("observed_at", DateTime(timezone=True)),
+    Column("available_at", DateTime(timezone=True), nullable=False),
+)
+
+outcome = Table(
+    "outcome",
+    metadata,
+    Column("entity", Text, primary_key=True),
+    Column("trade_date", Date, primary_key=True),
+    Column("horizon", Integer, primary_key=True),
+    Column("r", Float, nullable=False),
+    Column("r_market", Float, nullable=False),
+    Column("excess", Float, nullable=False),
+    Column("available_at", DateTime(timezone=True), nullable=False),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+)
+
+cause_explain_test = Table(
+    "cause_explain_test",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("horizon", Integer, primary_key=True),
+    Column("run_as_of", DateTime(timezone=True), primary_key=True),
+    Column("status", Text, nullable=False),
+    Column("reason", Text),
+    Column("rows_scored", Integer, nullable=False),
+    Column("rows_cold", Integer, nullable=False),
+    Column("days", Integer, nullable=False),
+    Column("brier_kind", Float),
+    Column("brier_base", Float),
+    Column("skill", Float),
+    Column("t", Float),
+    Column("p", Float),
+    Column("p_holm", Float),
+    Column("detail", JSONB, nullable=False),
+    Column("looks_done", Integer, nullable=False),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
