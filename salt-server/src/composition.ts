@@ -14,6 +14,7 @@ import { LocalCliGate } from "./coach/infrastructure/localCliGate";
 import { MoveCardAdapter } from "./coach/infrastructure/MoveCardAdapter";
 import { MoveCauseAdapter } from "./coach/infrastructure/MoveCauseAdapter";
 import { PrismaPanelCellCheckStore } from "./coach/infrastructure/PrismaPanelCellCheckStore";
+import { PrismaCauseSnapshotStore } from "./coach/infrastructure/PrismaCauseSnapshotStore";
 import { PanelUniverseAdapter } from "./coach/infrastructure/PanelUniverseAdapter";
 import { PrismaMoveSummaryStore } from "./coach/infrastructure/PrismaMoveSummaryStore";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
@@ -296,6 +297,8 @@ const roundTripCosts: RoundTripCosts = {
   krStockCommissionPerSide: env.KR_STOCK_COMMISSION_RATE_PER_SIDE,
 };
 
+// 원인 칸(패널) · 원인 스냅샷(5a)이 같은 ACL 하나를 쓴다
+const moveCauseAdapter = new MoveCauseAdapter(market.api);
 const coach = createCoachApplication({
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
@@ -361,7 +364,10 @@ const coach = createCoachApplication({
   shortHorizons: new PrismaShortHorizonReader(),
   tradeCheckLedger: new PrismaTradeCheckLedger(),
   // 한 장 패널의 원인 칸 — market 공개 API 의 원인 → 근거 → 결과(같은 유스케이스, `cause: true`)
-  moveCauses: new MoveCauseAdapter(market.api),
+  moveCauses: moveCauseAdapter,
+  // 원인 스냅샷(F017 v4 5a) — 같은 어댑터(원인 칸과 같은 조립) · 덧붙이기만
+  causeSnapshots: moveCauseAdapter,
+  causeSnapshotStore: new PrismaCauseSnapshotStore(),
   // 패널 칸 채움 실측(OPS-004) — 하루 두 번 워커
   panelChecks: new PrismaPanelCellCheckStore(),
   panelUniverse: new PanelUniverseAdapter(market.api, new TrackedAssetAdapter(market.api, portfolio.api)),

@@ -67,6 +67,15 @@ export class InvestmentInsightWorker {
     };
     schedule("panel-cell-check", "30 12,16 * * *", measurePanelCells, { timezone: "Asia/Seoul", catchUp: true });
 
+    // 원인 스냅샷(F017 v4 5a · SRV-REQ-053 FR-18) — 코인 하루 끝 직전(08:40) · 국내 장 뒤(16:40) KST. 찍는 창 밖이면 유스케이스가
+    // 아무것도 안 한다(놓친 날은 빈 날 — 다른 시각 값으로 메우지 않는다). 깨어난 자리 한 번도 같은 창 규칙
+    const recordMoveCauses = async () => {
+      const r = await this.coach.recordMoveCauses.execute();
+      const open = Object.entries(r.markets).map(([m, d]) => `${m} ${d}`).join(" · ") || "창 닫힘";
+      console.log(`🧭 Move causes — ${open} · 종목 ${r.symbols} · 새 행 ${r.recorded} · 같음 ${r.unchanged} · 없음 ${r.skipped} · 실패 ${r.failed}`);
+    };
+    schedule("move-cause-snapshot", "40 8,16 * * *", recordMoveCauses, { timezone: "Asia/Seoul", catchUp: true });
+
     const refreshGauges = async () => {
       const result = await this.coach.refreshGaugeTrackRecords.execute();
       console.log(`📏 Gauge track records refreshed — ${result.records}줄`);

@@ -690,6 +690,26 @@ model MoveExplanation {
   @@map("move_explanation")
 }
 
+// 원인 스냅샷(F017 v4 5a · DB-REQ-043 FR-8 · SRV-REQ-053 FR-18) — 그날 패널이 보인 원인 → 근거 → 결과를 다음 등락 전에.
+// 시장 층 — 사용자 열 0. 덧붙이기만(UPDATE 트리거 차단) · (시장, 종목, 거래일, 지문) 유일. 예측은 export 뷰 `v_cause_snapshot_export` 만
+model CauseSnapshot {
+  id          String   @id @default(uuid())
+  market      String // "kr" | "crypto"
+  symbol      String
+  tradeDate   DateTime @map("trade_date") @db.Date
+  fingerprint String
+  topKind     String   @map("top_kind")
+  topStrength String   @map("top_strength") // "likely" | "possible" | "none"
+  changeRate  Float    @map("change_rate") // 오늘 등락(%) — 금액 아님
+  split       Json? // {market, sector, idio, method} — 쿼리 조건 아님
+  candidates  Json // [{kind, strength, headline, factId, at, evidence[]}] — 쿼리 조건 아님(종류 · 단계는 위 열)
+  capturedAt  DateTime @map("captured_at") @db.Timestamptz(3)
+
+  @@unique([market, symbol, tradeDate, fingerprint])
+  @@index([market, tradeDate], map: "cause_snapshot_day_idx")
+  @@map("cause_snapshot")
+}
+
 // 패널 칸 채움 실측(OPS-004 · F017 v4) — 하루 두 번 추적 종목 전부의 한 장 패널 응답을 불러 종목 × 칸마다 어느 단을 썼나.
 // 시장 층 — 사용자 열 0. 상태 점검(`ops/salt.sh status`)이 마지막 회차만 읽는다. 30일 보관(유스케이스가 지운다)
 model PanelCellCheck {
