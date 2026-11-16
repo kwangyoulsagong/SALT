@@ -58,3 +58,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-forecast/src/salt_forecast/store/tables.py` 에 걸린 몫: 손 선언 표 `judgment_tier` 추가(스키마 계약 테스트가 DB 와 대조). 사건 표 선언은 그대로. 주인 `FC-REQ-028` FR-6. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-11 | F017 v2 단계 5 — `store/tables.py` 에 단타 확률 표 셋 선언(이 REQ 표 변경 0, 머리 주석 주인) |
 | 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `store/tables.py`(머리 주인) `base_rate_stat.horizon_unit` 선언 — 이 REQ 표 변경 0 |
+| 2026-11-16 | F017 v4 순서 4 짝(루트 `requirements/specs/in-progress/F017-v4-stage4-experiment-slice.md`) — `store/tables.py`(머리 주인)에 예측 실험 표 넷 선언(`DB-REQ-043` FR-14) — 사건 일정 · 반응 표 무변경 |

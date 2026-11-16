@@ -147,3 +147,7 @@
 ## 2026-11-16 — F017 v4 순서 3b
 
 - FR-8 구현 — 루트 체크리스트 3b 절(사전등록 @1 → @2 · 새 시험 7 · 국내 ok 41)
+
+## 2026-11-16 — F017 v4 순서 4
+
+- FR-9 H1 · H3 구현 — 검증 · 미검증 표는 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`(새 시험 29 · 누수 2 · 변이 7/7 · 코인 H1 1차 forward)

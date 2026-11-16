@@ -101,3 +101,7 @@
 
 - `ops/daily.sh`(머리 주인)에 장중 기저율 통계(`base_rate_intraday stats` · 국내 5분봉 400일 옮기기) — 뉴스 원장 · 감성 무변경
 - 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 4 짝
+
+- daily.sh 단계 둘 — zsh -n 통과 · 두 작업 실 실행 13초 · 7초. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`

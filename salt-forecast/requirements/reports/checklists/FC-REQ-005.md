@@ -85,3 +85,7 @@
 
 - `store/tables.py`(머리 주인) `base_rate_stat.horizon_unit` 선언 — 이 REQ 표 변경 0
 - 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 4 짝
+
+- tables.py 에 표 넷 선언 — 스키마 계약 시험 통과. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`
