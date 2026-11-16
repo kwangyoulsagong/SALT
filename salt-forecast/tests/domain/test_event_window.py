@@ -119,3 +119,31 @@ def test_dart_published_backfill_uses_receipt_day_end_kst() -> None:
     assert backfilled == datetime(2025, 12, 1, 14, 59, 59, tzinfo=UTC)  # 23:59:59 KST
     live = datetime(2026, 11, 16, 6, 30, tzinfo=UTC)  # 15:30 KST 같은 날 처음 봄
     assert dart_published(live, date(2026, 11, 16)) == live
+
+
+def test_post30m_is_own_move_minus_market_minute_move() -> None:
+    """+30분 = 그 종목 30분 원 등락 − 같은 30분 시장(그 창에 봉이 있는 종목 동일가중)."""
+    pub = T0 + 3 * DAY + 600  # 기준 봉 3 뒤 — 봉 경계 위의 게시
+    t = pub + 300 * np.arange(1, 8, dtype=np.int64)  # 게시 뒤 첫 봉 마감 ~ 35분
+    up = OhlcvSeries("A", t, np.full(7, 100.0), np.full(7, 110.0), np.full(7, 100.0), np.full(7, 110.0), np.ones(7))
+    flat = OhlcvSeries("B", t, np.full(7, 50.0), np.full(7, 50.0), np.full(7, 50.0), np.full(7, 50.0), np.ones(7))
+    a = {"A": aligned("A", [100.0] * 10), "B": aligned("B", [50.0] * 10)}
+    row = windows(
+        [(Title("news", "earnings", "A", datetime.fromtimestamp(pub, tz=UTC)), 3)],
+        a,
+        {"A": up, "B": flat},
+        T0 + 9 * DAY,
+    )[0]
+    own = np.log(110.0 / 100.0)
+    assert np.isclose(row.post30m, own - own / 2)  # 시장 = (A + B) / 2
+
+
+def test_tercile_boundary_values_go_to_lower_bucket() -> None:
+    """경계값과 같으면 아래 칸 — 사전등록 low ≤ 첫째 < mid ≤ 둘째 < high (서버 preMoveTercile 과 같은 규칙)."""
+    cuts = (-0.02, 0.03)
+    assert [tercile_of(-0.02, cuts), tercile_of(-0.0199, cuts), tercile_of(0.03, cuts), tercile_of(0.0301, cuts)] == [
+        "low",
+        "mid",
+        "mid",
+        "high",
+    ]

@@ -88,7 +88,7 @@ const COLLECT_TARGETS: Array<{ timeframe: PriceTimeframe; count: number }> = [
  * 5분봉 이력이 필요하고, KIS 일별분봉은 1년까지 준다(`SyncKrMinuteBars` 1년 백필). 유니버스 약 50종목 × 78봉 × 250일 ≈ 100만 행.
  * 코인 5분봉 이력은 예측(`forecast.price_bar` upbit 5m)이 따로 쌓는다 — 서버 표는 30일 그대로
  */
-const RETENTION = [
+export const RETENTION = [
   { timeframe: "5m", interval: "30 days", exceptAssetType: "kr_stock" as const },
   { timeframe: "5m", interval: "400 days" },
   { timeframe: "1d", interval: "2 years", exceptAssetType: "kr_stock" as const },
