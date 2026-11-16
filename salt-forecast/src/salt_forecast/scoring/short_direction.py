@@ -1,4 +1,4 @@
-"""단타 방향 확률 전진 시험 · 라이브 예측 — 사전등록 short-direction@4(@3 + 동결 재생)를 그대로 실행한다
+"""단타 방향 확률 전진 시험 · 라이브 예측 — 사전등록 short-direction@5(@3 + 동결 재생)를 그대로 실행한다
 (FC-REQ-028 FR-1 · FR-4).
 
 매일: 전 이력 walk-forward 로 칸마다 마지막 블록 적합(원래 + 피처 없는 모델)과 '본 기간 검산
@@ -205,7 +205,7 @@ def render_report(
     lines = [
         f"# 단타 방향 확률 전진 시험 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-16-short-direction-4.toml`"
+        f"- 사전등록 `preregistration/2026-11-16-short-direction-5.toml`"
         f" · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
         f"- 판정 날짜 {' · '.join(LOOKS)}(그날 잠들었으면 그 뒤 첫 실행)에만 판정(α 0.05/3 · 그날 칸들 Holm). 오늘은 "
         + (

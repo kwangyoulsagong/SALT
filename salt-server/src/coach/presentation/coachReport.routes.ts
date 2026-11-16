@@ -135,7 +135,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `base_rate` — **과거 실제 결과**(사전등록 `base-rate@1`, 점검 한 줄과 같은 뷰 · 같은 조건 판정). 예측이 아니다.
    *         숫자는 가격이 실제로 움직인 분포(비용 전): `upCount100`(100번 중 오른 횟수) · `upRange`(Wilson 95%) · `range`(기준 가격 대비 %) ·
    *         `invalidation`(지금 가격 × 나빴던 10%)
-   *       - `model` — 모델 확률(`short-direction@4`). **소유자 + 시험을 넘은 칸만**(`ADR-003`). 소유자가 아니면 `model` 은 늘 `null`
+   *       - `model` — 모델 확률(`short-direction@5`). **소유자 + 시험을 넘은 칸만**(`ADR-003`). 소유자가 아니면 `model` 은 늘 `null`
    *       - `tier` 어느 단을 썼나: `now`(지금 성립한 조건 · 유효 n ≥ 100) → `usual`(그 시장 평소) → `longer`(한 단계 긴 지평 —
    *         `fallbackFrom` 에 빌려 온 지평. 장중 1h · 4h 기저율은 아직 없어 하루 값) → `defect`("아직 n번뿐" — 비율 · 범위 `null`)
    *       - `differsFromUsual` 은 예측이 Holm 을 통과시킨 조건이고 이 숫자에서도 같은 쪽일 때만
