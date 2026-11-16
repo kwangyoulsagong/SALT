@@ -114,4 +114,11 @@
 - `news --dry-run --no-score`: 빈 기간 없음(마지막 성공 16:05) → 평소대로 365건 · 12초
 - 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부
 - 미검증: 실제 수면 뒤 첫 실행의 "빈 기간 메우기" 로그 · 늘어난 행 — 다음 출근 뒤 `salt-forecast-daily.log` 로 닫는다
+## 2026-11-16 — 네이버 뉴스 보조 원천
+
+- HUB 키 실측: `search/v1/news` 200 · `openapi.naver.com` 401. start ≤ 1000(1001 → SE03). 1,100건이면 비트코인 약 3일 · 업비트 약 10일 · 가상화폐 약 12일
+- `news --dry-run --no-score`: RSS 365 + 네이버 1,000 = 1,365건 · 실패 0 · 14초
+- 시험 4(첫 쪽만 · 정리 · 원문 링크 · 쪽 넘김 멈춤 · 덜 찬 쪽 · 1,100 상한 · 키 미노출) — `tests/ingest/test_naver_news.py`
+- 날짜 검색 메우기 source 를 `rss:google-gap:*` 로 분리(등록 원천과 섞이지 않게) · 등록 피드를 먼저 넣어 같은 URL 은 등록 행이 남는다
+- 미검증: 깨어난 뒤 첫 실행의 네이버 쪽 넘김 실측 — 다음 출근 뒤 로그로
 

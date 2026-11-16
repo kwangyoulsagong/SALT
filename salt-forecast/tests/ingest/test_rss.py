@@ -58,12 +58,12 @@ def test_gap_days_boundary_table() -> None:
     assert len(long) == GAP_CAP_DAYS + 1 and long[-1] == now.date()
 
 
-def test_gap_feeds_use_same_source_names_with_date_range() -> None:
+def test_gap_feeds_are_separate_sources_with_date_range() -> None:
     from datetime import date
     from urllib.parse import unquote
 
     from salt_forecast.ingest.rss import GOOGLE_KO_QUERIES, gap_feeds
 
     got = gap_feeds([date(2026, 11, 10)])
-    assert [s for s, _ in got] == [f"rss:google:{q}" for q in GOOGLE_KO_QUERIES]
+    assert [s for s, _ in got] == [f"rss:google-gap:{q}" for q in GOOGLE_KO_QUERIES]  # 등록 원천과 구분
     assert "비트코인 after:2026-11-10 before:2026-11-11" in unquote(got[3][1])

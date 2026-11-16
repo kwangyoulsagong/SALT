@@ -65,9 +65,13 @@ def gap_days(last_ok: datetime | None, now: datetime) -> list[date]:
 
 
 def gap_feeds(days: list[date]) -> list[tuple[str, str]]:
-    """(source, url) — source 는 매시 피드와 같은 이름(같은 검색어 · 같은 원장)."""
+    """(source, url) — source 는 `rss:google-gap:<검색어>`. 등록 `news-sentiment@1` 의 원천은 매시 RSS 13개뿐이라
+    집계는 `rss:google:` · 영어 3개만 센다 — 메운 기사는 화면 · 다른 측정용(FC-REQ-016 2026-11-16)."""
     return [
-        (f"rss:google:{q}", google_news_url(f"{q} after:{d.isoformat()} before:{(d + timedelta(days=1)).isoformat()}"))
+        (
+            f"rss:google-gap:{q}",
+            google_news_url(f"{q} after:{d.isoformat()} before:{(d + timedelta(days=1)).isoformat()}"),
+        )
         for d in days
         for q in GOOGLE_KO_QUERIES
     ]

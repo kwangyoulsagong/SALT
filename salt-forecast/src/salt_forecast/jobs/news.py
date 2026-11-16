@@ -16,7 +16,7 @@ import httpx
 
 from salt_forecast.config import settings
 from salt_forecast.domain.news_text import build_aliases
-from salt_forecast.ingest import rss
+from salt_forecast.ingest import naver_news, rss
 from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.ingest.upbit import Pacer as UpbitPacer
 from salt_forecast.ingest.upbit import UpbitDaily
@@ -53,11 +53,13 @@ def main(argv: list[str] | None = None) -> int:
                 pacer = Pacer(1.0)
                 # 잠든 동안 빈 날을 날짜 검색으로 다시 받는다 — 받은 시각(available)은 지금이라
                 # 피처 시점은 늦게 안 것으로 남는다(누수 없음)
-                gap = rss.gap_days(last_fetch_success(eng, SOURCE), fetched_at)
+                last_ok = last_fetch_success(eng, SOURCE)
+                gap = rss.gap_days(last_ok, fetched_at)
                 if gap:
                     log.info("빈 기간 메우기", extra={"fields": {"job": JOB, "days": [d.isoformat() for d in gap]}})
-                plan = [(s, u, rss.GAP_PER_FEED) for s, u in rss.gap_feeds(gap)] + [
-                    (s, u, rss.PER_FEED) for s, u in rss.feeds()
+                # 등록 원천(매시 RSS 13개)이 먼저 — 한 묶음 안 같은 URL 은 먼저 나온 행이 남는다(insert_items)
+                plan = [(s, u, rss.PER_FEED) for s, u in rss.feeds()] + [
+                    (s, u, rss.GAP_PER_FEED) for s, u in rss.gap_feeds(gap)
                 ]
                 for source, url, limit in plan:
                     try:
@@ -65,13 +67,36 @@ def main(argv: list[str] | None = None) -> int:
                     except SourceError as e:
                         failed.append(source)
                         log.warning("피드 실패", extra={"fields": {"job": JOB, "source": source, "error": str(e)}})
+                # 네이버 뉴스 검색(보조) — 평소 첫 쪽, 잠든 뒤엔 마지막 성공 전 기사까지
+                if cfg.naver_client_id is not None and cfg.naver_client_secret is not None:
+                    hub = Pacer(5.0)  # HUB 키당 50 RPS · 월 5만 회 — 매시 10요청 + 깨어날 때 최대 110
+                    for q in rss.GOOGLE_KO_QUERIES:
+                        try:
+                            items.extend(
+                                naver_news.search(
+                                    client,
+                                    naver_news.URL,
+                                    cfg.naver_client_id.get_secret_value(),
+                                    cfg.naver_client_secret.get_secret_value(),
+                                    hub,
+                                    q,
+                                    fetched_at,
+                                    last_ok if gap else None,
+                                )
+                            )
+                        except SourceError as e:
+                            failed.append(f"naver:{q}")
+                            log.warning("네이버 실패", extra={"fields": {"job": JOB, "query": q, "error": str(e)}})
                 rows = [NewsRow(**{f: getattr(i, f) for f in NewsRow.__dataclass_fields__}) for i in items]
                 written = len(rows) if args.dry_run else insert_items(eng, rows)
                 total += written
                 log.info("수집", extra={"fields": {"job": JOB, "items": len(items), "new": written, "failed": failed}})
                 if not args.dry_run:
                     feeds = len(rss.feeds())
-                    mark_source(eng, SOURCE, ok=len(failed) < feeds, error=", ".join(failed[:10]) if failed else None)
+                    rss_failed = [f for f in failed if f.startswith("rss:")]  # 네이버는 보조 — 성공 판정에 안 넣는다
+                    mark_source(
+                        eng, SOURCE, ok=len(rss_failed) < feeds, error=", ".join(failed[:10]) if failed else None
+                    )
 
             if args.no_score:
                 return total
