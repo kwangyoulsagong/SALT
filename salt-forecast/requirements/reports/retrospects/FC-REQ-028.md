@@ -73,3 +73,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — 서버 시나리오가 `v_base_rate` 의 보유 연장 분포(`hold_*` — 비용 전)를 지평 1 · 5 로 읽는다 — 예측 코드 · 뷰 · 사전등록 변경 0. 장중 지평(FR-7)이 생기면 서버 `BASE_RATE_HORIZON` 표에 이어 붙인다
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## 2026-11-16 — F017 v4 순서 3a
+
+- 1시간봉으로 내린 판단은 '서버 보관 30일'을 원천 제약으로 읽은 것 — 우리 설정이었다. 회고 본문은 루트 `F017-v4-stage3-intraday.md`

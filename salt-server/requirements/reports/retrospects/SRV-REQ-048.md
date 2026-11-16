@@ -73,3 +73,7 @@
 ## 2026-11-16 — 새 맥 이전 걸침
 
 - 회고 본문은 루트 `requirements/reports/retrospects/OPS-002-new-mac-setup.md`
+
+## 2026-11-16 — F017 v4 순서 3a 짝
+
+- 배운 것 없음 — 짝 변경

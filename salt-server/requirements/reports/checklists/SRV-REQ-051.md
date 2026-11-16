@@ -151,3 +151,8 @@
 
 - `KrMoveSourceStore.newsTitlesForAiBody` 포트 · `MarketApi.krNewsTitlesForAiBody` 더함(`SRV-REQ-058` 2a — 국내 제목을 `news` 가 공개 API 로 읽음)
 - 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 3a 짝
+
+- VI 사건 보관 30일 → 400일(`KR_VI_RETENTION_DAYS` — 장중 기저율 K5 표본, KIS 는 지난 VI 를 주지 않음). 정리 규칙 · 다른 표 무변경
+- 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음

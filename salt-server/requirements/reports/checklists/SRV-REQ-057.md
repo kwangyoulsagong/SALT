@@ -20,3 +20,8 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `judgeSymbols.ts`(머리 주인) — 시세 이름을 판단 머리말로 넘김(`displayName`). 재료 · 판정 변경 0 | 충족 | 주인 REQ 체크리스트(`SRV-REQ-053`) |
+
+## 2026-11-16 — F017 v4 순서 3a 짝
+
+- `SyncKrStock.ts`(분봉 백필 창 1년 · 밤 회차) 문서 줄이 이 REQ 를 가리켜 걸림 — 유니버스 즉시 백필(`only`) 동작 무변경
+- 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음

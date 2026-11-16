@@ -80,3 +80,8 @@
 - [x] `store/tables.py` 에 소식 태그 표 셋(`news_kind_dict` · `news_reaction_stat` · `news_pre_move`) 선언 — 스키마 계약 테스트가 실 DB 와 대조. 사건 반응(일정) 표는 그대로
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 2026-11-16 — F017 v4 순서 3a 짝
+
+- `store/tables.py`(머리 주인) `base_rate_stat.horizon_unit` 선언 — 이 REQ 표 변경 0
+- 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음

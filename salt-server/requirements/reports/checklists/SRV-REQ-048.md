@@ -137,3 +137,8 @@
 
 - 몫: `ops/salt.sh` 걸침(node 경로) — identity · notification 무변경
 - 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 3a 짝
+
+- `ops/salt.sh`(머리 주인)에 `forecast-intraday`(5분 · `StartInterval 300`) 이름 · plist · 상태 줄 — identity · notification 무변경
+- 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음

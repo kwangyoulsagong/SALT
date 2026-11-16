@@ -96,3 +96,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md (v2 
 | 2026-11-11 | to-do → in-progress — FR-1~7 구현(`3b12d7ad` · `473dbfc6` · `0c7714f5` · `36a0acc6` · `6ca43b30` · `5cd10724`, 저장 `DB-REQ-044` `dfaaf395`). 구현 결정 6 · 실측(Q1 0 · Q3 0 · 기동 일봉 실패 0 · 초과 31 → 6.5% · 실 수면 깸). FR-3 ≤ 1% 미충족 · FR-2 Q2 채움 끝난 뒤 |
 | 2026-11-11 | FR-2 수용 닫음 — 첫 30일 채움 끝(10:57) · Q2 거래소 대조 우리 쪽 빠짐 0 · p95 대조(따라잡기 중 160 / 없을 때 115ms). 채운 위치 = 물은 시각(`97c45291`) |
 | 2026-11-13 | F017 v4 1f 짝(`SRV-REQ-053` FR-16) — `judgeSymbols.ts`(머리 주인) — 시세 이름을 판단 머리말로 넘김(`displayName`). 재료 · 판정 변경 0 |
+| 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `SyncKrStock.ts`(분봉 백필 창 1년 · 밤 회차) 문서 줄이 이 REQ 를 가리켜 걸림 — 유니버스 즉시 백필(`only`) 동작 무변경 |
