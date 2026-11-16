@@ -19,7 +19,12 @@
 | `jobs.move_news` 실행 | 7초 · 사건 226 기록(국내 3 · 코인 223 — 11-14 KST 코인 전반 급락 198) · 과거 참고 전부 below_min |
 | NaN jsonb 결함 | 첫 실 실행에서 `detail` 의 NaN 을 Postgres 가 거절 → `store/jsonb.dumps`(null 로) · 시험 1 |
 | `ops/daily.sh` | `zsh -n` 통과 · `event_window` 뒤 `move_news` · `vol_range` |
-| `node scripts/check-done.mjs` | 통과(커밋 전 실행 — 아래 기록) |
+| `node scripts/check-done.mjs` | 통과 |
+| **확인 2회차**(사용자 "검증 다함?") — 전진 채점 경로 시험 | 채점 · 판정 표본 함수가 시험 0 이었다 → `tests/scoring/test_experiment_forward.py` 5(H1 열린 예측 채점 · 늦은 기록 · 안 닫힘 · RV 빈 날 · 없는 종목 / 판정 표본 = 등록 뒤 · 제때 · 닫힘 / H3 기록 한 번 · since 경계 · 5봉 전 다시 채점 · 쿨다운 · 비용 뒤 / 제목 거르기) · 변이 **7/7**(M8 ~ M14) |
+| 과거 as_of dry-run(`python-style.md` §7) | `vol_range` · `move_news --dry-run --as-of 2026-06-30` 통과 |
+| 재현 | 같은 as_of 두 번 → 리포트 바이트 같음(머리 코드 · 시각 줄 제외) |
+| 같은 원인 결함 — 단타 방향 확률 판정 날짜 | `is_look` 이 그날만 판정해 맥이 잠들면 건너뜀 → 그 뒤 첫 실행이 판정 · 같은 날 두 번째는 안 함(`last_run`). 경계 시험 6 · 변이 M15 잡힘 · `short_direction test --dry-run` 48초 |
+| 서버 | `prisma validate` · `migrate status`(최신) · `npm test` 1605 통과 |
 
 ## 미검증 · 범위 밖
 

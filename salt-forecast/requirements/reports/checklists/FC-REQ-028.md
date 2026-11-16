@@ -151,3 +151,4 @@
 ## 2026-11-16 — F017 v4 순서 4
 
 - FR-9 H1 · H3 구현 — 검증 · 미검증 표는 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`(새 시험 29 · 누수 2 · 변이 7/7 · 코인 H1 1차 forward)
+- 확인 2회차 — 전진 채점 경로 시험 5 · 변이 M8 ~ M15 · 단타 방향 확률 판정 날짜 결함 고침(루트 체크리스트)
