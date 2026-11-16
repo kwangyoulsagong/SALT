@@ -19,6 +19,8 @@ import type {
   ArticleText,
   BookmarkRepository,
   NewsFeedPort,
+  NewsGapFeedPort,
+  NewsGapLedger,
   SentimentArticleQuery,
 } from "../../domain";
 import { dartFilingWhat, dartViewerUrl } from "../../domain";
@@ -26,6 +28,7 @@ import { CollectAiBodies } from "../CollectAiBodies";
 import { CollectDartDisclosures } from "../CollectDartDisclosures";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
 import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
+import { RefillNewsGap } from "../RefillNewsGap";
 import {
   FindArticlesBySymbol,
   FindArticlesForSentiment,
@@ -85,6 +88,8 @@ export interface NewsDependencies {
   articles: ArticleRepository;
   bookmarks: BookmarkRepository;
   feed: NewsFeedPort;
+  /** 잠든 동안 빈 날 메우기(`SRV-REQ-057` FR-8) — 한글 검색 날짜 다시 검색 · 마지막 성공 기록 */
+  gap: { feed: NewsGapFeedPort; ledger: NewsGapLedger };
   /** 기사 본문 — 포털 검색 · 페이지 추출 · 캐시(`SRV-REQ-054`) */
   body: { search: ArticleSearchPort; pages: ArticlePagePort; bodies: ArticleBodyStore };
   /** AI 가 읽는 본문(`SRV-REQ-058`) — 매체 RSS 원문만. 포털 검색 포트를 받지 않는다(이 경로에 포털 0) */
@@ -103,6 +108,8 @@ export interface NewsDependencies {
 export interface NewsUseCases {
   crawlNews: CrawlNews;
   crawlKoreanNews: CrawlKoreanNews;
+  /** 빈 날 메우기 — 뉴스 워커가 정기 회차마다(상태를 갖는다 — 인스턴스 하나) */
+  refillNewsGap: RefillNewsGap;
   listArticles: ListArticles;
   getArticle: GetArticle;
   listTrendingArticles: ListTrendingArticles;
@@ -137,6 +144,7 @@ export const createNewsApplication = (deps: NewsDependencies) => {
   const useCases: NewsUseCases = {
     crawlNews: new CrawlNews(deps.articles, deps.feed),
     crawlKoreanNews: new CrawlKoreanNews(deps.articles, deps.feed),
+    refillNewsGap: new RefillNewsGap(deps.articles, deps.gap.ledger, deps.gap.feed),
     listArticles: new ListArticles(deps.articles),
     getArticle: new GetArticle(deps.articles),
     listTrendingArticles: new ListTrendingArticles(deps.articles),

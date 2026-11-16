@@ -5,8 +5,12 @@ import { onWake, startWakeWatch } from "../shared/infrastructure/wake";
 /**
  * 워커는 **스케줄만** 갖는다 (FR-5). 수집 절차는 `news` 컨텍스트의 유스케이스이고,
  * 같은 유스케이스를 관리자 HTTP(`POST /api/news/admin/crawl`)도 부른다.
+ *
+ * 잠든 동안 빈 날 메우기(`SRV-REQ-057` FR-8)는 정기 회차(기동 · 매시 · 깸)가 같이 부른다 — 판정은 정기 수집 **전**, 메우기는 뒤에
+ * 기다리지 않고(최대 150요청 ≈ 2분 반 — 깸 구독 다음 순서인 AI 본문 회차를 막지 않게).
  */
 const crawlNewsUseCase = contextUseCases.news.crawlNews;
+const refillNewsGap = contextUseCases.news.refillNewsGap;
 const collectAiBodies = contextUseCases.news.collectAiBodies;
 const collectDartDisclosures = contextUseCases.news.collectDartDisclosures;
 
@@ -45,14 +49,30 @@ class NewsCrawlerWorker {
   }
 
   private async crawlNews() {
+    const startedAt = new Date();
+    const gapDays = await refillNewsGap.due(startedAt).catch((error: any) => {
+      logger.warn('[news] 빈 날 판정 실패 — 다음 회차에 다시', { message: String(error?.message ?? '').slice(0, 120) });
+      return [] as string[];
+    });
     try {
       logger.info('🔄 Starting news crawling...');
       const result = await crawlNewsUseCase.execute();
       logger.info(
         `✅ News crawling completed: ${result.savedCount} saved, ${result.skippedCount} skipped`
       );
+      if (gapDays.length === 0 && result.korean > 0) refillNewsGap.markLive(startedAt);
     } catch (error: any) {
       logger.error('❌ News crawling failed:', error.message);
+    }
+    if (gapDays.length > 0) void this.fillGap(gapDays, startedAt);
+  }
+
+  private async fillGap(days: string[], startedAt: Date) {
+    try {
+      const result = await refillNewsGap.fill(days, startedAt);
+      if (result) logger.info('[news] 빈 날 메우기 끝', result);
+    } catch (error: any) {
+      logger.error('[news] 빈 날 메우기 실패 — 다음 회차에 다시', { message: String(error?.message ?? '').slice(0, 200) });
     }
   }
 

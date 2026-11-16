@@ -7,3 +7,4 @@ export * from "./AiBody";
 export * from "./Dart";
 export * from "./Outlets";
 export * from "./Robots";
+export * from "./NewsGap";

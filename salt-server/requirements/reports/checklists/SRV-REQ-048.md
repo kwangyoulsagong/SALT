@@ -142,3 +142,8 @@
 
 - `ops/salt.sh`(머리 주인)에 `forecast-intraday`(5분 · `StartInterval 300`) 이름 · plist · 상태 줄 — identity · notification 무변경
 - 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — `SRV-REQ-057` FR-8 짝
+
+- `composition.ts`(머리 주인)에서 뉴스 수집기 · 기사 저장소를 변수로 꺼내 빈 날 메우기(`gap`)에 같이 꽂음 — identity · notification 무변경
+- 검증은 `SRV-REQ-057` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
