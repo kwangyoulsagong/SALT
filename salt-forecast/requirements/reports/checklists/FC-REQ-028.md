@@ -152,3 +152,12 @@
 
 - FR-9 H1 · H3 구현 — 검증 · 미검증 표는 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`(새 시험 29 · 누수 2 · 변이 7/7 · 코인 H1 1차 forward)
 - 확인 2회차 — 전진 채점 경로 시험 5 · 변이 M8 ~ M15 · 단타 방향 확률 판정 날짜 결함 고침(루트 체크리스트)
+
+## 2026-11-16 — 동결 재생(short-direction@4 · vol-range@3)
+
+- 근거 실측(딥리서치, 판정 아님): 단타 1h 전체 BSS +0.0056 [0.0046, 0.0068] → 평일 09~17시 +0.0037 · ECE 0.0085 → 0.0143 · 판정 결론은 같음((3)에서 걸림). 흔들림 h1 80% 덮임 80.46% → 평일 시작 78.12%
+- 시험: 재생 정시 경계 표(등록 · 창 15분 · 이미 쓴 시각 · 상한 14일) · 같은 코드 가드 · 실시간/재생 구분 · 판정 표본 끝(KST 자정) · `below_min` · 흔들림 재생 봉 경계 · forward_rows 재생 포함 · 실시간만 · 표본 끝
+- 누수 시험: 그 시각 예측 = 며칠 뒤 봉까지 있는 DB 에서 다시 만든 예측(바이트 같음, `test_replay_equals_realtime_when_future_bars_arrive`) · 흔들림은 기존 미래 행 시험
+- 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부 · 서버 `shortHorizon.test.ts` 16 · `tsc` 0
+- 미검증: 실제 재생(새 키 첫 시험 실행 뒤 다음 수면 → 깸) — 머지 뒤 첫 월요일 `salt-forecast-live.log` "동결 재생" 행 수 · `vol_range` 로그로 닫는다. `move-news` 새 키는 서버 크롤러 메우기 결정 뒤
+
