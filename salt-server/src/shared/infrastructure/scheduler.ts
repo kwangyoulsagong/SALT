@@ -2,6 +2,8 @@ import cron, { ScheduledTask } from "node-cron";
 
 import { logger } from "../config/logger";
 
+import { onWake, type WakeEvent } from "./wake";
+
 /**
  * cron 등록 지점.
  *
@@ -48,20 +50,38 @@ export const runGuarded = (name: string, task: () => Promise<unknown>) =>
     await task();
   })();
 
-/** 놓친 회차를 한 번 따라 돈다. 이미 도는 중이면 그 회차가 따라잡는다 */
+/**
+ * 놓친 회차를 한 번 따라 돈다. 이미 도는 중이면 그 회차가 따라잡는다.
+ *
+ * 길이 둘이다. ① node-cron `execution:missed` ② **깸(`wake.ts`)에 그 작업의 다음 회차가 잠든 사이에 지났나**.
+ * ①만으로는 **프로세스가 뜬 뒤 첫 회차**를 못 잡는다 — node-cron 은 '지난 예정 시각'을 첫 박동 뒤에야 알아서, 첫 회차를
+ * 자면서 지나치면 경고 · 이벤트 없이 하루를 통째로 건너뛴다(2026-11-16 18:55 재기동 → 11-17 08:40 코인 원인 스냅샷이 그렇게 사라짐,
+ * 1분짜리 회차를 이벤트 루프를 막아 재현). 하루 한 번 작업은 재기동마다 첫 회차가 이 구멍이었다. 두 길이 같은 깨어남에 같이 와도 한 번
+ */
 export const attachCatchUp = (
-  task: Pick<ScheduledTask, "on">,
+  task: Pick<ScheduledTask, "on"> & { getNextRun?: () => Date | null },
   name: string,
   run: () => Promise<void>,
-  now: () => number = Date.now
+  now: () => number = Date.now,
+  subscribeWake: (name: string, handler: (event: WakeEvent) => unknown) => void = onWake
 ) => {
   let lastAt = Number.NEGATIVE_INFINITY;
-  task.on("execution:missed", () => {
+  const fire = (why: string) => {
     const t = now();
     if (running.has(name) || t - lastAt < CATCH_UP_COALESCE_MS) return;
     lastAt = t;
-    logger.warn(`놓친 회차를 지금 돈다: ${name}`);
+    logger.warn(`놓친 회차를 지금 돈다: ${name}${why}`);
     void run();
+  };
+  const nextRun = (): number | null => task.getNextRun?.()?.getTime() ?? null;
+  let nextAt = nextRun();
+  task.on("execution:missed", () => fire(""));
+  task.on("execution:started", () => {
+    nextAt = nextRun();
+  });
+  subscribeWake(`catch-up:${name}`, (event) => {
+    if (nextAt !== null && nextAt <= event.to.getTime()) fire(" (깸 — 잠든 사이 회차)");
+    nextAt = nextRun();
   });
 };
 
