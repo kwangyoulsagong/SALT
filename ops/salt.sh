@@ -24,7 +24,13 @@ ROOT="${0:A:h:h}"
 UID_NUM="$(id -u)"
 AGENTS="$HOME/Library/LaunchAgents"
 LOGS="$HOME/Library/Logs"
-NODE_DIR="$(dirname "$(command -v node 2>/dev/null || echo /usr/local/bin/node)")"
+# node 는 루트 `.node-version` 을 따른다 — 부른 셸의 node(fnm 기본 26 등)가 plist 에 박히지 않게(2026-11-16 새 맥).
+# :A — 심볼릭 링크를 실제 경로로. fnm 의 `command -v node` 는 셸마다 생겼다 사라지는 multishell 경로라 plist 에 박히면 재부팅 뒤 node 가 없다
+NODE_BIN=""
+if command -v fnm >/dev/null 2>&1 && [[ -f "$ROOT/.node-version" ]]; then
+  NODE_BIN="$(fnm exec --using="$ROOT/.node-version" -- zsh -c 'command -v node' 2>/dev/null)"
+fi
+NODE_DIR="${${NODE_BIN:-$(command -v node 2>/dev/null || echo /usr/local/bin/node)}:A:h}"
 # ~/.local/bin — Claude Code CLI 설치 위치. 서버가 해설 다듬기 로컬 CLI 를 PATH 에서 찾는다(`SRV-REQ-050` FR-2).
 # 없으면 nvm 경로의 codex 만 잡히거나 전부 Gemini 로 간다
 LAUNCH_PATH="$NODE_DIR:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"

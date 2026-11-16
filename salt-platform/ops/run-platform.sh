@@ -26,8 +26,14 @@ export RABBITMQ_HOST=localhost RABBITMQ_PORT=55672 PORT=4010
 
 # 이미 떠 있으면 compose 를 부르지 않는다 — launchd 아래 compose 는 데스크탑의 compose.yaml 을 읽다 개인정보 보호 창을 기다리며 멈출 수 있다(2026-11-03).
 # 컨테이너는 restart 정책 없이도 Docker 가 살아 있는 동안 남는다. 없을 때만 띄우고, 20초 넘게 걸리면 끊는다(launchd 가 30초 뒤 다시 부른다)
+# 네이티브 RabbitMQ(brew, 55672 — 2026-11-16)가 설치돼 있으면 그것을 켠다 — Docker VM 이 RabbitMQ 하나에 CPU 30% 를 썼다.
+# 없으면 Compose 의 것을 55672 로(.env 의 COMPOSE_RABBITMQ_PORT 는 함께 띄우는 Compose 용이라 여기선 덮는다)
+if ! nc -z localhost 55672 2>/dev/null && [[ -d /opt/homebrew/opt/rabbitmq ]]; then
+  brew services start rabbitmq >/dev/null 2>&1
+  for _ in {1..20}; do nc -z localhost 55672 2>/dev/null && break; sleep 1; done
+fi
 if ! nc -z localhost 55672 2>/dev/null; then
-  docker compose up -d rabbitmq >/dev/null 2>&1 &
+  COMPOSE_RABBITMQ_PORT=55672 docker compose up -d rabbitmq >/dev/null 2>&1 &
   compose_pid=$!
   for _ in {1..20}; do kill -0 $compose_pid 2>/dev/null || break; sleep 1; done
   kill $compose_pid 2>/dev/null && echo "rabbitmq 를 20초 안에 못 띄웠다(Docker 꺼짐 · 권한 창?) — 다시 시도한다" >&2

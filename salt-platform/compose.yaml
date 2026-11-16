@@ -2,6 +2,8 @@
 #   ./gradlew :app:bootJar && docker compose up -d --build
 # launchd 상시(Express :4000 · BFF :4001 · 로컬 Postgres :5432)와 겹치지 않게 55432 · 55672 · 4010 · 4101 · 16686.
 # 컨테이너 BFF 는 legacy 로 호스트 Express(:4000)를, platform 으로 이 Compose 의 platform 을 부른다.
+# launchd 상시 platform(:4010) · 네이티브 RabbitMQ(brew, :55672)와 함께 띄우려면 .env 에서 호스트 포트만 옮긴다
+# (예: COMPOSE_RABBITMQ_PORT=55673 · COMPOSE_RABBITMQ_UI_PORT=15673 · COMPOSE_PLATFORM_PORT=4011). 컨테이너 사이 주소는 그대로다.
 name: salt-platform
 
 services:
@@ -33,7 +35,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?}
-    ports: ["127.0.0.1:55672:5672", "127.0.0.1:15672:15672"]
+    ports: ["127.0.0.1:${COMPOSE_RABBITMQ_PORT:-55672}:5672", "127.0.0.1:${COMPOSE_RABBITMQ_UI_PORT:-15672}:15672"]
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 3s
@@ -57,10 +59,14 @@ services:
       COACH_DB_PASSWORD: ${COACH_DB_PASSWORD:?}
       IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
       JWT_SECRET: ${JWT_SECRET:?}
+      # identity 토큰 발급(서버 S3b 2026-11-12) — application.yml 이 기본값 없이 읽는다. 빠지면 기동 실패(2026-11-16 발견)
+      IDENTITY_SIGNING_KEY: ${IDENTITY_SIGNING_KEY:?}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?}
+      AUTH_LEGACY_HS_UNTIL: ${AUTH_LEGACY_HS_UNTIL:?}
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?}
-    ports: ["127.0.0.1:4010:4010"]
+    ports: ["127.0.0.1:${COMPOSE_PLATFORM_PORT:-4010}:4010"]
 
   bff:
     build: ../bff

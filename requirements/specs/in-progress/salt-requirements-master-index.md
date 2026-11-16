@@ -399,6 +399,7 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 **로컬 전체 기동 · 상태 `OPS-002` (2026-11-02, 같은 브랜치 `feat/f008-explain-citations` — 사용자 "한 브랜치로 다해")** — 사용자 "전체 서버 다 키는 명령어가 필요" · "계속 머 까먹어서".
 `ops/salt.sh up | status | down | restart | logs | plist`. 뉴스 워커 · BFF REST · WS · 시세 워커를 서버 · 예측처럼 launchd 상시로. `status` 가 마지막 뉴스 · 시세 시각으로 "떠 있는데 안 모으는" 것을 잡는다.
 뉴스 302건 수집 확인(09-29 뒤 처음). launchd 등록 2026-11-02 10:07(사용자 "등록 니가 해줘") — 전부 상시 · 뉴스 · 시세 ok.
+새 맥 이전(2026-11-16, `OPS-002-new-mac-setup-slice.md`) — 런타임은 폴더 버전 파일이 정한다 · launchd 에 실제 node 경로 · RabbitMQ brew · Compose 기동 결함 수정.
 
 **돈 관리 앱 S2d — 금융 팁 내 숫자로 다시 읽기 · 고정비 증가 → 월세 세액공제 (서버 · BFF · FE, 2026-11-05, `feat/srv-req-047-s2d-tips-my-numbers`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸 둘 중 금융 팁 S2d(기능 먼저 — S2b 와 같은 판단). S2b 가 남긴 셋 중 홈 카드(S3)를 뺀 둘.
 범위 `MONEY-S2d-tips-my-numbers-slice.md`, 검증 `checklists/MONEY-S2d-tips-my-numbers.md`. 서비스를 넘는 읽기는 BFF 순서(저축 목표 · 가계부 급여 → content 계산 · 저장 0) · 못 읽은 원천 · 앱이 모르는 요건은 늘 "모름" · 숫자는 제도 파라미터 표에서만 · 칸은 로그인일 때만 부르는 지연 청크(글 HTML 은 사람마다 같다). DB 변경 없음.
@@ -862,6 +863,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-16 | **새 맥 이전**(`chore/new-mac-setup`, 루트 `OPS-002-new-mac-setup-slice.md`) — 폴더별 node 22.12.0 · Python 3.12 고정 · plist node 를 `.node-version` 으로 · 네이티브 RabbitMQ(brew 55672) 우선 · Compose platform identity env 3개 누락(S3b 뒤 기동 실패) · Compose 호스트 포트 env. 발견: FRED 수집 시간대 결함(범위 밖 — 새 `FC-REQ`) |
 | 2026-11-13 | **F017 v4 Q6 닫음** — 신규 `SRV-REQ-058`(AI 가 읽는 기사 본문: 포털 검색 API 0 · 공시 원문 · 언론사 직접 RSS · 덮임률 ≥ 90% · `via` 표식) · 업비트 공식 API 약관 확인 · `ADR-009` 보탬 |
 | 2026-11-13 | **F017 v4 한 장 패널 — 스펙 전부**(`feat/f017-s7-explain-plain-stream`) — 딥리서치 여섯(A~F, 코인 포함) · 결정 D19~D26 · `ADR-009` · `ADR-010` v4 · `FEATURE-017` FR-10~15(Q3 · Q4 · Q5 닫음, Q6 열림) · `SRV-053` FR-9~17 · `DB-043` FR-8~12 · `BFF-052` FR-6~8 · `FE-064` FR-8~13 · `FE-063` FR-9 · `RN-032` FR-7~10 · `FC-028` FR-7~12(코인 가설 H7~H9) · `FC-022` FR-13~16 · `FC-026` FR-11~13 · **신규 `OPS-004`**(칸 채움 점검) · 사전등록 `vol-range@1` · `move-news@1`. v3 단계 7 슬라이스는 v4 순서 1 로 흡수 |
 | 2026-11-12 | **F017 v2 단계 6 — 소식 측정 태그**(`feat/f017-s6-measure-tags`) — 사전등록 `news-reaction@1`(반응 계산 전) · 국내 시황 · 공시 제목 1년 백필(보관 30 → 400일) · 예측 배치(사건 종류 사전 · 초과 반응 1 · 5일 · Holm · 선반영) · 서버 새 제목 즉시 분류(파이썬과 공용 사례 표) · 국내 소식 · 코인 뉴스 · 왜 움직였나 칩 · 모달 칸. 첫 실행 전부 표본 미달 — 백필 뒤 첫 숫자 칩. 루트 슬라이스 `F017-v2-stage6-tags-slice.md` |

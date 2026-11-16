@@ -110,3 +110,7 @@
 
 - 이 REQ 몫 기능 변경 0 — 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름)
 - 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터
+
+## 2026-11-16 — 새 맥 이전 걸침
+
+- 회고 본문은 루트 `requirements/reports/retrospects/OPS-002-new-mac-setup.md`

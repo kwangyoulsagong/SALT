@@ -169,3 +169,8 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-16 — 새 맥 이전(`OPS-002-new-mac-setup`) · `chore/new-mac-setup`
+
+- 몫: `run-platform.sh` 네이티브 RabbitMQ 우선
+- 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음
