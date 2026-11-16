@@ -39,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
             api = UpbitDaily(client, cfg.upbit_base_url, Pacer(cfg.upbit_requests_per_second))
             symbols = symbols_arg(args.symbols) or api.krw_markets()
             earliest = earliest_open(eng, SOURCE, args.interval) if args.since else {}
+            # 상장일 = 일봉의 첫 봉. 상장이 since 보다 늦은 종목은 상장일부터만 — 다 찬 종목에 요청을 보내지 않아
+            # 매시 도는 빈 곳 메우기(ops/backfill.sh)가 다 찬 뒤엔 요청 0건으로 끝난다
+            listed = earliest_open(eng, SOURCE, INTERVAL) if args.since and args.interval != INTERVAL else {}
             total = 0
             failed: list[str] = []
             t0 = datetime.now(UTC)
@@ -49,7 +52,8 @@ def main(argv: list[str] | None = None) -> int:
                 if args.since:
                     since = parse_as_of(args.since)
                     until = earliest.get(sym, now)  # 이미 있는 봉 이전만
-                    ranges = [(since, until), (now - timedelta(days=args.days), now)]
+                    start = backfill_start(since, listed.get(sym), until)
+                    ranges = [(start, until), (now - timedelta(days=args.days), now)]
                 else:
                     ranges = [(now - timedelta(days=args.days), now)]
                 try:
@@ -76,6 +80,15 @@ def main(argv: list[str] | None = None) -> int:
             return total
 
     return run_job(job, args, body)
+
+
+def backfill_start(since: datetime, listed: datetime | None, earliest: datetime) -> datetime:
+    """백필 구간 시작. 이미 상장 첫날(일봉 첫 봉 + 하루 여유)까지 차 있으면 earliest 를 돌려 구간을 비운다.
+
+    하루 여유 — 일봉은 00:00 UTC 에 열리고 상장 첫 분봉은 그날 중간에 열린다.
+    """
+    start = since if listed is None else max(since, listed)
+    return earliest if earliest <= start + timedelta(days=1) else start
 
 
 if __name__ == "__main__":
