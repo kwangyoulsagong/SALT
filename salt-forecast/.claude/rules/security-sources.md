@@ -37,6 +37,7 @@
 | 국내 시황 · 공시 제목 — 서버가 KIS 에서 받은 `public.kr_news_title`(+ 관련 종목) · 코인 뉴스 `public.news_articles` — export 뷰 `v_kr_news_title_export` · `v_news_article_export` **읽기** | 소식 측정 태그(`news-reaction@1`) — 사건 종류 · 같은 종류 초과 반응 | 없음(KIS 키는 서버에만) | 외부 호출 0 — 서버가 1년 백필(2025-11 ~, 보관 400일) | 제목만(본문 0) · 화면엔 서버가 이미 보이는 소식 행에 칩으로 | F017 단계 6 |
 | 오늘 등락 한 줄(③) 시도 — 서버 coach `public.move_explanation` 의 export 뷰 `v_move_explanation_export` **읽기** | 주간 운영 리포트(게이트 분포 · 걸린 사유 · 인용 수 · 나빠짐 판정 · 사람 표시 양식 — `FC-REQ-027` FR-4~6) | 없음 | 외부 호출 0 · DB 쓰기 0 | 문장 · 인용 id 만(기사 본문 0) | F016 단계 D |
 | 원인 스냅샷 — 서버 coach `public.cause_snapshot` 의 export 뷰 `v_cause_snapshot_export` **읽기** | 온톨로지 ② · ③ · 원인 설명 채점(`cause-explain@1`) | 없음 | 외부 호출 0 · 국내 장 뒤 · 코인 하루 끝 직전 하루 한 번 | 서버가 만든 원인 · 근거 문구 · 숫자 그대로(기사 문장 0) · available_at = 찍은 시각 | F017 v4 순서 5 |
+| 온톨로지 원천 — export 뷰 `v_extracted_fact_export`(본문 추출 사실) · `v_crypto_name_export`(코인 한글 · 영문명) · `v_dart_filing_export` · `v_kr_news_title_export` · `v_news_article_export` **읽기** | 온톨로지 ① 문서 · 언급 · 사실 · 별칭(`FC-REQ-022` FR-5 · 16) | 없음 | 외부 호출 0 | 문장 0 — 제목 200자 · 추출 숫자 · 단위 그대로. available_at = 처음 본 시각(공시) · 게시 시각(제목) · 추출 시각(사실) | F017 v4 순서 5b-2 |
 | 투자자별 수급(KRX) | 국내 수급 | — | 공식 API 미제공 · 증권사 API 는 계좌 필요 → **§1-2 충돌로 보류** | — | 보류 |
 
 - 한도는 문서 값의 **80%** 로 pacer 설정.

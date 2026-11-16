@@ -5,7 +5,8 @@
 
 > 2026-10-30 개정 — 9월 초안(서버 `intelligence` 컨텍스트 · `v_symbol_facts` · `v_symbol_actors`)을 ADR-007 로 바꿨다.
 > 첫 코드 2026-11-16(F017 v4 순서 5): 표 셋 + v4 네 층(`cause_candidate` · `evidence` · `outcome`) · `ontology/build.py` · 매일 `ontology_build`.
-> 원천은 아직 종목 마스터 · 업비트 심볼 · 서버 원인 스냅샷(`v_cause_snapshot_export`)뿐 — 뉴스 `mentions` · 공시 사실은 `FC-REQ-022` FR-16.
+> 원천 열넷(`domain/ontology_sources.py` 머리 목록) — 마스터 · 코인 이름 · 원인 스냅샷 · 공시 · 소식 제목 · 기사 · 추출 사실 · 일정 · 반응 통계 · 신호 · 거시 시계열 · β · 경보 · 상태.
+> 문서 id = 서버 사실 id(`document:kr-news:<번호>` …) — 원인 후보 · 소식 · 추출 사실이 한 점. 종목 고빈도 시계열은 복제 0.
 
 ## 1. 목적
 
@@ -38,7 +39,7 @@
 | `available_at` | 우리가 **알 수 있게 된** 시각 | **as-of 거르기의 유일한 기준** |
 | `ingested_at` | 우리 DB 에 들어온 시각 | 감사 · 재적재 추적용. as-of 기준으로 쓰지 않는다 |
 
-- as-of 는 **함수**(뷰는 인자를 못 받는다 — FR-4 정정 2026-11-16): `f_fact_asof(as_of)` · `f_relation_asof(as_of)` · `f_neighbors(id, depth ≤ 3, as_of)`. `available_at <= as_of` 행만, 그 시점 최신 버전만. `ingested_at` 으로 거르면 백필한 과거 사실이 과거 as-of 에서 사라져 백테스트가 틀린다(`time-and-leakage.md` §1 — `FC-REQ-022` FR-4 정정 2026-10-30)
+- as-of 는 **함수**(뷰는 인자를 못 받는다 — FR-4 정정 2026-11-16): `f_fact_asof(as_of, entity?)` · `f_relation_asof(as_of)` · `f_neighbors(id, depth ≤ 3, as_of)`. `available_at <= as_of` 행만, 그 시점 최신 버전만. `ingested_at` 으로 거르면 백필한 과거 사실이 과거 as-of 에서 사라져 백테스트가 틀린다(`time-and-leakage.md` §1 — `FC-REQ-022` FR-4 정정 2026-10-30)
 - 원천에 게시 시각이 없으면 `observed_at + 소스별 지연 상한`(`data-pipeline.md` §4)
 - 수용 기준: 무작위 as-of 1,000회에서 미래 `available_at` 행 0(`FC-REQ-022` 누수 테스트)
 
@@ -74,7 +75,7 @@
 
 - 뷰 컬럼은 **계약**이다. 바꾸면 소비자(서버 coach — S6 전 TS, 뒤 Kotlin)와 같은 PR(`db-contract.md` §3)
 - 모든 도구 결과 행에 `source_url` · 시각. 출처 없는 행을 도구가 돌려주지 않는다
-- 성능: 3홉 질의 p95 200ms 이하(로컬). **그래프 DB 는 넣지 않는다** — 이 기준을 측정으로 못 지킬 때만 ADR 로
+- 성능: 3홉 질의 p95 200ms 이하(로컬). **허브(시장 전체 `asset:market:*`)는 이웃으로 돌려주되 지나가지 않는다** — 지나가면 3홉이 그래프 전부(2026-11-16 수 초). **그래프 DB 는 넣지 않는다** — 이 기준을 측정으로 못 지킬 때만 ADR 로
 
 ## 7. 에이전트 — 문장만 만든다 (`FC-REQ-023` FR-2~6)
 

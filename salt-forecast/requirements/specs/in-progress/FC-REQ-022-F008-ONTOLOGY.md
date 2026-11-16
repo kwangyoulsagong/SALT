@@ -56,15 +56,15 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 | FR-13 | **네 층** ① 사실(`fact` — 출처 · 관측 시각 · `available_at`: 공시 · 기사 추출 사실 · 지표값 · 수급 · 환율 · 금리) ② 근거(`evidence` — 사실 + 비교: 평소 대비 배수 · 업종 대비 · 반응 창) ③ 원인 후보(`cause_candidate` — 사건 + 근거 묶음 + `strength`) ④ 결과(`outcome` — 실제 등락 · 그 뒤 채점). ③ · ④ 는 서버 조립 결과의 사본(주인 `SRV-REQ-053` FR-11) | **done 2026-11-16**(순서 5b) — ① `fact`(등락 · 몫 — 원인 스냅샷) ② `evidence` ③ `cause_candidate` ④ `outcome`(시장 대비 1 · 5봉). 공시 · 기사 사실 · 환율 · 금리를 ① 에 싣는 것은 FR-16 |
 | FR-14 | **연결 셋** 사건 ↔ 종목 ↔ 업종(`affects` · `belongs_to` — 업종 소식을 종목에) · 사건 ↔ 반응 창(`FC-REQ-028` FR-8) · 원인 후보 ↔ 채점 | **done 2026-11-16** — 사건 `affects` 종목 · 종목 `belongs_to` 업종(마스터 · 바뀌면 옛 관계 닫음) · 후보 ↔ 결과(같은 종목 · 거래일). 반응 창 연결은 FR-16 과 함께 |
 | FR-15 | **원인 설명 채점** — "가장 유력"이라 한 원인 종류별로 뒤의 등락이 과거 같은 종류와 같은 방향이었나 · 기준(업종 몫만으로 설명) 대비 | **in-progress 2026-11-16** — 사전등록 `cause-explain@1`(`898eec54`, 결과 전) · 매일 `cause_explain` · 전진만(판정 2027-01-15 · 02-14 · 03-16) |
-| FR-16 | 새 원천 — 공시(`FC-REQ-026`) · 기사 추출 사실 · 환율 · 금리 · 지수 값(`series_point` 확장). 원천마다 `available_at` 정의를 `security-sources.md` 표에 | to-do |
+| FR-16 | 새 원천 — 공시(`FC-REQ-026`) · 기사 추출 사실 · 환율 · 금리 · 지수 값(`series_point` 확장). 원천마다 `available_at` 정의를 `security-sources.md` 표에 | **done 2026-11-16(5b-2)** — 공시(처음 본 시각) · 기사 추출 사실(서버 추출 시각) · 환율 · 금리 · 지수 · 공포탐욕 · 스테이블코인 · 온체인(시계열 available_at — 거래소 입출금은 판정 금지라 뺌). 코인 종목 고빈도 시계열(펀딩비 등 240만)은 복제하지 않음. 국내 투자자 수급 표는 0행 · 프로그램 장중은 틱이라 뺌 |
 
 ## FR — 상태(2026-11-16 순서 5)
 
 | FR | 상태 |
 |---|---|
 | FR-1~3 | **done** — 표 셋 + `merged_into` · CHECK 닫힌 목록. 마이그레이션 `20261116200100_forecast_ontology_cause` |
-| FR-4 | **done(정정)** — 뷰는 인자를 못 받아 **함수** `forecast.f_fact_asof(as_of)` · `f_relation_asof(as_of)` · `f_neighbors(id, depth ≤ 3, as_of)`. 기준 `available_at` 하나 |
-| FR-5 · 6 | **done(있는 재료만)** — `jobs/ontology_build`: 마스터 → 자산 · 업종 · 소속 / 업비트 일봉 심볼 → 자산 / 원인 스냅샷 → 사건 · 영향 · 사실 · 근거 · 원인 후보 / 일봉 → 결과. 뉴스 `mentions` · 일정 사건 · 반응 사실은 FR-16 과 함께(아직 0). 재적재 2회 행 수 같음 |
+| FR-4 | **done(정정)** — 뷰는 인자를 못 받아 **함수** `forecast.f_fact_asof(as_of, entity?)` · `f_relation_asof(as_of)` · `f_neighbors(id, depth ≤ 3, as_of)`. 기준 `available_at` 하나. 원천을 넓히자 3홉이 시장 엔티티(소속 5천)를 지나 수 초 → **시장은 이웃으로 돌려주되 지나가지 않는다** · 홉마다 점 집합 → 종목 p95 95ms · 최대 170ms |
+| FR-5 · 6 | **done 2026-11-16(5b-2 — 있는 원천 전부)** — 처음엔 마스터 · 심볼 · 원인 스냅샷만 넣고 'done' 이라 적었다(사용자 "온톨로지 이게 다야?" — 정정). 지금 원천: 종목 마스터(자산 · 회사 `listed_as` · 업종 · 시장 `belongs_to` · 별칭) · 코인 이름 · 원인 스냅샷 · DART 공시 목록(회사 `issued` 문서 · 문서 `mentions`) · 국내 시황 · 공시 제목 · 코인 기사(`mentions`, 관련 종목 1/n 확신) · 일정 사건(`affects` 시장 · 종목) · 일정 반응 통계 · 쏠림 신호 · β · σ · 거래소 경보 · 종목 상태(바뀔 때만). 엔티티 37,071 · 별칭 10,017 · 관계 42,978 · 사실 94,604 · 재적재 2회 같음 · 1.5초. 미해소 98(상장폐지 · 마스터 밖 심볼 — `unresolved`) |
 | FR-7 | done — DDL 은 `salt-server/prisma` |
 | FR-10~12 | to-do — 수기 라벨 200건(사람 몫). `mentions` 간선이 없어 아직 쓸 곳도 없다 |
 
@@ -86,3 +86,4 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 | 2026-11-10 | `FEATURE-017` 개정 — F017 은 온톨로지 전체를 기다리지 않는다. 필요한 것(소식 → 종목 · 사건 종류)만 `FC-REQ-028` FR-3 이 이미 있는 연결로 한다. 이 REQ 는 to-do 그대로(우선순위 뒤) |
 | 2026-11-13 | **v4 재설계**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-13~16: 사실 → 근거 → 원인 후보 → 결과 네 층 · 연결 셋 · 원인 설명 채점 · 새 원천. `FEATURE-017` 범위 안으로 |
 | 2026-11-16 | **순서 5 구현**(`feat/f017-v4-s5-ontology-cause-scoring` · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — to-do → in-progress. FR-1~7 · 13 · 14 done(있는 재료만) · FR-15 사전등록 `cause-explain@1` 전진 · FR-4 정정(뷰 → 함수) · 딥리서치 후보 FR-17 · 18 — 추가 안 함(사용자 결정, 기록만) |
+| 2026-11-16 | **FR-5 · 16 정정 · 확대**(사용자 "온톨로지 이게 다야? 너무 짧은 거 아니야" · "베스트 케이스로") — 원천 셋 → 열넷. 별칭 표 `entity_alias` · export 뷰 둘(`v_extracted_fact_export` · `v_crypto_name_export`) · 문서 id = 서버 사실 id(한 점). 첫 판 결함 고침: 코인 id 를 `KRW-` 째로 만듦(345개 — 표 비우고 재적재) · 3홉 폭발(시장 허브) |
