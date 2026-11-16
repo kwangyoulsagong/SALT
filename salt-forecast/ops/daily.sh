@@ -30,7 +30,9 @@ rc=0
 # 판단 라벨 등급(judgment_tier, FC-REQ-028 FR-6)은 점검 채점 뒤 — 서버가 채점을 끝낸 판단 원장(export 뷰)을 읽는다. 1초
 # 소식 측정 태그(news_reaction, FC-REQ-028 FR-3)는 국내 일봉 옮긴 뒤 — 반응 · 선반영의 마지막 봉이 그 일봉이다. 23초
 # 사건 반응 창 · 선반영 삼분위(event_window, FC-REQ-028 FR-8)는 그 뒤 — 같은 사전 · 같은 초과. 약 5초
-steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction event_window events signals volatility market_regime move_beta target_weight_live)
+# 예측 실험 H3 큰 움직임 × 소식(move_news, move-news@1)은 그 뒤 — 사건을 라벨 전에 기록 · 닫힌 것 채점. 약 8초
+# 예측 실험 H1 흔들림 · 범위(vol_range, vol-range@1)는 그 뒤 — 1차 판정 · 전진 예측 기록 · 채점. 코인 1시간봉 · 국내 일봉. 약 15초
+steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction event_window move_news vol_range events signals volatility market_regime move_beta target_weight_live)
 # 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
 # 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
 "$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
