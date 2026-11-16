@@ -1,6 +1,6 @@
 import prisma from "../../shared/infrastructure/prisma";
-import type { NewsKindDict, NewsReactionStat, NewsTagMarket, NewsTagReader } from "../domain";
-import { preMoveKey } from "../domain";
+import type { EventWindowStat, NewsKindDict, NewsReactionStat, NewsTagMarket, NewsTagReader } from "../domain";
+import { EVENT_WINDOW_KEY, preMoveKey } from "../domain";
 
 /** 사전 · 서술은 하루 한 번 바뀐다(예측 매일 배치) — 10분 캐시. 바뀐 값이 화면에 늦어도 10분이다 */
 const CACHE_MS = 10 * 60_000;
@@ -11,6 +11,7 @@ const CACHE_MS = 10 * 60_000;
  */
 export class PrismaNewsTagReader implements NewsTagReader {
   private cache: { at: number; dict: NewsKindDict | null; stats: NewsReactionStat[]; crypto: ReadonlySet<string> } | null = null;
+  private windowCache: { at: number; rows: EventWindowStat[] } | null = null;
 
   constructor(private readonly now: () => number = () => Date.now()) {}
 
@@ -52,6 +53,40 @@ export class PrismaNewsTagReader implements NewsTagReader {
 
   async dict() {
     return (await this.load()).dict;
+  }
+
+  /**
+   * 5봉 지평만(근거 줄이 쓰는 것) — 시장 × 출처 × 종류 × 삼분위 수백 행. 뷰가 없으면(예측 3b 전 환경) 빈 배열 —
+   * 태그 · 원인은 그 줄 없이 그대로(덧붙임)
+   */
+  async eventWindows() {
+    if (this.windowCache && this.now() - this.windowCache.at < CACHE_MS) return this.windowCache.rows;
+    const rows = await prisma
+      .$queryRaw<
+        Array<{
+          market: string; origin: string; kind: string; tercile: string; horizon: number; status: string; sample: number;
+          up_rate: number | null; base_up_rate: number | null; differs: string | null; pre_low_max: number; pre_high_min: number;
+        }>
+      >`SELECT market, origin, kind, tercile, horizon::int AS horizon, status, sample, up_rate, base_up_rate, differs,
+               pre_low_max, pre_high_min
+        FROM forecast.v_event_window_stat WHERE prereg_key = ${EVENT_WINDOW_KEY} AND horizon = 5`
+      .catch(() => []);
+    const mapped: EventWindowStat[] = rows.map((r) => ({
+      market: r.market as NewsTagMarket,
+      origin: r.origin,
+      kind: r.kind,
+      tercile: r.tercile === "low" || r.tercile === "mid" || r.tercile === "high" ? r.tercile : "all",
+      horizon: r.horizon,
+      status: r.status === "ok" ? "ok" : "below_min",
+      sample: r.sample,
+      upRate: r.up_rate,
+      baseUpRate: r.base_up_rate,
+      differs: r.differs === "higher" || r.differs === "lower" ? r.differs : null,
+      preLowMax: r.pre_low_max,
+      preHighMin: r.pre_high_min,
+    }));
+    this.windowCache = { at: this.now(), rows: mapped };
+    return mapped;
   }
 
   async reactions() {

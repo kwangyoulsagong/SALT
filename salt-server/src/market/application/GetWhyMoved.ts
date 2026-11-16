@@ -146,6 +146,7 @@ const causeEvents = async (reader: MoveEvidenceReader | undefined, symbol: strin
     label: f.tag?.label ?? null,
     reaction: f.tag?.reaction ?? null,
     preMove5d: f.tag?.preMove5d ?? null,
+    preMoveReaction: f.tag?.preMoveReaction ?? null,
     after: toAfterMove(f.at, prices?.get(f.at.getTime())),
   }));
 };

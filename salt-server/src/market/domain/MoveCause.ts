@@ -1,4 +1,4 @@
-import type { NewsReactionView, NewsTagLabel } from "./NewsTag";
+import type { NewsReactionView, NewsTagLabel, PreMoveReactionView } from "./NewsTag";
 
 /**
  * 오늘 왜 움직였나 — 원인 → 근거 → 결과 조립(F017 v4 순서 1b · `SRV-REQ-053` FR-11 · FR-17 · `ADR-009` v4 · D21).
@@ -97,6 +97,8 @@ export interface MoveCauseEvent {
   reaction: NewsReactionView | null;
   /** 소식 전 5봉 시장 대비(단순 비율) */
   preMove5d: number | null;
+  /** 이만큼 미리 움직인 같은 종류 소식 뒤 5봉(`event-window@2` — F017 v4 순서 3b). 표본이 모자라면 null */
+  preMoveReaction?: PreMoveReactionView | null;
   /** 소식 뒤 가격 — 직전 봉 종가 대비 %(최대 30분). `afterOpen` = 소식이 장 밖이라 다음 장 첫 봉부터 잼. 봉이 없으면 null */
   after: { changePct: number; minutes: number; at: Date; afterOpen: boolean } | null;
 }
@@ -272,10 +274,15 @@ const eventCause = (input: MoveCauseInput, e: MoveCauseEvent): MoveCause => {
   const idio = idioEvidence(input);
   if (idio) evidence.push(own ? idio : { ...idio, supports: false });
   if (e.preMove5d !== null) {
+    const pr = e.preMoveReaction ?? null;
     evidence.push({
       kind: "pre_move",
       value: `${word} 전 5거래일 ${signedPct(e.preMove5d * 100)}`,
-      compare: "시장 대비 · 소식 전에 이미 움직인 폭이에요",
+      // 같은 삼분위 과거 — 미리 움직인 소식 뒤 되돌림인가 이어짐인가(사전등록 event-window@2). 숫자는 예측이 낸 그대로
+      compare: pr
+        ? `시장 대비 · 이만큼 미리 움직인 같은 종류 소식 뒤 5거래일 시장보다 더 오른 경우 100번 중 ${outOf100(pr.upRate)}번` +
+          (pr.kindUpRate === null ? "" : ` · 같은 종류 전체 ${outOf100(pr.kindUpRate)}번`)
+        : "시장 대비 · 소식 전에 이미 움직인 폭이에요",
       gloss: null,
       source: "시세",
       at: null,
@@ -675,7 +682,7 @@ export const KR_MARKET_NAME: Readonly<Record<string, string>> = { "0001": "코�
 export const CRYPTO_MARKET_NAME = "비트코인";
 
 /** 같은 날 사실(소식) → 원인 후보의 재료. 공시가 앞 · 그다음 최신순 · 상한 `POST_MOVE_EVENT_LIMIT` */
-export const pickCauseEvents = <F extends { id: string; kind: string; at: Date; source: string; title: string; tag?: { eventKindText: string; label: NewsTagLabel; reaction: NewsReactionView | null; preMove5d: number | null } | null }>(
+export const pickCauseEvents = <F extends { id: string; kind: string; at: Date; source: string; title: string; tag?: { eventKindText: string; label: NewsTagLabel; reaction: NewsReactionView | null; preMove5d: number | null; preMoveReaction?: PreMoveReactionView | null } | null }>(
   facts: readonly F[]
 ): F[] =>
   facts

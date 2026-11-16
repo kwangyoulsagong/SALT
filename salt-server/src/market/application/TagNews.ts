@@ -24,10 +24,11 @@ export class TagNews {
     const out = new Map<string, NewsTag>();
     if (items.length === 0) return out;
     try {
-      const [dict, stats, crypto] = await Promise.all([
+      const [dict, stats, crypto, windows] = await Promise.all([
         this.reader.dict(),
         this.reader.reactions(),
         market === "crypto" ? this.reader.cryptoSymbols() : Promise.resolve(null),
+        this.reader.eventWindows(),
       ]);
       if (!dict) return out;
       const pre = await this.reader.preMoves(market, items.map((i) => ({ symbol: i.symbol, publishedAt: i.publishedAt })));
@@ -37,7 +38,8 @@ export class TagNews {
           dict,
           stats,
           { market, origin: i.origin, codes: Math.max(codes, 1), title: i.title },
-          pre.get(preMoveKey(i.symbol, i.publishedAt)) ?? null
+          pre.get(preMoveKey(i.symbol, i.publishedAt)) ?? null,
+          windows
         );
         if (tag) out.set(i.id, tag);
       }

@@ -22,6 +22,7 @@ const reader = (over: Partial<NewsTagReader> = {}): NewsTagReader => ({
   reactions: async () => [],
   preMoves: async (_m, items) => new Map(items.map((i) => [preMoveKey(i.symbol, i.publishedAt), 0.02])),
   cryptoSymbols: async () => new Set(["BTC", "ETH", "XRP"]),
+  eventWindows: async () => [],
   ...over,
 });
 
