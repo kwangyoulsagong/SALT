@@ -1,4 +1,4 @@
-"""H1 흔들림 · 범위 — 사전등록 `vol-range@1`(FC-REQ-028 FR-9 · F017 v4 순서 4). 순수 계산, I/O 없음.
+"""H1 흔들림 · 범위 — 사전등록 `vol-range@3`(@1 + 동결 재생 · FC-REQ-028 FR-9 · F017 v4 순서 4). 순수 계산, I/O 없음.
 
 행렬은 (봉, 종목) — 행 t 는 봉 t 의 available_at 에 닫힌 값만 담는다.
 
@@ -34,7 +34,7 @@ from salt_forecast.domain.base_rate import holm
 from salt_forecast.domain.har import MIN_PRESENT
 from salt_forecast.domain.series import DAY, OhlcvSeries
 
-KEY = "vol-range@1"
+KEY = "vol-range@3"
 HORIZONS = (1, 5)
 MARKETS = ("kr", "crypto")
 BASELINES = ("b1", "b2", "b3")
@@ -54,7 +54,12 @@ HOLM_ALPHA = 0.05
 DATA_START = {"kr": date(2021, 10, 12), "crypto": date(2024, 11, 1)}
 DATA_START_TOL_DAYS = 31
 HISTORY_END = datetime(2026, 11, 12, 15, 0, tzinfo=UTC)  # 2026-11-13 00:00 KST — 등록 [decision] 자료 끝 2026-11-12
-REGISTERED_AT = datetime(2026, 11, 13, 2, 49, 40, tzinfo=UTC)  # 등록 커밋 51f6018d — 전진 표본은 이 뒤 기준 봉만
+# @3(2026-11-16) — 전진 표본은 이 뒤 기준 봉만(@1 은 2026-11-13 02:49:40Z 커밋 51f6018d).
+# @3 등록 커밋보다 뒤 첫 코인 봉 경계
+REGISTERED_AT = datetime(2026, 11, 17, 0, 0, tzinfo=UTC)
+# @3 동결 재생 — 맥이 잠든 날(주말)의 기준 봉 예측을 깨어난 뒤 그 봉까지의 패널 · 같은 코드로 다시 만든다
+# (놓친 봉 전부, 14일 안)
+REPLAY_CAP_DAYS = 14
 LOOKS = (date(2027, 1, 12), date(2027, 2, 11), date(2027, 3, 13))
 ALPHA_PER_LOOK = 0.0166667
 FORWARD_MIN_DAYS = 30
@@ -581,6 +586,20 @@ def forward_result(market: str, h: int, rows: Sequence[ForwardRow]) -> ForwardRe
     for a in LEVELS:
         out.cover[a] = float(np.nanmean(hit[a]))
     return out
+
+
+def replay_bars(dates: NDArray[np.int64], have: set[int], registered: int, now: int) -> list[int]:
+    """재생할 봉 행 — 등록 뒤 · 14일 안 · 아직 예측이 없는 봉 전부.
+
+    마지막 봉도 포함한다 — 실시간이 이미 썼으면 have 에 있다."""
+    first = max(registered, now - REPLAY_CAP_DAYS * 86_400)
+    return [i for i, d in enumerate(dates.tolist()) if first <= d <= now and d not in have]
+
+
+def look_cutoff(look: int) -> int:
+    """판정 표본 끝 — 판정 날짜 00:00 KST 전 기준 봉만(판정이 늦게 돌아도 같은 표본, @3)."""
+    d = LOOKS[look]
+    return int((datetime(d.year, d.month, d.day, tzinfo=UTC) - _KST).timestamp())
 
 
 def look_due(today: date, done: int) -> int | None:

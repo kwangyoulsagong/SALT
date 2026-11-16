@@ -1,7 +1,7 @@
 import Parser from "rss-parser";
 
 import { logger } from "../../shared/config/logger";
-import type { ArticleDraft, ArticleSentiment } from "../domain";
+import { NEWS_GAP_PER_FEED, nextIsoDay, type ArticleDraft, type ArticleSentiment, type NewsDayResult } from "../domain";
 
 /**
  * 한글 뉴스 수집 — `external/korean-news.service.ts` 에서 옮겨왔다.
@@ -20,9 +20,28 @@ const parser = new Parser({
   },
 });
 
-class KoreanNewsFeed {
+/** RSS 한 번 받기 — 테스트가 갈아 끼운다. 실패는 던진다 */
+type FeedLoader = (url: string) => Promise<{ items: Parser.Item[] }>;
+
+/** 날짜 다시 검색의 요청 간격(≈1건/s) — 정기 회차 10건과 달리 최대 150건이라 한꺼번에 보내지 않는다 */
+const GAP_PACE_MS = 1_000;
+
+/** 검색 RSS 주소 — 한국 설정(hl=ko&gl=KR&ceid=KR:ko) */
+export const googleNewsRssUrl = (query: string) =>
+  `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
+
+/** 하루치 다시 검색 주소(`SRV-REQ-057` FR-8) — `키워드 after:그날 before:다음날` */
+export const googleNewsDayUrl = (keyword: string, day: string) =>
+  googleNewsRssUrl(`${keyword} after:${day} before:${nextIsoDay(day)}`);
+
+export class KoreanNewsFeed {
+  constructor(
+    private readonly load: FeedLoader = (url) => parser.parseURL(url),
+    private readonly sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+  ) {}
+
   // ✅ “전체 뉴스” 커버용 broad 키워드 세트
-  private keywords = [
+  readonly keywords = [
     "가상화폐",
     "암호화폐",
     "코인",
@@ -41,7 +60,7 @@ class KoreanNewsFeed {
     // 키워드 별 RSS URL 만들기
     const rssUrls = this.keywords.map((kw) => ({
       name: `GoogleNews(${kw})`,
-      url: this.buildGoogleNewsRssUrl(kw),
+      url: googleNewsRssUrl(kw),
     }));
 
     const results = await Promise.allSettled(
@@ -69,43 +88,30 @@ class KoreanNewsFeed {
     return final;
   }
 
-  private buildGoogleNewsRssUrl(keyword: string) {
-    // 한국 뉴스 RSS 검색
-    // hl=ko&gl=KR&ceid=KR:ko -> 한국 설정
-    const q = encodeURIComponent(keyword);
-    return `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
+  /**
+   * 하루치 다시 검색(`SRV-REQ-057` FR-8) — 키워드마다 차례로 · 요청 사이 1초. `source` 는 정기 회차와 같은 `GoogleNews(키워드)`
+   * (소식 실험의 출처 정의가 그대로다). 실패한 키워드는 건너뛰고 수를 센다 — 부르는 쪽이 "다 받았나"로 마지막 성공을 옮길지 정한다
+   */
+  async fetchKoreanDay(day: string): Promise<NewsDayResult> {
+    const items: ArticleDraft[] = [];
+    let failed = 0;
+    for (const [i, kw] of this.keywords.entries()) {
+      if (i > 0) await this.sleep(GAP_PACE_MS);
+      try {
+        items.push(...(await this.readFeed(`GoogleNews(${kw})`, googleNewsDayUrl(kw, day), NEWS_GAP_PER_FEED)));
+      } catch (error: any) {
+        failed++;
+        logger.warn(`[news] gap ${day} ${kw} 실패`, { message: String(error?.message ?? "").slice(0, 120), code: error?.code ?? null });
+      }
+    }
+    const uniq = new Map<string, ArticleDraft>();
+    for (const item of items) if (!uniq.has(item.url)) uniq.set(item.url, item);
+    return { items: [...uniq.values()], failed };
   }
 
   private async fetchFromRss(sourceName: string, url: string) {
     try {
-      const feed = await parser.parseURL(url);
-
-      const items: ArticleDraft[] = [];
-
-      for (const entry of feed.items.slice(0, 30)) {
-        const title = entry.title?.trim() ?? "";
-        const link = entry.link?.trim() ?? "";
-        const publishedAt = entry.isoDate
-          ? new Date(entry.isoDate)
-          : new Date();
-        const summary =
-          (entry.contentSnippet || entry.content || "").toString().trim() ||
-          title;
-
-        if (!title || !link) continue;
-
-        items.push({
-          title,
-          content: summary,
-          summary: this.extractSummary(summary),
-          url: link,
-          source: sourceName,
-          symbols: this.extractSymbols(title + " " + summary),
-          sentiment: this.analyzeSentiment(title + " " + summary),
-          publishedAt,
-        });
-      }
-
+      const items = await this.readFeed(sourceName, url, 30);
       logger.info(`✅ ${sourceName}: ${items.length} items`);
       return items;
     } catch (error: any) {
@@ -115,6 +121,39 @@ class KoreanNewsFeed {
       });
       return [];
     }
+  }
+
+  /** 받아서 기사 초안으로 — 정기 · 다시 검색이 같은 변환(종목 · 감성 · 요약)을 쓴다. 실패는 던진다 */
+  private async readFeed(sourceName: string, url: string, limit: number): Promise<ArticleDraft[]> {
+    const feed = await this.load(url);
+
+    const items: ArticleDraft[] = [];
+
+    for (const entry of feed.items.slice(0, limit)) {
+      const title = entry.title?.trim() ?? "";
+      const link = entry.link?.trim() ?? "";
+      const publishedAt = entry.isoDate
+        ? new Date(entry.isoDate)
+        : new Date();
+      const summary =
+        (entry.contentSnippet || entry.content || "").toString().trim() ||
+        title;
+
+      if (!title || !link) continue;
+
+      items.push({
+        title,
+        content: summary,
+        summary: this.extractSummary(summary),
+        url: link,
+        source: sourceName,
+        symbols: this.extractSymbols(title + " " + summary),
+        sentiment: this.analyzeSentiment(title + " " + summary),
+        publishedAt,
+      });
+    }
+
+    return items;
   }
 
   private extractSymbols(text: string): string[] {

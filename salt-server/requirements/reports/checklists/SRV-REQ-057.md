@@ -25,3 +25,19 @@
 
 - `SyncKrStock.ts`(분봉 백필 창 1년 · 밤 회차) 문서 줄이 이 REQ 를 가리켜 걸림 — 유니버스 즉시 백필(`only`) 동작 무변경
 - 검증은 루트 체크리스트 `requirements/reports/checklists/F017-v4-stage3-intraday.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — FR-8 뉴스 잠든 날 메우기(`fix/news-crawler-sleep-gap`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 불변식 한 줄 + 경계 표(첫 수집 · 70분 · 1시간 59분 · 2시간 · 15시간 · 주말 · 40일) | 충족 | `news/domain/NewsGap.ts` · `refillNewsGap.test.ts` — 예측 `gap_days` 표와 같은 경계 |
+| 같은 저장 경로 · 같은 `source` · 받은 시각 = 지금 | 충족 | `saveAll` → `saveIfNew`(주소로 한 번 · `created_at` 기본값) · `GoogleNews(키워드)` 시험 |
+| 날짜 주소 · 차례로 1초 · (검색어, 하루) 100건 · 실패 세고 건너뜀 | 충족 | `koreanNewsFeed.test.ts`(동시 요청 0 단언) |
+| 마지막 성공 — 실패면 안 옮김 · 메우는 중 겹침 0 · 정기 회차가 덮지 않음 · 원장 1회 | 충족 | `refillNewsGap.test.ts` 4건 |
+| 변이로 시험 확인 | 충족 | scratchpad 사본으로 되돌림 — 겹침 하루 빼기 5 실패 · 실패에도 옮기기 2 실패 |
+| 깸 구독 다음(AI 본문)을 막지 않음 | 충족(코드) | 워커가 `fill` 을 기다리지 않음(`void`) — 실 깸 로그는 아래 미확인 |
+| 실측 | 충족(읽기만) | 11-15 하루 10요청 10~13초 · 465건 · 실패 0 · DB 에 없는 기사 266 · 게시 경계 08:00 UTC |
+| `npm test` 1620 · `lint` · `build` · `test:layer-check` | 충족 | 이 브랜치 |
+| 실 수면 깸 → 메우기 로그 · 저장 수 | **미확인** | 운영 뉴스 워커 재시작 안 함 — 머지 · `ops/salt.sh restart news` 뒤 다음 수면 |
+| 메우기 도중 재시작 시 남은 날 | **한계** | 기동 신호가 `max(created_at)` — 생기면 상태 표 마이그레이션 |
+| 영어 매체 RSS 3개 | **한계** | 날짜 검색 없음 |

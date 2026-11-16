@@ -471,7 +471,7 @@ const createKrStockUseCases = (
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
     syncDailyCandles,
-    syncFullDailyCandles: new SyncKrFullDailyCandles(deps.kis, deps.store),
+    syncFullDailyCandles: new SyncKrFullDailyCandles(deps.kis, deps.store, deps.calendar),
     pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
     syncMinuteBars,
     syncSlotlessMinuteBars: new SyncKrSlotlessMinuteBars(deps.kis, deps.store, deps.calendar, universe, () =>

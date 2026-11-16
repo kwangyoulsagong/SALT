@@ -19,7 +19,7 @@ import html
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from urllib.parse import quote
 
@@ -39,12 +39,42 @@ EN_FEEDS = {
 }
 # 피드 하나에서 받는 최대 기사 수 — 서버와 같은 30
 PER_FEED = 30
+# 빈 기간 메우기 — 맥이 잠든 동안 RSS 는 최근 30건만 남는다. Google 뉴스 검색은 날짜 범위(after: · before:)를 받아
+# 하루씩 다시 검색하면 그날 기사가 최대 100건 온다(2026-11-16 확인). 영어 매체 RSS 3개는 날짜 검색이 없어 못 메운다
+GAP_AFTER = timedelta(hours=2)  # 매시 수집이 한 번 빠진 정도는 30건 안에 든다
+GAP_CAP_DAYS = 14
+GAP_PER_FEED = 100
 MAX_BYTES = 2_000_000
 _TAG = re.compile(r"<[^>]+>")
 
 
 def google_news_url(query: str) -> str:
     return f"https://news.google.com/rss/search?q={quote(query)}&hl=ko&gl=KR&ceid=KR:ko"
+
+
+def gap_days(last_ok: datetime | None, now: datetime) -> list[date]:
+    """메울 날(UTC 날짜). 마지막 성공이 GAP_AFTER 안이면 없음 · 첫 수집(None)도 없음(과거 백필은 이 작업 몫이 아니다).
+
+    앞뒤 하루씩 겹친다 — 검색 날짜 경계의 시간대가 UTC 와 다르다(2026-11-16 응답이 08:00 UTC 경계).
+    같은 기사는 DO NOTHING.
+    """
+    if last_ok is None or now - last_ok < GAP_AFTER:
+        return []
+    first = max((last_ok - timedelta(days=1)).date(), now.date() - timedelta(days=GAP_CAP_DAYS))
+    return [first + timedelta(days=i) for i in range((now.date() - first).days + 1)]
+
+
+def gap_feeds(days: list[date]) -> list[tuple[str, str]]:
+    """(source, url) — source 는 `rss:google-gap:<검색어>`. 등록 `news-sentiment@1` 의 원천은 매시 RSS 13개뿐이라
+    집계는 `rss:google:` · 영어 3개만 센다 — 메운 기사는 화면 · 다른 측정용(FC-REQ-016 2026-11-16)."""
+    return [
+        (
+            f"rss:google-gap:{q}",
+            google_news_url(f"{q} after:{d.isoformat()} before:{(d + timedelta(days=1)).isoformat()}"),
+        )
+        for d in days
+        for q in GOOGLE_KO_QUERIES
+    ]
 
 
 def feeds() -> list[tuple[str, str]]:
@@ -84,7 +114,7 @@ def _published(raw: str, fetched_at: datetime) -> datetime:
     return min(d, fetched_at)  # 미래 게시 시각은 믿지 않는다
 
 
-def parse_feed(body: bytes, source: str, fetched_at: datetime) -> list[NewsItem]:
+def parse_feed(body: bytes, source: str, fetched_at: datetime, limit: int = PER_FEED) -> list[NewsItem]:
     """RSS 2.0 `channel/item`. 제목이나 링크가 없는 항목은 건너뛴다. 모양이 아예 다르면 SourceError."""
     if len(body) > MAX_BYTES:
         raise SourceError(f"{source} 응답이 너무 크다({len(body)}B)", retryable=False)
@@ -96,7 +126,7 @@ def parse_feed(body: bytes, source: str, fetched_at: datetime) -> list[NewsItem]
     if channel is None:
         raise SourceError(f"{source} RSS channel 없음", retryable=False)
     out: list[NewsItem] = []
-    for el in channel.findall("item")[:PER_FEED]:
+    for el in channel.findall("item")[:limit]:
         title = _clean(_text(el.find("title")))
         url = _text(el.find("link"))
         if not title or not url.startswith(("http://", "https://")):
@@ -118,7 +148,9 @@ def parse_feed(body: bytes, source: str, fetched_at: datetime) -> list[NewsItem]
     return out
 
 
-def fetch_feed(client: httpx.Client, source: str, url: str, pacer: Pacer, fetched_at: datetime) -> list[NewsItem]:
+def fetch_feed(
+    client: httpx.Client, source: str, url: str, pacer: Pacer, fetched_at: datetime, limit: int = PER_FEED
+) -> list[NewsItem]:
     """피드 하나. 재시도는 연결 오류 · 429 · 5xx 한 번만 — 매시 다시 돈다."""
     for attempt in range(2):
         pacer.wait()
@@ -129,7 +161,7 @@ def fetch_feed(client: httpx.Client, source: str, url: str, pacer: Pacer, fetche
                 raise SourceError(f"{source} 연결 실패: {type(e).__name__}", retryable=True) from e
             continue
         if res.status_code == 200:
-            return parse_feed(res.content, source, fetched_at)
+            return parse_feed(res.content, source, fetched_at, limit)
         if res.status_code != 429 and res.status_code < 500:
             raise SourceError(f"{source} {res.status_code}", retryable=False)
         if attempt == 1:

@@ -105,3 +105,20 @@
 ## 2026-11-16 — F017 v4 순서 4 짝
 
 - daily.sh 단계 둘 — zsh -n 통과 · 두 작업 실 실행 13초 · 7초. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage4-experiment.md`
+
+## 2026-11-16 — 잠든 동안 빈 날 메우기
+
+- 날짜 범위 검색 실측: `비트코인 after:2026-11-10 before:2026-11-11` → 100건 · 11-10 08:01 ~ 11-11 08:00 UTC(경계가 UTC 아님 → 앞뒤 하루 겹침)
+- `gap_feeds` 실호출(11-14, 검색어 3개): 28 · 75 · 100건
+- 경계 표 시험(첫 수집 · 70분 · 15시간 · 주말 · 40일 상한) · 같은 source 이름 · URL 날짜 — `tests/ingest/test_rss.py`
+- `news --dry-run --no-score`: 빈 기간 없음(마지막 성공 16:05) → 평소대로 365건 · 12초
+- 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부
+- 미검증: 실제 수면 뒤 첫 실행의 "빈 기간 메우기" 로그 · 늘어난 행 — 다음 출근 뒤 `salt-forecast-daily.log` 로 닫는다
+## 2026-11-16 — 네이버 뉴스 보조 원천
+
+- HUB 키 실측: `search/v1/news` 200 · `openapi.naver.com` 401. start ≤ 1000(1001 → SE03). 1,100건이면 비트코인 약 3일 · 업비트 약 10일 · 가상화폐 약 12일
+- `news --dry-run --no-score`: RSS 365 + 네이버 1,000 = 1,365건 · 실패 0 · 14초
+- 시험 4(첫 쪽만 · 정리 · 원문 링크 · 쪽 넘김 멈춤 · 덜 찬 쪽 · 1,100 상한 · 키 미노출) — `tests/ingest/test_naver_news.py`
+- 날짜 검색 메우기 source 를 `rss:google-gap:*` 로 분리(등록 원천과 섞이지 않게) · 등록 피드를 먼저 넣어 같은 URL 은 등록 행이 남는다
+- 미검증: 깨어난 뒤 첫 실행의 네이버 쪽 넘김 실측 — 다음 출근 뒤 로그로
+

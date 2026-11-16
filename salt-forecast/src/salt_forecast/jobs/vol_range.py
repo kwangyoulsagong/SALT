@@ -1,7 +1,7 @@
-"""H1 흔들림 · 범위 — 사전등록 vol-range@1 실행(FC-REQ-028 FR-9 · F017 v4 순서 4).
+"""H1 흔들림 · 범위 — 사전등록 vol-range@3 실행(@1 + 동결 재생, FC-REQ-028 FR-9 · F017 v4 순서 4).
 
 매일(daily.sh): 등록 → 1차 판정(자료 끝 2026-11-12) → 열린 전진 예측 채점 → 오늘 마지막 봉 예측 기록 →
-판정 날짜가 지났으면 그 판정(1차 통과 칸만) → forecast.vol_range_test · 리포트.
+놓친 봉 동결 재생 → 판정 날짜가 지났으면 그 판정(1차 통과 칸만, 그 날짜 전 기준 봉) → forecast.vol_range_test · 리포트.
 """
 
 from __future__ import annotations
@@ -9,10 +9,14 @@ from __future__ import annotations
 import hashlib
 import json
 import tomllib
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from sqlalchemy import Engine
+
 from salt_forecast.domain.calendar import report_day
+from salt_forecast.domain.series import OhlcvSeries
 from salt_forecast.domain.vol_range import (
     HISTORY_END,
     KEY,
@@ -20,10 +24,13 @@ from salt_forecast.domain.vol_range import (
     REGISTERED_AT,
     ForwardResult,
     ForwardRow,
+    VolPanel,
     forward_judge,
     forward_result,
+    look_cutoff,
     look_due,
     prepare,
+    replay_bars,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
@@ -44,6 +51,7 @@ from salt_forecast.store.vol_range import (
     PredictionRow,
     TestRow,
     load_predictions,
+    model_version_at,
     previous,
     save_new_predictions,
     save_scored,
@@ -51,7 +59,7 @@ from salt_forecast.store.vol_range import (
 )
 
 JOB = "vol_range"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-13-vol-range.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-vol-range-3.toml"
 _KST = timedelta(hours=9)
 
 
@@ -66,13 +74,20 @@ def _register(eng: object, path: Path, sha: str) -> bool:
     return register(eng, Registration(KEY, reg_at, sha, hashlib.sha256(raw).hexdigest(), stored))  # pyright: ignore[reportArgumentType]
 
 
-def forward_rows(rows: list[PredictionRow], market: str, h: int) -> list[ForwardRow]:
-    """판정 표본 — 등록 뒤 기준 봉 · 제때 기록 · 라벨 닫힘 · 기준 셋 다 있음."""
+def forward_rows(
+    rows: list[PredictionRow], market: str, h: int, cutoff: int | None = None, realtime_only: bool = False
+) -> list[ForwardRow]:
+    """판정 표본 — 등록 뒤 기준 봉 · 라벨 닫힘 · 기준 셋 다 있음 · (판정 날짜면) 그 날짜 전 기준 봉.
+
+    @3: 제때 기록(in_time) 행 + 동결 재생 행(in_time = false — 실시간은 늘 마지막 봉만 쓰므로 늦은 행은 재생뿐).
+    realtime_only 는 리포트 민감도용."""
     out: list[ForwardRow] = []
     for r in rows:
-        if (r.market, r.horizon) != (market, h) or r.scored_at is None or not r.in_time:
+        if (r.market, r.horizon) != (market, h) or r.scored_at is None or (realtime_only and not r.in_time):
             continue
         if r.ref_at < REGISTERED_AT or r.realized_rv is None or r.realized_r is None:
+            continue
+        if cutoff is not None and r.ref_at.timestamp() >= cutoff:
             continue
         if r.rv_b1 is None or r.rv_b2 is None or r.rv_b3 is None or r.half80 is None or r.half95 is None:
             continue
@@ -90,13 +105,42 @@ def _fwd_json(f: ForwardResult) -> dict[str, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("H1 흔들림 · 범위(사전등록 vol-range@1 — 1차 판정 · 전진 시험)")
+    p = base_parser("H1 흔들림 · 범위(사전등록 vol-range@3 — 1차 판정 · 전진 시험 · 동결 재생)")
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("crypto", "kr", "all"), default="all")
     p.add_argument("--no-report", action="store_true", help="리포트 파일을 쓰지 않는다")
     args = p.parse_args(argv)
     log = logger(JOB)
     stage = stage_logger(log, JOB)
+
+    def replay(
+        eng: Engine,
+        markets: tuple[str, ...],
+        raw: Mapping[str, Mapping[str, OhlcvSeries]],
+        build: Mapping[str, Callable[[Mapping[str, OhlcvSeries], datetime], VolPanel]],
+        mv: str,
+        now: datetime,
+    ) -> int:
+        """동결 재생(@3) — 예측이 없는 기준 봉(맥이 잠든 주말 등)을 그 봉까지의 패널 · 같은 코드로 다시 만든다.
+
+        같은 코드 = 그 봉 시각에 돌던 시험 실행의 model_version 이 지금과 같을 때만. 이미 쓴 행은 건드리지 않는다."""
+        have_rows = load_predictions(eng, KEY, open_only=False)
+        done = 0
+        skipped = 0
+        for m in markets:
+            dates = build[m](raw[m], now).dates
+            have = {int(r.ref_at.timestamp()) for r in have_rows if r.market == m}
+            for i in replay_bars(dates, have, int(REGISTERED_AT.timestamp()), int(now.timestamp())):
+                at = datetime.fromtimestamp(int(dates[i]), UTC)
+                if model_version_at(eng, KEY, at) != mv:
+                    skipped += 1
+                    continue
+                rows_t = [
+                    r for c in live_cells(prepare(build[m](raw[m], at)), mv, now) for r in c.rows if r.ref_at == at
+                ]
+                done += save_new_predictions(eng, KEY, rows_t)
+        log.info("동결 재생", extra={"fields": {"job": JOB, "rows": done, "skipped_code_changed": skipped}})
+        return done
 
     def body() -> int:
         eng = engine()
@@ -127,6 +171,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args.dry_run:
             written += save_scored(eng, KEY, closed)
             written += save_new_predictions(eng, KEY, [r for c in live for r in c.rows])
+            written += replay(eng, markets, raw, build, mv, now)
         stage("forward")
 
         # 판정 — 1차는 한 번 정해지면 그대로, 판정 날짜는 지난 것 중 안 한 첫 번째
@@ -148,6 +193,10 @@ def main(argv: list[str] | None = None) -> int:
         due = {k: look_due(today, n) for k, n in looks.items()}
         look = min((v for v in due.values() if v is not None), default=None)
         if look is not None:
+            # 판정 표본 = 판정 날짜 전 기준 봉(늦게 돌아도 같다, @3)
+            cut = look_cutoff(look)
+            for m, h in forward:
+                forward[(m, h)] = forward_result(m, h, forward_rows(all_rows, m, h, cut))
             pending = {f"{m}:{h}": forward[(m, h)] for (m, h), s in status.items() if s[0] == "forward"}
             for kk, verdict in forward_judge(pending, look).items():
                 m, h = kk.split(":")

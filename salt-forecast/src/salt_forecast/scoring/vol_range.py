@@ -1,4 +1,4 @@
-"""H1 흔들림 · 범위 실행 — 사전등록 `vol-range@1`(FC-REQ-028 FR-9 · F017 v4 순서 4).
+"""H1 흔들림 · 범위 실행 — 사전등록 `vol-range@3`(@1 + 동결 재생 · FC-REQ-028 FR-9 · F017 v4 순서 4).
 
 - 1차 판정: 자료 끝 2026-11-12 로 자른 패널에서 칸마다 walk-forward → QLIKE · DM(기준 셋) · 덮임 · 플라시보.
 - 전진: 지금까지 자료로 같은 walk-forward → 마지막 봉 예측(HAR · 기준 셋 · 컨포멀 80 · 95 반폭).
@@ -185,7 +185,8 @@ def render_report(
     lines = [
         f"# H1 흔들림 · 범위 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-13-vol-range.toml` · 코드 `{sha}` · as_of {as_of.isoformat()}",
+        f"- 사전등록 `preregistration/2026-11-16-vol-range-3.toml`(@1 + 동결 재생) · 코드 `{sha}`"
+        f" · as_of {as_of.isoformat()}",
         "- 1차 판정 = 자료 끝 2026-11-12 walk-forward(확장 창 · 매월 재적합 · 퍼지 h · 엠바고 5)."
         " 손실 QLIKE · DM(날짜 평균 · Newey–West h+5) · Holm 12 검정 α 0.05",
         "- 덮임 = 컨포멀(직전 250 날짜 |r|/√예측) 80 · 95% 가 [78, 82] · [93, 97] + 연도별 ±5%p",

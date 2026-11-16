@@ -334,3 +334,19 @@
 ## 2026-11-16 — F017 v4 순서 3b
 
 - FR-11 '미리 움직인 폭' 비교 칸 — 시험 셋 · 실 HTTP 010140 공시 제목 mid 36/100
+
+## 2026-11-16 — 단타 키 @4
+
+- `SHORT_DIRECTION_KEY = "short-direction@4"` · 문서 주석. `shortHorizon.test.ts` 16 통과 · `tsc --noEmit` 0. 응답 모양 무변경
+- 미검증: @4 첫 시험 실행 전까지 뷰에 @4 칸이 없어 패널 단타 칸은 '쌓는 중' — 머지 뒤 첫 예측 배치(`short_direction test`)로 닫힌다
+## 2026-11-16 — 짝(`fix/kr-backfill-work-hours`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 조립 파일 `api/index.ts` — `SyncKrFullDailyCandles` 달력 주입 한 줄 · 다른 조립 변경 0 | 충족 | 주인 `SRV-REQ-040` 체크리스트 2026-11-16 · `npm run build` |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

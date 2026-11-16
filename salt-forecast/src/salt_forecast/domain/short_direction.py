@@ -1,4 +1,7 @@
-"""단타 방향 확률 — 사전등록 short-direction@3(전진 시험, FC-REQ-028 FR-1 · FR-4) 의 순수 계산.
+"""단타 방향 확률 — 사전등록 short-direction@4(전진 시험 + 동결 재생, FC-REQ-028 FR-1 · FR-4) 의 순수 계산.
+
+@4(2026-11-16): @3 그대로 + 놓친 시각 동결 재생(`replay_hours` · `may_replay`) · 판정 표본을 판정 날짜 전까지
+(`look_cutoff`) · 마지막 날짜 표본 부족 = below_min.
 
 @3(2026-11-11): 과거 구간(@1 · @2 · 진단으로 세 번 봄)은 참고 성적만.
 판정은 등록 뒤 낸 예측(`forward_metrics`)을 판정 날짜에(`forward_judge`)
@@ -18,6 +21,7 @@ from __future__ import annotations
 import math
 import warnings
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from itertools import pairwise
 
 import numpy as np
@@ -41,7 +45,7 @@ from salt_forecast.domain.series import DAY
 Vec = NDArray[np.float64]
 HOUR = 3_600
 
-KEY = "short-direction@3"
+KEY = "short-direction@4"
 # 전진 시험(@3) — 판정은 이 날짜의 매일 작업에서만 · α 를 본 횟수로 나눔 · 칸마다 서로 다른 예측 날 ≥ 30
 LOOKS = ("2027-01-10", "2027-02-09", "2027-03-11")
 ALPHA_PER_LOOK = 0.05 / 3
@@ -51,6 +55,36 @@ MIN_UP_CALLS = 30
 # 코인: 기준 봉 마감 뒤 이 안에만 · 국내: 다음 거래일 장 시작(09:00 KST) 전에만
 CRYPTO_WRITE_LAG_S = 15 * 60
 KR_OPEN_BEFORE_CLOSE_S = 7 * 3600  # 16:00 만기 − 7시간 = 그날 09:00 KST
+
+
+# ── @4 동결 재생(2026-11-16) — 맥이 평일 업무 시간에만 켜져 놓친 시각의 예측을 깨어난 뒤 다시 만든다.
+# 입력은 그 시각 전에 저장된 적합 · 그 시각까지 알 수 있던 봉 · 같은 코드(model_version)뿐 — 결과를 안 뒤에 쓰지만
+# 실시간과 같은 숫자다. 고를 여지를 없애려고 놓친 시각은 **전부**(상한 안) 재생한다. 행은 available_at(쓴 시각)으로 구분
+REPLAY_CAP_S = 14 * DAY
+
+
+def replay_hours(registered: int, written: set[int], now: int) -> list[int]:
+    """코인 — 재생할 정시(UTC epoch). 등록 뒤 · 상한 안 · 실시간 기록 창이 지난 시각 중 아직 안 쓴 것 전부."""
+    first = max(registered, now - REPLAY_CAP_S)
+    first = -(-first // HOUR) * HOUR  # 올림 — 등록 전 시각은 없다
+    last = (now - CRYPTO_WRITE_LAG_S - 1) // HOUR * HOUR  # 기록 창이 아직 열린 시각은 실시간 몫
+    return [t for t in range(first, last + 1, HOUR) if t not in written]
+
+
+def may_replay(cell_model_version: str, current_model_version: str) -> bool:
+    """그 시각에 쓰였을 코드와 지금 코드가 같을 때만 — 결과를 본 뒤 코드를 바꿔 과거를 다시 쓰는 길을 막는다."""
+    return cell_model_version == current_model_version
+
+
+def is_realtime(market: str, as_of: int, expires_at: int, written_at: int) -> bool:
+    """실시간 기록 행인가(재생 행이 아닌가) — 리포트의 '실시간만' 민감도 표본."""
+    return written_in_time(market, as_of, expires_at, written_at)
+
+
+def look_cutoff(look: int) -> int:
+    """판정 표본 끝 — 판정 날짜 00:00 KST(그 날 전에 낸 예측만). 판정이 늦게 돌아도 표본이 같다(@4)."""
+    y, m, d = (int(x) for x in LOOKS[look].split("-"))
+    return int((datetime(y, m, d, tzinfo=UTC) - timedelta(hours=9)).timestamp())
 
 
 def written_in_time(market: str, as_of: int, expires_at: int, now: int) -> bool:
@@ -718,7 +752,8 @@ def forward_judge(cells: dict[str, ForwardMetrics], look: int) -> dict[str, tupl
     out: dict[str, tuple[str, str | None]] = {}
     for k, m in cells.items():
         if k not in judged:
-            out[k] = ("fail", "no_skill") if last else ("forward", "awaiting_live")
+            # 표본 부족은 실력 판정이 아니다(@4 — @3 은 no_skill 로 적었다)
+            out[k] = ("fail", "below_min") if last else ("forward", "awaiting_live")
             continue
         checks = (
             ("no_skill", adj[k] <= ALPHA_PER_LOOK and m.bss_lo > 0),

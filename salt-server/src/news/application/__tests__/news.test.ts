@@ -73,6 +73,7 @@ const build = (deps: {
     articles: deps.articles ?? fakeArticles(),
     bookmarks: deps.bookmarks ?? fakeBookmarks(),
     feed: deps.feed ?? fakeFeed([], []),
+    gap: { feed: { fetchKoreanDay: async () => ({ items: [], failed: 0 }) }, ledger: { lastKoreanFetchedAt: async () => null } },
     body: {
       search: { enabled: false, search: async () => [] },
       pages: { paragraphs: async () => [] },

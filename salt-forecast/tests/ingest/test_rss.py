@@ -40,3 +40,30 @@ def test_feed_list_matches_server_queries() -> None:
     names = [s for s, _ in feeds()]
     assert len(names) == 13 and len(set(names)) == 13
     assert "rss:google:비트코인" in names and "rss:coindesk" in names
+
+
+def test_gap_days_boundary_table() -> None:
+    """잠든 동안 빈 날 — 매시 한 번 빠진 정도는 메우지 않고, 길게 잠들면 앞뒤 하루씩 겹쳐 다시 검색한다."""
+    from datetime import UTC, date, datetime, timedelta
+
+    from salt_forecast.ingest.rss import GAP_CAP_DAYS, gap_days
+
+    now = datetime(2026, 11, 17, 1, 0, tzinfo=UTC)
+    assert gap_days(None, now) == []  # 첫 수집 — 과거 백필은 이 작업 몫이 아니다
+    assert gap_days(now - timedelta(minutes=70), now) == []  # 한 번 빠짐 — 30건 안
+    assert gap_days(now - timedelta(hours=15), now) == [date(2026, 11, 15), date(2026, 11, 16), date(2026, 11, 17)]
+    weekend = gap_days(datetime(2026, 11, 13, 9, tzinfo=UTC), datetime(2026, 11, 16, 0, 30, tzinfo=UTC))
+    assert weekend[0] == date(2026, 11, 12) and weekend[-1] == date(2026, 11, 16)  # 금 밤 ~ 월 아침
+    long = gap_days(now - timedelta(days=40), now)
+    assert len(long) == GAP_CAP_DAYS + 1 and long[-1] == now.date()
+
+
+def test_gap_feeds_are_separate_sources_with_date_range() -> None:
+    from datetime import date
+    from urllib.parse import unquote
+
+    from salt_forecast.ingest.rss import GOOGLE_KO_QUERIES, gap_feeds
+
+    got = gap_feeds([date(2026, 11, 10)])
+    assert [s for s, _ in got] == [f"rss:google-gap:{q}" for q in GOOGLE_KO_QUERIES]  # 등록 원천과 구분
+    assert "비트코인 after:2026-11-10 before:2026-11-11" in unquote(got[3][1])

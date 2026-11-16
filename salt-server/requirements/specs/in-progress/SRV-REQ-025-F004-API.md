@@ -352,3 +352,4 @@ type ExplainResult =
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coachReport.routes.ts`(머리 주인)에 `GET /api/coach/panel` 경로 · Swagger. 기존 경로 변경 0 |
 | 2026-11-14 | LLM 상한 남길 몫을 배치 순서 셋으로(`reservedCallsBehind` — 해설 → 오늘 등락 한 줄 → 사실 추출, F017 v4 2c). 상한 300 그대로 · 사실 추출 몫 60 더함 |
 | 2026-11-14 | LLM 하루 상한 300 → 360 · 토큰 150만 → 180만(사실 추출 몫 60 을 위에 얹어 해설 몫 270 유지 — 사용자 "베스트케이스로", 로컬 CLI 먼저라 추가 비용은 Gemini 대체 때만) |
+| 2026-11-16 | 단타 방향 확률 사전등록 키 `short-direction@3` → `@4`(`SHORT_DIRECTION_KEY` · 라우트 문서 주석) — 예측 배치의 동결 재생(FC-REQ-028 2026-11-16). 응답 모양 무변경 |

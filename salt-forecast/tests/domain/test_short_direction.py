@@ -160,7 +160,7 @@ def _m(**over: float) -> ForwardMetrics:
     ("over", "mid", "last"),
     [
         ({}, ("pass", None), ("pass", None)),
-        ({"days": 29}, ("forward", "awaiting_live"), ("fail", "no_skill")),  # 날 < 30 — 이번엔 보류
+        ({"days": 29}, ("forward", "awaiting_live"), ("fail", "below_min")),  # 날 < 30 — 보류 · 마지막은 표본 부족(@4)
         ({"bss_lo": 0.0}, ("forward", "awaiting_live"), ("fail", "no_skill")),
         ({"bss_p": 0.02}, ("forward", "awaiting_live"), ("fail", "no_skill")),  # α 0.05/3 = 0.0167 넘음
         ({"ece": 0.031}, ("forward", "awaiting_live"), ("fail", "miscalibrated")),
@@ -332,3 +332,43 @@ def test_kr_bar_move_due_boundary_table(moved_last: int | None, now: int, due: b
     from salt_forecast.domain.short_direction import kr_bar_move_due
 
     assert kr_bar_move_due(_OPEN, moved_last, now) is due
+
+
+def test_replay_hours_boundary_table() -> None:
+    """동결 재생(@4) — 등록 뒤 · 14일 안 · 기록 창이 지난 정시 전부, 이미 쓴 시각은 빼고."""
+    from salt_forecast.domain.short_direction import CRYPTO_WRITE_LAG_S, REPLAY_CAP_S, replay_hours
+
+    h = HOUR
+    now = 1_000 * h + 30 * 60  # 정시 + 30분
+    reg = 990 * h + 10 * 60  # 등록이 정시 사이 — 다음 정시부터
+    got = replay_hours(reg, set(), now)
+    assert got[0] == 991 * h and got[-1] == 1_000 * h  # 30분 > 15분 — 방금 정시도 재생 몫
+    assert replay_hours(reg, set(), 1_000 * h + CRYPTO_WRITE_LAG_S)[-1] == 999 * h  # 창이 열린 정시는 실시간 몫
+    assert replay_hours(reg, {995 * h, 996 * h}, now) == [t for t in got if t not in (995 * h, 996 * h)]
+    assert replay_hours(now, set(), now) == []  # 등록 직후 — 재생할 과거 없음
+    far = replay_hours(0, set(), now)
+    assert far[0] >= now - REPLAY_CAP_S and len(far) == REPLAY_CAP_S // h  # 상한 14일
+
+
+def test_may_replay_only_same_code() -> None:
+    from salt_forecast.domain.short_direction import may_replay
+
+    assert may_replay("short-direction@4+abc1234", "short-direction@4+abc1234")
+    assert not may_replay("short-direction@4+abc1234", "short-direction@4+def5678")  # 결과를 본 뒤 바뀐 코드
+
+
+def test_realtime_vs_replay_rows() -> None:
+    from salt_forecast.domain.short_direction import is_realtime
+
+    t = 1_000 * HOUR
+    assert is_realtime("crypto", t, t + HOUR, t + 3 * 60)  # 3분 뒤 — 실시간
+    assert not is_realtime("crypto", t, t + HOUR, t + 16 * 60)  # 16분 뒤 — 재생
+
+
+def test_look_cutoff_is_kst_midnight_of_look_date() -> None:
+    from datetime import UTC, datetime
+
+    from salt_forecast.domain.short_direction import LOOKS, look_cutoff
+
+    assert datetime.fromtimestamp(look_cutoff(0), tz=UTC).isoformat() == "2027-01-09T15:00:00+00:00"
+    assert LOOKS[0] == "2027-01-10"

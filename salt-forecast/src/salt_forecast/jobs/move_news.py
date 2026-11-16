@@ -1,4 +1,4 @@
-"""H3 큰 움직임 × 소식 — 사전등록 move-news@1 실행(FC-REQ-028 FR-9 · F017 v4 순서 4).
+"""H3 큰 움직임 × 소식 — 사전등록 move-news@3 실행(@1 + 늦은 사건 동결 재생 · FC-REQ-028 FR-9 · F017 v4 순서 4).
 
 매일(daily.sh, 국내 일봉 옮긴 뒤): 등록 → 시장마다 패널 · 소식 → 기록된 사건 채점 → 새 사건 기록(라벨 전) →
 과거 참고 검정 · 전진 검정(판정 날짜가 지났으면 그 판정) → forecast.move_news_test · 리포트.
@@ -13,7 +13,19 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from salt_forecast.domain.calendar import report_day
-from salt_forecast.domain.move_news import ALPHA_PER_LOOK, HORIZONS, KEY, LOOKS, REGISTERED_AT, CellRun, judge, look_due
+from salt_forecast.domain.move_news import (
+    ALPHA_PER_LOOK,
+    HORIZONS,
+    KEY,
+    LATE_AFTER_AWAKE_S,
+    LOOKS,
+    REGISTERED_AT,
+    CellRun,
+    awake_since,
+    judge,
+    look_cutoff,
+    look_due,
+)
 from salt_forecast.domain.news_kind import from_prereg
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
@@ -29,13 +41,13 @@ from salt_forecast.scoring.move_news import (
     score_events,
 )
 from salt_forecast.store.db import engine
-from salt_forecast.store.move_news import EventRow, TestRow, load_events, previous, save_events, save_tests
+from salt_forecast.store.move_news import EventRow, TestRow, beats, load_events, previous, save_events, save_tests
 from salt_forecast.store.news_reaction import load_crypto_titles, load_kr_titles
 from salt_forecast.store.prices import load_ohlcv_series
 from salt_forecast.store.rule_ic import Registration, register
 
 JOB = "move_news"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-13-move-news.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-move-news-3.toml"
 DICT_PREREG = ROOT / "preregistration" / "2026-11-12-news-reaction-2.toml"  # 제목 거르기 = news-reaction@2 exclude
 _KST = timedelta(hours=9)
 
@@ -72,7 +84,7 @@ def _rows(cells: list[CellRun], origin: str, looks: int) -> list[TestRow]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("H3 큰 움직임 × 소식(사전등록 move-news@1 — 전진 시험)")
+    p = base_parser("H3 큰 움직임 × 소식(사전등록 move-news@3 — 전진 시험 · 늦은 사건 재생)")
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("crypto", "kr", "all"), default="all")
     p.add_argument("--no-report", action="store_true", help="리포트 파일을 쓰지 않는다")
@@ -104,10 +116,14 @@ def main(argv: list[str] | None = None) -> int:
         recorded: dict[str, int] = {}
         stored: dict[str, list[EventRow]] = {}
         since = int(REGISTERED_AT.timestamp())
+        # 늦은 사건(맥이 잠든 날)은 깨어난 지 2시간 뒤에만 — 서버 크롤러가 잠든 동안 기사를 메운 뒤(@3)
+        t_now = int(now.timestamp())
+        woke = awake_since(beats(eng, "ingest_kr_minutes", now - timedelta(days=2)), t_now)
+        late_ok = t_now - woke >= LATE_AFTER_AWAKE_S
         for m, md in data.items():
             have = load_events(eng, KEY, m)
             known = {(e.symbol, int(e.ref_at.timestamp())) for e in have}
-            fresh = new_events(md, known, since, now)
+            fresh = new_events(md, known, since, now, late_ok)
             closed = score_events(md, have, now)
             recorded[m] = len(fresh)
             if not args.dry_run:
@@ -126,6 +142,10 @@ def main(argv: list[str] | None = None) -> int:
         done = max((n for _, _, n in prev.values()), default=0)
         look = look_due((as_of + _KST).date(), done)
         if look is not None:
+            # 판정 표본 = 판정 날짜 전 봉(늦게 돌아도 같다, @3)
+            cut = look_cutoff(look)
+            forward = [run_cell(md, h, forward_sample(md, stored[md.market], h, cut), placebo=True)
+                       for md in data.values() for h in HORIZONS]  # fmt: skip
             judge(forward, ALPHA_PER_LOOK, look == len(LOOKS) - 1)
             done = look + 1
             log.info("판정 날짜", extra={"fields": {"job": JOB, "look": look}})

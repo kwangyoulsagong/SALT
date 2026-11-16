@@ -121,10 +121,14 @@ import { logger } from "./shared/config/logger";
 
 // `auth` 는 서버 S3b(2026-11-12)에 Kotlin identity 로 옮겼다(`SRV-REQ-048` FR-8) — Express 는 토큰 검증만(`shared/lib/tokenVerifier`)
 
+const newsArticles = new PrismaArticleRepository();
+const newsFeed = new RssNewsFeed();
 const news = createNewsApplication({
-  articles: new PrismaArticleRepository(),
+  articles: newsArticles,
   bookmarks: new PrismaBookmarkRepository(),
-  feed: new RssNewsFeed(),
+  feed: newsFeed,
+  // 잠든 동안 빈 날 메우기(`SRV-REQ-057` FR-8) — 같은 수집기 · 같은 기사 표
+  gap: { feed: newsFeed, ledger: newsArticles },
   body: {
     search: new NaverNewsSearch({ id: env.NAVER_CLIENT_ID, secret: env.NAVER_CLIENT_SECRET }),
     pages: new ArticlePageFetcher(),

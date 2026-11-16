@@ -444,6 +444,38 @@ export const krMarketSession = (
   };
 };
 
+/** 백필이 비켜야 하는 시세 창(KST 분) — 실시간 WS · 현재가 폴링이 한도를 쓰는 08:30~16:00 */
+const QUOTE_WINDOW = { from: MIN(8, 30), to: MIN(16, 0) };
+
+export type KrBackfillWindow = { open: true; stopAt: Date } | { open: false; reopensAt: Date };
+
+/**
+ * KIS 큰 백필(전 종목 일봉 5년 · 5분봉 1년)이 지금 KIS 를 불러도 되나, 되면 언제 멈추나(`SRV-REQ-040` FR-40 · FR-21, 2026-11-16).
+ *
+ * **불변식: 개장일 08:30~16:00 KST 엔 부르지 않는다. 그 밖이면 다음 개장일 08:30 까지 부르고, 깨거나 다시 불리면 이어 받는다.**
+ *
+ * 예전엔 "밤에만(18:00 · 22:00 시작 → 07:20 멈춤)"이었다. 서버인 맥이 평일 업무 시간에만 켜져 밤 회차가 다시 돌지 않게 되자
+ * (사용자 2026-11-16) 시각이 아니라 **시세 창 밖이냐**로 바꿨다. 07:20 은 07:30 마스터 동기화 몫이었는데 마스터는 KIS 한도를
+ * 쓰지 않는 공개 파일(`KisMasterFile`)이라 08:30 까지 써도 된다. 휴장 평일 · 주말은 하루 종일 열린다(달력 없는 평일 = 개장 추정)
+ */
+export const krBackfillWindow = (now: Date, calendar: ReadonlyMap<string, boolean>): KrBackfillWindow => {
+  const today = kstDateOf(now);
+  const minutes = Math.floor(((now.getTime() + KST_OFFSET_MS) % DAY_MS) / 60_000);
+  const openToday = opensOn(today, calendar);
+  const nextOpenStart = () => {
+    let d = today;
+    for (let i = 0; i < MAX_SCAN_DAYS; i++) {
+      d = addKstDays(d, 1);
+      if (opensOn(d, calendar)) break;
+    }
+    return kstAt(d, 8, 30);
+  };
+  if (openToday && minutes >= QUOTE_WINDOW.from && minutes < QUOTE_WINDOW.to) {
+    return { open: false, reopensAt: kstAt(today, 16, 0) };
+  }
+  return { open: true, stopAt: openToday && minutes < QUOTE_WINDOW.from ? kstAt(today, 8, 30) : nextOpenStart() };
+};
+
 /**
  * 시세를 받을 시간대인가 — 장전 동시호가 ~ 장후 시간외 종가(08:30~16:00).
  *

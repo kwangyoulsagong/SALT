@@ -58,3 +58,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-14 | 상태 줄 둘 — AI 본문(매체 RSS) · DART 공시(F017 v4 2a · 2b) |
 | 2026-11-16 | 새 맥 이전(루트 `OPS-002-new-mac-setup-slice.md`) — plist 의 node 를 루트 `.node-version` 으로 · 실제 경로(:A). fnm 기본 node 26 · 사라지는 multishell 경로가 박히던 것 |
 | 2026-11-16 | 이름 표에 `forecast-backfill`(launchd 매시, `salt-forecast/ops/backfill.sh`) — 과거 빈 구간 메우기 · 데이터가 찬 뒤 한 번 도는 국내 백테스트. 세션 셸에서 띄운 1회 백필 · FRED 대기 · 국내 감시가 세션과 함께 죽었다(14:29 — 5분봉 296종목 중 19종목만). 같이: FRED `realtime_end` 를 미국 중부 날짜로(UTC 날짜면 KST 09~15시 배치가 매일 8개 전부 400) · `check-done.mjs` 가 `OPS-` 를 센다 |
+| 2026-11-16 | 잠들었다 깨면 이어 받기 — 업비트 증분이 고정 창(1시간봉 6시간 · 5분봉 1.2시간)이라 그보다 길게 잠들면 가운데가 영영 비었다. 종목별 마지막 봉부터(상한 30일, `resume_start`). `backfill.sh` 의 "백필 뒤 밀린 최근분" 블록은 이것으로 대체 |

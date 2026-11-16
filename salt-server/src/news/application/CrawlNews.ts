@@ -79,7 +79,7 @@ export class CrawlKoreanNews {
  * 실패는 저장도 스킵도 아니다 — 원문과 같이 **어느 쪽으로도 세지 않는다.**
  * 두 수의 합이 `total` 보다 작으면 그 차이가 실패 건수다.
  */
-const saveAll = async (articles: ArticleRepository, drafts: ArticleDraft[]) => {
+export const saveAll = async (articles: ArticleRepository, drafts: ArticleDraft[]) => {
   let savedCount = 0;
   let skippedCount = 0;
 

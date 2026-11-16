@@ -10,6 +10,7 @@ import {
   type ArticleSummary,
   type ArticleText,
   type ListArticlesFilter,
+  type NewsGapLedger,
   type NewsLanguage,
   type Paged,
   type SentimentArticleQuery,
@@ -68,7 +69,7 @@ const languageCondition = (
 
 const TRENDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
-export class PrismaArticleRepository implements ArticleRepository {
+export class PrismaArticleRepository implements ArticleRepository, NewsGapLedger {
   async findMany(filter: ListArticlesFilter): Promise<Paged<ArticleSummary>> {
     const skip = (filter.page - 1) * filter.limit;
     const where: Prisma.NewsArticleWhereInput = {};
@@ -280,5 +281,18 @@ export class PrismaArticleRepository implements ArticleRepository {
       },
     });
     return true;
+  }
+
+  /**
+   * 빈 날 메우기의 "마지막 성공"(`SRV-REQ-057` FR-8) — 한글 검색 피드 기사의 `max(created_at)`(받아 넣은 시각 — 게시 시각은 잠든 동안
+   * 나온 기사도 지금 받으면 옛 시각이라 신호가 못 된다). 수집이 돌았는데 새 기사가 0 이면 실제보다 이르게 보여 한 번 더 찾을 뿐(주소로 걸러져 저장 0).
+   * 프로세스가 뜰 때 한 번만 부른다
+   */
+  async lastKoreanFetchedAt(): Promise<Date | null> {
+    const row = await prisma.newsArticle.aggregate({
+      _max: { createdAt: true },
+      where: { OR: KOREAN_SOURCE_PREFIXES.map((prefix) => ({ source: { startsWith: prefix } })) },
+    });
+    return row._max.createdAt ?? null;
   }
 }

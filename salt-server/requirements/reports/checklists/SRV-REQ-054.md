@@ -59,3 +59,8 @@
 
 - 규칙 판 7 → 8 — 매체가 가린 기자 메일 줄(`[email protected] … 기자`) 버림 · 국내 제목 1건 다시 찾아 확인. 공인 주소 에이전트를 `publicAgents()` 로 꺼내 AI 경로(`SRV-REQ-058`)와 같이 씀
 - 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — `SRV-REQ-057` FR-8 걸침
+
+- `news/application/api/index.ts`(머리 주인)에 `gap` 의존 · `refillNewsGap` 유스케이스 — 본문 경로 무변경 · 본문은 여전히 AI 입력 0
+- 검증은 `SRV-REQ-057` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
