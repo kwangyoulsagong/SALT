@@ -302,7 +302,7 @@ export class KisClient
     };
   }
 
-  async dailyCandles(code: string, from: string, to: string): Promise<Candle[]> {
+  async dailyCandles(code: string, from: string, to: string, opts: { backfill?: boolean } = {}): Promise<Candle[]> {
     const body = await this.get(
       "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
       KIS_QUERY_TR.dailyItemChart,
@@ -315,7 +315,7 @@ export class KisClient
         // 0 = 수정주가 — 지표 · 전망은 액면분할로 끊기지 않은 값을 쓴다(Open Question: 원주가 병행)
         FID_ORG_ADJ_PRC: "0",
       },
-      KIS_PRIORITY.candles
+      opts.backfill ? KIS_PRIORITY.backfill : KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows

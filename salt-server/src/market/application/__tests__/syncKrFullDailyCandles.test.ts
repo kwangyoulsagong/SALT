@@ -32,9 +32,11 @@ const setup = (opts: {
   clock?: () => Date;
 }) => {
   const calls: Array<{ code: string; from: string; to: string }> = [];
+  const priorities: Array<boolean | undefined> = [];
   const kis = {
-    dailyCandles: async (code: string, from: string, to: string) => {
+    dailyCandles: async (code: string, from: string, to: string, o?: { backfill?: boolean }) => {
       calls.push({ code, from, to });
+      priorities.push(o?.backfill);
       const start = opts.historyFrom && opts.historyFrom > from ? opts.historyFrom : from;
       return start <= to ? [bar(start), bar(to)] : [];
     },
@@ -45,10 +47,18 @@ const setup = (opts: {
     edgeDailyCloses: async () => new Map(),
     upsertDailyCandles: async () => {},
   } as unknown as KrStockStore;
-  return { sync: new SyncKrFullDailyCandles(kis, store, CALENDAR, opts.clock ?? (() => NIGHT)), calls };
+  return { sync: new SyncKrFullDailyCandles(kis, store, CALENDAR, opts.clock ?? (() => NIGHT)), calls, priorities };
 };
 
 describe("SyncKrFullDailyCandles", () => {
+  it("모든 호출이 백필 우선순위 — 저녁 보조 수집(투자자 동향)을 굶기지 않는다(2026-11-16 투자자 동향 0행)", async () => {
+    const range = new Map([["000001", { earliest: kstMidnight("2024-10-08"), latest: kstMidnight("2026-10-07") }]]);
+    const { sync, calls, priorities } = setup({ listings: [{ code: "000001", listedAt: null }], range });
+    await sync.execute();
+    assert.ok(calls.length > 0);
+    assert.ok(priorities.every((b) => b === true), JSON.stringify(priorities));
+  });
+
   it("계획 — 증분이 먼저, 앞쪽 하한은 5년 전과 상장일 중 늦은 쪽, 하한 근처면 앞쪽은 끝난 것", () => {
     const { sync } = setup({ listings: [] });
     const range = new Map([

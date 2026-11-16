@@ -141,8 +141,12 @@ export interface KrMarketDay {
 /** KIS 조회. **트랜잭션 밖에서 부른다** — 페이서 대기와 네트워크가 수 초 걸린다 */
 export interface KrStockQuotePort {
   quote(code: string): Promise<KrStockQuoteFact>;
-  /** 수정주가 일봉 `[from, to]`(KST 날짜), 한 번에 최대 100건. 봉 시각은 거래일 00:00 KST */
-  dailyCandles(code: string, from: string, to: string): Promise<Candle[]>;
+  /**
+   * 수정주가 일봉 `[from, to]`(KST 날짜), 한 번에 최대 100건. 봉 시각은 거래일 00:00 KST.
+   * `backfill` — 큰 백필은 페이서 맨 뒤 우선순위로. 아니면 일봉 우선순위(시세 다음)라 백필이 저녁 보조 수집(투자자 동향 · 시간외)을
+   * 굶긴다 — 페이서는 나이 들이기가 없다(2026-11-16 투자자 동향 0행)
+   */
+  dailyCandles(code: string, from: string, to: string, opts?: { backfill?: boolean }): Promise<Candle[]>;
   /** 그날(KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞) */
   dayMinuteCandles(code: string, date: string, hhmmss: string): Promise<Candle[]>;
   /** `baseDate`(KST) 부터 앞으로의 달력 한 페이지 */
