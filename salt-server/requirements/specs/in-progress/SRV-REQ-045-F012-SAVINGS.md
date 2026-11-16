@@ -122,3 +122,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-11 | F017 v2 단계 5 — `ops/salt.sh` 상태 신선도에 '단타 확률 시험 마지막' 줄(3일 넘으면 ✗) |
 | 2026-11-12 | F016 단계 D 짝(이 REQ 가 머리 주인인 `ops/salt.sh`): status 에 오늘 등락 한 줄 줄 하나(통과 · 검사 막음 · LLM 실패 — `SRV-REQ-052` FR-8) |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름). 이 REQ 몫 기능 변경 0 |
+| 2026-11-16 | 새 맥 이전(루트 `requirements/specs/done/OPS-002-new-mac-setup-slice.md`) — `run-platform.sh`: 55672 가 닫혀 있으면 네이티브 RabbitMQ(brew)를 먼저 켠다, 없으면 Compose(55672 로 덮어). 동작 계약 무변경 |

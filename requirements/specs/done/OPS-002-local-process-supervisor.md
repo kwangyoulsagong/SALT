@@ -56,3 +56,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-8 `usage` · `web-tips` 3005(사용자 "3000 으로 salt 켜 줘" 때 발견) |
 | 2026-11-14 | 상태 줄 둘 — AI 본문(매체 RSS) · DART 공시(F017 v4 2a · 2b) |
+| 2026-11-16 | 새 맥 이전(루트 `OPS-002-new-mac-setup-slice.md`) — plist 의 node 를 루트 `.node-version` 으로 · 실제 경로(:A). fnm 기본 node 26 · 사라지는 multishell 경로가 박히던 것 |

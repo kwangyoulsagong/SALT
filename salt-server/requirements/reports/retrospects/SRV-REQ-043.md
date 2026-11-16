@@ -46,3 +46,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 권한 검사 표본은 늘 '아직 플랫폼에 없는 서비스' 스키마 — 다음 이동(S4 portfolio) 때 또 옮긴다(코드 주석에 이력)
+
+## 2026-11-16 — 새 맥 이전 걸침
+
+- 회고 본문은 루트 `requirements/reports/retrospects/OPS-002-new-mac-setup.md`

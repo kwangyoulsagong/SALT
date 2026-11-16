@@ -132,3 +132,8 @@
 
 - `composition.ts` 에 `news` AI 경로 본문 조립(`SRV-REQ-058` 2a) — identity · notification 무변경
 - 검증은 `SRV-REQ-058` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — 새 맥 이전(`OPS-002-new-mac-setup`) · `chore/new-mac-setup`
+
+- 몫: `ops/salt.sh` 걸침(node 경로) — identity · notification 무변경
+- 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음

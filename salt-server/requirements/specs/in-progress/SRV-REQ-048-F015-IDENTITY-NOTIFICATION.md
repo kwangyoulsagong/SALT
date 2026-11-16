@@ -62,3 +62,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `composition.ts` 등락 의존(`move`)에 원인 근거 리더(`PrismaMoveEvidenceReader`) 조립 한 줄. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |
 | 2026-11-13 | F017 v4 1d 짝(`SRV-REQ-053` FR-13) — `coach/domain/ports.ts`(머리 주인)에 `MoveCauseReader` · `PanelMoveCause`(원인 칸 ACL 포트). identity · notification 변경 0 |
 | 2026-11-14 | `composition.ts` 에 `news` AI 경로 본문 조립(`SRV-REQ-058` 2a) — identity · notification 무변경 |
+| 2026-11-16 | 새 맥 이전(루트 `requirements/specs/done/OPS-002-new-mac-setup-slice.md`) — `ops/salt.sh` 머리가 이 REQ 를 가리켜 걸림: plist 의 node 를 루트 `.node-version` 으로. identity · notification 무변경 |

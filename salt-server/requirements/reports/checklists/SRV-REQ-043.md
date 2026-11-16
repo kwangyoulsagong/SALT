@@ -57,3 +57,8 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `./gradlew check` 통과 · `:app:bootJar` 실행 jar 로 기동(launchd platform) · Flyway identity V1 적용 · 권한 검사 테스트 둘(남의 스키마 읽기 · public 에 표 만들기) 그대로 통과
+
+## 2026-11-16 — 새 맥 이전(`OPS-002-new-mac-setup`) · `chore/new-mac-setup`
+
+- 몫: `compose.yaml` identity env 3개 · 호스트 포트 env
+- 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음
