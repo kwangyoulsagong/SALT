@@ -17,9 +17,9 @@ import { crossedKst, onWake, type WakeEvent } from "../shared/infrastructure/wak
  * | `kr-master-sync` | 매일 07:30 | 마스터는 영업일 장전 갱신(근거 [약]) |
  * | `kr-calendar-sync` | 평일 09:10 | KIS 휴장일 조회(권고 1일 1회) — 거부되면 일봉 역산 + 오늘 개장 관측 |
  * | `kr-daily-candles` | 평일 15:45 | 정규장 15:30 마감 + 정정 여유 |
- * | `kr-full-daily-candles` | 평일 18:00 · 주말 08:00 → 다음 07:20 KST 멈춤 | 상장 보통주 전 종목 일봉 5년(FR-40) — 모의 키 약 2건/s 라 밤에만. 회차가 겹치면 건너뛴다 |
+ * | `kr-full-daily-candles` | 평일 16:15 · 18:00 · 주말 08:00 + 부팅 · 깸 → 다음 개장일 08:30 멈춤 | 상장 보통주 전 종목 일봉 5년(FR-40) — 모의 키 약 2건/s 라 **시세 창(개장일 08:30~16:00) 밖에서만**(아래 불변식). 회차가 겹치면 건너뛴다 |
  * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 ~~30일~~ 1년 빈 날 백필(회차 1,200 호출 상한) |
- * | `kr-minute-backfill` | 매일 22:00 | 5분봉 1년 백필 큰 회차(2만 호출) — 장중 기저율 이력(F017 v4 순서 3, 2026-11-16). 다 차면 할 일 0 |
+ * | `kr-minute-backfill` | 평일 16:20 · 매일 22:00 + 부팅 · 깸 → 다음 개장일 08:30 멈춤 | 5분봉 1년 백필 큰 회차(2만 호출) — 장중 기저율 이력(F017 v4 순서 3, 2026-11-16). 시세 창 밖에서만 · 장 마감 보정(`kr-minute-bars`)과 락 하나. 다 차면 할 일 0 |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분). 뒤이어 국내 주식 보유 평가 |
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 REST 10분 — 아래) |
@@ -33,6 +33,12 @@ import { crossedKst, onWake, type WakeEvent } from "../shared/infrastructure/wak
  * | `kr-investor-flows` | 평일 18:40 · 21:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접고 21:40 이 남은 종목을 이어 받는다(FR-91) |
  *
  * 매분 작업이 아닌 것은 `catchUp` — 놓친 회차(맥 수면)를 깨어난 자리에서 한 번 돈다. 2026-10-26 18:40 투자자 회차가 그렇게 사라졌다(6b).
+ *
+ * **큰 백필 불변식(2026-11-16)** — 전 종목 일봉 · 5분봉 큰 백필은 **개장일 08:30~16:00 KST 엔 KIS 를 부르지 않고, 그 밖에서 깨거나
+ * 불리면 이어 받는다**(`krBackfillWindow`). 판정은 유스케이스 안에 있어 cron · 부팅 · 깸 어느 길로 불려도 같다 — 워커는 언제 부를지만 정한다.
+ * 맥이 평일 업무 시간(~09:00–19:00)에만 켜져(사용자 2026-11-16) 밤 회차(18:00 · 22:00 · 주말 08:00)만으로는 다시 돌지 않아,
+ * 장 마감 뒤 회차(15:40 분봉 · 15:45 일봉 · 15:55 업종 · 16:05 지수 일별)가 끝난 16:15 · 16:20 에 시작한다. 한도는 페이서 하나를
+ * 나눠 쓰므로(`KisClient` 우선순위 — 일봉 · 분봉 3, 투자자 4) 둘이 겹쳐도 요청률은 그대로다 — 처리량을 나눌 뿐이다.
  */
 const TZ = "Asia/Seoul";
 
@@ -44,6 +50,8 @@ export const startKrStockWorkers = () => {
     return;
   }
 
+  const minuteBackfill = () => runGuarded("kr-minute-bars", () => kr.syncMinuteBars.backfillOffHours());
+
   /** `catchUp` — 하루 몇 번 도는 작업은 맥 수면 등으로 놓친 회차를 깨어난 자리에서 한 번 돈다(`scheduler.ts` 머리 주석) */
   const jobs: Array<{ name: string; expression: string; run: () => Promise<unknown>; catchUp?: boolean }> = [
     { name: "kr-master-sync", expression: "30 7 * * *", run: () => kr.syncMaster.execute(), catchUp: true },
@@ -51,15 +59,18 @@ export const startKrStockWorkers = () => {
     { name: "kr-logo-resolve", expression: "50 7 * * *", run: () => kr.resolveLogos.execute(), catchUp: true },
     { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute(), catchUp: true },
     { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute(), catchUp: true },
-    // 전 종목 일봉 — 시세 창(08:30~16:00)과 겹치지 않는 밤 · 주말. 부팅 실행은 하지 않는다(낮에 기동해도 한도를 안 태운다).
-    // 같은 이유로 catchUp 도 없다 — 멈춤이 "다음 07:20" 이라 낮에 따라 돌면 장중 내내 돈다. 놓친 밤은 다음 밤이 할 일로 잇는다
+    // 전 종목 일봉 — 시세 창(개장일 08:30~16:00) 밖에서만(머리 주석 불변식 — 창 안이면 유스케이스가 호출 0 으로 끝낸다).
+    // ~~밤 · 주말만, catchUp 없음(멈춤이 07:20 이라 낮에 따라 돌면 장중 내내 돈다)~~ 2026-11-16: 멈춤이 다음 개장일 08:30 이라
+    // 낮에 깨도 창 안이면 돌지 않는다 — 그래서 16:15(장 마감 회차 뒤) · 부팅 · 깸에서도 부른다. 18:00 · 주말 08:00 은 맥이 켜져 있을 때 몫
+    { name: "kr-full-daily-candles-after-close", expression: "15 16 * * 1-5", run: () => kr.syncFullDailyCandles.execute() },
     { name: "kr-full-daily-candles", expression: "0 18 * * 1-5", run: () => kr.syncFullDailyCandles.execute() },
     { name: "kr-full-daily-candles-weekend", expression: "0 8 * * 0,6", run: () => kr.syncFullDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
     { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute(), catchUp: true },
-    // 5분봉 1년 백필(2026-11-16 F017 v4 순서 3) — 밤 22:00 매일, 회차 2만 호출. 다 채우면 할 일이 0 이라 바로 끝난다.
-    // catchUp 없음 — 낮에 따라 돌면 장중 한도를 먹는다(전 종목 일봉과 같은 이유)
-    { name: "kr-minute-backfill", expression: "0 22 * * *", run: () => kr.syncMinuteBars.backfillNight() },
+    // 5분봉 1년 백필(2026-11-16 F017 v4 순서 3) — 회차 2만 호출. 다 채우면 할 일이 0 이라 바로 끝난다. 시세 창 밖에서만(전 종목 일봉과 같다)
+    // 락은 장 마감 보정과 하나(`kr-minute-bars`) — 둘이 같은 빈 날 목록을 동시에 받으면 같은 호출을 두 번 쓴다
+    { name: "kr-minute-backfill-after-close", expression: "20 16 * * 1-5", run: () => minuteBackfill() },
+    { name: "kr-minute-backfill", expression: "0 22 * * *", run: () => minuteBackfill() },
     // 실시간 슬롯 밖 종목 장중 5분봉(SRV-REQ-057 FR-5) — 장 밖이면 바로 끝난다
     { name: "kr-slotless-minute-bars", expression: "*/10 9-15 * * 1-5", run: () => kr.syncSlotlessMinuteBars.execute() },
     // 유니버스에 새로 든 종목 즉시 백필(FR-4) — 관심 추가 · 보유 · 시총 순위 변화. 새 종목이 없으면 조회 둘
@@ -112,6 +123,12 @@ export const startKrStockWorkers = () => {
     schedule(job.name, job.expression, () => job.run().then(() => undefined), { timezone: TZ, catchUp: job.catchUp });
   }
 
+  /** 큰 백필 둘을 띄우고 기다리지 않는다 — 락 · 유스케이스의 회차 겹침 건너뜀이 중복을 막는다 */
+  const startBackfills = () => {
+    void runGuarded("kr-full-daily-candles", () => kr.syncFullDailyCandles.execute());
+    void minuteBackfill();
+  };
+
   /**
    * 부팅 실행은 **순서가 있다** — 마스터가 있어야 유니버스(시총 상위)가 서고, 달력이 있어야 장 상태가
    * 맞는다. 각 단계 실패는 다음 단계를 막지 않는다(이전 마스터 · 추정 달력으로 진행). 서버 기동은 기다리지 않는다
@@ -146,6 +163,8 @@ export const startKrStockWorkers = () => {
         logger.error(`국내 주식 부팅 실행 실패 — ${(error as Error).message}`);
       }
     }
+    // 큰 백필은 맨 뒤 · 기다리지 않는다(몇 시간) — 시세 창 안이면 유스케이스가 호출 0 으로 끝낸다. 재시작이 끊은 회차를 잇는다
+    startBackfills();
   })();
 
   // 깸(SRV-REQ-057 FR-6) — 일봉은 자는 동안 15:45 가 지났을 때만(장중 미확정 봉을 늘리지 않는다), 5분봉 보정 · 합류 백필은 늘
@@ -154,6 +173,9 @@ export const startKrStockWorkers = () => {
   );
   onWake("kr-minute-bars", () => runGuarded("kr-minute-bars", () => kr.syncMinuteBars.execute()));
   onWake("kr-universe-joiners", () => runGuarded("kr-universe-joiners", () => kr.backfillUniverseJoiners.execute()));
+  // 큰 백필은 마지막 구독 · 기다리지 않는다 — 몇 시간짜리라 기다리면 다음 깸 처리가 막힌다. 5분봉 보정(위)이 끝난 뒤라 락이 비어 있다.
+  // 시세 창 안에서 깨면 호출 0, 밖이면 남은 일을 잇는다(놓친 cron 회차도 이 길이 메운다 — 그래서 catchUp 은 켜지 않는다)
+  onWake("kr-backfills", () => startBackfills());
 
   logger.info(`🇰🇷 국내 주식 워커 등록 (${jobs.length})`);
 };

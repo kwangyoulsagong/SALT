@@ -8,6 +8,7 @@ import {
   krMinutesToFiveMinute,
   isKrQuoteWindow,
   kstAt,
+  krBackfillWindow,
   krMarketSession,
   krxNoticeDays,
   kstDateOf,
@@ -22,6 +23,7 @@ import {
   type KrStockStore,
   type Candle,
   type KrDailyRewrite,
+  type KrBackfillWindow,
   type UniverseSnapshotStore,
 } from "../domain";
 
@@ -43,6 +45,15 @@ export const loadKrSession = async (calendar: KrMarketCalendarStore, now: Date):
   const days = await calendar.days(addKstDays(today, -CALENDAR_WINDOW_DAYS), addKstDays(today, CALENDAR_WINDOW_DAYS));
   return krMarketSession(now, new Map(days.map((d) => [d.date, d.isOpen])));
 };
+
+/** 큰 백필이 지금 KIS 를 불러도 되나 · 언제 멈추나(`krBackfillWindow` — 개장일 08:30~16:00 엔 안 부른다) */
+export const loadKrBackfillWindow = async (calendar: KrMarketCalendarStore, now: Date): Promise<KrBackfillWindow> => {
+  const today = kstDateOf(now);
+  const days = await calendar.days(addKstDays(today, -1), addKstDays(today, CALENDAR_WINDOW_DAYS));
+  return krBackfillWindow(now, new Map(days.map((d) => [d.date, d.isOpen])));
+};
+
+const hhmmKst = (at: Date) => new Date(at.getTime() + 9 * 3_600_000).toISOString().slice(5, 16).replace("T", " ");
 
 /** 유니버스 = 보유(누구든) ∪ 관심(누구든) ∪ 시총 상위 N(FR-11). 보유는 거래 입력이 `kr_stock` 을 받으면서 더했다(슬라이스 3b) */
 export class ResolveKrStockUniverse {
@@ -228,14 +239,8 @@ export class SyncKrDailyCandles {
 
   /**
    * `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부.
-   * `calls` — 회차 호출 상한(기본 장 마감 회차 1,200 · 밤 백필 `MINUTE_BACKFILL_CALLS_PER_NIGHT`)
    */
-  /** 밤 백필 회차 — 1년 창의 빈 날을 큰 상한으로(`kr-minute-backfill`) */
-  backfillNight() {
-    return this.execute(undefined, MINUTE_BACKFILL_CALLS_PER_NIGHT);
-  }
-
-  async execute(only?: string[], calls: number = MINUTE_CALLS_PER_RUN) {
+  async execute(only?: string[]) {
     const today = kstDateOf(this.now());
     const codes = only ?? (await this.universe.execute());
     const [range, stored] = await Promise.all([
@@ -280,9 +285,6 @@ export class SyncKrDailyCandles {
 const FULL_BACKFILL_YEARS = 5;
 /** 첫 봉이 하한에서 이만큼 안이면 앞쪽은 다 받은 것으로 본다 — 하한 날이 휴장 · 연휴면 첫 봉이 며칠 늦다 */
 const FULL_BACKFILL_SLACK_DAYS = 10;
-/** 밤 회차가 멈추는 KST 시각 — 07:30 마스터 동기화 · 08:30 시세 창 전에 한도를 비워 둔다 */
-const FULL_STOP_KST = { hour: 7, minute: 20 };
-
 type FullWork = { code: string; from: string; to: string; direction: "forward" | "audit" | "backward" };
 
 /** 이 KST 요일(토)의 회차는 전 종목 앞쪽 끝도 한 페이지 받아 대조한다 — 겹침 창이 놓친 재작성(서버가 꺼져 있던 동안 등) */
@@ -293,8 +295,9 @@ const PHASES = ["forward", "audit", "backward"] as const;
 /**
  * 전 종목 일봉(FR-40 · `FC-REQ-020` FR-7). 상장 보통주 약 2,450 종목 × 5년 — 시세 유니버스(약 50)와 따로 돈다.
  *
- * 모의 키 처리량이 약 2건/s 라 첫 백필은 약 3.4만 호출 · 5시간 남짓이다. 그래서 **밤에만** 돌고(워커: 평일 18:00 ·
- * 주말 08:00 시작) 다음 07:20 KST 에 새 요청을 멈춘다. 다 못 받은 종목은 다음 회차가 저장된 봉에서 잇는다 —
+ * 모의 키 처리량이 약 2건/s 라 첫 백필은 약 3.4만 호출 · 5시간 남짓이다. 그래서 **시세 창 밖에서만** 돌고
+ * (`krBackfillWindow` — 개장일 08:30~16:00 이면 호출 0 으로 끝난다) 다음 개장일 08:30 KST 에 새 요청을 멈춘다
+ * (~~밤에만 · 07:20 멈춤~~ 2026-11-16 — 맥이 평일 업무 시간에만 켜져 밤 회차가 돌지 않는다). 다 못 받은 종목은 다음 회차가 저장된 봉에서 잇는다 —
  * 진행 상태를 따로 두지 않고 **저장된 첫 · 마지막 봉**이 진행 표시다. 같은 프로세스에서 회차가 겹치면 뒤 회차는 건너뛴다.
  *
  * 순서: ① 전 종목 증분(마지막 봉 날짜 앞 `REWRITE_OVERLAP_DAYS` 일부터 오늘까지, 대개 한 호출 — 겹친 봉으로 수정주가
@@ -309,15 +312,9 @@ export class SyncKrFullDailyCandles {
   constructor(
     private readonly kis: KrStockQuotePort,
     private readonly store: KrStockStore,
+    private readonly calendar: KrMarketCalendarStore,
     private readonly now: () => Date = () => new Date()
   ) {}
-
-  /** 지금 이후 첫 07:20 KST */
-  stopAt(at: Date): Date {
-    const today = kstDateOf(at);
-    const stop = kstAt(today, FULL_STOP_KST.hour, FULL_STOP_KST.minute);
-    return stop > at ? stop : kstAt(addKstDays(today, 1), FULL_STOP_KST.hour, FULL_STOP_KST.minute);
-  }
 
   /** 할 일 — 증분 먼저(오늘 값이 빠지지 않게), 토요일이면 앞쪽 끝 대조(FR-42), 그다음 앞쪽 백필 */
   plan(
@@ -357,19 +354,23 @@ export class SyncKrFullDailyCandles {
   async execute() {
     if (this.running) {
       logger.info("🗄️ 국내 주식 전 종목 일봉 — 이전 회차가 아직 돈다, 건너뜀");
-      return { skipped: true as const };
+      return { skipped: true as const, reason: "running" as const };
     }
     this.running = true;
     try {
-      return await this.run();
+      const window = await loadKrBackfillWindow(this.calendar, this.now());
+      if (!window.open) {
+        logger.info(`🗄️ 국내 주식 전 종목 일봉 — 시세 창(개장일 08:30~16:00)이라 건너뜀, ${hhmmKst(window.reopensAt)} 뒤에 잇는다`);
+        return { skipped: true as const, reason: "quote_window" as const };
+      }
+      return await this.run(window.stopAt);
     } finally {
       this.running = false;
     }
   }
 
-  private async run() {
+  private async run(stop: Date) {
     const startedAt = this.now();
-    const stop = this.stopAt(startedAt);
     const today = kstDateOf(startedAt);
     const listings = await this.store.commonStockListings();
     const range = await this.store.dailyCandleRange(listings.map((l) => l.code));
@@ -444,7 +445,7 @@ export class SyncKrFullDailyCandles {
 
     const remaining = work.length - done - failed;
     logger.info(
-      `🗄️ 국내 주식 전 종목 일봉: 대상 ${listings.length} · 할 일 ${work.length}${auditing ? "(앞쪽 대조 포함)" : ""} · 끝 ${done} · 요청 ${requests} · 봉 ${candles} · 재작성 ${rewritten} · 실패 ${failed} · 남음 ${remaining}${stopped ? " (07:20 멈춤 — 다음 밤에 잇는다)" : ""}`
+      `🗄️ 국내 주식 전 종목 일봉: 대상 ${listings.length} · 할 일 ${work.length}${auditing ? "(앞쪽 대조 포함)" : ""} · 끝 ${done} · 요청 ${requests} · 봉 ${candles} · 재작성 ${rewritten} · 실패 ${failed} · 남음 ${remaining}${stopped ? ` (${hhmmKst(stop)} 시세 창 전 멈춤 — 다음 회차가 잇는다)` : ""}`
     );
     return {
       skipped: false as const,
@@ -580,7 +581,7 @@ const MINUTE_BACKFILL_DAYS = 365;
 const MINUTE_CALLS_PER_RUN = 1_200;
 /**
  * 밤 백필 회차 상한(`kr-minute-backfill`) — 1년 × 유니버스 약 50종목 × 4쪽 ≈ 5만 호출을 밤 2~3번에 나눈다.
- * 2만 = 약 2건/s 에서 3시간 남짓(전 종목 일봉 밤 회차와 한도를 나눠 쓰면 더 길다 — 07:20 전에 끝나는 크기)
+ * 2만 = 약 2건/s 에서 3시간 남짓(전 종목 일봉 회차와 한도를 나눠 쓰면 더 길다). 다음 개장일 08:30 이 오면 그 전에 멈춘다
  */
 const MINUTE_BACKFILL_CALLS_PER_NIGHT = 20_000;
 /** 하루 1분봉 390개 = 120 × 4 페이지 */
@@ -613,14 +614,10 @@ export class SyncKrMinuteBars {
 
   /**
    * `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부.
-   * `calls` — 회차 호출 상한(기본 장 마감 회차 1,200 · 밤 백필 `MINUTE_BACKFILL_CALLS_PER_NIGHT`)
+   * `calls` — 회차 호출 상한(기본 장 마감 회차 1,200 · 큰 백필 `MINUTE_BACKFILL_CALLS_PER_NIGHT`).
+   * `stop` — 이 시각부터 새 종목·일을 고르지 않는다(큰 백필의 시세 창 앞 멈춤). 장 마감 회차는 없다
    */
-  /** 밤 백필 회차 — 1년 창의 빈 날을 큰 상한으로(`kr-minute-backfill`) */
-  backfillNight() {
-    return this.execute(undefined, MINUTE_BACKFILL_CALLS_PER_NIGHT);
-  }
-
-  async execute(only?: string[], calls: number = MINUTE_CALLS_PER_RUN) {
+  async execute(only?: string[], calls: number = MINUTE_CALLS_PER_RUN, stop?: Date) {
     const at = this.now();
     const today = kstDateOf(at);
     const kstMinutes = Math.floor(((at.getTime() + 9 * 3_600_000) % 86_400_000) / 60_000);
@@ -649,8 +646,14 @@ export class SyncKrMinuteBars {
     let days = 0;
     let bars = 0;
     let failed = 0;
+    let stopped = false;
     const budget = Math.floor(calls / MINUTE_PAGES_PER_DAY);
     await mapConcurrent(work.slice(0, budget), KIS_CONCURRENCY, async ({ code, date }) => {
+      // 잠에서 깨어 이어 도는 회차도 여기서 멈춘다 — 깬 시각이 시세 창 안이면 새 호출 0
+      if (stopped || (stop && this.now() >= stop)) {
+        stopped = true;
+        return;
+      }
       try {
         const minutes = [];
         let cursor = "153100";
@@ -676,8 +679,23 @@ export class SyncKrMinuteBars {
 
     // 남은 = 다음 회차가 받을 것 — 상한에 걸려 못 고른 것 + 실패한 것. 실패를 빼면 "남은 0" 이 다 된 것처럼 읽힌다
     const remaining = work.length - days;
-    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${used} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)`);
-    return { days, calls: used, bars, failed, remaining };
+    logger.info(
+      `🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${used} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)${stopped && stop ? ` (${hhmmKst(stop)} 시세 창 전 멈춤)` : ""}`
+    );
+    return { days, calls: used, bars, failed, remaining, stopped };
+  }
+
+  /**
+   * 큰 백필 회차 — 1년 창의 빈 날을 큰 상한으로(`kr-minute-backfill`). **시세 창(개장일 08:30~16:00)이면 호출 0** 으로 끝나고,
+   * 창 밖이면 다음 개장일 08:30 에 새 요청을 멈춘다(`krBackfillWindow`, 2026-11-16 — ~~밤 22:00 만~~ 맥이 밤에 잔다)
+   */
+  async backfillOffHours() {
+    const window = await loadKrBackfillWindow(this.calendar, this.now());
+    if (!window.open) {
+      logger.info(`🧱 국내 주식 5분봉 큰 백필 — 시세 창(개장일 08:30~16:00)이라 건너뜀, ${hhmmKst(window.reopensAt)} 뒤에 잇는다`);
+      return { skipped: true as const, reason: "quote_window" as const };
+    }
+    return { skipped: false as const, ...(await this.execute(undefined, MINUTE_BACKFILL_CALLS_PER_NIGHT, window.stopAt)) };
   }
 }
 
