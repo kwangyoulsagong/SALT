@@ -1,4 +1,6 @@
-"""업비트 일봉 · 1시간봉 · 5분봉 수집. 기본은 증분(최근 --days 일),
+"""업비트 일봉 · 1시간봉 · 5분봉 수집. 기본은 증분 — 최근 --days 일, 그리고 종목별 마지막 봉이 그보다 오래면
+**마지막 봉부터**(최대 RESUME_CAP). 맥이 잠들었다 깨도 그 사이 봉을 다 받는다(OPS-002, 2026-11-16 — 고정 창이던 때
+1시간봉 6시간 · 5분봉 1.2시간보다 길게 잠들면 가운데가 영영 비었다).
 --since 를 주면 백필(종목별 이미 있는 가장 이른 봉부터 이어서).
 
 `--interval 1h` 는 단타 방향 확률(`short-direction@1`)의 재료 — 매시 증분, 백필은 한 번.
@@ -16,7 +18,7 @@ from salt_forecast.config import settings
 from salt_forecast.ingest.upbit import FIVE, HOUR, INTERVAL, SOURCE, Pacer, SourceError, UpbitDaily
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, symbols_arg
 from salt_forecast.store.db import engine
-from salt_forecast.store.prices import Bar, earliest_open, upsert_bars
+from salt_forecast.store.prices import Bar, earliest_open, latest_open, upsert_bars
 from salt_forecast.store.runs import mark_source
 
 JOB = "ingest_prices"
@@ -39,6 +41,7 @@ def main(argv: list[str] | None = None) -> int:
             api = UpbitDaily(client, cfg.upbit_base_url, Pacer(cfg.upbit_requests_per_second))
             symbols = symbols_arg(args.symbols) or api.krw_markets()
             earliest = earliest_open(eng, SOURCE, args.interval) if args.since else {}
+            latest = latest_open(eng, SOURCE, args.interval)
             # 상장일 = 일봉의 첫 봉. 상장이 since 보다 늦은 종목은 상장일부터만 — 다 찬 종목에 요청을 보내지 않아
             # 매시 도는 빈 곳 메우기(ops/backfill.sh)가 다 찬 뒤엔 요청 0건으로 끝난다
             listed = earliest_open(eng, SOURCE, INTERVAL) if args.since and args.interval != INTERVAL else {}
@@ -53,9 +56,10 @@ def main(argv: list[str] | None = None) -> int:
                     since = parse_as_of(args.since)
                     until = earliest.get(sym, now)  # 이미 있는 봉 이전만
                     start = backfill_start(since, listed.get(sym), until)
-                    ranges = [(start, until), (now - timedelta(days=args.days), now)]
+                    recent = resume_start(now, args.days, latest.get(sym)) if args.days > 0 else now
+                    ranges = [(start, until), (recent, now)]
                 else:
-                    ranges = [(now - timedelta(days=args.days), now)]
+                    ranges = [(resume_start(now, args.days, latest.get(sym)), now)]
                 try:
                     bars: list[Bar] = [b for s, u in ranges if u > s for b in api.fetch(sym, s, u, now, args.interval)]
                 except SourceError as e:
@@ -80,6 +84,21 @@ def main(argv: list[str] | None = None) -> int:
             return total
 
     return run_job(job, args, body)
+
+
+# 이어 받기 상한 — 이보다 오래 잠들었으면 그 앞은 비운 채로 둔다(5분봉 30일 = 종목당 약 44요청 · 300종목 약 27분)
+RESUME_CAP = timedelta(days=30)
+
+
+def resume_start(now: datetime, days: float, latest: datetime | None) -> datetime:
+    """증분 시작 — 최근 days 일(마감 전 봉 · 정정 겹침)과 마지막 봉 중 이른 쪽, 단 RESUME_CAP 보다 앞은 아님.
+
+    마지막 봉 자체도 다시 받는다(그 봉이 받을 때 덜 찼을 수 있다). 봉이 없는 종목은 최근 days 일만 — 과거는 백필 몫.
+    """
+    window = now - timedelta(days=days)
+    if latest is None:
+        return window
+    return max(now - RESUME_CAP, min(window, latest))
 
 
 def backfill_start(since: datetime, listed: datetime | None, earliest: datetime) -> datetime:

@@ -12,17 +12,9 @@ ts() { date -u +%FT%TZ; }
 rc=0
 
 # 1) 업비트 5분봉 2024-11~ — 장중 기저율(base-rate@3) 통계가 2년을 본다. 처음 한 번 약 10시간.
-#    그동안 intraday.sh 증분은 같은 락에 "이미 실행 중"으로 건너뛴다 — 그래서 끝난 뒤 걸린 시간만큼 최근 봉을 다시 받는다
-#    (intraday 증분 창은 1.2시간이라 10시간 구멍을 못 메운다)
-t0=$(date +%s)
+#    그동안 intraday.sh 증분은 같은 락에 "이미 실행 중"으로 건너뛴다 — 끝난 뒤 첫 증분이 종목별 마지막 봉부터 이어 받는다
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 5m --since 2024-11-01 --days 0 \
   || { echo "[$(ts)] 업비트 5분봉 빈 곳 메우기 실패 — 다음 시에 잇는다"; rc=1; }
-elapsed=$(( $(date +%s) - t0 ))
-if (( elapsed > 600 )); then
-  days=$(printf '%.3f' $(( elapsed / 86400.0 + 0.05 )))
-  "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 5m --days "$days" >/dev/null \
-    || { echo "[$(ts)] 백필 동안 밀린 최근 5분봉 받기 실패"; rc=1; }
-fi
 
 # 2) 국내 백테스트 — 서버 밤 전 종목 일봉 5년(여러 밤)이 다 받은 뒤 한 번. 빈 데이터로 돌면 틀린 성적이 원장에 들어간다.
 #    조건: 마지막 전 종목 회차가 "남음 0"(07:20 멈춤 아님) · 국내 일봉 2,000종목 이상 · 국내 판단 과거 검산 행이 아직 없음.

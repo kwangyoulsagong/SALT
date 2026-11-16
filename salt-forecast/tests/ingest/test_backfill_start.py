@@ -30,3 +30,22 @@ def test_no_rows_yet_fetches_everything() -> None:
     now = at(2026, 11, 16, 6)
     assert backfill_start(SINCE, at(2017, 9, 25), now) == SINCE
     assert backfill_start(SINCE, at(2017, 9, 25), now) < now - timedelta(days=700)
+
+
+def test_resume_start_boundary_table() -> None:
+    """잠들었다 깨면 마지막 봉부터 — 고정 창이던 때 가운데가 영영 비었다(2026-11-16)."""
+    from salt_forecast.jobs.ingest_prices import RESUME_CAP, resume_start
+
+    now = at(2026, 11, 16, 12)
+    hour = timedelta(hours=1)
+    cases = [
+        # (days, 마지막 봉) → 시작
+        (0.05, now - timedelta(minutes=5), now - timedelta(days=0.05)),  # 5분마다 — 평소 창 그대로
+        (0.05, now - 10 * hour, now - 10 * hour),  # 10시간 잠 — 마지막 봉부터
+        (0.25, now - timedelta(days=3), now - timedelta(days=3)),  # 1시간봉 사흘 잠
+        (0.05, now - timedelta(days=45), now - RESUME_CAP),  # 상한
+        (0.05, None, now - timedelta(days=0.05)),  # 봉 없음 — 과거는 백필 몫
+        (7, now - hour, now - timedelta(days=7)),  # 일봉 — 최근 7일 겹침 유지
+    ]
+    for days, latest, want in cases:
+        assert resume_start(now, days, latest) == want, (days, latest)
