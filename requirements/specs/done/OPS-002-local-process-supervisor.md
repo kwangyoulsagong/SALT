@@ -57,3 +57,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — FR-8 `usage` · `web-tips` 3005(사용자 "3000 으로 salt 켜 줘" 때 발견) |
 | 2026-11-14 | 상태 줄 둘 — AI 본문(매체 RSS) · DART 공시(F017 v4 2a · 2b) |
 | 2026-11-16 | 새 맥 이전(루트 `OPS-002-new-mac-setup-slice.md`) — plist 의 node 를 루트 `.node-version` 으로 · 실제 경로(:A). fnm 기본 node 26 · 사라지는 multishell 경로가 박히던 것 |
+| 2026-11-16 | 이름 표에 `forecast-backfill`(launchd 매시, `salt-forecast/ops/backfill.sh`) — 과거 빈 구간 메우기 · 데이터가 찬 뒤 한 번 도는 국내 백테스트. 세션 셸에서 띄운 1회 백필 · FRED 대기 · 국내 감시가 세션과 함께 죽었다(14:29 — 5분봉 296종목 중 19종목만). 같이: FRED `realtime_end` 를 미국 중부 날짜로(UTC 날짜면 KST 09~15시 배치가 매일 8개 전부 400) · `check-done.mjs` 가 `OPS-` 를 센다 |

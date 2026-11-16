@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -28,6 +29,16 @@ SERIES: dict[str, str] = {
     "VIXCLS": "index",
     "CPIAUCSL": "index",  # 월간 · 수정 잦음
 }
+
+
+# FRED 의 "오늘"은 미국 중부 날짜다. realtime_end 가 그보다 뒤면 400 — UTC 날짜를 보내면 KST 09~15시(UTC 0~6시)
+# 배치가 매일 8개 시리즈 전부 실패했다(2026-11-16 실측: "realtime_end can not be after today's date")
+FRED_TZ = ZoneInfo("America/Chicago")
+
+
+def fred_today(now: datetime) -> date:
+    """realtime_end 상한 — UTC 날짜와 FRED(미국 중부) 날짜 중 이른 쪽."""
+    return min(now.astimezone(UTC).date(), now.astimezone(FRED_TZ).date())
 
 
 def _day(s: str) -> datetime:
@@ -51,7 +62,7 @@ def observations(
     """
     unit = SERIES[series_id]
     window_start = since
-    end = now.date()
+    end = fred_today(now)
     while window_start <= end:
         window_end = min(end, window_start + REALTIME_WINDOW)
         rows = get_json(

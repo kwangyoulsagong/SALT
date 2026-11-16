@@ -43,8 +43,10 @@ const notes = [];
 const fail = (msg) => fails.push(msg);
 
 // ── 1. 주인 REQ ────────────────────────────────────────────────
-const REQ = /\b(FE|BFF|SRV|DB|FC|RN)-REQ-\d{3}\b/g;
-const AREA = { FE: "salt-microFe", RN: "salt-microFe", BFF: "bff", SRV: "salt-server", DB: "salt-server", FC: "salt-forecast" };
+// OPS 는 루트 문서(`requirements/**`)다. 세지 않던 때 `ops/salt.sh` 주인을 머리에 적힌 서버 REQ 로 잘못 잡았다(2026-11-16)
+const REQ = /\b(?:(?:FE|BFF|SRV|DB|FC|RN)-REQ|OPS)-\d{3}\b/g;
+const AREA = { FE: "salt-microFe", RN: "salt-microFe", BFF: "bff", SRV: "salt-server", DB: "salt-server", FC: "salt-forecast", OPS: "" };
+const under = (area, rest) => (area ? `${area}/${rest}` : rest);
 // 설정 · 운영 · 계약 파일(sh · json · yml)도 센다 — 머리에 REQ 가 있는 것만 걸린다. 코드만 세던 때 eslintrc · run-platform.sh 주인을 두 번 놓쳤다(2026-11-02 · 11-05)
 const CODE = /\.(ts|tsx|mts|cts|js|mjs|cjs|py|kt|kts|sql|prisma|sh|json|ya?ml)$/;
 const isCode = (p) => CODE.test(p) && !/(^|\/)(requirements|docs|node_modules|dist|\.next)\//.test(p);
@@ -67,10 +69,12 @@ for (const p of live.filter(isCode)) {
 
 const findSpec = (area, id) => {
   for (const stage of ["to-do", "in-progress", "done"]) {
-    const dir = path.join(root, area, "requirements/specs", stage);
+    const dir = path.join(root, under(area, `requirements/specs/${stage}`));
     if (!existsSync(dir)) continue;
-    const hit = readdirSync(dir).find((f) => f.startsWith(`${id}-`) || f === `${id}.md`);
-    if (hit) return path.join(area, "requirements/specs", stage, hit);
+    // OPS 는 슬라이스 문서(`OPS-002-new-mac-setup-slice.md`)가 같은 접두사라 슬라이스가 아닌 것을 먼저
+    const files = readdirSync(dir).filter((f) => f.startsWith(`${id}-`) || f === `${id}.md`);
+    const hit = files.find((f) => !f.endsWith("-slice.md")) ?? files[0];
+    if (hit) return under(area, `requirements/specs/${stage}/${hit}`);
   }
   return null;
 };
@@ -78,8 +82,8 @@ const findSpec = (area, id) => {
 for (const [id, why] of [...owners].sort()) {
   const area = AREA[id.split("-")[0]];
   const spec = findSpec(area, id);
-  const checklist = `${area}/requirements/reports/checklists/${id}.md`;
-  const retro = `${area}/requirements/reports/retrospects/${id}.md`;
+  const checklist = under(area, `requirements/reports/checklists/${id}.md`);
+  const retro = under(area, `requirements/reports/retrospects/${id}.md`);
   const missing = [];
   if (!spec) missing.push("스펙 없음");
   else if (!touched(spec)) missing.push("스펙 Changelog 안 고침");

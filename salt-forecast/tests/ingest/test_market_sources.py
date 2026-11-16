@@ -42,6 +42,35 @@ def test_fred_keeps_vintages_and_skips_missing() -> None:
     assert pts[0].observed_at == pts[1].observed_at
 
 
+def test_fred_today_never_ahead_of_us_central() -> None:
+    # KST 11-16 12:33 = UTC 11-16 03:33 = 미국 중부 11-15 21:33 — UTC 날짜를 보내면 400
+    assert fred.fred_today(datetime(2026, 11, 16, 3, 33, tzinfo=UTC)) == date(2026, 11, 15)
+    # 중부도 날이 바뀐 뒤(UTC 06:12)는 같은 날
+    assert fred.fred_today(datetime(2026, 11, 16, 6, 12, tzinfo=UTC)) == date(2026, 11, 16)
+    # UTC 날짜보다 뒤로 가는 일은 없다
+    assert fred.fred_today(datetime(2026, 11, 16, 23, 59, tzinfo=UTC)) == date(2026, 11, 16)
+
+
+@respx.mock
+def test_fred_realtime_end_is_fred_today() -> None:
+    route = respx.get("https://api.stlouisfed.org/fred/series/observations").mock(
+        return_value=httpx.Response(200, json={"observations": []})
+    )
+    with httpx.Client() as c:
+        list(
+            fred.observations(
+                c,
+                "https://api.stlouisfed.org/fred",
+                "k",
+                Pacer(1000),
+                "DFF",
+                date(2026, 11, 1),
+                datetime(2026, 11, 16, 3, 33, tzinfo=UTC),
+            )
+        )
+    assert route.calls.last.request.url.params["realtime_end"] == "2026-11-15"
+
+
 @respx.mock
 def test_fred_error_does_not_leak_api_key() -> None:
     respx.get("https://api.stlouisfed.org/fred/series/observations").mock(return_value=httpx.Response(400))
