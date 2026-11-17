@@ -400,7 +400,7 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 `ops/salt.sh up | status | down | restart | logs | plist`. 뉴스 워커 · BFF REST · WS · 시세 워커를 서버 · 예측처럼 launchd 상시로. `status` 가 마지막 뉴스 · 시세 시각으로 "떠 있는데 안 모으는" 것을 잡는다.
 뉴스 302건 수집 확인(09-29 뒤 처음). launchd 등록 2026-11-02 10:07(사용자 "등록 니가 해줘") — 전부 상시 · 뉴스 · 시세 ok.
 새 맥 이전(2026-11-16, `OPS-002-new-mac-setup-slice.md`) — 런타임은 폴더 버전 파일이 정한다 · launchd 에 실제 node 경로 · RabbitMQ brew · Compose 기동 결함 수정.
-예측 실행 트리(2026-11-17, `OPS-005` in-progress) — launchd 예측 배치는 개발 트리가 아니라 머지된 main 고정 `~/.salt-run` 에서 · 매시 live 끝에 따라감 · `ops/salt.sh sync`.
+예측 실행 트리(2026-11-17, `OPS-005` **done**) — launchd 예측 배치는 개발 트리가 아니라 머지된 main 고정 `~/.salt-run` 에서 · 매시 live 끝에 따라감 · `ops/salt.sh sync`.
 
 **돈 관리 앱 S2d — 금융 팁 내 숫자로 다시 읽기 · 고정비 증가 → 월세 세액공제 (서버 · BFF · FE, 2026-11-05, `feat/srv-req-047-s2d-tips-my-numbers`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸 둘 중 금융 팁 S2d(기능 먼저 — S2b 와 같은 판단). S2b 가 남긴 셋 중 홈 카드(S3)를 뺀 둘.
 범위 `MONEY-S2d-tips-my-numbers-slice.md`, 검증 `checklists/MONEY-S2d-tips-my-numbers.md`. 서비스를 넘는 읽기는 BFF 순서(저축 목표 · 가계부 급여 → content 계산 · 저장 0) · 못 읽은 원천 · 앱이 모르는 요건은 늘 "모름" · 숫자는 제도 파라미터 표에서만 · 칸은 로그인일 때만 부르는 지연 청크(글 HTML 은 사람마다 같다). DB 변경 없음.
@@ -879,6 +879,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-17 | **`OPS-005` done**(`docs/ops-005-done`) — PR #190 머지 뒤 첫 맞춤 `0a0d2369 → 28d5f3af` · 다시 적합 · 10:02 회차 새 커밋으로 141행 · live 끝 자동 동기화 실행 확인 |
 | 2026-11-17 | **예측 실행 트리**(`fix/forecast-run-tree`, 신규 `OPS-005` · `FC-REQ-028`) — 첫 실전 수면 점검에서 단타 재생 0: launchd 예측 배치가 개발 트리(기능 브랜치)에서 돌아 가드가 막음. 실행 트리(머지된 main) · 매시 따라가기 · 예측 코드 바뀐 머지면 바로 다시 적합 · 가드 디스크 대조 + 실시간에도 · 서버 `forecast-runner` 끔. 지난밤 2,022행 복구 · 숫자 동치 재계산 |
 | 2026-11-16 | **국내 큰 백필을 시세 창 밖으로**(`fix/kr-backfill-work-hours`, 주인 `SRV-REQ-040` FR-40 · FR-21, 루트 `F017-v4-stage3-intraday-slice.md`) — 맥이 평일 업무 시간에만 켜져 밤에만 돌던 전 종목 일봉 5년 · 5분봉 1년 백필이 멈춰 있었다. 불변식: 개장일 08:30~16:00 KST 엔 KIS 0 · 그 밖에서 깨거나 불리면 이어 받기(`krBackfillWindow`). 평일 16:15 · 16:20 + 밤 · 주말 + 부팅 · 깸, 다음 개장일 08:30 멈춤. 짝 `SRV-REQ-053`(조립 한 줄) |
 | 2026-11-16 | **뉴스 잠든 날 메우기**(`fix/news-crawler-sleep-gap`, 루트 `F017-v4-stage4-experiment-slice.md`) — `SRV-REQ-057` FR-8 신규 · 구현: 서버 뉴스 워커가 마지막 성공 수집이 2시간 넘으면 한글 검색 피드 10개를 `after:` · `before:` 로 하루씩 다시 검색(앞뒤 하루 겹침 · 최대 14일 · 하루 100건 · 1건/s) · 같은 저장 경로 · 같은 `source`(소식 실험 `move-news` 출처 정의 무변경). 규칙은 예측 `gap_days`(`976a0009`)와 같음. 실측 11-15 하루 DB 에 없는 기사 266. 영어 매체 RSS 는 날짜 검색이 없어 못 메움 · 실 수면 깸 확인은 머지 · 재시작 뒤 |
