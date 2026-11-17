@@ -179,3 +179,12 @@
 - 실측: 머지 뒤 적합 `a43a9df5` · HEAD `bfdcd201` — 옛 가드면 재생 0. 새 가드: `code_changed_since("…+a43a9df5")` = False(그 사이 단타 모듈 44개 · 잠금 파일 안 바뀜) · 없는 커밋 = True(모르면 막음)
 - 시험: `may_replay` 표 셋(같은 커밋 · 문서 커밋만 · 예측 코드 바뀜) · 전체 `pytest` · `pyright` 0 · 서버 `shortHorizon.test.ts` 16 · `tsc` 0
 
+### 2026-11-17 — 가드 = 디스크 대조 · 실시간에도(원인 `OPS-005`)
+
+- 실측: 11-16 밤 재생 14시각 전부 `skipped_code_changed` — 적합 `7d2fc278` vs 개발 트리 HEAD(기능 브랜치 `b0e5e9c9`) — `store/tables.py` · `store/bulk.py` 다름. 숫자 동치: 7d2fc278 트리 · HEAD 재계산 해시 같음(18 · 00 · 06시) · 18시 저장 147행 같음
+- 복구: `754257d9` 트리(밤새 main · 코드 차이 0) 재생 2,022행 · 18~09시 빈 시각 0
+- 시험: 임시 저장소 경계 표 넷(깨끗 · 커밋 안 한 수정 · 추적 안 된 모듈 · 관계없는 파일) · `may_write` 표 둘 · 실제 저장소 상태에 기대던 시험 1 제거(지금 트리가 더러우면 실패 — 날짜 · 상태 의존)
+- 변이: `git diff <적합> HEAD` 로 되돌림 → `test_uncommitted_edit_blocks` 실패(scratchpad 사본)
+- 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부 · 누수 따로
+- 미검증: 예측 코드가 바뀐 머지 뒤 실시간 가드가 막고 → 다시 적합 → 다음 회차 행 > 0 — `OPS-005` FR-7(머지 뒤)
+- 검증 2회차: 가드를 `jobs/code_guard.py` 로 뗌 — `vol_range` 가 단타 모듈을 import 해 단타 모듈이 흔들림의 '불러온 예측 코드'로 잡혔다(지금 42개 · 단타 0). 실 DB 로 흔들림 재생(쓰기 가로챔): 가드 '바뀜' → 1시각 건너뜀 · '같음' → 480행 · git 한 번(적합 커밋당). 단타 실시간 dry-run(개발 트리): 칸 4 전부 `skipped_code_changed` · 재생 대상 0

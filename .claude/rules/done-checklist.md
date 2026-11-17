@@ -29,6 +29,7 @@
 | 같은 LLM 상한을 앞 배치가 다 써 뒤 배치 시도 0(2026-11-12) | `salt-server` `opsGuards.test.ts` 예약 경계 | `npm test` |
 | 빨강(`danger`)이 되돌릴 수 있는 일에 붙음(로그아웃 빨간 메뉴, 2026-11-12) | 웹 lint `@repo/fsd/danger-only-irreversible` — 바로 위 주석에 되돌릴 수 없는 이유 | 저장 · `pnpm lint` |
 | 서버 `catchUp` 이 재기동 뒤 첫 회차를 놓침(node-cron 은 첫 박동 전엔 missed 를 안 쏜다 — 11-17 08:40 원인 스냅샷 0) | `salt-server` `scheduler.test.ts` 깸 길 | `npm test` |
+| 예측 배치가 개발 트리(브랜치 · 커밋 안 한 수정)에서 돌아 재생이 밤새 0 · 실시간 이름표가 다른 코드(2026-11-17) | 실행 트리 `~/.salt-run`(`OPS-005`) · `sync-run.test.sh` · `test_replay_code_guard.py` · `status` 실행 트리 줄 | 매시 · `status` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

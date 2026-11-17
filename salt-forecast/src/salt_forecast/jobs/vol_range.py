@@ -33,8 +33,8 @@ from salt_forecast.domain.vol_range import (
     replay_bars,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
+from salt_forecast.jobs.code_guard import code_changed_since
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
-from salt_forecast.jobs.short_direction import code_changed_since
 from salt_forecast.scoring.vol_range import (
     LiveCell,
     crypto_panel,
@@ -124,17 +124,21 @@ def main(argv: list[str] | None = None) -> int:
     ) -> int:
         """동결 재생(@3) — 예측이 없는 기준 봉(맥이 잠든 주말 등)을 그 봉까지의 패널 · 같은 코드로 다시 만든다.
 
-        같은 코드 = 그 봉 시각에 돌던 시험 실행의 model_version 이 지금과 같을 때만. 이미 쓴 행은 건드리지 않는다."""
+        같은 코드 = 그 봉 시각에 돌던 시험 실행의 커밋과 지금 디스크의 예측 코드가 같을 때만(`code_changed_since`).
+        이미 쓴 행은 건드리지 않는다."""
         have_rows = load_predictions(eng, KEY, open_only=False)
         done = 0
         skipped = 0
+        changed: dict[str, bool] = {}  # 적합 커밋 → 그 뒤 예측 코드가 바뀌었나(커밋마다 git 한 번)
         for m in markets:
             dates = build[m](raw[m], now).dates
             have = {int(r.ref_at.timestamp()) for r in have_rows if r.market == m}
             for i in replay_bars(dates, have, int(REGISTERED_AT.timestamp()), int(now.timestamp())):
                 at = datetime.fromtimestamp(int(dates[i]), UTC)
                 then = model_version_at(eng, KEY, at)
-                if then is None or (then != mv and code_changed_since(then)):
+                if then is not None and then not in changed:
+                    changed[then] = code_changed_since(then)
+                if then is None or changed[then]:  # 같은 커밋이라도 디스크가 다르면 막는다
                     skipped += 1
                     continue
                 rows_t = [

@@ -5,6 +5,8 @@
 # 업비트 5분봉 백필(ingest_prices_5m)이 도는 동안엔 증분이 "이미 실행 중"으로 건너뛴다 — 백필이 같은 봉을 채운다.
 set -u
 cd "$(dirname "$0")/.." || exit 1
+# 실행 트리 동기화(ops/sync-run.sh) 중이면 끝날 때까지 기다린다 — 최대 2분. 개발 트리엔 이 파일이 없다
+for _ in {1..24}; do [[ -e ../.salt-sync.lock ]] || break; sleep 5; done
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 5m --days 0.05 >/dev/null || echo "[$(date -u +%FT%TZ)] 코인 5분봉 증분 실패"
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_kr_minutes >/dev/null || echo "[$(date -u +%FT%TZ)] 국내 5분봉 옮기기 실패"

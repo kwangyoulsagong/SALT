@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
-import sys
 import tomllib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -39,11 +37,12 @@ from salt_forecast.domain.short_direction import (
     live_track,
     live_underperforms,
     look_cutoff,
-    may_replay,
+    may_write,
     replay_hours,
     written_in_time,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
+from salt_forecast.jobs.code_guard import code_changed_since
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
 from salt_forecast.scoring.short_direction import (
     KR_LIVE_SESSIONS,
@@ -80,37 +79,6 @@ JOB = "short_direction"
 DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-16-short-direction-5.toml"
 HOURS = {"1h": 1, "4h": 4, "1d": 24}
 KST = timedelta(hours=9)
-
-
-# 예측 숫자를 바꿀 수 있는 것 = 이 작업이 실제로 불러온 salt_forecast 모듈 파일 + 의존성 잠금.
-# 그 밖(문서 · 서버 · 다른 실험 모듈 · 사전등록 문장)만 바뀐 커밋은 같은 코드로 본다(@5)
-LOCK_FILES = ("salt-forecast/pyproject.toml", "salt-forecast/uv.lock")
-
-
-def prediction_code_paths() -> list[str]:
-    """지금 프로세스에 올라온 salt_forecast 모듈 파일(저장소 기준 경로)."""
-    src = (ROOT / "src").resolve()
-    paths = {
-        str(Path(f).resolve().relative_to(ROOT.parent.resolve()))
-        for name, mod in list(sys.modules.items())
-        if name.startswith("salt_forecast") and (f := getattr(mod, "__file__", None))
-        and Path(f).resolve().is_relative_to(src)
-    }  # fmt: skip
-    return sorted(paths) + list(LOCK_FILES)
-
-
-def code_changed_since(model_version: str) -> bool:
-    """model_version 의 커밋(`…+<sha>`) 뒤 예측 코드가 바뀌었나. 알 수 없으면(커밋 없음 · git 실패) 바뀐 것으로."""
-    sha = model_version.rsplit("+", 1)[-1]
-    try:
-        out = subprocess.run(
-            ["git", "diff", "--quiet", sha, "HEAD", "--", *prediction_code_paths()],
-            cwd=ROOT.parent,
-            capture_output=True,
-        )
-    except OSError:
-        return True
-    return out.returncode != 0
 
 
 def model_version(sha: str) -> str:
@@ -308,10 +276,15 @@ def main(argv: list[str] | None = None) -> int:
         now = datetime.now(UTC)
         scored = 0 if args.dry_run else score_due(eng, now)
         cells = [c for c in active_cells(eng, KEY, as_of) if args.market in ("all", c.market)]
+        # 재생과 같은 코드 가드 — 그 적합의 커밋 뒤 예측 코드가 바뀌었으면 옛 이름표로 쓰지 않는다(2026-11-17).
+        # 바뀐 코드가 머지되면 실행 트리 동기화가 곧바로 다시 적합해(ops/sync-run.sh) 다음 회차부터 새 이름표로 쓴다
+        changed = {mv: code_changed_since(mv) for mv in {c.model_version for c in cells}}
+        blocked = [c for c in cells if not may_write(changed[c.model_version])]
+        cells = [c for c in cells if c not in blocked]
         log.info(
             "예측 칸",
             extra={"fields": {"job": JOB, "cells": [f"{c.market}:{c.horizon}:{c.status}" for c in cells],
-                              "scored": scored}},
+                              "scored": scored, "skipped_code_changed": len(blocked)}},
         )  # fmt: skip
         if not cells:
             return scored
@@ -342,7 +315,6 @@ def main(argv: list[str] | None = None) -> int:
         reg = first_run(eng, KEY)
         if reg is None:
             return 0
-        mv_now = model_version(_git_sha())
         t_now = int(now.timestamp())
         since = max(reg, now - timedelta(seconds=REPLAY_CAP_S))
         cache: dict[str, Any] = {}
@@ -370,7 +342,7 @@ def main(argv: list[str] | None = None) -> int:
             for c in cells:
                 if c.model_version not in changed:
                     changed[c.model_version] = code_changed_since(c.model_version)
-            ok = [c for c in cells if may_replay(c.model_version, mv_now, changed[c.model_version])]
+            ok = [c for c in cells if may_write(changed[c.model_version])]
             skipped_code += len(cells) - len(ok)
             if not ok:
                 continue

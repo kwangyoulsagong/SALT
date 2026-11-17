@@ -5,6 +5,8 @@
 # daily.sh(StartInterval — 불러온 시각 기준)에 두면 매번 15분을 넘겨 코인 예측이 쌓이지 않는다(2026-11-11).
 set -u
 cd "$(dirname "$0")/.." || exit 1
+# 실행 트리 동기화(ops/sync-run.sh) 중이면 끝날 때까지 기다린다 — 최대 2분. 개발 트리엔 이 파일이 없다
+for _ in {1..24}; do [[ -e ../.salt-sync.lock ]] || break; sleep 5; done
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
 echo "[$(date -u +%FT%TZ)] live 시작"
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 1h --days 0.25 >/dev/null || echo "[$(date -u +%FT%TZ)] 1시간봉 증분 실패"
@@ -17,3 +19,5 @@ fi
 # 동결 재생(@4) — 맥이 잠든 동안 놓친 기준 시각을 그 시각 전 적합 · 그 시각까지의 봉 · 같은 코드로 다시 쓴다. 놓친 게 없으면 몇 초
 "$UV" run --frozen python -m salt_forecast.jobs.short_direction replay || echo "[$(date -u +%FT%TZ)] short_direction replay 실패"
 echo "[$(date -u +%FT%TZ)] live 끝"
+# 실행 트리면 머지된 main 으로 맞춘다 — 재생 뒤(놓친 시각은 옛 코드로 먼저). exec: 이 파일이 바뀌어도 읽던 쪽이 꼬이지 않게
+exec /bin/zsh ops/sync-run.sh

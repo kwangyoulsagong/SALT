@@ -73,3 +73,7 @@
 ## 2026-11-16 — F017 v4 순서 5 짝
 
 - 이 REQ 의 기능 변경 없음 — 공유 파일에 한 자리. 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage5-ontology.md`
+
+## 2026-11-17
+
+- 뉴스와 무관한 운영 변경(실행 트리 잠금)이 `daily.sh` 머리 REQ 로 여기에 걸린다 — 스크립트 머리 REQ 는 주인이 아니라 첫 기능이다

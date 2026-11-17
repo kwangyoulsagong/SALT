@@ -4,6 +4,8 @@
 # 단계 하나가 실패해도 나머지는 돈다 — 실패는 종료 코드와 forecast.job_run 에 남는다.
 set -u
 cd "$(dirname "$0")/.." || exit 1
+# 실행 트리 동기화(ops/sync-run.sh) 중이면 끝날 때까지 기다린다 — 최대 2분. 개발 트리엔 이 파일이 없다
+for _ in {1..24}; do [[ -e ../.salt-sync.lock ]] || break; sleep 5; done
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
 # 뉴스는 매시(FC-REQ-016) — RSS 가 피드마다 최근 30건만 줘서 하루 한 번이면 빈다. 20시간 게이트 앞에서 따로 돈다.
 # 감성 모델(torch)은 nlp 그룹이다. 실패해도 아래 일일 작업은 돈다

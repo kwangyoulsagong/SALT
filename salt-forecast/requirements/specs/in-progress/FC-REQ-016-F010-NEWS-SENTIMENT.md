@@ -68,3 +68,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 | 2026-11-16 | 네이버 뉴스 검색(HUB) 보조 원천 — 매시 검색어 10개 첫 쪽 100건 · 잠든 뒤엔 마지막 성공 전 기사까지 쪽 넘김(최대 1,100건). **원천 구분 규칙**: 등록 `news-sentiment@1` 의 원천은 매시 RSS 13개(`rss:google:<검색어>` · `rss:coindesk` · `rss:cointelegraph` · `rss:cryptoslate`)뿐이다. 날짜 검색으로 메운 `rss:google-gap:*` · 네이버 `naver:*` 는 첫 집계(2027-02-08)에서 **source 로 먼저 거른 뒤** title_key 중복 제거를 한다 — 집계 코드는 아직 없다(엿보기 금지) |
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `ops/daily.sh`(머리 주인) 단계에 `ontology_build` · `cause_explain`(vol_range 뒤 · 합 약 1초) — 뉴스 수집 무변경 |
 | 2026-11-16 | F017 v4 순서 5b-3 짝 — `ops/daily.sh` 에 주 1회 `ontology_quality`(O2 재채점 · 이름 충돌) — 뉴스 수집 무변경 |
+| 2026-11-17 | `ops/daily.sh` 머리에 실행 트리 동기화 잠금 대기(최대 2분, `OPS-005`) — 뉴스 수집 무변경 |
