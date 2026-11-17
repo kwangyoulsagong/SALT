@@ -137,3 +137,70 @@ describe("국내 주요 사건 (BFF-REQ-043 FR-1 · FR-2 · FR-4)", () => {
     assert.equal(calls[0]?.[1], "/coach/events?symbol=005930");
   });
 });
+
+describe("다음 실적 공시 (F008 슬라이스 24 2단계 · BFF-REQ-043 FR-2)", () => {
+  const earnings = (over: Record<string, unknown> = {}) => ({
+    periodEnd: "2026-09-30",
+    annual: false,
+    confirmed: null,
+    expected: {
+      from: "2026-10-25",
+      to: "2026-11-04",
+      sample: 30,
+      hits: 22,
+      judged: 25,
+      misses: [{ periodEnd: "2025-03-31", actual: "2025-05-12", from: "2025-04-25", to: "2025-05-05" }, { bad: 1 }],
+      deadline: "2026-11-14",
+    },
+    blockedReason: null,
+    horizons: [horizon(1), horizon(5)],
+    asOf: "2026-10-20T00:00:00.000Z",
+    ...over,
+  });
+  const vm = (e: unknown) => {
+    const r = toEventsViewModel({ ...server([]), symbol: "005930", earnings: e });
+    assert.equal(r.status, "ok");
+    return r.status === "ok" ? r.earnings : null;
+  };
+
+  it("예상 창 — 기간 · 3종 · 기준 그대로, 깨진 빗나감 행은 버리고 빠진 반응 기간은 막힘", () => {
+    const e = vm(earnings())!;
+    assert.deepEqual(e.expected?.misses, [{ periodEnd: "2025-03-31", actual: "2025-05-12", from: "2025-04-25", to: "2025-05-05" }]);
+    assert.deepEqual([e.expected?.from, e.expected?.to, e.expected?.hits, e.expected?.judged, e.expected?.deadline], ["2026-10-25", "2026-11-04", 22, 25, "2026-11-14"]);
+    assert.deepEqual(e.horizons.map((h) => h.renderable), [true, true, false]);
+    assert.equal(e.blockedReason, null);
+  });
+
+  it("확정 일정이 있으면 창을 싣지 않는다", () => {
+    const e = vm(earnings({ confirmed: { at: "2026-10-29T01:00:00.000Z", timeKnown: true, source: "ir" } }))!;
+    assert.deepEqual(e.confirmed, { at: "2026-10-29T01:00:00.000Z", timeKnown: true, source: "ir" });
+    assert.equal(e.expected, null);
+  });
+
+  const broken: Array<[string, Record<string, unknown>]> = [
+    ["창이 뒤집힘", { from: "2026-11-05", to: "2026-11-04" }],
+    ["판정 0", { judged: 0, hits: 0 }],
+    ["적중 > 판정", { hits: 26 }],
+    ["날짜 모양 아님", { to: "11월 4일" }],
+  ];
+  for (const [name, over] of broken) {
+    it(`창 모양이 깨지면 싣지 않는다 — ${name}`, () => {
+      const base = earnings();
+      const e = vm({ ...base, expected: { ...(base.expected as object), ...over } })!;
+      assert.equal(e.expected, null);
+      assert.equal(e.blockedReason, "contract_incomplete");
+    });
+  }
+
+  it("막힘 사유는 그대로 · 옛 서버(필드 없음)와 코인은 null", () => {
+    assert.equal(vm(earnings({ expected: null, blockedReason: "insufficient_sample" }))?.blockedReason, "insufficient_sample");
+    assert.equal(vm(undefined), null);
+    assert.equal(vm(null), null);
+  });
+
+  it("종목 사건 종류(실적 공시 · 확정 일정)를 버리지 않는다", () => {
+    const r = toEventsViewModel(server([{ ...event([horizon(1)], "kr_earnings"), scope: "symbol", region: "kr" }, { ...event([], "kr_ir"), scope: "symbol", region: "kr" }]));
+    assert.equal(r.status, "ok");
+    if (r.status === "ok") assert.deepEqual(r.events.map((e) => [e.kind, e.scope]), [["kr_earnings", "symbol"], ["kr_ir", "symbol"]]);
+  });
+});
