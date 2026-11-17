@@ -215,6 +215,13 @@ export class PrismaAiBodyStore implements AiBodyStore {
     return rows.map((r) => ({ key: r.key, rceptNo: r.key.replace(/^dart:/, "") }));
   }
 
+  async markDisclosureMissing(row: { key: string; title: string; publishedAt: Date; symbols: string[]; url: string }, at: Date) {
+    await prisma.$executeRaw`
+      INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, linked_at, fetched_at, symbols, refetched_at)
+      VALUES (${row.key}, 'kr', ${row.title}, ${row.publishedAt}, NULL, 'dart', 'empty', ${row.url}, ${at}, ${at}, ${row.symbols}::text[], ${at})
+      ON CONFLICT (key) DO NOTHING`;
+  }
+
   async dartRefetchedAwaitingExtraction() {
     const rows = await prisma.$queryRaw<Array<{ n: bigint }>>`
       SELECT count(*) AS n FROM news_ai_body

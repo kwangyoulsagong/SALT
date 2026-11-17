@@ -15,6 +15,7 @@ import {
   type EarningsSchedule,
   type KrUniverseSource,
   classifyEarningsFiling,
+  isPermanentDartMiss,
   kstYmd,
   parseIrSchedule,
   parsePreviewSchedule,
@@ -121,7 +122,8 @@ export class CollectDartEarnings {
         if (schedule) out.parsed += 1;
         else out.unparsed += 1;
       } catch (error) {
-        const last = doc.attempts + 1 >= DART_EARNINGS_DOC_MAX_ATTEMPTS;
+        // 원문이 영구히 없으면(013 · 014) 바로 끝 — 다시 불러도 같은 답
+        const last = doc.attempts + 1 >= DART_EARNINGS_DOC_MAX_ATTEMPTS || isPermanentDartMiss((error as { code?: string }).code);
         results.push({ rceptNo: doc.rceptNo, status: last ? "failed" : null, schedule: null });
         out.failed += 1;
         logger.warn("[news] dart earnings document failed", { rceptNo: doc.rceptNo, code: (error as { code?: string }).code ?? null, message: String((error as Error).message ?? "").slice(0, 120) });

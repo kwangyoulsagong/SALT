@@ -14,6 +14,13 @@ export type DartType = (typeof DART_TYPES)[number];
 /** 한 회차에 원문을 받는 상한 · 원문 사이 간격(공식 하루 한도의 50% 안 — 회차 5분 × 이 상한 ≪ 1만) */
 export const DART_DOCS_PER_TICK = 20;
 export const DART_DOC_GAP_MS = 1_000;
+/**
+ * 다시 불러도 같은 답인 DART 오류 — 013 조회된 데이터 없음 · 014 파일이 존재하지 않음. 본문 표에 `empty` 로 남겨 다시 묻지 않는다
+ * (실패 수가 프로세스 안에만 있어 뉴스 워커가 재기동할 때마다 같은 공시 5건을 세 번씩 다시 불렀다 — 11-16 부터 39회, 2026-11-17).
+ * 한도(020) · 점검(800) · 키 오류는 지나가는 실패라 다시 본다
+ */
+export const isPermanentDartMiss = (code: unknown): boolean => code === "DART_013" || code === "DART_014";
+
 /** 원문을 못 받은 공시를 다시 보는 횟수(프로세스 안) — 넘으면 건너뛴다 */
 export const DART_DOC_MAX_ATTEMPTS = 3;
 /** 본문 상한 — 사실 추출이 앞 6천 자를 읽는다. 표가 긴 공시도 이만큼만 남긴다 */

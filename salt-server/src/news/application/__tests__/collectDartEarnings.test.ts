@@ -26,6 +26,7 @@ const harness = (opts: { synced?: Record<string, Date>; lists?: Record<string, D
     document: async (no) => {
       calls.push(`doc:${no}`);
       if (opts.fail?.includes(no)) throw new Error("down");
+      if (no.startsWith("gone")) throw Object.assign(new Error("DART document 014"), { code: "DART_014" });
       return opts.docs?.[no] ?? IR_DOC;
     },
   };
@@ -83,15 +84,16 @@ describe("CollectDartEarnings", () => {
   it("IR · 예고 본문 — 읽으면 ok, 양식이 다르면 unparsed, 실패는 세 번째에 failed(그 전엔 다시)", async () => {
     const h = harness({
       synced: { "005930": NOW, "000660": NOW, "069500": NOW },
-      pending: [{ rceptNo: "ir1", kind: "ir", attempts: 0 }, { rceptNo: "pv1", kind: "preview", attempts: 0 }, { rceptNo: "x1", kind: "ir", attempts: 0 }, { rceptNo: "x2", kind: "ir", attempts: 2 }],
+      pending: [{ rceptNo: "ir1", kind: "ir", attempts: 0 }, { rceptNo: "pv1", kind: "preview", attempts: 0 }, { rceptNo: "x1", kind: "ir", attempts: 0 }, { rceptNo: "x2", kind: "ir", attempts: 2 }, { rceptNo: "gone1", kind: "ir", attempts: 0 }],
       docs: { pv1: ["결산실적공시 예고(안내공시)"] },
       fail: ["x1", "x2"],
     });
     const r = await h.uc().execute();
-    assert.deepEqual(h.docResults.map((d) => [d.rceptNo, d.status]), [["ir1", "ok"], ["pv1", "unparsed"], ["x1", null], ["x2", "failed"]]);
+    // 014(파일 없음)는 첫 시도에 끝 — 다시 불러도 같은 답
+    assert.deepEqual(h.docResults.map((d) => [d.rceptNo, d.status]), [["ir1", "ok"], ["pv1", "unparsed"], ["x1", null], ["x2", "failed"], ["gone1", "failed"]]);
     assert.equal(h.docResults[0]?.schedule?.scheduledAt.toISOString(), "2026-11-20T07:00:00.000Z");
     assert.equal(h.docResults[0]?.schedule?.aboutEarnings, true);
-    assert.deepEqual([r.docs, r.parsed, r.unparsed, r.failed], [4, 1, 1, 2]);
+    assert.deepEqual([r.docs, r.parsed, r.unparsed, r.failed], [5, 1, 1, 3]);
     // 본문은 최근 1년 접수만(과거 IR 은 일정으로 안 쓴다)
     assert.equal(h.sinceSeen[0]?.toISOString(), "2025-11-17T03:00:00.000Z");
   });
