@@ -150,6 +150,32 @@ series_point = Table(
     Column("ingested_at", DateTime(timezone=True), nullable=False),
 )
 
+# 20261117120100_forecast_kr_earnings (DB-REQ-034 FR-5 · FC-REQ-021 FR-14) — 다음 실적 공시 예상 창 · 채점 · 확정 일정
+kr_earnings_window = Table(
+    "kr_earnings_window",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("period_end", Date, nullable=False),
+    Column("annual", Boolean, nullable=False),
+    Column("quarter_lag_min", Integer),
+    Column("quarter_lag_median", Integer),
+    Column("quarter_lag_max", Integer),
+    Column("sample", Integer, nullable=False),
+    Column("window_from", Date),
+    Column("window_to", Date),
+    Column("deadline", Date, nullable=False),
+    Column("hits", Integer, nullable=False),
+    Column("judged", Integer, nullable=False),
+    Column("misses", JSONB, nullable=False),
+    Column("confirmed_at", DateTime(timezone=True)),
+    Column("confirmed_time_known", Boolean),
+    Column("confirmed_source", Text),
+    Column("renderable", Boolean, nullable=False),
+    Column("blocked_reason", Text),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
 # 20260924120000_forecast_events (FC-REQ-005)
 scheduled_event = Table(
     "scheduled_event",

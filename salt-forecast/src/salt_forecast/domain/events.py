@@ -131,11 +131,20 @@ def _crosses(break_cum: NDArray[np.int64] | None, a: int, b: int) -> bool:
 
 
 def reaction(
-    bars: OhlcvSeries, event: ScheduledEvent, as_of: datetime, break_cum: NDArray[np.int64] | None = None
+    bars: OhlcvSeries,
+    event: ScheduledEvent,
+    as_of: datetime,
+    break_cum: NDArray[np.int64] | None = None,
+    anchor: datetime | None = None,
 ) -> Reaction | None:
-    """기준 봉이 없으면(데이터 시작 전 사건) None. 끊김을 걸친 수익률은 None(국내 — FC-REQ-020 FR-10)."""
+    """기준 봉이 없으면(데이터 시작 전 사건) None. 끊김을 걸친 수익률은 None(국내 — FC-REQ-020 FR-10).
+
+    `anchor` — 기준 봉을 고르는 시각(기본 `event_at`). 시각 없이 날짜만 아는 사건(국내 실적 공시 — 그날 00:00 KST)이
+    기준을 더 이르게 잡을 때만. `event_at` 보다 늦으면 안 된다(미래 봉이 기준이 된다)."""
+    if anchor is not None and anchor > event.event_at:
+        raise ValueError("anchor 는 event_at 보다 늦을 수 없다")
     avail = bars.available_at
-    ev = _epoch(event.event_at)
+    ev = _epoch(anchor or event.event_at)
     ref = int(np.searchsorted(avail, ev, side="right")) - 1
     if ref < 0:
         return None
