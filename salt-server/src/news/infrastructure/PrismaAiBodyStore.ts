@@ -197,14 +197,28 @@ export class PrismaAiBodyStore implements AiBodyStore {
     const col = <T,>(pick: (r: (typeof rows)[number]) => T) => rows.map(pick);
     return prisma.$executeRaw`
       INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, paragraphs, body_hash, body_chars,
-        linked_at, fetched_at, symbols)
+        linked_at, fetched_at, symbols, refetched_at)
       SELECT u.key, 'kr', u.title, u.published_at, NULL, 'dart', 'ok', u.url, u.paragraphs::jsonb, u.hash, u.chars, ${at}, ${at},
-        string_to_array(u.symbols, ',')
+        string_to_array(u.symbols, ','), ${at}
       FROM unnest(${col((r) => r.key)}::text[], ${col((r) => r.title)}::text[], ${col((r) => r.publishedAt)}::timestamptz[],
         ${col((r) => r.url)}::text[], ${col((r) => JSON.stringify(r.paragraphs))}::text[], ${col((r) => r.hash)}::text[],
         ${col((r) => r.chars)}::int[], ${col((r) => r.symbols.join(","))}::text[])
         AS u(key, title, published_at, url, paragraphs, hash, chars, symbols)
       ON CONFLICT (key) DO NOTHING`;
+  }
+
+  async dartBodiesToRefetch(limit: number) {
+    const rows = await prisma.$queryRaw<Array<{ key: string }>>`
+      SELECT key FROM news_ai_body WHERE via = 'dart' AND status = 'ok' AND refetched_at IS NULL
+      ORDER BY title_published_at DESC, key DESC LIMIT ${limit}`;
+    return rows.map((r) => ({ key: r.key, rceptNo: r.key.replace(/^dart:/, "") }));
+  }
+
+  async replaceDisclosureBody(row: { key: string; paragraphs: string[]; hash: string; chars: number }, at: Date) {
+    await prisma.$executeRaw`
+      UPDATE news_ai_body SET paragraphs = ${JSON.stringify(row.paragraphs)}::jsonb, body_hash = ${row.hash}, body_chars = ${row.chars},
+        refetched_at = ${at}, extracted_at = NULL, extract_attempts = 0, purged_at = NULL
+      WHERE key = ${row.key} AND via = 'dart'`;
   }
 
   async purgeParagraphs(before: Date, at: Date) {

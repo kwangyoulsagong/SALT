@@ -2,11 +2,13 @@ import Decimal from "decimal.js";
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   DailyBar,
+  EarningsWindowRow,
   EventCardRow,
   ForecastReader,
   MarketRegimeState,
   MarketWarningState,
   PositioningRow,
+  ReactionStatsRow,
   RealizedVolatility,
   SignalReactionRow,
   SymbolRisk,
@@ -78,6 +80,27 @@ const toStats = (r: StatsSqlRow) => ({
   missCount: r.miss_count === null ? null : Number(r.miss_count),
   missJudged: r.miss_judged === null ? null : Number(r.miss_judged),
 });
+
+interface EarningsWindowSqlRow {
+  as_of: Date;
+  period_end: string;
+  annual: boolean;
+  quarter_lag_min: number | null;
+  quarter_lag_median: number | null;
+  quarter_lag_max: number | null;
+  sample: number;
+  window_from: string | null;
+  window_to: string | null;
+  deadline: string;
+  hits: number;
+  judged: number;
+  misses: { periodEnd: string; actual: string; from: string; to: string }[] | null;
+  confirmed_at: Date | null;
+  confirmed_time_known: boolean | null;
+  confirmed_source: string | null;
+  renderable: boolean;
+  blocked_reason: string | null;
+}
 
 interface SignalSqlRow {
   as_of: Date;
@@ -151,6 +174,54 @@ export class PrismaForecastReader implements ForecastReader {
       assetClass: fromForecastKey(r.symbol).assetClass,
       ...toStats(r),
     }));
+  }
+
+  /**
+   * 국내 종목 다음 실적 공시(F008 슬라이스 24 2단계) — 6자리 코드만. 두 뷰 모두 종목당 최신 행(`DISTINCT ON`)
+   */
+  async earningsOutlook(symbol: string): Promise<{ window: EarningsWindowRow | null; reactions: ReactionStatsRow[] }> {
+    const code = symbol.trim();
+    if (!/^\d{6}$/.test(code)) return { window: null, reactions: [] };
+    const [windows, stats] = await Promise.all([
+      prisma.$queryRaw<EarningsWindowSqlRow[]>`
+        SELECT as_of, period_end::text, annual, quarter_lag_min, quarter_lag_median, quarter_lag_max, sample,
+               window_from::text, window_to::text, deadline::text, hits, judged, misses,
+               confirmed_at, confirmed_time_known, confirmed_source, renderable, blocked_reason
+        FROM forecast.v_kr_earnings_window WHERE symbol = ${code}
+      `,
+      prisma.$queryRaw<StatsSqlRow[]>`
+        SELECT horizon_days, as_of, sample, q05, q25, q50, q75, q95, up_rate,
+               baseline_q05, baseline_q50, baseline_q95, move_ratio, pre_return_5d_median,
+               recent_misses, recent_events, renderable, blocked_reason,
+               window_from, window_to, miss_count, miss_judged
+        FROM forecast.v_kr_earnings_reaction WHERE symbol = ${code}
+        ORDER BY horizon_days
+      `,
+    ]);
+    const w = windows[0];
+    const window: EarningsWindowRow | null = w
+      ? {
+          asOf: w.as_of,
+          periodEnd: w.period_end,
+          annual: w.annual,
+          lagMin: w.quarter_lag_min,
+          lagMedian: w.quarter_lag_median,
+          lagMax: w.quarter_lag_max,
+          sample: Number(w.sample),
+          windowFrom: w.window_from,
+          windowTo: w.window_to,
+          deadline: w.deadline,
+          hits: Number(w.hits),
+          judged: Number(w.judged),
+          misses: w.misses ?? [],
+          confirmedAt: w.confirmed_at,
+          confirmedTimeKnown: w.confirmed_time_known,
+          confirmedSource: w.confirmed_source === "ir" || w.confirmed_source === "preview" ? w.confirmed_source : null,
+          renderable: w.renderable,
+          blockedReason: w.blocked_reason,
+        }
+      : null;
+    return { window, reactions: stats.map(toStats) };
   }
 
   /**

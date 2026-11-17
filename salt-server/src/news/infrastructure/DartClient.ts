@@ -2,7 +2,7 @@ import { createHttpClient } from "../../shared/infrastructure/httpClient";
 import { withRetry } from "../../shared/infrastructure/retry";
 import { unzipFirstEntry } from "../../shared/infrastructure/zip";
 import { parseDartCorpCodes } from "../../shared/lib/dartCorpCode";
-import { type DartFiling, type DartPort, type DartType, dartParagraphs } from "../domain";
+import { type DartEarningsType, type DartFiling, type DartPort, type DartType, dartParagraphs } from "../domain";
 import { decodeHtml } from "./ArticlePageFetcher";
 
 const BASE = "https://opendart.fss.or.kr/api";
@@ -16,6 +16,18 @@ interface ListResponse {
   total_page?: number;
   list?: Array<{ rcept_no: string; stock_code: string; corp_name: string; report_nm: string; rcept_dt: string; flr_nm: string }>;
 }
+
+/**
+ * 공시 원문 바이트 → 글자. **DART 원문은 `charset=euc-kr` 이라 적고 실제로는 UTF-8 을 보낸다**(2026-11-17 실측 — 선언을 믿으면
+ * 한글이 전부 깨지고 숫자 · 영문만 남는다. F017 v4 2b 본문 634건이 그렇게 저장됐다). 올바른 UTF-8 이면 UTF-8, 아니면 선언을 따른다
+ */
+export const decodeDartDocument = (bytes: Buffer): string => {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return decodeHtml(bytes, undefined);
+  }
+};
 
 /**
  * OpenDART(`SRV-REQ-058` 원천 ① · F017 v4 2b) — 공시 목록 · 원문. 키는 서버 밖으로 나가지 않는다(로그 · 응답에 0).
@@ -40,7 +52,7 @@ export class DartClient implements DartPort {
     return this.listWith({ bgn_de: bgnDe, end_de: endDe, pblntf_ty: type, page_no: page });
   }
 
-  listByCorp(corpCode: string, type: DartType, bgnDe: string, endDe: string, page: number) {
+  listByCorp(corpCode: string, type: DartType | DartEarningsType, bgnDe: string, endDe: string, page: number) {
     return this.listWith({ corp_code: corpCode, bgn_de: bgnDe, end_de: endDe, pblntf_ty: type, page_no: page });
   }
 
@@ -83,6 +95,6 @@ export class DartClient implements DartPort {
       const status = bytes.toString("utf8").match(/<status>(\d+)<\/status>/)?.[1] ?? "unknown";
       throw Object.assign(new Error(`DART document ${status}`), { code: `DART_${status}` });
     }
-    return dartParagraphs(decodeHtml(unzipFirstEntry(bytes), undefined));
+    return dartParagraphs(decodeDartDocument(unzipFirstEntry(bytes)));
   }
 }

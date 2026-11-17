@@ -1206,6 +1206,8 @@ model NewsAiBody {
   /// 제목에 걸린 종목(국내 제목 연결 · 코인 원장 태그) — 사실 추출이 그대로 싣는다
   symbols          String[]  @default([])
   extractAttempts  Int       @default(0) @map("extract_attempts")
+  /// DART 원문을 고친 디코더(UTF-8 먼저)로 읽은 때 — 새 공시는 받을 때, 그 전 본문(한글이 깨짐)은 다시 받을 때(2026-11-17). 비면 다시 받을 대상. `fetched_at` 은 처음 받은 때 그대로(사실의 알게 된 시각)
+  refetchedAt      DateTime? @map("refetched_at") @db.Timestamptz(3)
 
   @@index([status, nextTryAt], map: "news_ai_body_status_next_try_idx")
   @@index([market, titlePublishedAt], map: "news_ai_body_market_published_idx")
@@ -1261,4 +1263,39 @@ model DartBackfill {
   filings   Int
 
   @@map("dart_backfill")
+}
+
+/// DART 실적 공시 · 실적 일정(F008 슬라이스 24 2단계 — `SRV-REQ-041` FR-8~10). 회사 사정 목록(`dart_filing`)과 따로 —
+/// 10년 이력이 사전등록 `event-window@2` 원천(`v_dart_filing_export`)과 회사 사정 칸을 바꾸지 않게. 예측은 `v_dart_earnings_export` 로 읽는다
+model DartEarningsFiling {
+  rceptNo       String    @id @map("rcept_no")
+  stockCode     String    @map("stock_code")
+  reportName    String    @map("report_name")
+  pblntfTy      String    @map("pblntf_ty")
+  rceptDate     DateTime  @map("rcept_date") @db.Date
+  firstSeenAt   DateTime  @map("first_seen_at") @db.Timestamptz(3)
+  /// earnings | ir | preview (`news/domain/DartEarnings.ts`)
+  kind          String
+  /// 정기보고서 이름의 결산 월 · 예고 본문의 결산 기간 끝
+  periodEnd     DateTime? @map("period_end") @db.Date
+  /// IR · 예고 본문의 일정(시각을 모르면 그날 09:00 KST)
+  scheduledAt   DateTime? @map("scheduled_at") @db.Timestamptz(3)
+  timeKnown     Boolean?  @map("time_known")
+  aboutEarnings Boolean?  @map("about_earnings")
+  /// 본문 읽기 — null 대기 · ok · unparsed(양식이 달라 못 읽음 — 다시 묻지 않는다) · failed(시도 상한)
+  docStatus     String?   @map("doc_status")
+  docAttempts   Int       @default(0) @map("doc_attempts")
+
+  @@index([stockCode, rceptDate(sort: Desc)], map: "dart_earnings_filing_stock_date_idx")
+  @@map("dart_earnings_filing")
+}
+
+/// 종목마다 실적 이력을 맞춘 때 — 처음은 2016 년부터, 그 뒤는 20시간마다 최근 14일
+model DartEarningsSync {
+  stockCode String   @id @map("stock_code")
+  fullAt    DateTime @map("full_at") @db.Timestamptz(3)
+  syncedAt  DateTime @map("synced_at") @db.Timestamptz(3)
+  filings   Int
+
+  @@map("dart_earnings_sync")
 }

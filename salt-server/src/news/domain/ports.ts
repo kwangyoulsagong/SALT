@@ -176,6 +176,10 @@ export interface AiBodyStore {
   markExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
   /** 공시 원문 행(`via: dart`, 받은 채 `ok`) — 같은 키는 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
   saveDisclosures(rows: Array<{ key: string; title: string; publishedAt: Date; symbols: string[]; url: string; paragraphs: string[]; hash: string; chars: number }>, at: Date): Promise<number>;
+  /** 고친 디코더로 읽지 않은 DART 본문(`refetched_at` 없음) — 최신순 `limit` */
+  dartBodiesToRefetch(limit: number): Promise<Array<{ key: string; rceptNo: string }>>;
+  /** DART 본문 바꾸기 — 문단 · 해시 · 길이 · `refetched_at`, 추출을 다시(추출 시각 · 시도 · 지움 표시 비움). `fetched_at` 은 지킨다 */
+  replaceDisclosureBody(row: { key: string; paragraphs: string[]; hash: string; chars: number }, at: Date): Promise<void>;
   /** 문단을 지우고 해시 · 길이만 — 추출이 끝났거나 보관 기한이 지난 행. 지운 수 */
   purgeParagraphs(before: Date, at: Date): Promise<number>;
 }
@@ -190,7 +194,20 @@ export interface DartPort {
   /** 종목 코드 → 고유번호(상장사, 하루 캐시) — 기간이 3개월을 넘는 목록은 고유번호가 있어야 한다 */
   corpCodes(): Promise<Map<string, string>>;
   /** 한 회사의 목록 한 쪽 */
-  listByCorp(corpCode: string, type: import("./Dart").DartType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+  listByCorp(corpCode: string, type: import("./Dart").DartType | import("./DartEarnings").DartEarningsType, bgnDe: string, endDe: string, page: number): Promise<{ items: import("./Dart").DartFiling[]; totalPage: number }>;
+}
+
+/** 실적 공시 · 일정 표(`dart_earnings_filing`) · 종목 맞춤 표시(`dart_earnings_sync`) — F008 슬라이스 24 2단계 */
+export interface DartEarningsStore {
+  /** 한 문장 · 같은 접수번호 한 번(처음 본 시각을 지킨다). 넣은 수 */
+  save(rows: Array<import("./DartEarnings").DartEarningsFilingRow & { type: string }>, at: Date): Promise<number>;
+  /** 종목별 마지막 맞춤 — 없으면 아직 10년 이력을 안 받은 종목 */
+  synced(codes: string[]): Promise<Map<string, Date>>;
+  markSynced(code: string, filings: number, at: Date): Promise<void>;
+  /** 본문을 아직 안 읽은 IR · 예고 — `since` 뒤 접수 · 최신순 */
+  pendingDocs(limit: number, since: Date): Promise<Array<import("./DartEarnings").PendingScheduleDoc & { attempts: number }>>;
+  /** 본문 결과 — 한 문장. `schedule` 이 없으면 `status` 만(unparsed · failed) 또는 시도 수만(다음 회차에 다시) */
+  saveDocs(results: Array<{ rceptNo: string; status: "ok" | "unparsed" | "failed" | null; schedule: import("./DartEarnings").EarningsSchedule | null }>): Promise<void>;
 }
 
 /** 공시 목록 저장(`dart_filing`) · 백필 표시(`dart_backfill`) */

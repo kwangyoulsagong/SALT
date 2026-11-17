@@ -404,6 +404,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - **소유자 계정만.** 아니면 404(`ADR-003`)
    *       - 기간마다 `renderable`. 표본 · 분포와 평소 분포 · 빗나간 때 중 하나라도 없으면 분포 없이 사유만
    *       - 호재 · 악재 판정 필드는 없다 — 예상 대비 서프라이즈 데이터가 없다. 종류 이름은 코드 그대로(문장은 프론트)
+   *       - `earnings`(국내 종목 · 2단계 `SRV-REQ-041` FR-4) — 다음 실적 공시. 회사가 공시한 실적 발표 일정(`confirmed`)이 있으면
+   *         그것만, 없으면 과거 공시일 기준 예상 창(`expected` — **한 날짜가 아니라 기간**, 확정 아님) + 과거 적중(`hits`/`judged`) ·
+   *         빗나간 결산(`misses`) · 기준(`deadline` 법정 제출 기한). 둘 다 없으면 `blockedReason`. `horizons` 는 실적 공시 뒤
+   *         1 · 5 · 20 거래일 반응(공시일 전 거래일 종가 기준, 사건 카드와 같은 게이트). 코인 · 자료 없음은 `null`
    *     tags: [Coach Report]
    *     security:
    *       - bearerAuth: []
@@ -432,7 +436,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                       items:
    *                         type: object
    *                         properties:
-   *                           kind: { type: string, enum: [fomc, cpi, jobs, kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry] }
+   *                           kind: { type: string, enum: [fomc, cpi, jobs, kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry, kr_earnings, kr_ir] }
    *                           scope: { type: string, enum: [market, symbol] }
    *                           region: { type: string, enum: [us, kr] }
    *                           eventAt: { type: string, format: date-time }
@@ -442,6 +446,33 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                             type: array
    *                             description: "1 · 5 · 20일. `renderable=false` 면 `blockedReason` 만"
    *                             items: { type: object }
+   *                     earnings:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         periodEnd: { type: string, format: date, description: 다음에 공시될 결산의 끝날 }
+   *                         annual: { type: boolean }
+   *                         confirmed:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             at: { type: string, format: date-time }
+   *                             timeKnown: { type: boolean, description: "false 면 날짜만(시각 표시 안 함)" }
+   *                             source: { type: string, enum: [ir, preview] }
+   *                         expected:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             from: { type: string, format: date }
+   *                             to: { type: string, format: date }
+   *                             sample: { type: integer }
+   *                             hits: { type: integer }
+   *                             judged: { type: integer }
+   *                             misses: { type: array, items: { type: object } }
+   *                             deadline: { type: string, format: date }
+   *                         blockedReason: { type: string, nullable: true, enum: [insufficient_sample, not_judged, window_passed, window_past] }
+   *                         horizons: { type: array, items: { type: object } }
+   *                         asOf: { type: string, format: date-time }
    *       400: { description: 심볼 형식 오류 }
    *       401: { description: 인증 실패 }
    *       404: { description: 소유자가 아니다 }

@@ -11,6 +11,7 @@ import {
   DART_TYPES,
   type AiBodyStore,
   type DartFiling,
+  type DartEarningsStore,
   type DartFilingStore,
   type DartPort,
   type DartType,
@@ -23,6 +24,7 @@ import {
   kstYmd,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
+import { toEarningsRow } from "./CollectDartEarnings";
 
 export interface DartTick {
   enabled: boolean;
@@ -54,7 +56,7 @@ export class CollectDartDisclosures {
   private readonly failures = new Map<string, number>();
 
   constructor(
-    private readonly deps: { dart: DartPort | null; universe: KrUniverseSource; bodies: AiBodyStore; filings: DartFilingStore },
+    private readonly deps: { dart: DartPort | null; universe: KrUniverseSource; bodies: AiBodyStore; filings: DartFilingStore; earnings?: DartEarningsStore },
     private readonly now: () => Date = () => new Date(),
     private readonly sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   ) {}
@@ -82,6 +84,10 @@ export class CollectDartDisclosures {
     const mine = today.filter((f) => universe.has(f.stockCode));
     out.universe = mine.length;
     await this.deps.filings.save(mine, now);
+    // 잠정실적 · 실적 IR · 예고는 5분 안에 처음 본 시각으로 실적 표에도(F008 슬라이스 24 2단계 — 반응 기준 봉이 이 시각으로 정해진다)
+    if (this.deps.earnings) {
+      await this.deps.earnings.save(mine.flatMap((f) => toEarningsRow(f, f.type) ?? []), now);
+    }
 
     // 2. 1년 백필 — 종목 하나의 실패는 그 종목만(다음 회차에 다시)
     await this.backfill(dart, codes, now, out);

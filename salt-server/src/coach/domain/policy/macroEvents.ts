@@ -7,7 +7,16 @@
 
 import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 
-export type MacroEventKind = "fomc" | "cpi" | "jobs" | "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+export type MacroEventKind =
+  | "fomc"
+  | "cpi"
+  | "jobs"
+  | "kr_bok_rate"
+  | "kr_cpi"
+  | "kr_trade"
+  | "kr_quad_expiry"
+  | "kr_earnings"
+  | "kr_ir";
 export type EventRegion = "us" | "kr";
 /** 시장 일정(모든 종목) · 종목 사건(그 종목만 — 2단계 `kr_earnings` · `kr_ir`) */
 export type EventScope = "market" | "symbol";
@@ -24,6 +33,9 @@ export const EVENT_KIND_META: Readonly<Record<MacroEventKind, { region: EventReg
   kr_cpi: { region: "kr", scope: "market" },
   kr_trade: { region: "kr", scope: "market" },
   kr_quad_expiry: { region: "kr", scope: "market" },
+  // 종목 사건(F008 슬라이스 24 2단계) — 실적 공시(접수일 하루 동안 카드에) · 확정 실적 일정(반응은 실적 공시가 잰다 — 보통 카드 없음)
+  kr_earnings: { region: "kr", scope: "symbol" },
+  kr_ir: { region: "kr", scope: "symbol" },
 };
 export const MACRO_EVENT_KINDS = Object.keys(EVENT_KIND_META) as readonly MacroEventKind[];
 
