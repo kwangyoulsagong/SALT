@@ -14,6 +14,17 @@ import type { DisclosureLines } from "@repo/ui/disclosureSlot";
  * 숫자 문자열은 받은 그대로 끼운다 — 이 파일은 금액을 만들지 않는다.
  */
 export const RISK_MESSAGES = {
+  /** 위험 예산 한 줄(요약 띠 칸 · 리포트 패널 — `lib/riskSummary.ts`). 넘을 때만 강조, 막지 않는다 */
+  summary: {
+    drawdownUsed: (rate: string) => `이번 달 손실 예산 ${rate} 사용`,
+    drawdownExceeded: (rate: string) => `이번 달 손실 예산 ${rate} — 넘었어요`,
+    budgetNotSet: "손실 기준을 아직 정하지 않았어요",
+    insufficient: "계산할 데이터가 아직 모자라요",
+    top: (symbol: string, weight: string) => `가장 큰 비중 ${symbol} ${weight}`,
+    beta: (sum: string) => `BTC 와 같이 움직이는 정도 ${sum}`,
+    noteFallback: "넘어도 아무것도 막지 않아요",
+    more: "게이지 · 내 기준 · 시나리오 펼쳐 보기",
+  },
   /** FR-32 3종 고지 — 새 카드마다 고정 */
   disclosure: [
     "정보 제공 목적이에요",

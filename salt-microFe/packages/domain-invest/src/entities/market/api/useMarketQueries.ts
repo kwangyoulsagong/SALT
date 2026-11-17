@@ -15,7 +15,6 @@ import {
 } from "../model/chartTimeframes";
 import {
   MarketChartPreviewResponse,
-  MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
   MarketSummaryResponse,
@@ -132,17 +131,6 @@ export const useMarketChart = (
     staleTime: PREVIEW_STALE_TIME_MS,
   });
 };
-
-export const useMarketIntelligencePreview = (
-  symbol: string,
-): UseQueryResult<MarketIntelligencePreviewResponse> =>
-  useQuery({
-    queryKey: [marketQueryKeys.intelligencePreview, symbol],
-    queryFn: () => marketApi.intelligencePreview(symbol),
-    enabled: Boolean(symbol),
-    placeholderData: keepPreviousData,
-    staleTime: PREVIEW_STALE_TIME_MS,
-  });
 
 /**
  * 종목 뉴스.

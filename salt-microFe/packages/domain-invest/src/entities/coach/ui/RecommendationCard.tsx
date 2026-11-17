@@ -7,7 +7,6 @@ import { formatRatio, formatSignedPoints, formatSignedRate, passesRecommendation
 import { COACH_MESSAGES } from "../model";
 import { PerformanceClaimLine } from "./PerformanceClaimLine";
 import { BlockedNotice } from "./BlockedNotice";
-import { srOnly } from "./CoachBlock.css";
 import {
   detailSection,
   plainList,
@@ -25,8 +24,6 @@ import {
   factList,
   recommendationHead,
   recommendationSymbol,
-  scoreNoteText,
-  scoreRow,
 } from "./CoachReport.css";
 
 const { report: REPORT, detail: DETAIL } = COACH_MESSAGES;
@@ -77,8 +74,6 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
   const {
     action,
     symbol,
-    score,
-    scoreNote,
     reasons,
     topFactors,
     signalTrackRecord: record,
@@ -98,11 +93,7 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
         <p className={recommendationSymbol}>{symbol}</p>
       </div>
 
-      <p className={scoreRow}>
-        <span aria-hidden="true">{COACH_MESSAGES.score(score)}</span>
-        <span className={srOnly}>{COACH_MESSAGES.scoreAccessible(score)}</span>
-        <span className={scoreNoteText}>{scoreNote}</span>
-      </p>
+      {/* ~~점수 n/100 · 점수 설명~~ — 확률로 읽혀 뺐다(F017 v4 순서 6 · `FE-REQ-064` FR-12, 판단 근거가 아니다). 근거는 아래 문장 · 요인 */}
 
       <section className={detailSection}>
         <Heading level={5} color="tertiary">

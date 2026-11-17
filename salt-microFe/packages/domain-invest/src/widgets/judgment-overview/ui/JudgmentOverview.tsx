@@ -3,22 +3,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import {
-  formatRatio,
-  TargetWeightSummary,
-  useJudgmentScoreboard,
-  useRiskBudget,
-  useTargetWeights,
-} from "@/entities/coach";
+import { RISK_MESSAGES, riskSummaryLine, useJudgmentScoreboard, useRiskBudget } from "@/entities/coach";
 import { useHasSession } from "@repo/web-shared/api";
 import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
 import { JUDGMENT_OVERVIEW_MESSAGES } from "../model";
-import { cell, cellBody, cellLabel, cellNote, cellValue, strip, stripPending, stripTwo } from "./JudgmentOverview.css";
+import { cell, cellBody, cellLabel, cellNote, cellValue, cellValueAlert, strip, stripPending } from "./JudgmentOverview.css";
 
 const M = JUDGMENT_OVERVIEW_MESSAGES;
-const betaFormatter = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const Cell = ({ href, label, linkLabel, children }: { href: string; label: string; linkLabel: string; children: ReactNode }) => (
   <Link href={href} className={cell} aria-label={linkLabel}>
@@ -30,37 +23,13 @@ const Cell = ({ href, label, linkLabel, children }: { href: string; label: strin
   </Link>
 );
 
-const Line = ({ value, note }: { value: string; note?: string | null }) => (
+const Line = ({ value, note, strong = false }: { value: string; note?: string | null; strong?: boolean }) => (
   <>
-    <span className={cellValue}>{value}</span>
+    <span className={strong ? `${cellValue} ${cellValueAlert}` : cellValue}>{value}</span>
     {note && <span className={cellNote}>{note}</span>}
   </>
 );
 
-const TargetWeightCell = () => {
-  const weights = useTargetWeights();
-  const d = weights.data;
-  const content = weights.isPending ? (
-    <Line value={" "} />
-  ) : weights.isError || !d || d.status === "unavailable" ? (
-    <Line value={M.targetWeight.unavailable} />
-  ) : d.status === "blocked" ? (
-    <Line value={M.targetWeight.blocked} />
-  ) : (
-    <TargetWeightSummary view={d} valueClassName={cellValue} noteClassName={cellNote} />
-  );
-  return (
-    <Cell
-      href={ROUTES.coachReportSection(COACH_REPORT_SECTIONS.targetWeight)}
-      label={M.targetWeight.label}
-      linkLabel={M.targetWeight.linkLabel}
-    >
-      {content}
-    </Cell>
-  );
-};
-
-/** 국내 탭(`FE-REQ-050` FR-5) — `MarketAssetClass` 값과 같다. 엔티티 barrel 을 값으로 끌어오지 않게 문자열로 비교한다 */
 const KR_STOCK = "kr_stock";
 
 /**
@@ -72,24 +41,17 @@ const RiskCell = ({ withBeta }: { withBeta: boolean }) => {
   const d = budget.data;
   const R = M.risk;
   const line = () => {
-    if (budget.isPending) return <Line value={" "} />;
+    if (budget.isPending) return <Line value={" "} />;
     if (budget.isError || !d || d.status === "unavailable") return <Line value={R.unavailable} />;
-    const { drawdown, concentration, btcBeta } = d.gauges;
-    const value =
-      drawdown.status === "budget_not_set"
-        ? R.budgetNotSet
-        : drawdown.status === "insufficient_data" || drawdown.usedRate === null
-          ? R.insufficient
-          : drawdown.status === "exceeded"
-            ? R.drawdownExceeded(formatRatio(drawdown.usedRate))
-            : R.drawdownUsed(formatRatio(drawdown.usedRate));
-    const notes = [
-      concentration.topSymbol && concentration.topWeight !== null
-        ? R.top(concentration.topSymbol, formatRatio(concentration.topWeight))
-        : null,
-      withBeta && btcBeta.betaSum !== null ? R.beta(betaFormatter.format(btcBeta.betaSum)) : null,
-    ].filter(Boolean);
-    return <Line value={value} note={notes.length ? notes.join(" · ") : R.noteFallback} />;
+    // 리포트 패널과 같은 한 줄(`riskSummaryLine`) — 넘을 때만 강조
+    const summary = riskSummaryLine(d, withBeta);
+    return (
+      <Line
+        value={summary.value}
+        note={summary.notes.length ? summary.notes.join(" · ") : RISK_MESSAGES.summary.noteFallback}
+        strong={summary.exceeded}
+      />
+    );
   };
   return (
     <Cell href={ROUTES.coachReportSection(COACH_REPORT_SECTIONS.riskBudget)} label={R.label} linkLabel={R.linkLabel}>
@@ -120,16 +82,16 @@ const ScoreboardCell = ({ assetClass }: { assetClass: string }) => {
 };
 
 /**
- * `/investments` 머리 아래 **요약 띠** — [이번 주 목표 비중] [위험에 노출된 돈] [판정 성적표] (F010 · `FE-REQ-040` FR-13 ·
+ * `/investments` 머리 아래 **요약 띠** — [위험에 노출된 돈] [판정 성적표] (F010 · `FE-REQ-040` FR-13 ·
  * `FE-REQ-042` FR-13). 칸마다 한 줄 값 + 한 줄 설명, 누르면 코치 리포트의 그 섹션으로 간다.
  *
  * 2026-09-29 까지는 세 카드 본문 전체가 여기 있었다 — 목표 비중 카드 하나가 876px(뷰포트 772)이라 시세 표가 1890px 에서
  * 시작했다. 투자 화면의 본업은 시세다. 본문은 `/coach/report` 로 옮겼고 여기는 진입점만 남는다.
  *
- * 목표 비중 칸은 비중만 두지 않는다 — 고지 한 줄(근거 · 과거 성적 · 실패 사례)이 같이 있다(`TargetWeightSummary`).
- * 세 조회는 리포트와 같은 query key 라 리포트로 넘어가도 다시 부르지 않는다. 로그인 여부는 수화 뒤에 본다.
+ * ~~목표 비중 칸~~ 2026-11-17 뺐다 — 목표 비중 패널은 쓰는 흐름이 없다(F017 v4 순서 6 · `FE-REQ-064` FR-12, 계산은 서버에 남는다).
+ * 위험 칸은 넘을 때만 강조(진한 경고색 글자 — 막지 않는다). 두 조회는 리포트와 같은 query key 라 리포트로 넘어가도 다시 부르지 않는다. 로그인 여부는 수화 뒤에 본다.
  *
- * 국내 탭(`FE-REQ-050` FR-5): 목표 비중 칸 없음 · 위험은 보유 전체(BTC 동조 줄 뺌) · 성적표는 `kr_stock` 그룹만.
+ * 국내 탭(`FE-REQ-050` FR-5): 위험은 보유 전체(BTC 동조 줄 뺌) · 성적표는 `kr_stock` 그룹만.
  */
 export const JudgmentOverview = ({ assetClass = "crypto" }: { assetClass?: string }) => {
   const signedIn = useHasSession();
@@ -137,9 +99,8 @@ export const JudgmentOverview = ({ assetClass = "crypto" }: { assetClass?: strin
   if (!signedIn) return null;
   const isKr = assetClass === KR_STOCK;
   return (
-    <nav className={isKr ? `${strip} ${stripTwo}` : strip} aria-label={isKr ? M.krRegionLabel : M.regionLabel}>
-      {/* 목표 비중은 BTC · ETH 값뿐이다 — 국내 값이 없으니 국내 탭엔 칸을 두지 않는다(코인 숫자를 국내 탭에 두지 않는다) */}
-      {!isKr && <TargetWeightCell />}
+    <nav className={strip} aria-label={isKr ? M.krRegionLabel : M.regionLabel}>
+      {/* ~~목표 비중 칸~~ 지웠다 — 목표 비중 패널은 쓰는 흐름이 없어 화면에서 뺐다(F017 v4 순서 6 · `FE-REQ-064` FR-12, 계산은 서버에 남는다) */}
       <RiskCell withBeta={!isKr} />
       <ScoreboardCell assetClass={isKr ? KR_STOCK : "crypto"} />
     </nav>

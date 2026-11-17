@@ -4,7 +4,6 @@ export const marketQueryKeys = {
   chartPreview: ["MarketChartPreview"] as const,
   /** 상세 분석 차트. 프리뷰와 캔들 수 · 기간이 달라 캐시를 나눈다 */
   chart: ["MarketChart"] as const,
-  intelligencePreview: ["MarketIntelligencePreview"] as const,
   /**
    * 관심 목록. **실시간 탭의 별과 관심 종목 탭이 이 키 하나를 같이 본다** —
    * 그래서 한쪽에서 추가/제거하면 다른 쪽이 따라 바뀐다 (`FE-REQ-010` FR-34).

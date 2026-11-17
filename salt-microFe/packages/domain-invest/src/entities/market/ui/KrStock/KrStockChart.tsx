@@ -6,7 +6,7 @@ import type { KrChartPeriod } from "@repo/core/marketKr";
 import { FilterTabs } from "@repo/ui/filterTabs";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
-import type { TradingCandle, TradingChart as TradingChartComponent } from "@repo/ui/tradingChart";
+import type { TradingCandle, TradingChart as TradingChartComponent, TradingPriceLine } from "@repo/ui/tradingChart";
 import { useEffect, useMemo, useState } from "react";
 
 import { useKrChart } from "../../api/useKrStockQueries";
@@ -29,13 +29,15 @@ const PERIOD_OPTIONS = PERIODS.map((value) => ({ value, label: M.detail.chartPer
 interface KrStockChartProps {
   code: string;
   displayName: string;
+  /** 차트 위 가격선 — 종목 상세는 틀리는 선 하나(F017 v4 순서 6). 값은 서버 것, 여기는 그리기만 */
+  priceLines?: readonly TradingPriceLine[];
 }
 
 /**
  * 국내 주식 상세 차트(F011 FR-46) — 일봉(2년 백필) · 5분봉(실시간 집계부터 누적). 5분봉은 **몇 거래일치인지 숨기지 않는다**.
  * 기본은 일봉 — 5분봉은 쌓이는 중이라 첫 화면이 빈약하다. 실시간 봉 병합은 하지 않는다(5분봉 5분 · 일봉은 장 마감 확정).
  */
-export const KrStockChart = ({ code, displayName }: KrStockChartProps) => {
+export const KrStockChart = ({ code, displayName, priceLines }: KrStockChartProps) => {
   const [period, setPeriod] = useState<KrChartPeriod>("1d");
   const [TradingChart, setTradingChart] = useState<typeof TradingChartComponent | null>(null);
   useEffect(() => {
@@ -98,6 +100,7 @@ export const KrStockChart = ({ code, displayName }: KrStockChartProps) => {
             intraday={period === "5m"}
             name={M.detail.chartName(displayName, M.detail.chartPeriods[period])}
             resetKey={period}
+            priceLines={priceLines}
             legendAside={note ? <span className={legendNote}>{note}</span> : null}
           />
         )}

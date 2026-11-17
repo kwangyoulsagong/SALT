@@ -9,6 +9,7 @@ import {
   MarketRegimeNote,
   RISK_MESSAGES,
   RiskGaugeList,
+  riskSummaryLine,
   ScenarioList,
   useRiskBudget,
 } from "@/entities/coach";
@@ -16,7 +17,7 @@ import { RiskBudgetForm } from "@/features/set-risk-budget";
 import { COACH_REPORT_SECTIONS } from "@repo/web-shared/config";
 import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { anchorTarget, subHeading } from "./CoachReport.css";
+import { anchorTarget, foldHintSummary, riskLine, riskLineAlert, riskNote, subHeading } from "./CoachReport.css";
 
 const { gauge: GAUGE, scenario: SCENARIO } = RISK_MESSAGES;
 
@@ -35,20 +36,28 @@ export const RiskBudgetPanel = () => {
     if (budget.isError || budget.data.status === "unavailable") {
       return <StatusLine kind="error">{GAUGE.unavailable}</StatusLine>;
     }
+    // 한 줄 먼저(F017 v4 순서 6 · `FE-REQ-064` FR-12 "위험 예산 한 줄 — 넘을 때만 강조") — 게이지 · 국면 · 내 기준 · 시나리오는 펼침
+    const summary = riskSummaryLine(budget.data, true);
     return (
       <>
-        <RiskGaugeList view={budget.data} />
-        {/* 국면(F010 `FE-REQ-040` FR-3) — 참고 라벨. 국면 작업이 없거나 낡았으면 칸이 없다 */}
-        {budget.data.market && <MarketRegimeNote market={budget.data.market} />}
-        <RiskBudgetForm view={budget.data} />
-        {/* 시나리오(FR-25) — 게이지와 같은 보유 · 같은 응답. 서버가 못 줬으면 묶음째 없다 */}
-        {budget.data.scenarios && (
-          <>
-            <h3 className={subHeading}>{SCENARIO.heading}</h3>
-            <p className={panelDescription}>{SCENARIO.description}</p>
-            <ScenarioList scenarios={budget.data.scenarios} />
-          </>
-        )}
+        <p className={summary.exceeded ? `${riskLine} ${riskLineAlert}` : riskLine}>{summary.value}</p>
+        <p className={riskNote}>{summary.notes.length ? summary.notes.join(" · ") : RISK_MESSAGES.summary.noteFallback}</p>
+        {/* 넘었으면 펼친 채로 — 강조는 넘을 때만 */}
+        <details open={summary.exceeded}>
+          <summary className={foldHintSummary}>{RISK_MESSAGES.summary.more}</summary>
+          <RiskGaugeList view={budget.data} />
+          {/* 국면(F010 `FE-REQ-040` FR-3) — 참고 라벨. 국면 작업이 없거나 낡았으면 칸이 없다 */}
+          {budget.data.market && <MarketRegimeNote market={budget.data.market} />}
+          <RiskBudgetForm view={budget.data} />
+          {/* 시나리오(FR-25) — 게이지와 같은 보유 · 같은 응답. 서버가 못 줬으면 묶음째 없다 */}
+          {budget.data.scenarios && (
+            <>
+              <h3 className={subHeading}>{SCENARIO.heading}</h3>
+              <p className={panelDescription}>{SCENARIO.description}</p>
+              <ScenarioList scenarios={budget.data.scenarios} />
+            </>
+          )}
+        </details>
       </>
     );
   };

@@ -30,11 +30,18 @@ const { profitPlan: PLAN, zone: ZONE } = COACH_MESSAGES;
  * 3단계는 실제 `<table>` + `<caption>` 이다(FR-102). 거리 % 는 그리지 않는다(D13).
  * 현재가와의 차이는 가격 칸 아래 한 줄이다 — 네 칸이면 우측 380px 열에서 단계 이름이 끊겼다.
  */
-export const ProfitPlan = ({ zone }: { zone: Zone }) => {
+export const ProfitPlan = ({
+  zone,
+  headingAs,
+}: {
+  zone: Zone;
+  /** 제목 태그 단계 — 놓이는 자리의 제목 순서를 따른다(종목 상세 "내 거래" h2 아래면 3, F017 v4 순서 6 · axe heading-order). 모양은 그대로 */
+  headingAs?: 3 | 4 | 5;
+}) => {
   if (zone.kind !== "held_rule") {
     return (
       <section className={detailSection}>
-        <Heading level={5} color="tertiary">
+        <Heading level={5} as={headingAs} color="tertiary">
           {PLAN.heading}
         </Heading>
         <StatusLine kind="empty">{PLAN.noHolding}</StatusLine>
@@ -46,7 +53,7 @@ export const ProfitPlan = ({ zone }: { zone: Zone }) => {
 
   return (
     <section className={detailSection}>
-      <Heading level={5} color="tertiary">
+      <Heading level={5} as={headingAs} color="tertiary">
         {PLAN.heading}
       </Heading>
       {status && <Text>{status}</Text>}

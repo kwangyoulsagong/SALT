@@ -18,7 +18,7 @@ const formatChange = (percent: number): string => {
 /**
  * 종목 상세 메타데이터 — 제목 · 설명 · canonical · Open Graph.
  *
- * canonical 에 `?mode=` 를 싣지 않는다 — 모드는 같은 페이지의 보기 상태라 주소가 둘이면 색인이
+ * canonical 에 `?horizon=`(기간 탭 — 옛 `?mode=`) 을 싣지 않는다 — 기간은 같은 페이지의 보기 상태라 주소가 둘이면 색인이
  * 갈린다. 시세를 못 받으면 심볼만으로 만든다(메타데이터가 비었다고 페이지가 깨지면 안 된다).
  */
 export const buildDetailMetadata = (

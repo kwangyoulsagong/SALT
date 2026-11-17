@@ -1,20 +1,35 @@
 import { style } from "@vanilla-extract/css";
 
-import { vars } from "@repo/web-shared/ui/tokens.css";
+import { vars } from "@repo/ui/tokens";
 
-/** 모드 스위치 줄. 데이터 전에도 자리를 지켜 판단이 도착할 때 아래가 밀리지 않는다 */
-const MODE_ROW_HEIGHT = "32px";
-
+/** 슬롯 묶음 — 부모 열이 `align-items: flex-start` 라 내용 폭으로 줄었다(실측 299px / 패널 490px) */
 export const coachBlocks = style({
-  /** 부모 열이 `align-items: flex-start` 라 내용 폭으로 줄었다(실측 299px / 패널 490px) */
   alignSelf: "stretch",
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.xlarge,
+  gap: "16px",
 });
 
-export const modeRow = style({
-  minHeight: MODE_ROW_HEIGHT,
+/** 시나리오 아래 성적 한 줄 — 라벨 단(12/500), 2단 글자색 */
+export const trackLine = style({
+  margin: 0,
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.neutral[700],
+});
+
+/** 자세히 보기 — 상세로 가는 링크는 폭 100% + 오른쪽 셰브론(done 체크리스트 §2-6) */
+export const moreLink = style({
   display: "flex",
   alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  minHeight: "36px",
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
+  textDecoration: "none",
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
 });

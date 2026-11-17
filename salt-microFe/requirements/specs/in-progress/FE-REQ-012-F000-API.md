@@ -190,3 +190,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `web-shared/src/api/index.ts` 머리 주석 한 줄(토큰은 호출하는 쪽이 붙이지 않는다)(`721063fc`). `ApiError` 무변경 |
 | 2026-11-09 | `MarketOverviewItem.moveCard?` — 서버 판정 칸(F016 단계 C) |
 | 2026-11-10 | 타입 — `SearchSector` · `SearchIndex` · `SearchNews` · `SearchGroups` · `RisingSectors` · `SearchRelatedTarget` · `SearchRelated`(BFF `BFF-REQ-054` 계약) · `marketApi` 세 조회 · 쿼리 키 셋 · 훅 `useSearchExtras.ts`(`19539c95`) |
+| 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 심리 · 스마트 머니 응답 타입을 지움(소비처 0 — F017 v4 순서 6 · `FE-REQ-064` FR-12) |

@@ -18,29 +18,6 @@ export const recommendationSymbol = style({
   color: vars.colors.text.primary,
 });
 
-/**
- * 점수는 **숫자만** 쓴다(FR-14). 게이지 · 막대로 채우면 확률로 읽힌다. 바로 옆에
- * `scoreNote` 를 같은 줄에 둔다 — 떨어뜨리면 숫자만 기억된다.
- */
-export const scoreRow = style({
-  margin: 0,
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "baseline",
-  gap: vars.space.sm,
-  fontSize: vars.typography.t6.fontSize,
-  lineHeight: vars.typography.t6.lineHeight,
-  fontWeight: vars.fontWeights.semibold,
-  color: vars.colors.text.secondary,
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-export const scoreNoteText = style({
-  fontSize: vars.typography.t8.fontSize,
-  fontWeight: vars.fontWeights.regular,
-  color: vars.colors.text.tertiary,
-});
-
 /** 접힌 근거(FR-7 · FR-103). 실패사례에는 쓰지 않는다(FR-33) */
 export const factorDetails = style({
   fontSize: vars.typography.t7.fontSize,

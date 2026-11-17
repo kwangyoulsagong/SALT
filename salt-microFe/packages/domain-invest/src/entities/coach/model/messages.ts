@@ -31,9 +31,6 @@ export const COACH_MESSAGES = {
     long_term_30d: "판단 뒤 30일 기준",
   } as Record<string, string | undefined>,
 
-  score: (score: number) => `점수 ${score} / 100`,
-  /** 스크린리더용. "점수 72 / 100" 을 "72 슬래시 100" 으로 읽지 않게 (FR-13) */
-  scoreAccessible: (score: number) => `100점 중 ${score}점`,
   reasonCount: (count: number) => `근거 ${count}`,
   /** 관망이고 근거 문장이 없을 때(`FE-REQ-064` FR-1) — 규칙이 문턱을 넘은 값을 못 봤다는 사실 */
   noSignal: "규칙이 신호를 내지 않았어요",
@@ -255,6 +252,9 @@ export const COACH_MESSAGES = {
    * 수치로만 말한다(FR-61): 사람을 부르는 말 · 성향 이름을 붙이지 않는다.
    */
   report: {
+    /** 월간 돌아보기 펼침(F017 v4 순서 6) */
+    monthlyHeading: "월간 돌아보기",
+    monthlyHint: "펼쳐 보기",
     pageTitle: "코치 리포트",
     back: "투자",
     blockName: "코치 리포트",

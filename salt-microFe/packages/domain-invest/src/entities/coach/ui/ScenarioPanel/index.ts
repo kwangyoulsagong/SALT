@@ -7,3 +7,4 @@ export * from "./InvalidationRow";
 export * from "./TrackRow";
 export * from "./ExplainBox";
 export * from "./MineLine";
+export * from "./JudgmentRow";

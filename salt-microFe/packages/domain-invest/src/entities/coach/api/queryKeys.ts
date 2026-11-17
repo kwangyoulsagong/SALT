@@ -20,7 +20,6 @@ export const coachQueryKeys = {
   panelAll: () => ["coach", "panel"] as const,
   /** 주요 사건(거시 일정) · 과거 반응. 배치가 하루 1회 만든다 */
   events: (symbol: string) => ["coach", "events", symbol] as const,
-  positioning: (symbol: string) => ["coach", "positioning", symbol] as const,
   /** 리스크 예산 게이지. 거래 · 예산을 저장하면 무효화한다 */
   riskBudget: () => ["coach", "risk-budget"] as const,
   /** 코치 설정(매입가 숨김 · 기본 모드 · 매도 돌아보는 기간). 저장 응답을 그대로 넣는다 */
@@ -43,7 +42,6 @@ export const coachQueryKeys = {
   /** 판정 성적표. 채점은 배치가 하루 한 번 — 사용자 행동으로 무효화하지 않는다 */
   scoreboard: () => ["coach", "scoreboard"] as const,
   /** 목표 비중 안내. 보유 · 투자금 · 목표 변동성 · 상한으로 계산된다 — 거래 · 예산을 저장하면 무효화한다 */
-  targetWeights: () => ["coach", "target-weights"] as const,
   /**
    * 월간 복기. 한 번 만든 복기는 서버가 고치지 않는다(W06) — 태그를 확정해도 무효화하지 않는다.
    * `null` 은 "서버가 고른 지난달"이다

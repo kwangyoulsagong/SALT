@@ -67,6 +67,19 @@ export const TrackRow = ({ track }: { track: PanelTrack }) => {
       <p className={s.sub}>
         {first ? M.trackMiss(first.date.slice(5), first.name ?? first.symbol, formatSignedRate(first.returnRate)) : M.trackNoMiss}
       </p>
+      {/* 판단 성적표의 빗나간 사례(F017 v4 순서 6 · FR-12) — 첫 건 말고도 있으면 접어서 전부. 사례는 서버가 고른 빗나간 것만 */}
+      {track.misses.length > 1 && (
+        <details className={s.fold}>
+          <summary className={s.foldSummary}>{M.trackMissesMore(track.misses.length)}</summary>
+          <ul className={`${s.plainList} ${s.sub}`}>
+            {track.misses.map((miss) => (
+              <li key={`${miss.date}-${miss.symbol}-${miss.event}`}>
+                {M.trackMissRow(miss.date, miss.name ?? miss.symbol, formatSignedRate(miss.returnRate))}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </PanelRow>
   );
 };

@@ -7,8 +7,6 @@ export { WatchlistTable } from "./WatchlistTable";
 export { SearchOption } from "./SearchOption/SearchOption";
 export { SearchTextOption } from "./SearchOption/SearchTextOption";
 export { MarketPreview } from "./MarketPreview/MarketPreview";
-export { MarketIntelligencePreview } from "./MarketPreview/MarketIntelligencePreview";
-export type { GaugeFooters } from "./MarketPreview/MarketIntelligencePreview";
 export { MarketNewsPreview } from "./MarketPreview/MarketNewsPreview";
 export { MarketPreviewChart } from "./MarketPreview/MarketPreviewChart";
 export type { MarketChartOverlay } from "./MarketPreview/MarketPreviewChart";
@@ -31,7 +29,7 @@ export { KrSessionLine } from "./KrStock/KrSessionLine";
 export { KrQuoteBadges } from "./KrStock/KrQuoteBadges";
 export { KrMarketActionBanner } from "./KrStock/KrMarketActionBanner";
 // 오늘 왜 움직였나(F016 단계 C · FE-REQ-063 FR-1) — 표시 전용
-export { MoveCauseFlow, WhyMovedCard, WhyMovedRowChip, WHY_MOVED_ANCHOR_ID } from "./WhyMoved";
+export { MoveCauseFlow, WhyMovedRowChip } from "./WhyMoved";
 export { KrChangeText } from "./KrStock/KrChangeText";
 export { KrStockChart } from "./KrStock/KrStockChart";
 export { NewsRow, NewsModal, NewsModalHost } from "./News";

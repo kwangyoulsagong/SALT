@@ -1,131 +1,96 @@
 "use client";
 
-import type { CoachMode, SymbolCoachViewModel } from "@repo/core/coach";
 import { Heading } from "@repo/ui/heading";
-import { Text } from "@repo/ui/text";
+import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
+import Link from "next/link";
 import { memo, useMemo } from "react";
 
-import { SignInRequired } from "@repo/web-shared/ui";
+import { ROUTES } from "@repo/web-shared/config";
+import { NavChevron, SignInRequired } from "@repo/web-shared/ui";
 
 import {
   COACH_MESSAGES,
-  CoachBlockSkeleton,
-  CoachStaleNote,
-  ExchangeCautionNote,
-  findGaugeTrackRecord,
-  GaugeTrackRecordLine,
-  JudgmentSummary,
-  selectModeView,
-  useSymbolCoach,
-  zoneToPriceBand,
-  zoneToPriceLines,
-  ZoneSummary,
+  invalidationToPriceLines,
+  PANEL_DEFAULT_HORIZON,
+  PANEL_MESSAGES,
+  ScenarioHeadline,
+  SCENARIO_MESSAGES,
+  useCoachPanel,
 } from "@/entities/coach";
 import {
-  type GaugeFooters,
   type MarketChartOverlay,
   MarketPreview,
-  KR_STOCK_MESSAGES,
-  MarketAssetClass,
+  MoveCauseFlow,
   type MarketPreviewSubject,
 } from "@/entities/market";
-import { TradeCheckCard } from "@/features/check-trade-odds";
-import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 
-import { coachBlocks, modeRow } from "./CoachPanel.css";
+import { PREVIEW_MESSAGES as M } from "../model";
+import { coachBlocks, moreLink, trackLine } from "./CoachPanel.css";
 
 interface CoachPanelProps {
   subject: MarketPreviewSubject | undefined;
 }
 
-/** ②③ — 판단이 막혀도 구간은 그린다(FR-117) */
-const JudgmentAndZone = ({
-  view,
-  mode,
-}: {
-  view: SymbolCoachViewModel;
-  mode: CoachMode;
-}) => {
-  const modeView = selectModeView(view, mode);
-  return (
-    <>
-      <Heading level={5} color="tertiary">
-        {COACH_MESSAGES.judgmentHeading}
-      </Heading>
-      <JudgmentSummary view={modeView} mode={mode} />
-      <ExchangeCautionNote flag={view.exchangeFlag} />
-      {modeView && <ZoneSummary zone={modeView.zone} />}
-    </>
-  );
-};
-
 /**
- * 투자 화면 우측 AI 코치 패널 (`FE-REQ-026` K · FR-110~121).
+ * 투자 화면 우측 미리보기(`FE-REQ-026` K · F017 v4 순서 6 `FE-REQ-064` FR-12 · 시안 "바뀐 뒤 · 오른쪽 패널").
  *
- * 시세 프리뷰(`MarketPreview`)를 **그대로** 쓰고, 그 슬롯에 ①②③ 과 게이지 아래 한 줄을
- * 끼운다. 차트 · 게이지 · 뉴스는 이 패널의 조회를 기다리지 않는다(`FE-REQ-029` FR-72) —
- * 판단 자리만 스켈레톤이다.
+ * 시세 프리뷰(`MarketPreview`)를 그대로 쓰고 그 자리에 한 장 패널 응답(`useCoachPanel` — 종목 상세와 같은 쿼리)의 세 칸만 끼운다:
+ * 머리 아래 **원인 → 근거 → 결과**(늘 — 소식 없는 날도 "확인된 소식이 없어요") · 차트 위 **틀리는 선** · 차트 아래 **시나리오 한 칸**(하루 ·
+ * 성적 한 줄) → 자세히 보기. 오늘 소식은 프리뷰 몫.
  *
- * 조회는 종목당 한 번이고 두 모드가 같이 온다. 모드 전환은 같은 응답을 다르게 읽을
- * 뿐이라 요청이 없다(FR-112). 행을 옮기면 이전 요청은 React Query 가 끊고, BFF 가
- * 서버 요청까지 끊는다(`BFF-REQ-026` FR-52).
+ * 빠진 것(계산은 서버에 남는다 — 사용자 확정 2026-11-13): 단타/장기 탭 · 점수와 메타 줄 · 관찰 구간 표 · 점검 점 그림(→ 시나리오 숫자) ·
+ * 시장 심리 온도계 · 스마트 머니 추적 · 거래소 주의 줄(원인 칸 · 판단 꼬리표로).
  *
- * `aria-live` 를 쓰지 않는다 — 행을 옮길 때마다 판단을 낭독하면 표를 훑을 수 없다(FR-121).
- *
- * ⑦ [상세 분석 보기] 버튼은 2026-09-23 에 지웠다 — 상세 이동은 **표 행 클릭**이다
- * (`market-board` `useOpenDetail`). 패널은 hover 미리보기만 한다.
+ * `aria-live` 를 쓰지 않는다 — 행을 옮길 때마다 낭독하면 표를 훑을 수 없다(FR-121). 상세 이동은 표 행 클릭 · "자세히 보기"
  */
 export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
-  // 국내 주식도 같은 판단 조회다(F011 슬라이스 4) — 서버가 장기만 열고 단타는 `mode_not_open` 으로 막아 보낸다
-  const isKr = subject?.assetType === MarketAssetClass.KrStock;
-  const { data, isPending, isError, isSignedOut } = useSymbolCoach(subject?.symbol);
-  const [mode, setMode] = useCoachModeParam(data?.mode);
+  const panel = useCoachPanel(subject?.symbol ?? "");
+  const data = panel.data;
+  const day = data?.scenario.horizons.find((h) => h.horizon === PANEL_DEFAULT_HORIZON);
+  const mode = data ? (data.horizonMode[PANEL_DEFAULT_HORIZON] === "scalp" ? data.modes.scalp : data.modes.longTerm) : null;
 
-  const gaugeFooters = useMemo<GaugeFooters | undefined>(() => {
-    if (!data) return undefined;
-    const sentiment = findGaugeTrackRecord(data.gaugeTrackRecords, "sentiment");
-    const smartMoney = findGaugeTrackRecord(data.gaugeTrackRecords, "smart_money");
-    return {
-      sentiment: sentiment && <GaugeTrackRecordLine record={sentiment} />,
-      smartMoney: smartMoney && <GaugeTrackRecordLine record={smartMoney} />,
-    };
-  }, [data]);
+  // 차트 위 틀리는 선 하나 — 상세 패널 ④ 줄과 같은 칸(하루). 관찰 구간 띠는 뺐다
+  const chartOverlay = useMemo<MarketChartOverlay | undefined>(
+    () => (day ? { priceLines: invalidationToPriceLines(day), priceBand: null } : undefined),
+    [day],
+  );
 
-  // 차트 위 구간 — 모드가 바뀌면 같은 응답의 다른 구간이다(요청 없음, FR-112). 판단이 막혀도 그린다(FR-117)
-  const chartOverlay = useMemo<MarketChartOverlay | undefined>(() => {
-    if (!data || !mode) return undefined;
-    const modeView = selectModeView(data, mode);
-    if (!modeView) return undefined;
-    return {
-      priceLines: zoneToPriceLines(modeView.zone),
-      priceBand: zoneToPriceBand(modeView.zone),
-    };
-  }, [data, mode]);
+  if (!subject) return <MarketPreview subject={undefined} />;
 
-  const renderBlocks = () => {
-    // 판단은 AI 칸 — 유리막(`FE-REQ-070`)
-    if (isSignedOut) return <SignInRequired what={COACH_MESSAGES.guestWhat} minHeight={160}>{null}</SignInRequired>;
-    if (isError) {
-      return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;
-    }
-    if (isPending || !data || !mode) {
-      return (
-        <>
-          <div className={modeRow} />
-          <CoachBlockSkeleton block="judgment" />
-          <CoachBlockSkeleton block="zone" />
-        </>
-      );
-    }
+  const cause =
+    panel.isSignedOut || panel.isError ? null : (
+      <section className={coachBlocks} aria-label={PANEL_MESSAGES.rows.cause}>
+        <Heading level={5} as={4} color="secondary">
+          {PANEL_MESSAGES.rows.cause}
+        </Heading>
+        {!data ? (
+          <Skeleton lines={3} />
+        ) : data.cause.cause ? (
+          <MoveCauseFlow view={data.cause.cause} />
+        ) : (
+          <StatusLine kind="error">{PANEL_MESSAGES.causeDefect}</StatusLine>
+        )}
+      </section>
+    );
+
+  const scenario = () => {
+    // 판단 · 시나리오는 AI 칸 — 유리막(`FE-REQ-070`)
+    if (panel.isSignedOut) return <SignInRequired what={COACH_MESSAGES.guestWhat} minHeight={160}>{null}</SignInRequired>;
+    if (panel.isError) return <StatusLine kind="error">{PANEL_MESSAGES.unavailable}</StatusLine>;
+    if (!data || !mode) return <Skeleton lines={5} />;
+    const track = mode.track;
     return (
       <>
-        <div className={modeRow}>
-          <CoachModeSwitch value={mode} onChange={setMode} />
-        </div>
-        <CoachStaleNote staleSince={data.staleSince} />
-        <JudgmentAndZone view={data} mode={mode} />
-        {isKr && <Text color="tertiary">{KR_STOCK_MESSAGES.detail.coachNote}</Text>}
+        <Heading level={5} as={4} color="secondary">
+          {M.scenarioHeading(SCENARIO_MESSAGES.horizons[PANEL_DEFAULT_HORIZON], day && day.tier !== "defect" ? SCENARIO_MESSAGES.source[day.source] : null)}
+        </Heading>
+        {day ? <ScenarioHeadline view={day} /> : <StatusLine kind="error">{PANEL_MESSAGES.cellUnavailable}</StatusLine>}
+        <p className={trackLine}>
+          {track.tier === "defect" || track.hitOutOf100 === null
+            ? PANEL_MESSAGES.trackDefect(track.sample.toLocaleString("ko-KR"))
+            : `${PANEL_MESSAGES.trackThis} · ${PANEL_MESSAGES.trackLine(track.hitOutOf100, track.baselineOutOf100)}`}
+        </p>
       </>
     );
   };
@@ -133,15 +98,22 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   return (
     <MarketPreview
       subject={subject}
+      causeSlot={cause}
+      chartOverlay={chartOverlay}
       coachSlot={
         <div className={coachBlocks}>
-          {/* 맨 위 쉬운 한 줄 — 판단 조회를 기다리지 않는 자기 조회(F017 v2 단계 2 · FE-REQ-064 FR-3) */}
-          <TradeCheckCard symbol={subject?.symbol} />
-          {renderBlocks()}
+          {scenario()}
+          <Link
+            href={ROUTES.investmentDetail(subject.symbol)}
+            prefetch={false}
+            className={moreLink}
+            aria-label={M.moreLabel(subject.displayName)}
+          >
+            {M.more}
+            <NavChevron />
+          </Link>
         </div>
       }
-      gaugeFooters={gaugeFooters}
-      chartOverlay={chartOverlay}
     />
   );
 });

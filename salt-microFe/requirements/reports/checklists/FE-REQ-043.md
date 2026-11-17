@@ -102,3 +102,9 @@
   - `salt-microFe/packages/web-shared/src/i18n/messages.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-17 — F017 v4 순서 6 화면 정리(파일만 걸침)
+
+- `@repo/core/embed` 에 `IN_APP_WEBVIEW` 선택자 — 앱 웹뷰에서만 패널 글자 13 · 누름 칸 44(`RN-REQ-032` FR-7). 좁은 화면 안내 규칙은 그대로
+- 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
+- 미검증: 없음(이 REQ 몫)

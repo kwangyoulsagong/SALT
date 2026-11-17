@@ -66,50 +66,10 @@ export const blockedMeta = style({
   lineHeight: "19px",
 });
 
-export const metaLine = style({
-  margin: 0,
-  color: vars.colors.text.primary,
-  fontSize: vars.fontSizes.body,
-});
-
-export const scoreLine = style({
-  margin: 0,
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "baseline",
-  gap: vars.space.medium,
-  color: vars.colors.text.secondary,
-  fontSize: vars.fontSizes.heading3,
-  fontWeight: vars.fontWeights.semibold,
-});
-
 export const scoreNote = style({
   color: vars.colors.text.primary,
   fontSize: vars.fontSizes.small,
   fontWeight: vars.fontWeights.regular,
-});
-
-export const summaryLine = style({
-  margin: 0,
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  gap: vars.space.small,
-  color: vars.colors.text.secondary,
-  fontSize: vars.fontSizes.body,
-});
-
-export const zoneHeader = style({
-  display: "flex",
-  alignItems: "center",
-  gap: vars.space.medium,
-});
-
-export const zoneValue = style({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-end",
-  gap: "2px",
 });
 
 export const caption = style({
@@ -147,21 +107,6 @@ export const srOnly = style({
   border: 0,
 });
 
-
-/**
- * 거래소 표시 두 줄(F010 슬라이스 6) — 막은 이유 · 주의 사실이라 표본 메타(`blockedMeta` 2.75:1)보다 진해야 한다.
- * neutral 700 은 회색 면 위 6.45:1(실측) · 흰 면에서 더 높다. 한국어가 단어 중간에서 끊기지 않게 keep-all
- */
-export const exchangeLine = style({
-  margin: 0,
-  color: ds.colors.neutral[700],
-  fontSize: "13px",
-  lineHeight: "19px",
-  wordBreak: "keep-all",
-});
-
-export const exchangeReason = style({ wordBreak: "keep-all" });
-
 /**
  * 성적 4요소 한 줄(F009 FR-33). 항목 사이 가운뎃점은 장식이라 CSS 로 — 스크린리더는 목록 항목 넷으로 읽는다.
  * 좁은 폭에서는 항목 단위로 줄이 바뀐다(360 폭에서 가로로 넘치지 않게).
@@ -190,21 +135,4 @@ export const claimItem = style({
       marginLeft: vars.space.small,
     },
   },
-});
-
-/**
- * 판단 꼬리표 · 관측 한 줄(`ADR-010` v2 · `FE-REQ-064` FR-1) — 배지가 아니라 숫자 문장이다. 막은 이유가 아니라 판단에 붙는 사실이라
- * 거래소 줄과 같은 진한 회색(AA) · 한국어 끊김 방지. 목록이 아니라 문장 묶음이라 간격만 준다
- */
-export const caveatLines = style({
-  margin: 0,
-  padding: 0,
-  listStyle: "none",
-  display: "flex",
-  flexDirection: "column",
-  gap: vars.space.small,
-  color: ds.colors.neutral[700],
-  fontSize: "13px",
-  lineHeight: "19px",
-  wordBreak: "keep-all",
 });

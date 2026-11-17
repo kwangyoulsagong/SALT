@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { COACH_MODE_PARAM, ROUTES } from "@repo/web-shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 import { BlockBoundary } from "@repo/web-shared/ui";
 import { backLink } from "@repo/web-shared/ui/surface.css";
 
@@ -56,21 +56,13 @@ export const generateMetadata = async ({
  * 공개 시세를 서버에서 한 번 받아 머리의 첫 렌더 값으로 준다 — 크롤러가 받는 HTML 에 종목
  * 이름 · 가격이 있다. 이동 경로 구조화 데이터(JSON-LD)도 여기서 싣는다.
  */
-export const InvestmentDetailPage = async ({
-  params,
-  searchParams,
-}: InvestmentDetailPageProps) => {
+export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps) => {
   const { symbol: raw } = await params;
   const symbol = parseSymbolParam(raw);
   if (!symbol) notFound();
   if (isKrStockCode(symbol)) return <KrStockDetailPage code={symbol} />;
 
-  const [listing, query] = await Promise.all([
-    publicMarketApi.listing(symbol),
-    searchParams ?? Promise.resolve({} as Record<string, string | string[] | undefined>),
-  ]);
-  const rawMode = query[COACH_MODE_PARAM];
-  const mode = typeof rawMode === "string" ? rawMode : null;
+  const listing = await publicMarketApi.listing(symbol);
 
   return (
     <Root background="transparent">
@@ -89,7 +81,7 @@ export const InvestmentDetailPage = async ({
               minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
             >
               <div className={detailStack}>
-                <SymbolHeader symbol={symbol} listing={listing} mode={mode} />
+                <SymbolHeader symbol={symbol} listing={listing} />
                 <InvestmentDetailBody symbol={symbol} />
               </div>
             </BlockBoundary>
