@@ -51,9 +51,9 @@ import {
   preflightLink,
   price as priceStyle,
   priceRow,
-  stat,
+  gridStat,
   statLabel,
-  stats,
+  statsGrid,
   statsRow,
   statValue,
   ticker,
@@ -172,9 +172,9 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           <p className={statLabel}>{M.detail.tickSize(formatPrice(detail.tickSize))}</p>
         </div>
         <div className={statsRow}>
-          <dl className={stats}>
+          <dl className={statsGrid}>
             {statItems.map((item) => (
-              <div key={item.label} className={stat}>
+              <div key={item.label} className={gridStat}>
                 <dt className={statLabel}>{item.label}</dt>
                 <dd className={statValue}>{item.value}</dd>
               </div>
