@@ -55,3 +55,9 @@
 - [x] 뉴스 행(`NewsRow`)에 측정 태그 칩 · `NewsArticleView.tag`. 검색 모달 뉴스는 태그 없음(범위 밖)
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 2026-11-17 — F017 v4 순서 6 화면 정리(파일만 걸침)
+
+- 공용 설정 `routes.ts` — `COACH_MODE_PARAM` 삭제(소비처 0) · 리포트 섹션 `targetWeight` 삭제 · `WHY_MOVED_ANCHOR_ID` 추가(F017 v4 순서 6)
+- 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
+- 미검증: 없음(이 REQ 몫)

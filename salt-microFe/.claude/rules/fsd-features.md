@@ -66,7 +66,7 @@ features/{slice}/
 | ~~`sign-out`~~ | ~~헤더 프로필 메뉴~~ **2026-11-02 삭제** — zone 이 같이 쓰므로 `@repo/web-shared/layout` `ProfileMenu`(설정 · 로그아웃은 문서 이동, `FE-REQ-053`) | — |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
-| `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |
+| `switch-coach-mode` | ~~단타/장기 모드 전환~~ 한 장 패널 **기간 탭**(1시간 · 4시간 · 1일 · 5일) — 고른 기간이 모드를 정한다(서버 `horizonMode`). URL `?horizon=` 이 유일한 저장소라 패널과 차트 위 틀리는 선이 같은 기간(2026-11-17 F017 v4 순서 6) | F004 · F017 |
 | `check-trade-odds` | 사기 전 · 팔기 전 점검 — 방향 전환 · 펼침. 문장 · 숫자 · 조건 판정은 서버(`base-rate@1`) | F017 (2026-11-11 v2 단계 2) |
 | `stream-explanation` | 해설 스트림 구독 — 최신 저장본이 없을 때만 연다 · 1초 안에 첫 문장이 없으면 반짝임 · 문장 하나씩 · 끝나면 최종 한 벌 · 실패면 서버 문장. 생성 · 검사 · 문장 수는 서버 | F017 (2026-11-13 v4 1f) |
 | ~~`explain-symbol`~~ | ~~종목 해설 칸~~ **2026-11-13 삭제** — 해설은 한 장 패널 안 상자(`entities/coach` `ExplainBox` · `widgets/scenario-panel`, F017 v4 1e · `FE-REQ-064` FR-10). 출처는 번호가 아니라 이름 칩 | F004 · F017 |

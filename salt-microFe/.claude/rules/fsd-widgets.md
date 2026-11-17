@@ -32,11 +32,11 @@ widgets/{slice}/
 | widget | 엮는 것 | 화면 |
 |---|---|---|
 | `home-briefing` | `entities/home` 카드 + 목표 목록(임시) | 셸 홈 — 도메인 요약 카드(2026-11-02 `FE-REQ-055`). 도메인 엔티티를 읽지 않는다 |
-| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — ~~맨 위 "내 보유"~~(2026-11-10 `/portfolio` 로 — `FE-REQ-069`, 패널은 이 위젯 것) · 이번 주 목표 비중 · 리스크 예산 · 판정 성적표 · 추천 · 미러 (대화는 F006). 판정 근거 상세 `/coach/signals/[signalType]`(F004, 2026-10-30) |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — ~~맨 위 "내 보유"~~(2026-11-10 `/portfolio` 로 — `FE-REQ-069`, 패널은 이 위젯 것) · 리스크 예산 한 줄(+ 펼침) · 판정 성적표 · 추천 · 매매 거울 한 패널(코인 · 국내) · 월간 돌아보기 펼침 — ~~목표 비중~~ 2026-11-17 뺐다(F017 v4 순서 6) (대화는 F006). 판정 근거 상세 `/coach/signals/[signalType]`(F004, 2026-10-30) |
 | `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
-| `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
+| `coach-panel` | market + coach | 투자 우측 미리보기 — 한 장 패널 응답의 원인 · 틀리는 선 · 시나리오 한 칸(2026-11-17 F017 v4 순서 6 — 판단 · 모드 · 구간 · 심리 · 스마트 머니는 뺐다) |
 | `scenario-panel` | coach + market + `check-trade-odds` | 종목 상세 한 장 패널 — 시나리오 · 원인 근거 결과 · 회사 사정 · 틀리는 때 · 성적 · AI 해설 · 내 기준(F017 v4 `FE-REQ-064` FR-8~11, 2026-11-13) |
-| `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠 — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
+| `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠(위험 · 판정 성적 — 목표 비중 칸은 2026-11-17 뺐다) — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
 | `market-board` | market + news + indicator | 자산군(코인 · 국내 주식 — ~~본문 탭~~ 2026-11-10 머리 메뉴 코인 · 주식이 주소 `?asset=` 로 고른다, `FE-REQ-069`) + 실시간 테이블 + 우측 프리뷰. 자산군은 데이터 소스만 바꾼다 — 같은 표 · 같은 인터랙션 · 같은 요약 띠(머리 띠 포함, 자산군 문자열을 넘긴다) (F011 `FE-REQ-041` · `FE-REQ-050`) |
 | `asset-search` | market + `search-asset` + `toggle-watchlist` | 종목 검색 ~~`/search`~~ **모달 `AssetSearchDialog`**(2026-11-09 `FE-REQ-066` — 머리 칸 · `/` · `/search` 는 연 채로) — 코인 + 국내 한 검색 · 추적 카운터 · 상한 안내 · 최근 검색 (F000 FR-40 · 41, 2026-10-30) |
 | `settings-panel` | coach + `edit-coach-profile` + `toggle-purchase-price` | 투자 코치 설정 `/coach/settings` — 코치 설정 · 보기 · 내 기준 링크 (F004 FR-12, 2026-11-02 셸에서 옮김) |

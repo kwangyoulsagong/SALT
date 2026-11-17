@@ -104,9 +104,9 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio — ~~코치 리포트 맨 위 "내 보유"(2026-11-02 홈에서 옮김)~~ 내 보유 패널은 2026-11-10 포트폴리오 페이지(`/portfolio`, `FE-REQ-069`)가 이 위젯에서 가져다 쓴다 |
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
-| `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
+| `coach-panel` · `symbol-analysis` | market + coach (투자 우측 미리보기 · 상세 4블록 — 차트 · 내 거래 · 펼침, 패널은 페이지가 끼운다. 2026-11-17 F017 v4 순서 6) |
 | `scenario-panel` | coach(패널 칸 · 해설) + market(원인 칸 · 지난 가격) + `check-trade-odds` — 종목 상세 한 장 패널(F017 v4 `FE-REQ-064` FR-8, 2026-11-13) |
-| `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
+| `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션 — ~~목표 비중~~ 2026-11-17 뺐다). 본문은 `coach-console` (F010, 2026-09-29) |
 | `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 진입은 그 머리 칸에 들어갔다(2026-11-09 `FE-REQ-067` `headerSearch` — 2026-11-10 투자 zone 만, 메뉴는 `headerNav` `FE-REQ-069`) · 알림도 같은 자리** |
 | `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |

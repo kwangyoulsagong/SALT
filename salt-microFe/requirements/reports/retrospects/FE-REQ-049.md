@@ -23,3 +23,7 @@
 
 - 이 REQ 의 기능 변경은 없다 — 상세 페이지 문구 표 — 유리막 이름 `scenario` 더함 · `krMoreSummary` · `krMoreHint` 삭제(소비처 0)
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## 2026-11-17 — F017 v4 순서 6(파일만 걸침)
+
+- 화면에서 블록을 뺄 때 조회 훅 · API · 타입 · 문구 · 스타일까지 소비처 0 인 것을 같이 지운다 — 남기면 다음 사람이 "어디서 쓰나"를 다시 찾는다
