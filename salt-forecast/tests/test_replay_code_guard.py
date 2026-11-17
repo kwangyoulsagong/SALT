@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from salt_forecast.jobs.short_direction import LOCK_FILES, code_changed_since, prediction_code_paths
+from salt_forecast.jobs.code_guard import LOCK_FILES, code_changed_since, prediction_code_paths
 
 
 def test_unknown_commit_blocks_replay() -> None:

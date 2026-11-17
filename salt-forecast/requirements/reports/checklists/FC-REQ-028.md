@@ -187,3 +187,4 @@
 - 변이: `git diff <적합> HEAD` 로 되돌림 → `test_uncommitted_edit_blocks` 실패(scratchpad 사본)
 - 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부 · 누수 따로
 - 미검증: 예측 코드가 바뀐 머지 뒤 실시간 가드가 막고 → 다시 적합 → 다음 회차 행 > 0 — `OPS-005` FR-7(머지 뒤)
+- 검증 2회차: 가드를 `jobs/code_guard.py` 로 뗌 — `vol_range` 가 단타 모듈을 import 해 단타 모듈이 흔들림의 '불러온 예측 코드'로 잡혔다(지금 42개 · 단타 0). 실 DB 로 흔들림 재생(쓰기 가로챔): 가드 '바뀜' → 1시각 건너뜀 · '같음' → 480행 · git 한 번(적합 커밋당). 단타 실시간 dry-run(개발 트리): 칸 4 전부 `skipped_code_changed` · 재생 대상 0

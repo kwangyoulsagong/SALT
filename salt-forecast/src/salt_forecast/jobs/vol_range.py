@@ -33,8 +33,8 @@ from salt_forecast.domain.vol_range import (
     replay_bars,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
+from salt_forecast.jobs.code_guard import code_changed_since
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
-from salt_forecast.jobs.short_direction import code_changed_since
 from salt_forecast.scoring.vol_range import (
     LiveCell,
     crypto_panel,
