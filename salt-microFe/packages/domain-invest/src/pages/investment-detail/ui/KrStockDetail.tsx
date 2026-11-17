@@ -5,6 +5,7 @@ import { AssetIcon } from "@repo/ui/assetIcon";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 import { ShieldCheck } from "lucide-react";
+import { useMemo } from "react";
 
 import {
   KR_STOCK_MESSAGES as M,
@@ -16,17 +17,17 @@ import {
   useKrDetail,
   useKrDetailRealtime,
 } from "@/entities/market";
+import { invalidationToPriceLines, useCoachPanel } from "@/entities/coach";
 import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
+import { usePanelHorizonParam } from "@/features/switch-coach-mode";
 
-import { KrCoachJudgment } from "./KrCoachJudgment";
 import { KrEvents } from "./KrEvents";
 import { KrScenario } from "./KrScenario";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
 import { KrStockNews } from "./KrStockNews";
 import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
-import { KrWhyMoved } from "./KrWhyMoved";
 import { hasApiStatus } from "@repo/web-shared/api";
 import { SignInRequired } from "@repo/web-shared/ui";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
@@ -37,10 +38,14 @@ import {
   afterHoursLine,
   headerCard,
   identity,
-  krBody,
-  krCell,
+  krArea,
+  krBlockTitle,
+  krGrid,
+  krMoreBody,
+  krMoreHint,
+  krMoreSummary,
   krSideCard,
-  krSideColumn,
+  krTradeCell,
   name as nameStyle,
   nameRow,
   preflightLink,
@@ -71,8 +76,9 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
  * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 그래도 국내 시세는 약관상 서버 HTML 에 넣지 않으므로 클라이언트에 남는다 — FR-81 대상 아님)
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
- * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4). 코치 판단은 장기 한 모드
- * (`KrCoachJudgment`, 슬라이스 4). 시나리오(과거 실제 결과 — 모든 종목에 늘)는 오른쪽 열 맨 위(`KrScenario`, F017 v4 순서 1). 해설은 판단 블록 안 판단 아래(F017 v2 단계 3).
+ * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4).
+ * **4블록 + 펼침**(F017 v4 순서 6 · `FE-REQ-064` FR-12): 가격 줄(머리) · 차트(틀리는 선) · 한 장 패널(`KrScenario` — 판단 · 왜 움직였나 · 성적 · 해설) ·
+ * 내 거래(주문 전 체크 · 거래 기록). 호가 · 투자자별 수급 · 소식 목록 · 일정은 펼침. 판단 카드 · 왜 움직였나 카드는 화면에서 뺐다(계산은 서버에 남는다).
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const { data, isPending, error } = useKrDetail(code);
@@ -87,6 +93,15 @@ export const KrStockDetail = ({ code }: { code: string }) => {
     logoUrl: ok?.quote.logoUrl ?? null,
     closed: ok !== null && ok.session.session !== "regular" && ok.session.session !== "closing_auction",
   });
+
+  // 차트 위 틀리는 선 · 주문 전 체크 모드 — 패널과 같은 쿼리(요청 한 번) · 같은 기간 탭(URL)
+  const panel = useCoachPanel(code);
+  const [horizon] = usePanelHorizonParam();
+  const priceLines = useMemo(
+    () => invalidationToPriceLines(panel.data?.scenario.horizons.find((h) => h.horizon === horizon)),
+    [panel.data, horizon],
+  );
+  const preflightMode = panel.data?.horizonMode[horizon] ?? "long_term";
 
   if (hasApiStatus(error, HTTP_STATUS_CODE.NOT_FOUND)) {
     return <StatusLine kind="empty">{M.detail.notFound}</StatusLine>;
@@ -172,51 +187,53 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           </a>
         </div>
       </header>
-      {/* 오늘 왜 움직였나(F016 단계 C) — 머리(등락 · 상태 칩 · 시장 띠) 바로 아래. 크게 움직인 날만 카드, 아니면 접힌 한 줄 */}
-      <KrWhyMoved code={quote.code} />
-      <div className={krBody}>
-        <KrStockChart code={quote.code} displayName={quote.name} />
-        <div className={krSideColumn}>
-          {/* 코인 상세 오른쪽 열과 같은 순서 — 다음 시나리오 → 주문 전 체크 → 거래 기록 */}
+      <div className={krGrid}>
+        <section className={`${krSideCard} ${krArea.chart}`}>
+          {/* 차트 위 선은 틀리는 선 하나 — 패널 ④ 줄과 같은 기간 탭(관찰 구간 · 범례는 뺐다, F017 v4 순서 6) */}
+          <KrStockChart code={quote.code} displayName={quote.name} priceLines={priceLines} />
+        </section>
+        {/* 한 장 패널 — 판단 · 왜 움직였나 · 성적 · 해설이 이 안(F017 v4 순서 6 — 판단 카드 · 왜 움직였나 카드는 화면에서 뺐다) */}
+        <div className={krArea.panel}>
           <KrScenario code={quote.code} />
-          {/* 주문 전 체크(F004 FR-30) — 코인 상세와 같은 자리. 국내 주식 판단은 장기 한 모드라 장기로 계산한다 */}
+        </div>
+        {/* 내 거래 — 주문 전 체크 · 거래 기록을 한 칸으로(국내 판단은 기간 탭이 고른 모드) */}
+        <section className={`${krSideCard} ${krArea.trade}`} aria-labelledby="kr-my-trade-heading">
+          <h2 id="kr-my-trade-heading" className={krBlockTitle}>
+            {INVESTMENT_DETAIL_PAGE_MESSAGES.tradeHeading}
+          </h2>
           <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.preflight} minHeight={120}>
-            <PreflightCard className={krSideCard} symbol={quote.code} mode="long_term" livePrice={quote.price} />
+            <PreflightCard className={krTradeCell} symbol={quote.code} mode={preflightMode} livePrice={quote.price} />
           </SignInRequired>
           {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
           <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.record} minHeight={120}>
             <RecordTradeCard
-              className={krSideCard}
+              className={krTradeCell}
               symbol={quote.code}
               assetType="kr_stock"
               tickSize={detail.tickSize}
               livePrice={quote.price}
             />
           </SignInRequired>
-        </div>
+        </section>
+        {/*
+          펼침 — 호가 · 투자자별 수급 표 · 소식 목록 · 일정(F017 v4 순서 6 · FR-12 "필요할 때만"). 요점(수급 · 소식)은 패널의 원인 칸이 말한다.
+          접힌 동안에도 마운트한다(조회는 그대로) — 펼치는 순간 비어 보이지 않게. 거래정지면 호가가 없다
+        */}
+        <details className={krArea.more}>
+          <summary className={krMoreSummary}>
+            {INVESTMENT_DETAIL_PAGE_MESSAGES.krMoreSummary}
+            <span className={krMoreHint}>{INVESTMENT_DETAIL_PAGE_MESSAGES.moreHint}</span>
+          </summary>
+          <div className={krMoreBody}>
+            {!quote.isHalted && (
+              <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />
+            )}
+            <KrInvestorFlows code={quote.code} />
+            <KrStockNews code={quote.code} />
+            <KrEvents code={quote.code} />
+          </div>
+        </details>
       </div>
-      {/*
-        시세 사실 줄 — 투자자별 순매수(슬라이스 6) | 호가 10단계(슬라이스 6b). 위 줄과 같은 격자라 호가가 거래 기록 바로 아래
-        같은 폭에 선다. 호가를 오른쪽 열에 넣으면 열이 길어져 차트 아래가 비었다(2026-10-27 1440px 확인). 코치 판단보다 위.
-        칸을 div 로 감싸 투자자 표가 자리를 안 그려도 호가가 오른쪽 칸에 남는다. 거래정지면 호가가 없다
-      */}
-      <div className={krBody}>
-        <div className={krCell}>
-          <KrInvestorFlows code={quote.code} />
-        </div>
-        <div className={krCell}>
-          {!quote.isHalted && (
-            <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />
-          )}
-        </div>
-      </div>
-      {/* 오늘 소식(F016 단계 B · `FE-REQ-063` FR-4) — 시세 사실 줄 아래 · 코치 판단 위. 제목만(링크 없음) */}
-      <KrStockNews code={quote.code} />
-      <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.coach} minHeight={160}>
-        <KrCoachJudgment code={quote.code} />
-      </SignInRequired>
-      {/* 주요 사건(F008 슬라이스 24) — 국내 판단 카드 아래(`FE-REQ-046` FR-1). 소유자만 */}
-      <KrEvents code={quote.code} />
     </>
   );
 };

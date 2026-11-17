@@ -5,12 +5,10 @@ import type {
   CoachGenerationStatus,
   DecisionOutcomeListResult,
   JudgmentScoreboardResult,
-  TargetWeightResult,
   MonthlyReviewResult,
   CoachReportResult,
   SymbolCoachViewModel,
   SymbolEventsResult,
-  SymbolPositioningResult,
   RiskBudgetResult,
   CoachPanel,
   TradePlanListResult,
@@ -117,17 +115,6 @@ export const coachApi = {
     return body.data;
   },
 
-  /** 쏠림 신호 (`GET /api/app/coach/positioning`). 소유자만 — 아니면 404. 서버 장애는 200 `unavailable` */
-  positioning: async (symbol: string, signal?: AbortSignal): Promise<SymbolPositioningResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.positioning(symbol)}`, {
-      signal,
-    });
-    if (!response.ok) throw await readApiError(response, "coach");
-
-    const body = (await response.json()) as AppEnvelope<SymbolPositioningResult>;
-    return body.data;
-  },
-
   /**
    * 리스크 예산 게이지 · 측정 · 설정 (`GET /api/app/coach/risk-budget`, F009). 서버 장애는 BFF 가 200
    * `{ status: "unavailable" }` 로 준다 — 게이지 카드만 "불러올 수 없음"이다.
@@ -197,17 +184,6 @@ export const coachApi = {
     if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<JudgmentScoreboardResult>;
-    return body.data;
-  },
-
-  /** 목표 비중 안내 (`GET /api/app/coach/target-weights`, F010 슬라이스 5). 서버 장애는 BFF 가 200 `unavailable` */
-  targetWeights: async (signal?: AbortSignal): Promise<TargetWeightResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.targetWeights}`, {
-      signal,
-    });
-    if (!response.ok) throw await readApiError(response, "coach");
-
-    const body = (await response.json()) as AppEnvelope<TargetWeightResult>;
     return body.data;
   },
 

@@ -2,9 +2,10 @@
 
 import type { SymbolExplanation } from "@repo/core/coach";
 
-import { ExplainBox } from "@/entities/coach";
+import { ExplainBox, PANEL_MESSAGES } from "@/entities/coach";
 
 import { useExplanationStream } from "../api/useExplanationStream";
+import { offlineNote } from "./StreamedExplanation.css";
 
 interface StreamedExplanationProps {
   symbol: string;
@@ -22,7 +23,8 @@ interface StreamedExplanationProps {
  * | 1초가 지나도 첫 문장 없음 | 같은 문장 + "쓰는 중" 반짝임 |
  * | 문장이 오면 | 그 문장들(AI 표시) + 반짝임 |
  * | 끝 | 최종 한 벌(얼마나 믿을까 · 틀렸던 때 문장은 성적 줄이 그린다) |
- * | 실패 · 끊김 | 서버 문장 |
+ * | 실패 · 끊김 | 서버 문장 — 화면 복귀 · 연결 복귀에 한 번 다시 붙는다 |
+ * | 오프라인 | 서버 문장 + "연결되면 이어서 써요"(열지 않는다 — `RN-REQ-032` FR-8) |
  */
 export const StreamedExplanation = ({ symbol, mode, stored }: StreamedExplanationProps) => {
   const state = useExplanationStream(symbol, mode, stored.tier !== "latest");
@@ -30,6 +32,16 @@ export const StreamedExplanation = ({ symbol, mode, stored }: StreamedExplanatio
   if (state.phase === "done" || state.phase === "fallback") return <ExplainBox view={state.view} />;
   if (state.phase === "streaming" && state.sentences.length > 0) {
     return <ExplainBox view={{ ...stored, tier: "latest", aiGenerated: true, sentences: state.sentences }} streaming />;
+  }
+  if (state.phase === "offline") {
+    return (
+      <>
+        <ExplainBox view={stored} />
+        <p className={offlineNote} role="status">
+          {PANEL_MESSAGES.explainOffline}
+        </p>
+      </>
+    );
   }
   return <ExplainBox view={stored} streaming={state.phase === "streaming" && state.slow} />;
 };

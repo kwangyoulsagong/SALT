@@ -250,29 +250,6 @@ export const tick = styleVariants({
  * 차트 왼쪽 · 거래 기록 오른쪽. 코인 상세(`widgets/symbol-analysis`)와 같은 폭 · 경계 — "같은 화면, 데이터만 다르다".
  * 국내 주식엔 코치 카드가 없어 오른쪽 열이 거래 기록 하나다
  */
-export const krBody = style({
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) 380px",
-  gap: "16px",
-  alignItems: "start",
-  "@media": {
-    "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" },
-  },
-});
-
-/** `krBody` 격자 한 칸 — 빈 칸이어도 자리를 지킨다(투자자 표가 없을 때 호가가 왼쪽으로 밀리지 않게) */
-export const krCell = style({
-  minWidth: 0,
-});
-
-/** 국내 주식 오른쪽 열 — 다음 시나리오 아래, 거래 기록 위. 코인 상세 오른쪽 열과 같은 순서(F011 슬라이스 5d) */
-export const krSideColumn = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  minWidth: 0,
-});
-
 export const krSideCard = style({
   display: "flex",
   flexDirection: "column",
@@ -309,3 +286,76 @@ export const preflightLink = style({
     "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" },
   },
 });
+
+/* ── 국내 상세 4블록(F017 v4 순서 6 · `FE-REQ-064` FR-12) — 코인 상세(`symbol-analysis`)와 같은 배치 ─────────── */
+
+/** 왼쪽 차트 → 내 거래 → 펼침, 오른쪽 한 장 패널(세 줄을 걸친다). 한 열에서는 차트 → 패널 → 내 거래 → 펼침 */
+export const krGrid = style({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) 380px",
+  gridTemplateRows: "auto auto 1fr",
+  gridTemplateAreas: `"chart panel" "trade panel" "more panel"`,
+  gap: "16px",
+  alignItems: "start",
+  "@media": {
+    "screen and (max-width: 1024px)": {
+      gridTemplateColumns: "minmax(0, 1fr)",
+      gridTemplateRows: "auto",
+      gridTemplateAreas: `"chart" "panel" "trade" "more"`,
+    },
+  },
+});
+
+export const krArea = {
+  chart: style({ gridArea: "chart", minWidth: 0 }),
+  panel: style({ gridArea: "panel", minWidth: 0 }),
+  trade: style({ gridArea: "trade", minWidth: 0 }),
+  more: style({ gridArea: "more", minWidth: 0, display: "flex", flexDirection: "column", gap: "16px" }),
+};
+
+/** 내 거래 블록 안 칸 — 주문 전 체크 · 거래 기록이 카드 둘이 아니라 한 카드 안 칸(선으로 가른다) */
+export const krTradeCell = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  minWidth: 0,
+  paddingTop: "16px",
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+});
+
+export const krBlockTitle = style({
+  margin: 0,
+  fontSize: "18px",
+  lineHeight: "24px",
+  fontWeight: vars.fontWeights.bold,
+  color: vars.colors.text.primary,
+});
+
+/** 펼침 머리 — 네이티브 `<details>`(키보드 · 스크린리더가 펼침 상태를 안다) */
+export const krMoreSummary = style([
+  krSideCard,
+  {
+    flexDirection: "row",
+    alignItems: "center",
+    cursor: "pointer",
+    fontSize: "14px",
+    lineHeight: "20px",
+    fontWeight: vars.fontWeights.semibold,
+    color: vars.colors.text.primary,
+    ":hover": { background: vars.colors.neutral[50] },
+    selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
+  },
+]);
+
+/** neutral 600 은 AA 미달 — 700(코인 상세 `moreHint` 와 같다) */
+export const krMoreHint = style({
+  marginLeft: "auto",
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  color: vars.colors.neutral[700],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const krMoreBody = style({ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" });

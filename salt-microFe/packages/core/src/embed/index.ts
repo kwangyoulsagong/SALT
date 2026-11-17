@@ -15,3 +15,9 @@ export const isAppWebView = (userAgent: string): boolean =>
 /** `<html>` 에 다는 속성 — CSS 가 이것으로 안내를 끈다 */
 export const EMBED_ATTRIBUTE = "data-embed";
 export const EMBED_APP = "app";
+
+/**
+ * vanilla-extract `selectors` 키 — 앱 웹뷰에서만 바꾸는 값(F017 v4 순서 6 · `RN-REQ-032` FR-7: 글자 13 이상 · 탭 44 이상).
+ * `{ fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } } }` — 데스크톱 웹 값은 그대로 둔다(`screen-desktop.md` 라벨 12)
+ */
+export const IN_APP_WEBVIEW = `html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] &`;

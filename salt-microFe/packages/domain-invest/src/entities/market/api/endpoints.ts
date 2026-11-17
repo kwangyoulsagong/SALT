@@ -49,8 +49,6 @@ export const MARKET_ENDPOINTS = {
   chart: (symbol: string, spec: ChartTimeframeSpec, count: number) =>
     `/api/investment/crypto/${encodeURIComponent(symbol)}/chart` +
     `?period=${spec.period}&unit=${spec.unit}&count=${count}`,
-  intelligencePreview: (symbol: string) =>
-    `/api/market-intelligence/${symbol}/dashboard`,
   /**
    * 관심 목록은 **`/api/app/*` 뷰모델 경로**다 (`FE-REQ-012` 호출 배치).
    *

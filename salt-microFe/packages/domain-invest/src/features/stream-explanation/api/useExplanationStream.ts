@@ -19,8 +19,10 @@ export type ExplanationStreamState =
   | { phase: "done"; view: SymbolExplanation }
   /** 만들 수 없었다 — 서버 문장(이전 AI · 사실표 · 판단만) */
   | { phase: "fallback"; view: SymbolExplanation }
-  /** 스트림 자체가 끊겼다 — 화면은 패널이 받은 저장값을 그대로 쓴다 */
-  | { phase: "error" };
+  /** 스트림 자체가 끊겼다 — 화면은 패널이 받은 저장값을 그대로 쓴다. 화면이 다시 보이거나 연결이 돌아오면 한 번 다시 붙는다 */
+  | { phase: "error" }
+  /** 오프라인이라 열지 않았다 — 저장값 + "연결되면 이어서"(`streaming-sse.md` §9). `online` 이면 연다 */
+  | { phase: "offline" };
 
 const streamUrl = (symbol: string, mode: "scalp" | "long_term") =>
   `${INVESTMENTS_BASE_URL}/api/app/ai-coach/explain/stream?symbol=${encodeURIComponent(symbol)}&mode=${mode}`;
@@ -32,14 +34,37 @@ const streamUrl = (symbol: string, mode: "scalp" | "long_term") =>
  * - 끝(done · snapshot · fallback · error)이면 닫는다 — `EventSource` 의 자동 재연결이 같은 생성을 또 부르지 않게(서버는 지문당 생성 하나라
  *   다시 붙어도 LLM 이 두 번 돌지는 않지만, 끝난 뒤 다시 열 이유가 없다)
  * - 끝나면 패널 응답을 버린다 — 다음에 열면 최신 AI 저장본이 바로 온다
+ * - **앱 웹뷰 복귀 · 오프라인(F017 v4 순서 6 · `RN-REQ-032` FR-8 · `streaming-sse.md` §9)**: 오프라인이면 열지 않고 `offline`.
+ *   끊긴(`error`) · 오프라인 상태에서 화면이 다시 보이거나(`visibilitychange`) 연결이 돌아오면(`online`) **한 번** 다시 연다 —
+ *   서버는 지문당 생성 하나라 다시 붙어도 LLM 이 두 번 돌지 않고, 끝났으면 저장본(`snapshot`)이 바로 온다(§6 멱등). 끝난(`done` · `fallback`) 뒤엔 다시 열지 않는다
  */
 export const useExplanationStream = (symbol: string, mode: "scalp" | "long_term", enabled: boolean): ExplanationStreamState => {
   const [state, setState] = useState<ExplanationStreamState>({ phase: "idle" });
+  // 다시 붙기 — 끊김 · 오프라인 뒤 화면 복귀 · 연결 복귀가 올린다(이 값이 바뀌면 아래 effect 가 새로 연다)
+  const [attempt, setAttempt] = useState(0);
   const queryClient = useQueryClient();
+  const stuck = state.phase === "error" || state.phase === "offline";
+
+  useEffect(() => {
+    if (!enabled || !stuck) return;
+    const resume = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) setAttempt((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("online", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("online", resume);
+    };
+  }, [enabled, stuck]);
 
   useEffect(() => {
     if (!enabled || !symbol) {
       setState({ phase: "idle" });
+      return;
+    }
+    if (!navigator.onLine) {
+      setState({ phase: "offline" });
       return;
     }
     setState({ phase: "streaming", sentences: [], slow: false });
@@ -87,7 +112,7 @@ export const useExplanationStream = (symbol: string, mode: "scalp" | "long_term"
       clearTimeout(slowTimer);
       source.close();
     };
-  }, [enabled, mode, queryClient, symbol]);
+  }, [attempt, enabled, mode, queryClient, symbol]);
 
   return state;
 };

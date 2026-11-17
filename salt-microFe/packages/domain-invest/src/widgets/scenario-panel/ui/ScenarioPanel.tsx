@@ -4,25 +4,29 @@ import type { ScenarioHorizonKey } from "@repo/core/coach";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import {
   coachQueryKeys,
   CompanyRow,
   InvalidationRow,
+  JudgmentRow,
   MineLine,
-  PANEL_DEFAULT_HORIZON,
   PANEL_MESSAGES as M,
   PanelHead,
   PanelRow,
   ScenarioFan,
   ScenarioHeadline,
+  selectModeView,
   TrackRow,
   useCoachPanel,
+  useSymbolCoach,
 } from "@/entities/coach";
 import { MoveCauseFlow, useKrChart, useMarketChart, useMarketChartPreview } from "@/entities/market";
 import { TradeCheckCard } from "@/features/check-trade-odds";
 import { StreamedExplanation } from "@/features/stream-explanation";
+import { usePanelHorizonParam } from "@/features/switch-coach-mode";
+import { WHY_MOVED_ANCHOR_ID } from "@repo/web-shared/config";
 
 import { scenarioPanel, scenarioPanelLoading, scenarioPanelNote } from "./ScenarioPanel.css";
 
@@ -55,8 +59,9 @@ interface ScenarioPanelProps {
 /**
  * 한 장 패널 — 종목 상세 AI 칸을 한 장으로(F017 v4 순서 1e · `FE-REQ-064` FR-8~11 · 시안 `pm/docs/2026-11-13-one-panel-research.html` §6).
  *
- * 위에서 아래: 머리(이름 · AI · 출처 · 기준 시각) → 기간 탭 → 큰 숫자 · 막대 → 부채꼴 → 줄 다섯
- * (보통은 = 사기 전 · 팔기 전 점검 · 왜 움직였나 = 원인 → 근거 → 결과 · 회사 사정 · 틀리는 때 · 성적) → AI 해설 → 내 기준.
+ * 위에서 아래: 머리(이름 · AI · 출처 · 기준 시각) → 기간 탭 → 큰 숫자 · 막대 → 부채꼴 → 줄 여섯
+ * (보통은 = 사기 전 · 팔기 전 점검 · 왜 움직였나 = 원인 → 근거 → 결과 · 회사 사정 · 지금의 판단 · 틀리는 때 · 성적) → AI 해설 → 내 기준.
+ * 순서 6(`FE-REQ-064` FR-12): 상세의 판단 카드 · 왜 움직였나 카드 · 성적표가 이 안으로 들어왔다 — 기간 탭은 URL(`?horizon=`)이라 차트 위 틀리는 선과 같은 기간
  *
  * - 데이터는 BFF 한 콜(`useCoachPanel`). 칸마다 `status` — 한 칸이 결함이어도 나머지는 그린다
  * - 기간 탭이 단타/장기를 고른다 — 그 표(`horizonMode`)는 서버 값
@@ -64,12 +69,22 @@ interface ScenarioPanelProps {
  * - 면책은 패널 아래 한 번
  */
 export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) => {
-  const [horizon, setHorizon] = useState<ScenarioHorizonKey>(PANEL_DEFAULT_HORIZON);
+  // 기간 탭은 URL — 차트 위 틀리는 선(다른 위젯)이 같은 기간을 읽는다(F017 v4 순서 6)
+  const [horizon, setHorizon] = usePanelHorizonParam();
   const panel = useCoachPanel(symbol);
+  // 판단 근거 · 주의할 점 · 낡음 — 종목 판단 응답(같은 화면의 차트 선이 이미 부른 캐시, 요청 1회)
+  const coach = useSymbolCoach(symbol);
   const queryClient = useQueryClient();
   const data = panel.data;
   const view = data?.scenario.horizons.find((h) => h.horizon === horizon);
   const closes = usePastCloses(asset, symbol, usesShortBars(view?.fallbackFrom ?? horizon));
+
+  // 시장 표 "왜?" 칩(`#why-moved`)으로 왔으면 패널이 도착한 뒤 원인 줄로 — 패널은 늦게 그려져 브라우저의 첫 앵커 이동이 빈 자리를 본다
+  const arrived = Boolean(panel.data);
+  useEffect(() => {
+    if (!arrived || window.location.hash !== `#${WHY_MOVED_ANCHOR_ID}`) return;
+    document.getElementById(WHY_MOVED_ANCHOR_ID)?.scrollIntoView({ block: "start" });
+  }, [arrived]);
 
   // 사기 전 점검은 패널이 이미 받았다 — 점검 칸이 같은 요청을 다시 내지 않게(값이 없을 때만 채운다)
   const buyCheck = data?.verdict.check ?? null;
@@ -98,6 +113,7 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
   }
 
   const mode = data.horizonMode[horizon] === "scalp" ? data.modes.scalp : data.modes.longTerm;
+  const coachMode = coach.data ? selectModeView(coach.data, mode.mode) : null;
   return (
     <section className={shell} aria-label={M.heading}>
       <PanelHead view={view} horizon={horizon} onHorizon={setHorizon} />
@@ -111,6 +127,12 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
         {data.cause.cause ? <MoveCauseFlow view={data.cause.cause} /> : <StatusLine kind="error">{M.causeDefect}</StatusLine>}
       </PanelRow>
       <CompanyRow company={data.company} />
+      {/* 판단 카드(요약 · 상세 · 단타/장기 스위치)를 이 한 줄로(F017 v4 순서 6 · FR-12) — 이 기간 탭의 모드 판단 */}
+      <JudgmentRow
+        judgment={mode.judgment}
+        detail={coachMode ? coachMode.judgment : null}
+        staleSince={coach.data?.staleSince ?? null}
+      />
       {view ? <InvalidationRow view={view} /> : null}
       <TrackRow track={mode.track} />
 

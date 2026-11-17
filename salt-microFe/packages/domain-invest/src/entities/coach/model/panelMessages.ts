@@ -13,6 +13,7 @@ export const PANEL_MESSAGES = {
     usual: "이런 상황 뒤 보통은",
     cause: "왜 움직였나",
     company: "회사 사정",
+    judgment: "지금의 판단",
     invalidation: "이 판단이 틀리는 때",
     track: "이 판단의 성적",
   },
@@ -26,6 +27,13 @@ export const PANEL_MESSAGES = {
   companyWindow: (days: 90 | 365) => `최근 7일 안 사실이 없어 최근 ${days}일 사실이에요`,
   companyCount: (n: number) => `사실 ${n}개 중 일부`,
   companySourceSr: (name: string) => `${name} 원문(새 창)`,
+  // 지금의 판단(F017 v4 순서 6 · `FE-REQ-064` FR-12 — 판단 카드를 패널 한 줄로). 등급은 설명 문단 대신 한 단어
+  judgmentReasons: (n: number) => `판단 근거 ${n}개`,
+  judgmentReasonsHead: "본 근거",
+  judgmentRisksHead: "주의할 점",
+  judgmentNoReason: "이번 판단은 문턱을 넘은 근거가 없어 관망이에요",
+  judgmentDefect: "판단을 지금 불러오지 못했어요",
+  tierSr: "판단 등급",
   // ④ 틀리는 때
   invalidationLine: (price: string, pct: string) => `${price} 아래 (${pct})`,
   invalidationNote: "과거 비슷한 날의 나쁜 쪽 10% 선이에요. 이 아래로 끝나면 틀린 것으로 채점해요.",
@@ -42,6 +50,9 @@ export const PANEL_MESSAGES = {
   trackDefect: (sample: string) => `이 판단은 아직 ${sample}번뿐이라 성적을 말하기엔 적어요`,
   trackMiss: (date: string, name: string, pct: string) => `틀렸던 때: ${date} ${name}, 같은 판단 뒤 ${pct}`,
   trackNoMiss: "기록된 틀린 때가 아직 없어요",
+  // 판단 성적표 → 패널 "빗나간 사례 보기"(F017 v4 순서 6 · FR-12 — 성적표 화면 기능은 그대로, 자리만 패널로)
+  trackMissesMore: (n: number) => `빗나간 ${n}건 보기`,
+  trackMissRow: (date: string, name: string, pct: string) => `${date} ${name} · 같은 판단 뒤 ${pct}`,
   trackDonutSr: (hits: number) => `100번 중 ${hits}번 맞음`,
   // AI 해설 상자
   explainHead: "AI 해설",
@@ -52,6 +63,7 @@ export const PANEL_MESSAGES = {
   explainPrevious: (when: string) => `${when}에 쓴 해설이에요 — 그 뒤 들어온 숫자 · 소식은 아직 반영 전이에요`,
   explainDefect: "해설을 지금 불러오지 못했어요",
   explainWriting: "AI 가 위 사실로 해설을 쓰고 있어요",
+  explainOffline: "지금은 연결이 끊겨 있어요 — 연결되면 이어서 써요",
   // 내 기준
   mineHead: "내 기준",
   mineOnlyYou: "나만 보여요",

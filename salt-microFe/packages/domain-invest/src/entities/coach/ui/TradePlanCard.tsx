@@ -27,6 +27,11 @@ interface TradePlanCardProps {
   /** 실시간 현재가(원). 손절가와 나란히 둘 뿐 둘의 차이를 계산하지 않는다 — 거리는 서버 필드가 생기면 싣는다 */
   livePrice: number | null;
   className?: string;
+  /**
+   * 3종 고지를 이 칸에 그린다(기본). 종목 상세 "내 거래" 한 카드 안 칸이면 끈다 — 같은 카드 맨 아래(거래 기록)가 한 번 그린다
+   * (F017 v4 순서 6 · `FE-REQ-064` FR-12 "칸마다 면책 → 한 번" · FR-32 "카드마다"는 그 한 카드로 지킨다)
+   */
+  showDisclosure?: boolean;
 }
 
 /**
@@ -36,7 +41,7 @@ interface TradePlanCardProps {
  * 계획이 없으면 빈 상태 한 줄. 판정 라벨은 정보다 — 색 없이 글자로만 둔다(차단 · 경고 아님).
  * 3종 고지 슬롯은 카드마다 고정이다(FR-32).
  */
-export const TradePlanCard = ({ result, livePrice, className }: TradePlanCardProps) => {
+export const TradePlanCard = ({ result, livePrice, className, showDisclosure = true }: TradePlanCardProps) => {
   const headingId = useId();
   const body = () => {
     if (result.status === "unavailable") return <StatusLine kind="error">{PLAN.unavailable}</StatusLine>;
@@ -87,7 +92,7 @@ export const TradePlanCard = ({ result, livePrice, className }: TradePlanCardPro
         </h2>
         {body()}
       </div>
-      <CoachDisclosure />
+      {showDisclosure && <CoachDisclosure />}
     </section>
   );
 };

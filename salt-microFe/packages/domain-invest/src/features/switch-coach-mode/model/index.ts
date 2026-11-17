@@ -1,1 +1,1 @@
-export * from "./useCoachModeParam";
+export * from "./usePanelHorizonParam";

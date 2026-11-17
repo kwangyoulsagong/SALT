@@ -1,1 +1,0 @@
-export { CoachModeSwitch } from "./CoachModeSwitch";

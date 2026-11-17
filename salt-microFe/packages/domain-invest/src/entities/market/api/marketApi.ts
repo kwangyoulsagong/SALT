@@ -5,7 +5,6 @@ import type { ChartTimeframeSpec } from "../model/chartTimeframes";
 import {
   MarketChartPreviewResponse,
   MarketChartRawItem,
-  MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
   MarketSummaryResponse,
@@ -67,14 +66,6 @@ export const marketApi = {
         timestamp: timestamp ?? date ?? "",
       })),
     };
-  },
-  intelligencePreview: async (
-    symbol: string,
-  ): Promise<MarketIntelligencePreviewResponse> => {
-    return getJson(
-      "intelligencePreview",
-      MARKET_ENDPOINTS.intelligencePreview(symbol),
-    );
   },
   /**
    * 종목 뉴스. **인증이 필요 없다** — 서버 `/news` 가 공개 경로이고 BFF 도 그대로 뒀다.

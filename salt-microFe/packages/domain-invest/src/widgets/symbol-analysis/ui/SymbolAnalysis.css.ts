@@ -31,8 +31,6 @@ const CARD_RADIUS = SURFACE.panelRadius;
  * 만들고 먼 그림자로 살짝 띄운다.
  */
 const CARD_SHADOW = SURFACE.hairline;
-/** 하단 고정 바 높이. 본문이 그 아래로 숨지 않게 같은 값만큼 띄운다. */
-const DISCLAIMER_BAR_HEIGHT = "44px";
 
 export const layout = style({
   display: "flex",
@@ -40,22 +38,37 @@ export const layout = style({
   gap: "16px",
   minWidth: 0,
   paddingTop: "8px",
-  paddingBottom: `calc(${DISCLAIMER_BAR_HEIGHT} + 24px)`,
+  paddingBottom: "24px",
 });
 
 /* ── 패널 격자 ──────────────────────────────────────────────── */
 
+/**
+ * 4블록(F017 v4 순서 6 · `FE-REQ-064` FR-12 · 시안 "PC · 종목 상세"): 왼쪽 차트 → 내 거래 → 펼침, 오른쪽 한 장 패널(세 줄을 걸친다).
+ * 한 열(1024 이하 · 앱 웹뷰)에서는 차트 → 패널 → 내 거래 → 펼침 — 패널이 내 거래보다 먼저 읽힌다
+ */
 export const grid = style({
   display: "grid",
   gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`,
+  gridTemplateRows: "auto auto 1fr",
+  gridTemplateAreas: `"chart panel" "trade panel" "more panel"`,
   gap: "16px",
   alignItems: "start",
   "@media": {
     [`screen and (max-width: ${STACK_BREAKPOINT})`]: {
       gridTemplateColumns: "minmax(0, 1fr)",
+      gridTemplateRows: "auto",
+      gridTemplateAreas: `"chart" "panel" "trade" "more"`,
     },
   },
 });
+
+export const area = {
+  chart: style({ gridArea: "chart", minWidth: 0 }),
+  panel: style({ gridArea: "panel", minWidth: 0 }),
+  trade: style({ gridArea: "trade", minWidth: 0 }),
+  more: style({ gridArea: "more", minWidth: 0 }),
+};
 
 export const column = style({
   display: "flex",
@@ -141,33 +154,24 @@ export const moreBody = style({
   marginTop: "16px",
 });
 
-/* ── 하단 고정 유의사항 ─────────────────────────────────────── */
+/* ── 내 거래 한 칸(F017 v4 순서 6) ─────────────────────────────── */
 
-/**
- * 면책을 화면 하단에 상시 둔다. 카드 안에 있으면 스크롤 위치에 따라 보이지 않는데,
- * **추천 응답에 면책이 항상 붙어야 한다**는 것이 계약이다(`ddd-presentation.md` §5).
- */
-export const disclaimerBar = style({
-  position: "fixed",
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: vars.zIndices.sticky,
-  minHeight: DISCLAIMER_BAR_HEIGHT,
+/** 내 거래 블록 안의 칸 — 계획(내 선) · 주문 전 체크 · 거래 기록이 카드 셋이 아니라 한 카드 안 칸이 된다(선으로 가른다) */
+export const tradeCell = style({
   display: "flex",
-  alignItems: "center",
-  gap: vars.space.md,
-  padding: `${vars.space.sm} ${vars.space.xl}`,
-  background: vars.colors.background.white,
+  flexDirection: "column",
+  gap: "12px",
+  minWidth: 0,
+  paddingTop: "16px",
   borderTop: `1px solid ${vars.colors.neutral[100]}`,
-  color: vars.colors.neutral[500],
-  fontSize: "13px",
-  lineHeight: "20px",
-  fontWeight: vars.fontWeights.medium,
-})
+});
 
-export const disclaimerLabel = style({
-  fontWeight: vars.fontWeights.bold,
-  color: vars.colors.text.secondary,
-  whiteSpace: "nowrap",
+/** 칸 안 접힘(익절 플랜) — 제목 줄만 누름 */
+export const foldSummary = style({
+  cursor: "pointer",
+  fontSize: "14px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
 });

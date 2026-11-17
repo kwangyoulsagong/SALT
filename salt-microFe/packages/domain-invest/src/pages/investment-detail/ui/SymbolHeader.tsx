@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import type { MarketOverviewItem } from "@/entities/market";
-import { COACH_MODE_PARAM, PREFLIGHT_ANCHOR_ID, ROUTES } from "@repo/web-shared/config";
+import { PREFLIGHT_ANCHOR_ID, ROUTES } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@repo/web-shared/lib";
 import { backLink } from "@repo/web-shared/ui/surface.css";
 
@@ -41,8 +41,6 @@ interface SymbolHeaderProps {
   symbol: string;
   /** 서버가 받은 공개 시세. 못 받았으면 `null` — 이름 자리에 심볼만 둔다 */
   listing: MarketOverviewItem | null;
-  /** 지금 보는 판단 모드 — 뒤로 갈 때 들고 간다(FR-111) */
-  mode: string | null;
 }
 
 /**
@@ -61,11 +59,10 @@ interface SymbolHeaderProps {
  * 이름은 한 줄 위 작게, 가격은 그 아래 크게 — 이 화면에서 사람이 먼저 찾는 것은 가격이다.
  * 시세 기준 시각은 서울 시각으로 고정한다 — 서버 타임존이 무엇이든 같은 글자가 나온다.
  */
-export const SymbolHeader = ({ symbol, listing, mode }: SymbolHeaderProps) => {
+export const SymbolHeader = ({ symbol, listing }: SymbolHeaderProps) => {
   const displayName = listing?.koreanName ?? symbol;
-  const backHref = mode
-    ? `${ROUTES.investments}?${COACH_MODE_PARAM}=${encodeURIComponent(mode)}`
-    : ROUTES.investments;
+  // ~~판단 모드를 들고 돌아간다(FR-111)~~ 목록 미리보기에 단타/장기 스위치가 없다(F017 v4 순서 6 — 기간 탭) — 그냥 목록으로
+  const backHref = ROUTES.investments;
 
   return (
     <>

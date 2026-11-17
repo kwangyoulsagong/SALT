@@ -3,7 +3,6 @@ import { style, styleVariants } from "@vanilla-extract/css";
 // 앱 로컬 토큰(`shared/ui/tokens.css`)은 `@repo/ui/tokens` 로 일원화할 부채다 — 새 파일은 처음부터 이쪽
 import { vars } from "@repo/ui/tokens";
 
-const LEGEND_SWATCH_WIDTH = "20px";
 
 export const detailSection = style({
   display: "flex",
@@ -156,41 +155,6 @@ export const gapCaption = style({
   fontWeight: vars.fontWeights.regular,
 });
 
-export const legend = style({
-  margin: 0,
-  padding: 0,
-  listStyle: "none",
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  gap: vars.space.md,
-  fontSize: vars.fontSizes.sm,
-  color: vars.colors.text.secondary,
-});
-
-export const legendItem = style({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: vars.space.xs,
-});
-
-const swatchBase = style({
-  display: "inline-block",
-  width: LEGEND_SWATCH_WIDTH,
-  height: 0,
-  borderTopWidth: "2px",
-});
-
-/** 차트의 선과 같은 색 · 같은 선 모양 (`PreviewChart` `PRICE_LINE_COLOR`) */
-export const swatch = styleVariants({
-  downSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.special.down }],
-  downDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.special.down }],
-  neutralSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.neutral[500] }],
-  neutralDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.neutral[500] }],
-  zoneSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.ai.primary }],
-  zoneDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.ai.primary }],
-});
-
 /** 사례 종목(아이콘 + 이름) — 날짜와 결과 사이를 채우고, 긴 이름은 말줄임(F011 슬라이스 7b) */
 export const caseIdentity = style({
   display: "inline-flex",
@@ -207,10 +171,3 @@ export const caseIdentityName = style({
   color: vars.colors.text.primary,
 });
 
-/** 사례 0건 한 줄(`ADR-010` v2 — 빈 칸 0). 목록과 같은 글자 단 · 2단 색 */
-export const caseEmpty = style({
-  margin: 0,
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  color: vars.colors.text.secondary,
-});

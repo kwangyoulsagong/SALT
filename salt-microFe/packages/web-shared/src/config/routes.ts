@@ -9,7 +9,6 @@
  * 두 위젯이 서로를 부를 수 없어(같은 레이어) 여기 한 벌만 둔다
  */
 export const COACH_REPORT_SECTIONS = {
-  targetWeight: "target-weight",
   riskBudget: "risk-budget",
   scoreboard: "scoreboard",
 } as const;
@@ -73,16 +72,9 @@ export {
 } from "@repo/core/zones";
 
 /**
- * 판단 모드 URL 키 — `?mode=` (`FE-REQ-026` FR-111). 패널 · 상세 · 표 링크가 같이 쓴다.
- *
- * `features/switch-coach-mode` 에 있던 것을 여기로 내렸다(2026-09-23): 서버 컴포넌트가 이 상수 하나
- * 때문에 feature 배럴을 가져오면, 배럴의 `"use client"` 모듈(모드 스위치)까지 그 페이지의 클라이언트
- * 경계가 된다.
- */
-export const COACH_MODE_PARAM = "mode";
-
-/**
  * 상세 분석의 주문 전 체크 카드 자리(F004 FR-155). 머리는 서버 컴포넌트라 기능 배럴을 값으로 부르지 않는다
  * (`performance-frontend.md` §7) — 해시 링크와 카드가 이 id 하나를 같이 본다.
  */
 export const PREFLIGHT_ANCHOR_ID = "preflight-check";
+/** 종목 상세 "왜 움직였나" 자리 — 시장 표 "왜?" 칩이 여기로 온다. 한 장 패널 ② 줄(F017 v4 순서 6 — 카드에서 패널로) */
+export const WHY_MOVED_ANCHOR_ID = "why-moved";

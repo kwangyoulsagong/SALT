@@ -12,19 +12,13 @@ const CELL_MIN_HEIGHT = "76px";
 
 export const strip = style({
   display: "grid",
-  // 목표 비중 칸은 고지 한 줄이 길어 넓게
-  gridTemplateColumns: "minmax(0, 1.6fr) repeat(2, minmax(0, 1fr))",
+  // 칸 둘(위험 · 판정 성적) — 목표 비중 칸은 지웠다(F017 v4 순서 6)
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
   marginTop: vars.space.xl,
   borderRadius: SURFACE.panelRadius,
   background: vars.colors.background.white,
   boxShadow: SURFACE.hairline,
   overflow: "hidden",
-  "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
-});
-
-/** 국내 탭 — 목표 비중 칸이 없어 두 칸이 같은 폭(`FE-REQ-050` FR-5) */
-export const stripTwo = style({
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
   "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
 });
 
@@ -79,3 +73,6 @@ export const cellNote = style({
   lineHeight: "18px",
   fontVariantNumeric: vars.numeric.tabular,
 });
+
+/** 손실 예산을 넘었을 때만 — 강조는 진한 경고색 글자(빨강은 되돌릴 수 없는 일 전용 · 막지 않는다). 글자가 "넘었어요"라 색만으로 말하지 않는다 */
+export const cellValueAlert = style({ color: vars.colors.status.warningDark });

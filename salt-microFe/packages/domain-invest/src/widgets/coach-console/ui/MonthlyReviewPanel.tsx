@@ -15,7 +15,7 @@ import {
 } from "@/entities/coach";
 import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { monthSelect } from "./CoachReport.css";
+import { embeddedSection, embeddedTitle, monthSelect } from "./CoachReport.css";
 
 const R = REVIEW_MESSAGES;
 const KR = KR_REVIEW_MESSAGES;
@@ -31,7 +31,14 @@ const monthLabel = (month: string) => R.month(month.slice(0, 4), month.slice(5, 
  * `kr_stock` 이면 국내판(F011 FR-48 · `FE-REQ-041` FR-30) — 코인판 바로 아래 섹션 하나. 로그인 전체(`ADR-011` — 전에는 소유자 전용, 404) ·
  * 로그아웃이면 **섹션 자체가 없다**(국내 미러와 같은 규칙).
  */
-export const MonthlyReviewPanel = ({ assetType = "crypto" }: { assetType?: "crypto" | "kr_stock" }) => {
+export const MonthlyReviewPanel = ({
+  assetType = "crypto",
+  embedded = false,
+}: {
+  assetType?: "crypto" | "kr_stock";
+  /** 리포트의 "월간 돌아보기" 펼침 안 — 겉 패널 · 고지를 펼침이 한 번 갖는다(F017 v4 순서 6) */
+  embedded?: boolean;
+}) => {
   const [month, setMonth] = useState<string | null>(null);
   const review = useMonthlyReview(month, assetType);
   const selectId = useId();
@@ -64,9 +71,9 @@ export const MonthlyReviewPanel = ({ assetType = "crypto" }: { assetType?: "cryp
   const months = view ? [...new Set([view.month, ...view.availableMonths])].sort().reverse() : [];
 
   return (
-    <section className={panel} aria-busy={review.isFetching}>
+    <section className={embedded ? embeddedSection : panel} aria-busy={review.isFetching}>
       <div className={panelHead}>
-        <h2 className={panelTitle}>{view ? `${heading} · ${monthLabel(view.month)}` : heading}</h2>
+        <h2 className={embedded ? embeddedTitle : panelTitle}>{view ? `${heading} · ${monthLabel(view.month)}` : heading}</h2>
         {months.length > 1 && view && (
           <select
               id={selectId}
@@ -85,7 +92,7 @@ export const MonthlyReviewPanel = ({ assetType = "crypto" }: { assetType?: "cryp
       </div>
       <p className={panelDescription}>{isKr ? KR.description : R.description}</p>
       {body()}
-      <CoachDisclosure />
+      {!embedded && <CoachDisclosure />}
     </section>
   );
 };

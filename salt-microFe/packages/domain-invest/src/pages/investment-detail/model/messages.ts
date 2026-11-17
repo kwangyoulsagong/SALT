@@ -5,12 +5,15 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
     `${price} ${rate}${closed ? " 장 마감" : ""} | ${name}`,
   back: "투자로 돌아가기",
   /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) */
-  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
+  guestWhat: { preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
+  /** 4블록(F017 v4 순서 6) — 내 거래 블록 제목 · 펼침 */
+  tradeHeading: "내 거래",
+  krMoreSummary: "더 보기 — 호가 · 투자자별 수급 · 소식 · 일정",
+  moreHint: "펼쳐 보기",
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
   statRange: "24시간 범위",
   statTradeValue: "거래대금",
-  statSentiment: "심리 온도",
   statUpdatedAt: "시세 기준",
   /** 머리의 주문 전 체크 링크(FR-131) — 계산 카드로 간다. 주문하지 않는다 */
   preflight: "주문 전 체크",

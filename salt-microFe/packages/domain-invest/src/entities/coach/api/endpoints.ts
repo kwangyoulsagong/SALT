@@ -19,7 +19,6 @@ export const COACH_ENDPOINTS = {
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
   events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-9) */
-  positioning: (symbol: string) => `/api/app/coach/positioning?symbol=${encodeURIComponent(symbol)}`,
   /** 리스크 예산 게이지 · 측정 · 설정 (F009 `BFF-REQ-038`). 조회 · 저장이 같은 경로다 */
   riskBudget: "/api/app/coach/risk-budget",
   /** 코치 설정 — 매입가 숨김(F009 FR-27). 조회 GET · 저장 PATCH 가 같은 경로다 */
@@ -38,7 +37,6 @@ export const COACH_ENDPOINTS = {
   /** 판정 성적표 — 신호 유형별, 사용자별 아님 (F010 슬라이스 3 `BFF-REQ-039` FR-5) */
   scoreboard: "/api/app/coach/scoreboard",
   /** 목표 비중 안내 — 확률 없음 (F010 슬라이스 5 `BFF-REQ-041`) */
-  targetWeights: "/api/app/coach/target-weights",
   /** 월간 복기(F009 슬라이스 6 `BFF-REQ-038` FR-10). 달이 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview: (month: string | null) =>
     month ? `/api/app/coach/review/monthly?month=${encodeURIComponent(month)}` : "/api/app/coach/review/monthly",

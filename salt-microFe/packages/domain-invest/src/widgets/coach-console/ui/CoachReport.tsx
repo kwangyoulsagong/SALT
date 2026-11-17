@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
+  CoachDisclosure,
   ExitPlanList,
   formatGeneratedAt,
   RecommendationCard,
@@ -32,6 +33,8 @@ import { REPORT_BLOCK_FIELDS } from "../model";
 import {
   disclaimerBar,
   disclaimerLabel,
+  foldHint,
+  foldSummary,
   footnote,
   header,
   layout,
@@ -39,12 +42,10 @@ import {
   title,
   titleBlock,
 } from "./CoachReport.css";
-import { KrMirrorPanel } from "./KrMirrorPanel";
 import { MirrorPanel } from "./MirrorPanel";
 import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
 import { RiskBudgetPanel } from "./RiskBudgetPanel";
 import { ScoreboardPanel } from "./ScoreboardPanel";
-import { TargetWeightPanel } from "./TargetWeightPanel";
 
 const renderIdentity = (symbol: string, size: "sm" | "md") => (
   <AssetIdentity symbol={symbol} size={size} />
@@ -76,6 +77,19 @@ const ReportPanel = ({
     {description && <p className={panelDescription}>{description}</p>}
     {degraded ? <StatusLine kind="error">{REPORT.blockUnavailable}</StatusLine> : children}
   </section>
+);
+
+/** 월간 돌아보기 — 코인 · 국내 복기를 펼침 하나에(F017 v4 순서 6 · `FE-REQ-064` FR-12 "펼침에 남김"). 고지는 한 번 */
+const MonthlyReviews = () => (
+  <details className={panel}>
+    <summary className={foldSummary}>
+      {REPORT.monthlyHeading}
+      <span className={foldHint}>{REPORT.monthlyHint}</span>
+    </summary>
+    <MonthlyReviewPanel embedded />
+    <MonthlyReviewPanel assetType="kr_stock" embedded />
+    <CoachDisclosure />
+  </details>
 );
 
 const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
@@ -118,10 +132,11 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
 
         {/* ~~내 보유~~ 2026-11-10 포트폴리오 페이지로(`FE-REQ-069` FR-4 — 머리 메뉴 "포트폴리오") */}
 
-        {/* F010 — 투자 화면 요약 띠의 본문 셋(목표 비중 → 위험 · 내 기준 → 판정 성적표). 각자 부르고 각자 실패한다 */}
-        <TargetWeightPanel />
-
-        {/* F009 — 내 기준과 나란히 보는 게이지. 리포트와 따로 부르고 따로 실패한다 */}
+        {/*
+          F010 — 투자 화면 요약 띠의 본문 둘(위험 · 내 기준 → 판정 성적표). 각자 부르고 각자 실패한다.
+          ~~목표 비중~~ 패널은 쓰는 흐름이 없어 뺐다(F017 v4 순서 6 · `FE-REQ-064` FR-12 — 계산은 서버에 남는다)
+        */}
+        {/* F009 — 위험 예산 한 줄 + 펼침(게이지 · 내 기준 · 시나리오). 리포트와 따로 부르고 따로 실패한다 */}
         <RiskBudgetPanel />
 
         <ScoreboardPanel />
@@ -157,14 +172,13 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
         </ReportPanel>
 
         {/* F009 FR-21 — 행동 알림은 알림이 아니라 미러의 "최근 행동" 줄이다. 리포트가 행동을 못 읽었으면 그 줄만 빠진다 */}
+        {/* 코인 · 국내 한 패널(F017 v4 순서 6 — 거울 두 벌 → 하나) */}
         <MirrorPanel
           behaviorFacts={degraded(REPORT_BLOCK_FIELDS.behaviorFacts) ? null : report.behaviorFacts}
         />
-        <KrMirrorPanel />
 
-        {/* F009 시나리오 6 — 월초에 만든 지난달 복기. 미러 바로 아래(지금 숫자 → 지난달에 굳힌 숫자) */}
-        <MonthlyReviewPanel />
-        <MonthlyReviewPanel assetType="kr_stock" />
+        {/* F009 시나리오 6 — 월초에 만든 지난달 복기. 미러 바로 아래, 펼침(F017 v4 순서 6 "달에 한 번") */}
+        <MonthlyReviews />
 
         {excluded.map((line) => (
           <p key={line} className={footnote}>
@@ -217,13 +231,10 @@ export const CoachReport = () => {
     return notice(
       <EmptyState iconFrame="none" icon={<Illustration scene="coachBubble" size="sm" />} title={REPORT.unavailable} />,
       <>
-        <TargetWeightPanel />
         <RiskBudgetPanel />
         <ScoreboardPanel />
         <MirrorPanel behaviorFacts={null} />
-        <KrMirrorPanel />
-        <MonthlyReviewPanel />
-        <MonthlyReviewPanel assetType="kr_stock" />
+        <MonthlyReviews />
       </>,
     );
   }

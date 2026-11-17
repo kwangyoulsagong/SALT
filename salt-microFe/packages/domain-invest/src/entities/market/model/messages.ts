@@ -36,18 +36,11 @@ export const MARKET_MESSAGES = {
   chartNotRealtime: "실시간 아님",
   chartLoading: "불러오는 중",
   chartName: (name: string, timeframe: string) => `${name} ${timeframe} 봉`,
-  sentimentHeading: "시장 심리 온도계",
-  smartMoneyHeading: "스마트 머니 추적",
   newsHeading: "뉴스",
   /** 국내 종목 프리뷰 — 오늘 시황 · 공시 제목(F016 단계 B 수집, 링크 없음) */
   krNewsHeading: "오늘 소식",
-  /** 차트·심리·스마트머니는 업비트 소스라 크립토에만 있다 */
-  marketDataUnavailable: "이 자산군은 차트와 시장 심리를 아직 제공하지 않습니다.",
-  /** 국내 주식 — 차트는 있고 심리 · 스마트머니(업비트 소스)는 없다. 0으로 채운 게이지를 그리지 않는다 */
-  intelligenceUnavailable: "국내 주식은 시장 심리 · 스마트 머니를 아직 제공하지 않습니다.",
-  largeBuys: "대량 매수",
-  largeSells: "대량 매도",
-  orderbookRatio: "호가창 매수/매도 비율",
+  /** 미리보기 차트가 없는 자산군 */
+  marketDataUnavailable: "이 자산군은 차트를 아직 제공하지 않습니다.",
   newsImageAlt: (symbol: string) => `${symbol} 뉴스 이미지`,
   /** 기사가 없을 때. **더미를 만들지 않는다** (`FE-REQ-010` FR-42) */
   newsEmpty: "관련 뉴스가 없습니다",

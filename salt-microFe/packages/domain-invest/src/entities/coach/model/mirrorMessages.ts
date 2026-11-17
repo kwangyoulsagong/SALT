@@ -7,7 +7,9 @@ import type { AdherenceLabel, KnownMistakeTag, TimeBand, Weekday } from "@repo/c
  * 숫자와 표본 수만 나란히 둔다(FEATURE-009 §통제하지 않는다). 숫자 문자열은 받은 그대로 끼운다.
  */
 export const MIRROR_MESSAGES = {
-  heading: "내 거래 미러",
+  /** 코인 · 국내 한 패널(F017 v4 순서 6 · 시안 "내 매매 거울") — 세그먼트가 자산군을 고른다 */
+  heading: "내 매매 거울",
+  assets: { label: "거울 자산군", crypto: "코인", kr_stock: "국내 주식" },
   description: "내가 적은 거래로 센 통계예요. 표본이 20건보다 적으면 흐리게 보여요",
   signedOut: "로그인하면 내 거래 미러를 볼 수 있어요",
   unavailable: "지금은 내 거래 미러를 불러올 수 없어요",
@@ -209,7 +211,6 @@ export const KR_REVIEW_MESSAGES = {
  * 창은 **거래일**이다. 참고값(KCMI)은 기간 · 정의가 달라 "나란히 두기만" 한다는 말을 같이 둔다.
  */
 export const KR_MIRROR_MESSAGES = {
-  heading: "국내 주식 거래 미러",
   description: "국내 주식 거래만 거래일로 센 통계예요. 표본이 20건보다 적으면 흐리게 보여요",
   unavailable: "지금은 국내 주식 거래 미러를 불러올 수 없어요",
   truncated: "거래가 너무 많아 통계를 만들지 못했어요",

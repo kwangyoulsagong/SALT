@@ -1,6 +1,5 @@
 import type {
   CoachMode,
-  GaugeTrackRecord,
   ModeCoachViewModel,
   SymbolCoachViewModel,
 } from "@repo/core/coach";
@@ -19,10 +18,3 @@ export const selectModeView = (
   mode: CoachMode,
 ): ModeCoachViewModel | null =>
   mode === "scalp" ? view.modes.scalp : view.modes.longTerm;
-
-/** 게이지 아래 한 줄의 재료. 없으면 줄을 그리지 않는다(`FE-REQ-026` FR-118) */
-export const findGaugeTrackRecord = (
-  records: readonly GaugeTrackRecord[],
-  gauge: GaugeTrackRecord["gauge"],
-): GaugeTrackRecord | undefined =>
-  records.find((record) => record.gauge === gauge);

@@ -11,34 +11,26 @@ import React, { type ReactNode, Suspense } from "react";
 
 import { MARKET_MESSAGES } from "../../model";
 import { MarketAssetClass, MarketPreviewSubject } from "../../model/types";
-import {
-  type GaugeFooters,
-  MarketIntelligencePreview,
-} from "./MarketIntelligencePreview";
 import { previewPanel } from "./MarketPreview.css";
 import { type MarketChartOverlay, MarketPreviewChart } from "./MarketPreviewChart";
 import { MarketPreviewHeader } from "./MarketPreviewHeader";
 import { KrNewsPreview } from "./KrNewsPreview";
-import { WhyMovedPreview } from "../WhyMoved";
+import { MarketNewsPreview } from "./MarketNewsPreview";
 
 interface MarketPreviewProps {
   subject: MarketPreviewSubject | undefined;
   /**
-   * 차트와 게이지 사이에 끼우는 블록. 우측 AI 코치 패널(`widgets/coach-panel`)이
-   * 모드 스위치 · 판단 · 구간을 여기로 넣는다(`FE-REQ-026` FR-110).
-   *
-   * **슬롯인 이유:** 시세 슬라이스가 코치 슬라이스를 import 하면 같은 레이어 cross-slice 다.
-   * 조합은 위 레이어가 하고 이 컴포넌트는 자리만 낸다.
+   * 머리 바로 아래 원인 → 근거 → 결과(F017 v4 순서 6 · `FE-REQ-064` FR-12 — "왜 올랐을까" 카드를 원인 칸으로).
+   * **슬롯인 이유:** 원인은 한 장 패널 응답(코치 슬라이스)이다. 시세 슬라이스가 코치 슬라이스를 import 하면 cross-slice —
+   * 조합은 위 레이어(`widgets/coach-panel`)가 하고 이 컴포넌트는 자리만 낸다
    */
+  causeSlot?: ReactNode;
+  /** 차트 아래 시나리오 한 칸 · 자세히 보기 — 같은 이유로 자리만 낸다(`FE-REQ-026` FR-110) */
   coachSlot?: ReactNode;
-  /** 각 게이지 바로 아래 한 줄(적중률, FR-118). 자리만 낸다 — 위와 같은 이유 */
-  gaugeFooters?: GaugeFooters;
-  /** 차트 위 선 · 띠. 코치 패널이 구간을 넣는다(`FE-REQ-036` FR-3) — 위와 같은 이유로 자리만 낸다 */
+  /** 차트 위 선. 코치 패널이 틀리는 선 하나를 넣는다(관찰 구간 띠는 뺐다, F017 v4 순서 6) — 위와 같은 이유로 자리만 낸다 */
   chartOverlay?: MarketChartOverlay;
 }
 
-/** 심리 · 스마트머니의 소스가 업비트다. 코인에만 있다 */
-const INTELLIGENCE_ASSET_TYPE = MarketAssetClass.Crypto;
 /** 미리보기 차트(5분봉)가 있는 자산군 — 국내 주식은 서버가 체결로 쌓은 5분봉(F011 `FE-REQ-041`) */
 const CHART_ASSET_TYPES: readonly string[] = [MarketAssetClass.Crypto, MarketAssetClass.KrStock];
 
@@ -53,17 +45,13 @@ const CHART_ASSET_TYPES: readonly string[] = [MarketAssetClass.Crypto, MarketAss
  *
  * ## 자산군에 따라 아래 두 블록이 빠진다
  *
- * 차트와 심리·스마트머니는 업비트에서 온다. 주식 심볼로 그 블록을 그리면 없는 데이터를
- * 기다리는 빈 영역이 된다 — 대신 **왜 없는지 한 줄**을 보여준다.
+ * 배치(F017 v4 순서 6 · 시안 "바뀐 뒤 · 오른쪽 패널"): 머리 → 원인 · 근거 · 결과 → 차트(틀리는 선) → 시나리오 한 칸 → 오늘 소식.
+ * 시장 심리 온도계 · 스마트 머니 추적 · 단타/장기 탭 · 점수 · 관찰 구간 표는 뺐다(계산은 서버에 남는다 — 사용자 확정 2026-11-13).
+ * 차트가 없는 자산군은 **왜 없는지 한 줄**을 보여준다.
  */
-export const MarketPreview = ({
-  subject,
-  coachSlot,
-  gaugeFooters,
-  chartOverlay,
-}: MarketPreviewProps) => {
+export const MarketPreview = ({ subject, causeSlot, coachSlot, chartOverlay }: MarketPreviewProps) => {
   const hasChart = subject !== undefined && CHART_ASSET_TYPES.includes(subject.assetType);
-  const hasIntelligence = subject?.assetType === INTELLIGENCE_ASSET_TYPE;
+  const isKr = subject?.assetType === MarketAssetClass.KrStock;
 
   return (
     <Root width="lg" className={previewPanel}>
@@ -74,37 +62,28 @@ export const MarketPreview = ({
               <Padding paddingTop="sm">
                 <MarketPreviewHeader subject={subject} />
               </Padding>
-              {/* 왜 떨어졌을까?(F016 단계 C) — 카드가 서는 날만 머리 바로 아래. 아니면 자리 없음 */}
-              <WhyMovedPreview symbol={subject.symbol} assetType={subject.assetType} name={subject.displayName} />
+              {causeSlot}
               {hasChart ? (
                 <>
                   <Heading level={5} color="tertiary">
                     {MARKET_MESSAGES.chartHeading}
                   </Heading>
-                  <MarketPreviewChart
-                    symbol={subject.symbol}
-                    overlay={chartOverlay}
-                    assetType={subject.assetType}
-                  />
-                  {coachSlot}
-                  {hasIntelligence ? (
-                    <MarketIntelligencePreview
-                      symbol={subject.symbol}
-                      gaugeFooters={gaugeFooters}
-                    />
-                  ) : (
-                    <Text color="tertiary">{MARKET_MESSAGES.intelligenceUnavailable}</Text>
-                  )}
-                  {/* 국내 오늘 소식 — 코인 뉴스 블록과 같은 자리 · 같은 모양(코인은 위 묶음 안에 있다) */}
-                  {subject.assetType === MarketAssetClass.KrStock && <KrNewsPreview code={subject.symbol} />}
+                  <MarketPreviewChart symbol={subject.symbol} overlay={chartOverlay} assetType={subject.assetType} />
                 </>
               ) : (
-                <>
-                  {coachSlot}
-                  <Text color="tertiary">
-                    {MARKET_MESSAGES.marketDataUnavailable}
-                  </Text>
-                </>
+                <Text color="tertiary">{MARKET_MESSAGES.marketDataUnavailable}</Text>
+              )}
+              {coachSlot}
+              {/* 오늘 소식 — 코인 · 국내 같은 자리 · 같은 모양 */}
+              {isKr ? (
+                <KrNewsPreview code={subject.symbol} />
+              ) : (
+                <FlexBox direction="column" gap="md">
+                  <Heading level={5} color="tertiary">
+                    {MARKET_MESSAGES.newsHeading}
+                  </Heading>
+                  <MarketNewsPreview symbol={subject.symbol} />
+                </FlexBox>
               )}
             </FlexBox>
           ) : null}

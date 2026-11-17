@@ -118,16 +118,6 @@ export const subHeading = style({
 /** 요약 띠(`/investments`)가 `#앵커`로 올 때 패널 머리가 화면 맨 위에 붙지 않게 */
 export const anchorTarget = style({ scrollMarginTop: "16px" });
 
-/**
- * 목표 비중 카드 설명 — "오를 종목을 고르지 않고 확률을 말하지 않는다"는 고지라 늘 읽혀야 한다.
- * 공용 `panelDescription`(neutral 500, 3.03:1)이 아니라 13px neutral 700(AA). 투자 화면에서 옮겨 왔다
- */
-export const noticeDescription = style({
-  margin: 0,
-  color: vars.colors.neutral[700],
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-});
 
 /** 흰 패널 안 고지 · 기준 시각 — 12px neutral 700(AA). 바깥 회색 바탕용 `footnote` 와 다르다 */
 export const panelFootnote = style({
@@ -143,4 +133,80 @@ export const inlineLink = style({
   fontWeight: vars.fontWeights.semibold,
   textDecoration: "underline",
   textUnderlineOffset: "2px",
+});
+
+/* ── 펼침(F017 v4 순서 6 · `FE-REQ-064` FR-12 — 월간 돌아보기 · 위험 예산 자세히) ─────────────── */
+
+/** 펼침 머리 — 패널 제목 줄 자리. 네이티브 `<details>`(키보드 · 스크린리더가 상태를 안다) */
+export const foldSummary = style({
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  cursor: "pointer",
+  fontFamily: vars.fontFamily.base,
+  color: vars.colors.text.primary,
+  fontSize: "18px",
+  lineHeight: "24px",
+  fontWeight: vars.fontWeights.bold,
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
+});
+
+/** 펼침 머리 오른쪽 안내 — neutral 700(AA) */
+export const foldHint = style({
+  marginLeft: "auto",
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.neutral[700],
+  whiteSpace: "nowrap",
+});
+
+/** 펼침 안 섹션 — 겉 패널 대신 위 선으로 가른다 */
+export const embeddedSection = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  marginTop: "16px",
+  paddingTop: "16px",
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+});
+
+export const embeddedTitle = style({
+  margin: 0,
+  fontFamily: vars.fontFamily.base,
+  color: vars.colors.text.primary,
+  fontSize: "15px",
+  lineHeight: "22px",
+  fontWeight: vars.fontWeights.bold,
+});
+
+/** 위험 예산 한 줄 — 값(넘었으면 진한 경고색 글자 · 글자가 "넘었어요"라 색만으로 말하지 않는다) + 보조 */
+export const riskLine = style({
+  margin: 0,
+  fontFamily: vars.fontFamily.base,
+  fontSize: "15px",
+  lineHeight: "22px",
+  fontWeight: vars.fontWeights.bold,
+  color: vars.colors.text.primary,
+  fontVariantNumeric: "tabular-nums",
+});
+export const riskLineAlert = style({ color: vars.colors.status.warningDark });
+export const riskNote = style({
+  margin: 0,
+  fontFamily: vars.fontFamily.base,
+  fontSize: "13px",
+  lineHeight: "20px",
+  color: vars.colors.neutral[700],
+});
+
+/** 패널 안 작은 펼침 머리(위험 예산 자세히) — 본문 13/600, neutral 700 */
+export const foldHintSummary = style({
+  cursor: "pointer",
+  fontFamily: vars.fontFamily.base,
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.neutral[700],
+  marginBottom: "8px",
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
 });

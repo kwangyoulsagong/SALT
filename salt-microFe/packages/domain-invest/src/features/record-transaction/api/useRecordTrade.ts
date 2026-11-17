@@ -25,8 +25,6 @@ export const useRecordTrade = () => {
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.sizeCheckAll() }),
       // 미러의 보유 대비 · 회전율 · 처분효과는 요청 때 센다 — 거래가 늘면 바뀐다(결과 · 태그는 배치 몫)
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.mirror() }),
-      // 목표 비중의 "지금" 쪽이 보유다(F010 슬라이스 5)
-      queryClient.invalidateQueries({ queryKey: coachQueryKeys.targetWeights() }),
       // 홈 보유 요약 — 국내 주식 보유는 기록 직후 서버가 평가한다(F011 슬라이스 3b). 코인도 수량이 바뀐다
       queryClient.invalidateQueries({ queryKey: portfolioQueryKeys.summary }),
     ]);

@@ -1,5 +1,6 @@
 import { keyframes, style, styleVariants } from "@vanilla-extract/css";
 
+import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
 
 import { nameChip } from "./ScenarioHeadline.css";
@@ -12,7 +13,7 @@ import { nameChip } from "./ScenarioHeadline.css";
  */
 
 const label = {
-  fontSize: "12px",
+  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
   color: vars.colors.neutral[600],
@@ -41,7 +42,7 @@ export const srOnly = style({
 });
 
 export const aiMark = style({
-  fontSize: "12px",
+  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
   lineHeight: "16px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.brand.primary,
@@ -52,11 +53,13 @@ export const asOf = style([label, { marginLeft: "auto", fontVariantNumeric: "tab
 // ==================== 부채꼴 ====================
 
 export const fan = style({ display: "block", width: "100%", height: "auto" });
-export const fanText = style({ fontSize: "12px", fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums" });
+export const fanText = style({ fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } }, fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums" });
 
 // ==================== 줄 ====================
 
 export const row = style({
+  // "왜?" 칩 앵커로 올 때 줄이 화면 맨 위에 붙지 않게
+  scrollMarginTop: "16px",
   display: "grid",
   gridTemplateColumns: "34px minmax(0, 1fr)",
   gap: "10px",
@@ -68,6 +71,7 @@ export const icon = styleVariants({
   usual: { background: vars.colors.status.warningLight, color: vars.colors.status.warningDark },
   cause: { background: vars.colors.brand.lighter, color: vars.colors.brand.active },
   company: { background: vars.colors.neutral[100], color: vars.colors.neutral[700] },
+  judgment: { background: vars.colors.neutral[100], color: vars.colors.text.primary },
   invalidation: { background: vars.colors.special.downLight, color: vars.colors.special.downDark },
   track: { background: vars.colors.status.successLight, color: vars.colors.status.successDark },
 }, (tone) => [
@@ -129,7 +133,7 @@ export const gaugeLabel = styleVariants({
   bad: { color: vars.colors.special.downDark, transform: "translateX(-50%)" },
   now: { right: 0, color: vars.colors.text.primary },
 }, (tone) => [
-  { position: "absolute", top: "22px", fontSize: "12px", lineHeight: "14px", fontWeight: vars.fontWeights.bold, whiteSpace: "nowrap" },
+  { position: "absolute", top: "22px", fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } }, lineHeight: "14px", fontWeight: vars.fontWeights.bold, whiteSpace: "nowrap" },
   tone,
 ]);
 
@@ -140,7 +144,7 @@ export const compare = style({
   gridTemplateColumns: "76px minmax(0, 1fr) 40px",
   gap: "8px",
   alignItems: "center",
-  fontSize: "12px",
+  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
   lineHeight: "16px",
   color: vars.colors.neutral[700],
 });
@@ -228,7 +232,10 @@ export const sourceChip = style({
   whiteSpace: "nowrap",
   verticalAlign: "1px",
   textDecoration: "none",
-  selectors: { "a&:hover": { background: vars.colors.brand.lighter, color: vars.colors.brand.active } },
+  selectors: {
+    "a&:hover": { background: vars.colors.brand.lighter, color: vars.colors.brand.active },
+    [IN_APP_WEBVIEW]: { fontSize: "13px" },
+  },
 });
 
 // ③ 회사 사정 — 칸 묶음(실적 · 오늘 · 업계 · 걸리는 점). 이름은 줄 이름보다 한 단 작게
@@ -254,7 +261,7 @@ export const onlyYou = style({
   padding: "1px 7px",
   borderRadius: "7px",
   background: vars.colors.background.white,
-  fontSize: "12px",
+  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.neutral[700],
@@ -265,3 +272,11 @@ export const tone = styleVariants({
   down: { color: vars.colors.special.downDark },
   flat: { color: vars.colors.text.primary },
 });
+
+// 지금의 판단 — 라벨 + 등급 한 단어(F017 v4 순서 6)
+export const judgmentHead = style({ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" });
+export const plainList = style({ margin: 0, paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" });
+export const fold = style({ display: "flex", flexDirection: "column", gap: "6px" });
+export const foldSummary = style([label, { cursor: "pointer", fontWeight: vars.fontWeights.semibold, color: vars.colors.neutral[700] }]);
+/** 등급 배지 — 앱 웹뷰에선 13(배지 sm 11 은 웹 값 그대로, `RN-REQ-032` FR-7) */
+export const tierBadge = style({ selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } } });

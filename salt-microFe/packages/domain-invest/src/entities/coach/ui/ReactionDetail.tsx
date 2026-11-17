@@ -79,7 +79,7 @@ export interface ReactionLabels {
 
 /**
  * 사건 뒤 반응 분포 — 기간 고르기 + 사건 · 평소 두 막대(같은 축) + 빗나간 때.
- * 주요 사건(`EventsCard`) · 쏠림 신호(`PositioningCard`)가 같이 쓴다. 숫자는 전부 서버 값이다.
+ * 주요 사건(`EventsCard`)이 쓴다(~~쏠림 신호 `PositioningCard`~~ — 2026-11-17 화면에서 뺐다, F017 v4 순서 6). 숫자는 전부 서버 값이다.
  */
 export const ReactionDetail = ({
   horizons,
