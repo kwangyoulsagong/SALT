@@ -160,3 +160,7 @@
 ## 2026-11-16 — F017 v4 순서 5b-3 짝
 
 - 공유 파일 한 자리 — 이 REQ 기능 변경 없음. 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`
+
+## 2026-11-18 — `SRV-REQ-057` FR-9 짝
+
+- `KisClient` 우선순위 한 칸 · 선택 인자 — 기능 변경 없음. 검증 표는 `SRV-REQ-057` 체크리스트

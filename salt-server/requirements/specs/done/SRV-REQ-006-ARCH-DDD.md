@@ -261,3 +261,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 | 2026-11-11 | `feat/f017-s1c-collection`: `pacer.ts` — 쉬기 `pauseUntil` · 동시 대기 상한 `maxInFlight`(KIS 모의 한도, `SRV-REQ-057` FR-3). 기존 간격 · 우선순위 동작 그대로(테스트 그대로 통과) |
 | 2026-11-14 | `news.test.ts` 조립 인자에 `aiBody` 자리(`SRV-REQ-058` 2a) — 이 REQ 의 확인 항목 무변경 |
 | 2026-11-16 | `news.test.ts` 조립 인자에 `gap` 자리(`SRV-REQ-057` FR-8 뉴스 잠든 날 메우기) — 이 REQ 의 확인 항목 무변경 |
+| 2026-11-18 | `pacer.ts` — 나이 들이기(마감 = 선 시각 + 우선순위 × `agingMs`, `SRV-REQ-057` FR-9). 같은 순간에 선 요청 순서 · 간격 · 쉬기 · 동시 상한 그대로(기존 시험 그대로 통과) |

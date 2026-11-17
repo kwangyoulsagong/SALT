@@ -34,6 +34,7 @@
 | 종목별 목록 · 최초 · 최신을 `GROUP BY` · `DISTINCT` 로 물어 봉 표(10GB)를 통째로 훑음 — 6분마다 DB 전체가 느려져 장중 504(2026-11-17) | `salt-forecast` `tests/store/test_price_bar_skip_scan.py`(실제 보낸 SQL 계획에 전체 스캔 0) | `uv run pytest` |
 | 워커 부팅 실행이 락 밖 · 한꺼번에 — cron 회차와 겹침 · 워커가 화면 요청과 연결 풀을 같이 씀(2026-11-17) | `salt-server` `scheduler.test.ts` `runAtBootInOrder` · `prismaRouting.test.ts`(진짜 node-cron) | `npm test` |
 | 영구 실패(DART 013 · 014)를 프로세스 메모리로만 세어 재기동마다 다시 부름(2026-11-17) | `salt-server` `collectDartDisclosures.test.ts` 영구 · 지나가는 실패 경계 | `npm test` |
+| 공유 한도 페이서가 순수 우선순위 — 몇 시간짜리 백필이 아래 줄(전 종목 일봉 · 시황 제목)을 굶김(2회차, 2026-11-16 · 11-17) | `salt-server` `pacer.test.ts` 굶는 요청 0(포화에서도 단계 × `agingMs` 안팎) | `npm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.
