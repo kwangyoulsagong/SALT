@@ -81,3 +81,19 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `app-forecast.service.ts`(머리 주인) `getScenario` 삭제 — 시나리오는 패널 응답으로(사건 · 쏠림 그대로) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |
+
+
+## 2026-11-17 — F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`)
+
+이 REQ 몫: 짝 — 주요 사건 뷰모델(`events.viewmodel.ts`)에 종류 둘 · `earnings` 블록(주인 `BFF-REQ-043` FR-2)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 시험 · 빌드 | 충족 | `npm test` 514/514(새 7 — 창 · 확정 · 깨진 창 넷 · 옛 서버 · 종목 사건 종류) · `npm run build` 0 |
+| 실응답 통과 | 충족 | 서버 실DB 응답 다섯을 `toEventsViewModel` 에 — 창 · 반응 그대로, 코인 `null` |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| HTTP 실토큰 경로 | 위 서버와 같다 | `QA-001` |

@@ -197,3 +197,22 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |
+
+
+## 2026-11-17 — F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`)
+
+이 REQ 몫: 짝 — `domain/events.reaction` 머리 설명 한 줄(끊김 규칙 그대로) · 기준 시각 `anchor` 인자 추가(국내 실적 공시만 씀, 끊김 판정 무변경)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 정적 검사 | 충족 | `ruff check` · `ruff format --check` · `pyright` 0 · `lint-imports` 3 kept |
+| 시험 | 충족 | `pytest -q` 전부 · `tests/leakage` 전부(새 `test_kr_earnings_leakage` 무작위 as-of 300회 미래 공시 무영향) · `tests/store`(실DB, `test_schema_contract` 새 표 대조) |
+| 실행 | 충족 | `events --skip-ingest` 34,290행 4.6초 · 다시 실행 같은 행 수(종목 사건 1,212 · 반응 240 · 창 27) · 과거 as_of `--dry-run --as-of 2026-06-30`(사건 1,053 · 창 27) |
+| 전 종목 살핌 | 충족 | 51종목 창 · 월간 이름 · 짧은 일수 — 첫 판 결함 둘(현대차 월 판매 → 1일 지연 · 건수 규칙이 삼성 · POSCO 분기 공시를 월간으로) 고침 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 공시 뒤 반응 표본 | 국내 일봉 5년 백필 진행 중 — 기아 · 하이닉스 20회는 렌더, 삼성전자 등 2년치 종목은 `insufficient_sample` | 백필이 끝나면 매일 `events` 가 채운다(`SRV-REQ-040` FR-40) |
+| 매시 배치에 들어감 | 예측 배치는 머지된 main 실행 트리(`~/.salt-run`)에서 돈다 | 머지 뒤 매시 따라감(`OPS-005`) |

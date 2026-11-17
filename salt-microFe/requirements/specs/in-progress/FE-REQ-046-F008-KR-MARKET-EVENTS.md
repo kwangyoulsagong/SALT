@@ -11,6 +11,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 > **2026-11-02 1단계 구현** — FR-1 · 2 · 4 · 5 · 6 · 7 · 8. FR-3(예상 창 문구)는 2단계. 디자인은 기준 화면 실측표(`FE-REQ-047` "정보 상자" ·
 > 본문 13/600 · 라벨 12/500)로 맞췄다. 검증 `checklists/FE-REQ-046.md`.
+> **2026-11-17 2단계** — FR-3 구현(`EventsCard` '이 종목 일정' 맨 앞 실적 공시 한 줄 + `EarningsDetail` 펼침) · FR-8 실화면(Playwright — 실데이터 응답 + `route` 상태 일곱).
 > **정정 2026-11-02** — 국내 탭 일정 "띠(줄)"는 지웠다. 같은 3건이 국내 요약 띠의 오늘의 시장 상자 안에 있다(`FE-REQ-050` FR-4 · FR-8). 제목의 "일정 띠"는 그 상자를 뜻한다.
 
 ## Summary
@@ -27,7 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 |---|---|
 | FR-1 | 국내 상세에 `EventsCard` — 소유자만(404 면 카드 자체를 그리지 않는다, 코인과 같다). 위치는 국내 판단 카드 아래 |
 | FR-2 | 카드 안을 **이 종목 일정**(`scope=symbol`, 2단계) → **시장 일정**(`scope=market`) 순으로(두 묶음이 다 있을 때만 묶음 제목). 지역 칩(국내 · 미국) — **국내 · 미국이 섞일 때만**, 그때 이름은 지역 말을 뺀 짧은 이름("미국 · 고용보고서", 실화면에서 "미국미국 고용보고서" 겹침을 보고 고침). 종류 이름은 ~~`shared/i18n`~~ **정정 2026-11-02: `@repo/core/coach` `EVENT_KIND_LABELS` 한 벌** — 카드(코치 엔티티)와 일정 줄(시장 엔티티)이 같이 쓴다. 엔티티끼리 import 할 수 없고 `shared` 는 도메인 문구를 두지 않는다(`shared/i18n/messages.ts` 머리) |
-| FR-3 | 2단계 — 확정 IR 일정이 없고 `expectedWindow` 가 있으면 "MM.DD ~ MM.DD 사이 공시 예상 · 과거 N회 기준 · 확정 아님". 한 날짜로 그리지 않는다 |
+| FR-3 | 2단계 — 확정 IR 일정이 없고 `expectedWindow` 가 있으면 "MM.DD ~ MM.DD 사이 공시 예상 · 과거 N회 기준 · 확정 아님". 한 날짜로 그리지 않는다. **구현 2026-11-17**: 줄 = 왼쪽 칸 "예상"(확정이면 D-day) · "실적 공시" · "1.23 ~ 2.1 · 확정 아님"(확정이면 날짜 · 시각 — 시각 모르면 날짜만). 펼침 = 확정 출처 한 줄 또는 3종(과거 공시일 N회 기준 · 그 전 공시로만 잡은 기간에 든 수 / 판정 수 · 비교 기준 법정 기한 · 기간을 벗어난 결산 "2024년 4분기 — 실제 …"(없으면 "지난 N번은 모두 기간 안")) + 공시 뒤 반응(`ReactionDetail`, "공시일 전날 종가에서 잰 움직임"). 막히면 사유 한 줄. 줄에 지역 칩을 두지 않는다 — 390 앱 웹뷰에서 이름 칸이 밀려 사라졌다(실화면). 문구 `entities/coach/model/eventMessages.ts` `earnings` |
 | FR-4 | 과거 반응 상세는 지금 `ReactionDetail` 그대로(분포 · 평소 대비 · 빗나간 때). 막히면 사유 한 줄 |
 | FR-5 | `/investments` 국내 탭 지수 띠 아래 "다가오는 일정" 한 줄 — 가장 가까운 3건(날짜 · 종류 · D-day). 분포 없음 → 모든 로그인 사용자. 0건이면 줄을 숨긴다(빈 줄 금지). 503 이면 숨긴다. **2026-11-02 메모**: 국내 탭 자체가 소유자에게만 보여(F011 재배포 약관 — 비소유자 실화면 탭 0) **화면상 일정 줄도 소유자만** 본다. 계약(서버 · BFF)은 공개라 탭이 열리면 그대로 보인다. 간격은 줄이 갖는다 — 숨으면 여백도 없다 **정정 2026-11-02: 줄은 지웠다 — 같은 3건이 국내 요약 띠의 오늘의 시장 상자 안으로 들어갔다(`FE-REQ-050` FR-4 · FR-8). 두면 같은 숫자 두 번** |
 | FR-6 | `FEATURE-006` FR-65 의 "주요 일정은 소스가 생길 때까지 두지 않는다"를 국내 탭에 한해 닫는다 — 보일 종류 · 기간은 서버가 정한다(프론트 상수 0) |
@@ -43,3 +44,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-5 일정 줄(`KrScheduleStrip` · `KrScheduleLine` · `useKrSchedule`) 삭제 — 요약 띠 상자로 옮김. 날짜 모양은 `entities/market/lib/krScheduleDate.ts` `formatKrScheduleDate` 로 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-04 | `EventsCard` 의 렌더 중 `new Date()` 에 `no-render-read` 예외 주석 — 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(서버 렌더에 없음, `DEV-001`) |
+| 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-3 구현** — 실적 공시 한 줄 · 펼침 3종 + 공시 뒤 반응 · 390 앱 웹뷰 이름 칸 사라짐 고침. FR-8 실화면 |

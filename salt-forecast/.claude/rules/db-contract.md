@@ -34,7 +34,8 @@
 | `score` | (symbol, horizon_weeks, as_of, model_version) | 실현 r · 적중 여부 · pinball — 기준 모델도 같은 표 |
 | `gate` | (symbol, horizon_weeks) | 최신 판정 · `blocked_reason` · 26주 지표 요약 · 판정 창(`window_from` · `window_to`) · 90% 밖 수(`miss_count`) — 성적 4요소(`FC-REQ-019`) |
 | `realized_vol` | (symbol, as_of) | 실현 변동성 EWMA · GARCH 도전자 · QLIKE 채점 · 게이트(`FC-REQ-006`) |
-| `scheduled_event` · `event_reaction` · `event_reaction_stats` | (kind, event_at, symbol) · (kind, event_at, symbol, event_symbol) · (kind, symbol, horizon_days, as_of) | 주요 사건 일정(미국 거시 3 · 국내 4 — 시장 일정 `symbol = ''`) · 반응 · 워크포워드 통계(`FC-REQ-005` · `FC-REQ-021`, `DB-REQ-034`) |
+| `scheduled_event` · `event_reaction` · `event_reaction_stats` | (kind, event_at, symbol) · (kind, event_at, symbol, event_symbol) · (kind, symbol, horizon_days, as_of) | 주요 사건 일정(미국 거시 3 · 국내 4 — 시장 일정 `symbol = ''` · 종목 실적 `kr_earnings` · `kr_ir`) · 반응 · 워크포워드 통계(`FC-REQ-005` · `FC-REQ-021`, `DB-REQ-034`) |
+| `kr_earnings_window` | (symbol, as_of) | 다음 실적 공시 예상 창 · 워크포워드 적중 · 빗나간 결산 · 법정 기한 · 확정 일정. 서버는 `v_kr_earnings_window` · 반응 `v_kr_earnings_reaction`(`FC-REQ-021` FR-14, `DB-REQ-034` FR-5 · 8) |
 | `market_signal` · `signal_event` | (symbol, as_of) · (kind, symbol, event_at) | 쏠림 신호 상태 · 사건. 반응 통계는 `event_reaction_stats` 에 kind 로(`FC-REQ-007`) — 표본 창 · 빗나간 수 · 판정 대상 수 포함(`FC-REQ-019`) |
 | `preregistration` | key | 사전등록 — 한 번만, UPDATE 트리거 금지(`FC-REQ-008`) |
 | `rule_ic` | (prereg_key, run_as_of, source, item, mode, horizon_days, label_kind, regime) | 규칙 항목별 IC · 실행마다 쌓음. 서버는 아직 읽지 않는다 |

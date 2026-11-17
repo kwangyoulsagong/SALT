@@ -10,7 +10,10 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
 > **2026-11-02 1단계 구현**(`feat/f008-slice24-kr-market-events`) — FR-1~10 완료. 정정 셋: FR-6 기본 종목(이 서비스는 소유자를 모른다) ·
-> FR-10 작업 자리(새 배치 대신 기존 `events` 작업) · Q2 · Q3 닫힘(소스 · 시장 대용). 2단계(FR-11~15)는 `FC-REQ-026` 공시 수집 뒤.
+> FR-10 작업 자리(새 배치 대신 기존 `events` 작업) · Q2 · Q3 닫힘(소스 · 시장 대용). ~~2단계(FR-11~15)는 `FC-REQ-026` 공시 수집 뒤.~~
+> **2026-11-17 2단계 구현**(`feat/f008-slice24-s2-earnings-window`) — FR-11~15. 원천은 서버 export 뷰 `v_dart_earnings_export`(예측 DART 호출 0).
+> 정정 넷: FR-11(`kr_ir` = 확정 실적 일정 · 반응은 `kr_earnings` 만) · FR-12(기준 = 공시일 전 거래일 종가 · 알게 된 시각 = `event-window@2` 규칙) ·
+> FR-14(유형별 창 · 워크포워드 채점 · 월간 공시 빼기) · FR-15(수집 주인 서버).
 > 검증 `salt-forecast/requirements/reports/checklists/FC-REQ-021.md`.
 
 ## Summary
@@ -44,17 +47,17 @@ DART 공시 수집 허용(사용자 확인, Open Questions Q1)이 있어야 시�
 
 | FR | 내용 | FEATURE-008 |
 |---|---|---|
-| FR-11 | 종류 2개 — `kr_earnings`(영업(잠정)실적 공정공시 · 분기 · 반기 · 사업보고서 중 **가장 먼저** 실적 숫자가 공개된 공시) · `kr_ir`(기업설명회 개최 공시 — 예정 일정). **종목에 묶인 사건**이다(FR-13) | FR-70 |
-| FR-12 | `kr_earnings` 의 `event_at` = 공시 접수 시각. 공시 목록은 날짜만 주므로 **수집 폴링 시각**을 상한으로, 백필은 당일 18:00 KST(`2026-09-23-catalyst-detection.md` §3). `announced_at = event_at` — 예정 일정이 아니다 | `time-and-leakage.md` §1 |
+| FR-11 | 종류 2개 — `kr_earnings`(영업(잠정)실적 공정공시 · 분기 · 반기 · 사업보고서 중 **가장 먼저** 실적 숫자가 공개된 공시) · `kr_ir`(기업설명회 개최 공시 — 예정 일정). **종목에 묶인 사건**이다(FR-13). **구현 2026-11-17 · 정정**: `kr_earnings` 는 결산(분기 끝)마다 첫 공시 하나 — 손익구조 변경 · 정기보고서 포함, 자회사 · 전망 · 정정 머리말 · **월간 공시**(같은 이름이 1년 안 서로 다른 8개 달 — 현대차 · 기아 월 판매가 분기 실적과 같은 이름) 제외. `kr_ir` = **확정 실적 발표 일정** — 서버가 본문 '개최목적'이 실적 발표인 IR(콘퍼런스 · NDR · 실적 뒤 포럼 제외)과 결산실적공시 예고만 넘긴다. 반응은 `kr_earnings` 만 잰다(같은 결산을 두 번 재지 않게) | FR-70 |
+| FR-12 | ~~`kr_earnings` 의 `event_at` = 공시 접수 시각. 공시 목록은 날짜만 주므로 수집 폴링 시각을 상한으로, 백필은 당일 18:00 KST. `announced_at = event_at`~~ **정정 2026-11-17**: `event_at` = 접수일 00:00 KST — 반응 기준 = **공시일 전 거래일 종가**(사건 연구 0일 포함 관례). 목록에 시각이 없어 '그날 끝'으로 두면 장 전 잠정실적(삼성전자)의 반응이 하루 밀린다. 기준 봉이 공시보다 앞이라 미래 정보 0. `announced_at` = 사전등록 `event-window@2` 게시 시각 규칙 `dart_published`(처음 본 시각 · 접수일 23:59:59 KST 중 이른 쪽 — 18:00 보다 보수적). `kr_ir` 은 `event_at` = 본문 일시(시각 모르면 09:00 KST) · `announced_at` = 그 공시 게시 시각 | `time-and-leakage.md` §1 |
 | FR-13 | 반응은 **그 종목에만** 계산한다(시장 일정과 다르다). 종목당 연 4건 × 5년 ≈ 20 표본 | FR-30 |
-| FR-14 | **예상 창** — 종목별 과거 실적 공시일이 분기 종료 뒤 며칠째였는지 분포(최소 · 중앙 · 최대)를 저장한다. 확정 일정(`kr_ir`)이 없으면 화면은 "과거 공시일 기준 예상 창(확정 아님)"으로만 보인다. 한 날짜로 찍지 않는다 | FR-70 · 공통 수용 기준 4 |
-| FR-15 | 수집 범위 — FR-6 종목만. DART 키는 이미 서버 · 예측 환경에 있다(`DART_API_KEY`). 공시 원문은 저장하지 않고 접수번호 · 시각 · 유형만 | `security-sources.md` |
+| FR-14 | **예상 창** — 종목별 과거 실적 공시일이 분기 종료 뒤 며칠째였는지 분포(최소 · 중앙 · 최대)를 저장한다. 확정 일정(`kr_ir`)이 없으면 화면은 "과거 공시일 기준 예상 창(확정 아님)"으로만 보인다. 한 날짜로 찍지 않는다. **구현 2026-11-17**(`domain/kr_earnings.window`): 다음 결산 = as_of 전 마지막 분기 끝(이미 공시됐으면 그다음) · **같은 유형**(사업연도 결산 · 분기)의 일수만 — 섞으면 창이 90일로 벌어진다 · 3종 = 표본 · **워크포워드 적중**(과거 결산마다 그 전 공시로만 만든 창에 실제가 들었나) · 빗나간 결산(최근 3) + 기준 = 법정 기한(+45 · +90). 막힘 `insufficient_sample`(< 5) · `not_judged`(판정 < 3) · `window_passed`. 확정 일정은 그 결산(`period_end` 같음)의 것만. 이력 2016~ | FR-70 · 공통 수용 기준 4 |
+| FR-15 | 수집 범위 — FR-6 종목만. DART 키는 이미 서버 · 예측 환경에 있다(`DART_API_KEY`). 공시 원문은 저장하지 않고 접수번호 · 시각 · 유형만. **정정 2026-11-17**: 수집은 서버(`SRV-REQ-041` FR-8~10 — 유니버스 종목, 표 `dart_earnings_filing`), 예측은 export 뷰만 읽는다(`FC-REQ-026` FR-7 — 중복 수집 0). 반응 · 창 대상은 FR-6 종목 ∩ 서버 유니버스 | `security-sources.md` |
 
 ## 데이터 계약 (`DB-REQ-034`)
 
 - `forecast.scheduled_event` `kind` 허용값 확장 · **`symbol` 열**(시장 일정 = `''`, 종목 사건 = 종목 코드) · PK `(kind, event_at, symbol)`
 - `forecast.event_reaction` · `event_reaction_stats` 는 열 무변경(종목 사건은 `symbol` 이 같다)
-- `forecast.kr_earnings_window(symbol, as_of, quarter_lag_min · median · max, sample)` — 2단계
+- `forecast.kr_earnings_window(symbol, as_of, period_end, annual, quarter_lag_min · median · max, sample, window_from · to, deadline, hits, judged, misses, confirmed_at · time_known · source, renderable, blocked_reason)` — 2단계(2026-11-17 열 확대) · 읽기 뷰 `v_kr_earnings_window` · 반응 `v_kr_earnings_reaction`
 - `forecast.v_event_card` — 종목 사건은 그 종목 행에만 붙는다
 
 ## 범위 밖
@@ -84,3 +87,4 @@ DART 공시 수집 허용(사용자 확인, Open Questions Q1)이 있어야 시�
 |---|---|
 | 2026-10-30 | 신규(to-do). 근거: 국내 주식 화면에 일정 정보가 없다는 사용자 요구("국장이니까 … 주요 증시 일정") |
 | 2026-11-02 | **1단계 구현 · in-progress.** FR-1~10. 정정: FR-6(기본 종목) · FR-10(작업 자리) · Q2 · Q3 닫힘. 국내 일봉 끊김을 반응 · 평소 분포 둘 다에서 뺀다(`reaction` · `stats` `break_cum`, FC-REQ-020 FR-10 과 같은 규칙). 실데이터: 31종목 + KR-EW 렌더 가능 636행 · 005930 금통위 1일 통계 SQL 재계산과 소수점까지 같음 |
+| 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **2단계 구현 — FR-11~15.** 정정 넷(FR-11 `kr_ir` = 확정 실적 일정 · FR-12 기준 = 공시일 전 거래일 종가 · FR-14 유형별 창 + 워크포워드 채점 + 월간 공시 빼기 · FR-15 수집 주인 서버). 실행 34,290행 · 창 27(렌더 24) · 사건 1,108 · 확정 일정 104 |

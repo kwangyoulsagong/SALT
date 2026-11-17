@@ -124,3 +124,20 @@ Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check
 | 미충족 · 미검증 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 3종 결함 ~~160~~ → **6**(1b 2026-11-10 — 코인 · 국내 단타 과거 검산 `signal-skill@1` `f38ca6ae` · 국내 단타 원장 `326a0553`, 서버 150요청 · 300모드 실측). 남은 6 = 코인 장기 피하기 — 과거 검산 판단 날 8 < 등록 10(본 기간 뒤 9-29 ~ 만기가 온 판단만) | 규칙을 고른 기간(2018 ~ 2026-09)은 등록상 화면에 못 쓴다 — 날이 쌓이길 기다림(숨기지 않고 결함 꼬리표) | 판단 날 ≥ 10 이 차면 `npm run judgments:signal-skill -- --write` 재실행 — 코인 장기 격자상 11월 중 |
+
+
+## 2026-11-17 — F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`)
+
+이 REQ 몫: 짝 — `EventsCard` · `eventMessages` 에 실적 공시 줄(주인 `FE-REQ-046` FR-3)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 정적 · 단위 | 충족 | `pnpm check-types` 13/13 · `pnpm lint` 13/13 · `pnpm test`(core 298 — 종류 이름 누락 0) |
+| 운영 빌드 | 충족 | 별도 worktree 에서 zone 다섯 `pnpm build` 5/5 — `/investments/[symbol]` First Load 153 kB(main 과 같음) · 공용 103~105 kB (`@repo/core` 를 바꿔 셸 · 도메인 zone 전부) |
+| 실화면 | 충족 | Playwright(설치된 Chrome) 국내 상세 — 실데이터 응답(000660 · 005930) + `route` 상태: 확정(시각) · 확정(날짜만) · 창 지남 · 옛 BFF(필드 없음 — 기존 카드 그대로) · 불러오기 실패. 1440 · 390 앱 웹뷰(`SALTApp/1.0.0`) pageerror 0 · 가로 넘침 0. 첫 판 결함 둘(왼쪽 칸 '확정 아님' 두 줄 · 390 에서 이름 칸이 밀려 사라짐) 고침 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실로그인 화면 | 소유자 토큰을 못 만들어 사건 응답만 실데이터 + route — 나머지 화면 호출은 게스트 실데이터 | `QA-001` |
