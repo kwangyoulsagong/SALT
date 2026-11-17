@@ -55,6 +55,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 1단계 구현 · in-progress. 국내 종목은 두 전망 키(`KRW-` · 맨 코드)를 다 묻고 걸린 키로 자산군을 안다 — 코인엔 미국 거시만(`REGIONS_FOR`). 종류 → 지역 · 범위 표 `EVENT_KIND_META` 한 곳. 응답 순서 = 종목 사건 → 시장 일정, 같은 범위 안은 시각 순. 실서버 p95 11ms |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): **변경 없음**(경로) — 일정 읽기(`MarketScheduleReader` · `toKrSchedule`)를 국내 요약이 재사용, 응답 `schedule` 최대 3건 · 창 35일. 웹은 `/schedule` 대신 요약 응답을 쓴다 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-1 · 4(정정 — `earnings` 블록) · FR-8~10 신규 구현** — 실적 공시 수집(2016~) · IR · 예고 본문 일정 · export 뷰 |
+| 2026-11-17 | F008 슬라이스 24 2단계 확인 2회차(실토큰 · 실회차, `feat/f008-slice24-s2-earnings-window`) — 확인 2회차 — 실토큰 HTTP · 실로그인 화면 충족, 실적 회차 새 코드 정상 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/market/application/GetKrMarketSchedule.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/presentation/krStock.controller.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
