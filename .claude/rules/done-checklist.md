@@ -31,6 +31,9 @@
 | 서버 `catchUp` 이 재기동 뒤 첫 회차를 놓침(node-cron 은 첫 박동 전엔 missed 를 안 쏜다 — 11-17 08:40 원인 스냅샷 0) | `salt-server` `scheduler.test.ts` 깸 길 | `npm test` |
 | 예측 배치가 개발 트리(브랜치 · 커밋 안 한 수정)에서 돌아 재생이 밤새 0 · 실시간 이름표가 다른 코드(2026-11-17) | 실행 트리 `~/.salt-run`(`OPS-005`) · `sync-run.test.sh` · `test_replay_code_guard.py` · `status` 실행 트리 줄 | 매시 · `status` |
 | 외부 원문이 선언한 문자셋을 믿어 한글이 깨짐 — 숫자만 살아 원문 대조가 통과(DART 본문 634건, 2026-11-17) | `salt-server` `dartDecode.test.ts`(실제 원문 픽스처) | `npm test` |
+| 종목별 목록 · 최초 · 최신을 `GROUP BY` · `DISTINCT` 로 물어 봉 표(10GB)를 통째로 훑음 — 6분마다 DB 전체가 느려져 장중 504(2026-11-17) | `salt-forecast` `tests/store/test_price_bar_skip_scan.py`(실제 보낸 SQL 계획에 전체 스캔 0) | `uv run pytest` |
+| 워커 부팅 실행이 락 밖 · 한꺼번에 — cron 회차와 겹침 · 워커가 화면 요청과 연결 풀을 같이 씀(2026-11-17) | `salt-server` `scheduler.test.ts` `runAtBootInOrder` · `prismaRouting.test.ts`(진짜 node-cron) | `npm test` |
+| 영구 실패(DART 013 · 014)를 프로세스 메모리로만 세어 재기동마다 다시 부름(2026-11-17) | `salt-server` `collectDartDisclosures.test.ts` 영구 · 지나가는 실패 경계 | `npm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

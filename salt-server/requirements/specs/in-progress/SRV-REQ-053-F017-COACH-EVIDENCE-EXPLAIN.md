@@ -127,3 +127,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-16 | 짝(`fix/kr-backfill-work-hours` — 이 REQ 가 머리 주인인 조립 파일 `market/application/api/index.ts`): `SyncKrFullDailyCandles` 에 달력 주입 한 줄. 주인 `SRV-REQ-040`(큰 백필을 시세 창 밖으로). 이 REQ 의 기능 변경 0 |
 | 2026-11-16 | 단타 키 `@4` → `@5`(예측 쪽 재생 코드 가드 정정 — FC-REQ-028). 응답 모양 무변경 |
 | 2026-11-16 | **FR-18 신규 · done**(F017 v4 순서 5a · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 원인 스냅샷 기록. 화면 · BFF 응답 무변경 |
+| 2026-11-17 | F008 슬라이스 24 2단계 확인 3회차 — 기존 현상 둘 고침(장중 · 재기동 뒤 504, DART 014 재시도)(`feat/f008-slice24-s2-earnings-window`) — 짝 — 코치 워커 회차 배치 풀 · 패널 칸별 시간(`DB-REQ-017` 같은 날) |
