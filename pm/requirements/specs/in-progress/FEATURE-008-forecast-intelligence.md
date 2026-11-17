@@ -325,3 +325,4 @@
 | 2026-11-09 | 예측 배치 하나 더 — `move_beta`(F016 단계 C 등락 분해 β · σ60, `FC-REQ-027`) · 예측이 public 에서 읽는 표 +1(`kr_sector_index_daily`) · 서버 market 이 읽는 뷰 둘(`v_move_beta_export` · `v_market_warning`) |
 | 2026-11-16 | 예측 배치 둘 더 — `move_news`(H3 `move-news@1`) · `vol_range`(H1 `vol-range@1`) 전진 시험(F017 v4 순서 4, `FC-REQ-028` FR-9). 화면 · 서버 변경 0 |
 | 2026-11-16 | FR-25 온톨로지 첫 코드(`FC-REQ-022` — F017 v4 순서 5 · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 엔티티 · 관계 · 사실 + 근거 · 원인 후보 · 결과 · as-of 함수 · 원인 설명 채점 `cause-explain@1` |
+| 2026-11-17 | 예측 배치는 머지된 main 고정 실행 트리(`~/.salt-run`)에서 돈다(`OPS-005`) · 코드 가드 = 지금 디스크 대조 · 실시간에도(`FC-REQ-028`) — 첫 실전 수면에서 배치가 개발 트리 기능 브랜치로 돌아 재생 0. 지난밤 2,022행 복구 |
