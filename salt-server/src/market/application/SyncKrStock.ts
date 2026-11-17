@@ -182,12 +182,18 @@ const PAGE_CALENDAR_DAYS = 140;
 const REWRITE_OVERLAP_DAYS = 14;
 
 /** from~to 를 140일 페이지로 앞으로 받아 모은다 — 저장은 부른 쪽이 한 번에 */
-const fetchDailyRange = async (kis: KrStockQuotePort, code: string, from: string, to: string) => {
+const fetchDailyRange = async (
+  kis: KrStockQuotePort,
+  code: string,
+  from: string,
+  to: string,
+  opts: { backfill?: boolean } = {}
+) => {
   const candles: Candle[] = [];
   let requests = 0;
   while (from <= to) {
     const end = [addKstDays(from, PAGE_CALENDAR_DAYS - 1), to].sort()[0];
-    candles.push(...(await kis.dailyCandles(code, from, end)));
+    candles.push(...(await kis.dailyCandles(code, from, end, opts)));
     requests++;
     from = addKstDays(end, 1);
   }
@@ -207,14 +213,15 @@ const applyDailyPage = async (
   fresh: Candle[],
   stored: ReadonlyArray<{ timestamp: Date; close: number }>,
   range: { earliest: Date; latest: Date },
-  today: string
+  today: string,
+  opts: { backfill?: boolean } = {}
 ): Promise<{ requests: number; candles: number; rewrite: KrDailyRewrite | null }> => {
   const rewrite = findDailyRewrite(stored, fresh, range.latest);
   if (!rewrite) {
     await store.upsertDailyCandles(code, fresh);
     return { requests: 0, candles: fresh.length, rewrite: null };
   }
-  const full = await fetchDailyRange(kis, code, kstDateOf(range.earliest), today);
+  const full = await fetchDailyRange(kis, code, kstDateOf(range.earliest), today, opts);
   await store.replaceDailyCandles(code, full.candles);
   logger.warn(
     `국내 주식 일봉 수정주가 재작성 — ${code}: ${kstDateOf(rewrite.timestamp)} 저장 ${rewrite.stored} → 지금 ${rewrite.fresh}, 이력 ${full.candles.length}봉 다시 받음`
@@ -306,6 +313,9 @@ const PHASES = ["forward", "audit", "backward"] as const;
  * 거꾸로 받다가 빈 페이지가 나오면 그 종목의 앞쪽은 끝이다(상장일 정보가 없거나 KIS 수정주가 이력이 짧은 종목) —
  * 그 종목은 다음 밤에도 한 호출만 쓴다. 정규장(`J`) 수정주가만(`KisClient.dailyCandles`).
  */
+/** 전 종목 일봉 5년 백필은 페이서 맨 뒤 — 저녁 보조 수집(투자자 동향 18:40 · 21:40 · 시간외)이 먼저 나간다 */
+const BACKFILL = { backfill: true } as const;
+
 export class SyncKrFullDailyCandles {
   private running = false;
 
@@ -409,9 +419,9 @@ export class SyncKrFullDailyCandles {
             }
             if (w.direction === "forward" || w.direction === "audit") {
               const r = range.get(w.code)!;
-              const page = await fetchDailyRange(this.kis, w.code, w.from, w.to);
+              const page = await fetchDailyRange(this.kis, w.code, w.from, w.to, BACKFILL);
               const stored = (w.direction === "forward" ? recent : oldest).get(w.code) ?? [];
-              const applied = await applyDailyPage(this.kis, this.store, w.code, page.candles, stored, r, today);
+              const applied = await applyDailyPage(this.kis, this.store, w.code, page.candles, stored, r, today, BACKFILL);
               requests += page.requests + applied.requests;
               candles += applied.candles;
               if (applied.rewrite) {
@@ -426,7 +436,7 @@ export class SyncKrFullDailyCandles {
                   return;
                 }
                 const from = [addKstDays(to, -(PAGE_CALENDAR_DAYS - 1)), w.from].sort().reverse()[0];
-                const page = await this.kis.dailyCandles(w.code, from, to);
+                const page = await this.kis.dailyCandles(w.code, from, to, BACKFILL);
                 requests++;
                 if (page.length === 0) break;
                 await this.store.upsertDailyCandles(w.code, page);

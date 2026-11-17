@@ -147,3 +147,7 @@
 
 - `composition.ts`(머리 주인)에서 뉴스 수집기 · 기사 저장소를 변수로 꺼내 빈 날 메우기(`gap`)에 같이 꽂음 — identity · notification 무변경
 - 검증은 `SRV-REQ-057` 체크리스트 — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-16 — F017 v4 순서 5 짝
+
+- 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`

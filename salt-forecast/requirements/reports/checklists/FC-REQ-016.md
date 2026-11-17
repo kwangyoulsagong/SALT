@@ -122,3 +122,6 @@
 - 날짜 검색 메우기 source 를 `rss:google-gap:*` 로 분리(등록 원천과 섞이지 않게) · 등록 피드를 먼저 넣어 같은 URL 은 등록 행이 남는다
 - 미검증: 깨어난 뒤 첫 실행의 네이버 쪽 넘김 실측 — 다음 출근 뒤 로그로
 
+## 2026-11-16 — F017 v4 순서 5 짝
+
+- 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`

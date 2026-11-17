@@ -120,3 +120,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-13 | F017 v4 순서 1b 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `GetWhyMoved` 가 원인 → 근거 → 결과(`cause`)를 같은 응답에 — ①②(분해 · 같은 날 사실) 값 · 규칙 변경 0. 머리 주석 '원인을 고르지 않는다'를 '원인은 근거로만'(`ADR-009` v4)으로 정정. 주인 REQ `SRV-REQ-053` FR-11 · 17 · `BFF-REQ-052` FR-6(앞당김) · `FE-REQ-063` FR-9 |
 | 2026-11-14 | `KrMoveSourceStore.newsTitlesForAiBody` 포트 · `MarketApi.krNewsTitlesForAiBody` 더함(`SRV-REQ-058` 2a — 국내 제목을 `news` 가 공개 API 로 읽음) |
 | 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — VI 사건 보관 30일 → 400일(`KR_VI_RETENTION_DAYS` — 장중 기저율 K5 표본, KIS 는 지난 VI 를 주지 않음). 정리 규칙 · 다른 표 무변경 |
+| 2026-11-16 | F017 v4 순서 5b-3 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `KisClient.ts`(머리 주인) `dailyCandles` 에 `backfill` 선택(전 종목 백필만 백필 우선순위 — 주인 `SRV-REQ-040` FR-40). VI · 업종 · 프로그램 수집 무변경 |

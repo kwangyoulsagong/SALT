@@ -20,13 +20,17 @@ def bulk_upsert(
     columns: Sequence[str],
     rows: Iterable[Sequence[Any]],
     conflict: Sequence[str],
+    *,
+    keep_existing: bool = False,
 ) -> int:
     """rows 를 CHUNK 단위로 커밋한다. conflict 외 컬럼은 새 값으로 덮는다. 반환: 쓴 행 수."""
     target = f"{_ident(table.schema or 'public')}.{_ident(table.name)}"
     cols = ", ".join(_ident(c) for c in columns)
     updates = [c for c in columns if c not in conflict]
     set_clause = ", ".join(f"{_ident(c)} = EXCLUDED.{_ident(c)}" for c in updates)
-    on_conflict = f"DO UPDATE SET {set_clause}" if updates else "DO NOTHING"
+    # keep_existing — 처음 안 값을 지킨다(온톨로지 관계 ·
+    # 엔티티 — 나중 기록이 available_at 을 늦추면 과거 as-of 에서 사라진다)
+    on_conflict = f"DO UPDATE SET {set_clause}" if updates and not keep_existing else "DO NOTHING"
     written = 0
     batch: list[Sequence[Any]] = []
 

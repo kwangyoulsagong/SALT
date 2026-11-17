@@ -7,6 +7,7 @@ import type {
   TradeCheckSide,
   TradeCheckStatus,
 } from "./policy/tradeCheck";
+import type { CauseSnapshotRecord } from "./policy/causeSnapshot";
 import type { JudgmentTierRow } from "./policy/judgmentTier";
 import type { ScenarioMarket, ShortHorizonCellRow, ShortHorizonPredictionRow } from "./policy/shortHorizon";
 import type { MoveAsset, MoveCard, MoveSummaryPromptFact, StoredMoveSummary } from "./policy/moveSummary";
@@ -1005,6 +1006,20 @@ export interface PanelCellCheckStore {
   saveRun(runAt: Date, rows: readonly PanelCellCheckRow[]): Promise<number>;
   /** 보관 기간 밖 회차를 지운다 */
   pruneBefore(before: Date): Promise<number>;
+}
+
+/** 원인 스냅샷 재료 — 원인 칸과 같은 유스케이스(`whyMovedCard` `cause: true`)에 분해까지. 없는 종목 · 카드 없음은 null */
+export interface CauseSnapshotReader {
+  snapshot(asset: MoveAsset, symbol: string): Promise<{
+    split: { market: number; sector: number | null; idio: number; method: string } | null;
+    cause: PanelMoveCause;
+  } | null>;
+}
+
+/** 원인 스냅샷 저장소(`cause_snapshot` — F017 v4 5a · `DB-REQ-043` FR-8). 덧붙이기만 — 같은 지문은 행이 늘지 않는다 */
+export interface CauseSnapshotStore {
+  /** 새로 들어간 행 수 */
+  saveMany(rows: readonly CauseSnapshotRecord[]): Promise<number>;
 }
 
 /** 원인 칸 — 문장 · 단계는 market 이 정한 값 그대로. 단계 이름(가장 유력 · 가능성)은 화면이 붙인다 */

@@ -324,3 +324,4 @@
 | 2026-11-06 | F016(`FEATURE-016`) — 10-30 기각한 "종목 변동 원인 요약"을 `ADR-009` 조건(숫자 분해 먼저 · 근거 인용 · 원인 단정 0)으로 연다. 해설 인프라(FR-42~44 · FR-73 라우팅)를 한 줄 요약이 재사용 · FR-72(AI 기본법 표시)는 F016 ③에서 필수 |
 | 2026-11-09 | 예측 배치 하나 더 — `move_beta`(F016 단계 C 등락 분해 β · σ60, `FC-REQ-027`) · 예측이 public 에서 읽는 표 +1(`kr_sector_index_daily`) · 서버 market 이 읽는 뷰 둘(`v_move_beta_export` · `v_market_warning`) |
 | 2026-11-16 | 예측 배치 둘 더 — `move_news`(H3 `move-news@1`) · `vol_range`(H1 `vol-range@1`) 전진 시험(F017 v4 순서 4, `FC-REQ-028` FR-9). 화면 · 서버 변경 0 |
+| 2026-11-16 | FR-25 온톨로지 첫 코드(`FC-REQ-022` — F017 v4 순서 5 · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 엔티티 · 관계 · 사실 + 근거 · 원인 후보 · 결과 · as-of 함수 · 원인 설명 채점 `cause-explain@1` |

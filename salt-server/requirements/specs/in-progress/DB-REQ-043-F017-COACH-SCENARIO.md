@@ -41,12 +41,14 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-8 | `cause_snapshot`(종목 · 거래일 · 지문 · `candidates jsonb` · 만든 시각) — 원인 후보 조립 결과(`SRV-REQ-053` FR-11). 덧붙이기만 · (종목, 거래일, 지문) 유일 | to-do |
+| FR-8 | `cause_snapshot`(종목 · 거래일 · 지문 · `candidates jsonb` · 만든 시각) — 원인 후보 조립 결과(`SRV-REQ-053` FR-11). 덧붙이기만 · (종목, 거래일, 지문) 유일 | **done 2026-11-16**(순서 5a) — 마이그레이션 `20261116200000_cause_snapshot`(추가만 · 롤백 = DROP VIEW · DROP TABLE): (시장, 종목, 거래일, 지문) 유일 · `top_kind` · `top_strength` 열 승격(채점 조건 — JSON 조건 0) · `split` · `change_rate` · UPDATE 차단 트리거 · export 뷰 `public.v_cause_snapshot_export`(예측이 읽는 유일한 길). 첫 실측 국내 50행 · 재실행 새 행 0 · UPDATE 거부 |
 | FR-9 | `extracted_fact`(원천 kind(disclosure · article) · 원문 키 · 종목 · who · what · amount NUMERIC · unit · compared_to · event_kind · published_at · `available_at` · 원문 주소 · 추출기 버전) — **기사 문장 칸 없음**(`ADR-009` 개정). (원천, 원문 키, what) 유일 · 내 데이터 아님(시장 층) | **done 2026-11-14**(2c) — 마이그레이션 `20261114120000_extracted_fact`(+ `news_ai_body.symbols` · `extract_attempts`) · `20261114120100_ai_body_symbols_backfill`. 종목은 `symbols text[]`(GIN) — 한 사실이 종목 둘에 걸릴 수 있다 · 숫자 `amount NUMERIC` · 시점 `when_text`(원문 표기) |
 | FR-10 | `explanation_snapshot.sentences[].section` 값 개정 — `conclusion · cause · evidence · result · company · track · miss · caution`. 옛 값(modeReasoning …)은 읽기 호환만 · CHECK 는 새 값 | to-do |
 | FR-11 | `company_brief`(종목 · 기준일 · 네 칸 jsonb · 한 줄 · 만든 시각) — 회사 사정 저장본 | **정정 2026-11-14(2d) — 표 만들지 않음**: 읽을 때 `extracted_fact` 에서 조립(GIN 한 번 0.3ms · 패널 p95 277ms). 저장본이 필요한 LLM 한 줄이 없어졌다(`SRV-REQ-053` FR-12 정정) |
 | FR-12 | `forecast.coin_market_share`(종목 · 날 · β · 비트코인 수익 · 시장 몫 · 나머지 · available_at) + 뷰 `v_coin_market_share` — 예측이 쓰고 서버는 뷰만(`ADR-007`). DDL 은 서버 S5 전까지 `salt-server/prisma` | to-do |
 | FR-14 | 예측 실험 전진 시험 표 넷 — `forecast.vol_range_test`(칸 × 실행 — 1차 · 전진 지표 · 상태 · 판정 수 · `live_ready` 는 pass 일 때만 CHECK) · `vol_range_prediction`(칸 × 종목 × 기준 봉 — HAR · 기준 셋 · 80 · 95 반폭 · 기록 시각 · 실현 · 제때) · `move_news_event`(사건 — 기록 시각 값 · 라벨 · 비용 · 제때) · `move_news_test`(칸 × 검정 × 출처 reference · forward). 뷰 없음 — 서버는 첫 통과 칸이 생기면(2027-01-12 ~) 뷰와 같은 PR. 추가만 | **done 2026-11-16**(로컬 적용) |
+
+| FR-15 | **forecast 온톨로지 네 층 · 원인 설명 채점 표**(`FC-REQ-022` FR-1~4 · 13~15) — `entity` · `relation` · `fact`(bitemporal · CHECK 닫힌 목록) · `cause_candidate` · `evidence` · `outcome` · `cause_explain_test` + 함수 `f_fact_asof` · `f_relation_asof` · `f_neighbors`(3홉 상한). 쓰기 예측만 · 서버 읽기 0(판정 통과 뒤 뷰) | **done 2026-11-16**(순서 5b · 5c) — 마이그레이션 `20261116200100_forecast_ontology_cause`(추가만 · 롤백 SQL 머리) · `20261116210000_forecast_ontology_sources`(별칭 표 `entity_alias` · export 뷰 `v_extracted_fact_export` · `v_crypto_name_export` — 이름 열만) · `20261116210100_forecast_neighbors_hub`(3홉 다시 씀 — 시장 허브를 지나지 않음 · `f_fact_asof` 엔티티 인자). 3홉 종목 p95 95ms |
 
 ## Changelog
 
@@ -71,3 +73,6 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-16 | FR-3 개정(F017 v4 순서 3a · 루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `base_rate_stat.horizon_unit`(day · hour, 기본 day) · `v_base_rate` 끝 열 · export 뷰 `public.v_kr_vi_export`(예측이 VI 를 읽음). 추가만 — 되돌리기 = 뷰 원래 정의 + 열 지우기 · 뷰 지우기 |
 | 2026-11-16 | **FR-13 신규**(F017 v4 순서 3b · 루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — `forecast.event_window` · `event_window_stat` · 뷰 `v_event_window_stat`(시장마다 최신 실행) · export 뷰 `public.v_dart_filing_export`(+ `rcept_date` 끝 열). 추가만 |
 | 2026-11-16 | **FR-14 신규**(F017 v4 순서 4 · 루트 `requirements/specs/in-progress/F017-v4-stage4-experiment-slice.md`) — 예측 실험 H1 · H3 표 넷. 추가만 — 되돌리기 = 표 넷 지우기 |
+| 2026-11-16 | FR-8 done · **FR-15 신규**(F017 v4 순서 5 · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 원인 스냅샷 · 온톨로지 표 일곱 · as-of 함수 셋. 추가만 |
+| 2026-11-16 | FR-15 확대(순서 5b-2) — 별칭 표 · export 뷰 둘 · 3홉 · as-of 함수 다시 씀. 추가만(함수는 CREATE OR REPLACE) |
+| 2026-11-16 | FR-15 — 수급 export 뷰 둘(`v_kr_investor_flow_export` · `v_kr_program_flow_export`, 마이그레이션 `20261116210200`) · `forecast.fact.value_num` double → numeric(`20261116210300` — 원화 금액이 들어와서, db-contract §3) |

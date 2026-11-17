@@ -53,3 +53,7 @@
 ## 2026-11-16 — F017 v4 순서 4 짝
 
 - 이 REQ 의 기능 변경 없음 — 공유 파일에 한 자리. 회고 본문은 루트 `F017-v4-stage4-experiment.md`
+
+## 2026-11-16 — F017 v4 순서 5 짝
+
+- 이 REQ 의 기능 변경 없음 — 공유 파일에 한 자리. 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage5-ontology.md`

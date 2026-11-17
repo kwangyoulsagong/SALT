@@ -37,6 +37,8 @@ import type {
   MoveCauseReader,
   PanelCellCheckStore,
   PanelUniverseProbe,
+  CauseSnapshotReader,
+  CauseSnapshotStore,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -68,6 +70,7 @@ import { GetSymbolScenario } from "../GetSymbolScenario";
 import { GetCoachPanel } from "../GetCoachPanel";
 import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
 import { MeasurePanelCells } from "../MeasurePanelCells";
+import { RecordMoveCauses } from "../RecordMoveCauses";
 import { ExplanationGenerations } from "../lib/explanationGeneration";
 import { GetSymbolPositioning } from "../GetSymbolPositioning";
 import { GetSignalPerformance } from "../GetSignalPerformance";
@@ -178,6 +181,9 @@ export interface CoachDependencies {
   panelChecks: PanelCellCheckStore;
   /** 실측 대상 — 화면 시세 목록 ∪ 추적 종목(OPS-004 FR-3) */
   panelUniverse: PanelUniverseProbe;
+  /** 원인 스냅샷(F017 v4 5a) — 원인 칸과 같은 조립 + 분해 · `cause_snapshot` */
+  causeSnapshots: CauseSnapshotReader;
+  causeSnapshotStore: CauseSnapshotStore;
 }
 
 export interface CoachUseCases {
@@ -219,6 +225,8 @@ export interface CoachUseCases {
   streamSymbolExplanation: StreamSymbolExplanation;
   /** 패널 칸 채움 실측 — 하루 두 번 워커가 부른다(OPS-004) */
   measurePanelCells: MeasurePanelCells;
+  /** 원인 스냅샷 — 국내 장 뒤 · 코인 하루 끝 직전 워커가 부른다(F017 v4 5a) */
+  recordMoveCauses: RecordMoveCauses;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
   getSymbolEvents: GetSymbolEvents;
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자만(F008 슬라이스 23) */
@@ -337,6 +345,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
   const useCases: CoachUseCases = {
     getCoachPanel,
     measurePanelCells: new MeasurePanelCells({ panel: getCoachPanel, universe: deps.panelUniverse, store: deps.panelChecks }),
+    recordMoveCauses: new RecordMoveCauses({ causes: deps.causeSnapshots, universe: deps.panelUniverse, store: deps.causeSnapshotStore }),
     reportTriadGaps: new ReportTriadGaps(),
     generateRecommendation,
     requestGeneration: new RequestCoachGeneration(

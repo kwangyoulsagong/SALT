@@ -143,3 +143,7 @@
 ## 2026-11-16 — F017 v4 순서 4
 
 - FR-14 표 넷 로컬 적용(`20261116180000_forecast_experiment_h1_h3`, 추가만) · 예측 스키마 계약 시험 통과 · 첫 실행 580 + 226 행
+
+## 2026-11-16 — F017 v4 순서 5
+
+- FR-8 · FR-15 — 마이그레이션 둘 로컬 적용(`prisma migrate deploy`) · UPDATE 거부 실측 · 예측 스키마 계약 시험 통과 · 3홉 p95 29ms(300회) · as-of 무작위 1,000회 미래 행 0. 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`
