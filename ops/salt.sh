@@ -8,6 +8,7 @@
 #   ops/salt.sh restart <이름>   코드를 바꾼 뒤 재시작(launchd 는 watch 없이 뜬다)
 #   ops/salt.sh logs <이름>      로그 꼬리
 #   ops/salt.sh plist <이름>     up 이 등록할 launchd plist 를 등록 없이 출력(검토용)
+#   ops/salt.sh sync            예측 실행 트리(~/.salt-run)를 지금 머지된 main 으로 맞춘다(평소엔 매시 live 가 한다)
 #   ops/salt.sh usage           도메인 사용 계측 — 최근 8주 주간 활성 · 재개율 · 카드 클릭(`ops/usage-weekly.sql`, 서버 S3d `SRV-REQ-048` FR-7)
 #
 # 왜 이 스크립트인가: 프로세스가 7개(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치 · 웹)인데 서버와 예측만 상시였고
@@ -24,6 +25,10 @@ ROOT="${0:A:h:h}"
 UID_NUM="$(id -u)"
 AGENTS="$HOME/Library/LaunchAgents"
 LOGS="$HOME/Library/Logs"
+# 예측 배치 실행 트리 — 개발 트리(브랜치 · 커밋 안 한 수정)가 아니라 머지된 main 에서 돈다(OPS-002 · 2026-11-17).
+# 개발 트리에서 돌던 동안 기능 브랜치 커밋이 밤새 동결 재생을 막았고, 실시간 행엔 다른 코드로 낸 값에 적합 커밋 이름표가 붙었다.
+# 매시 live 가 끝에 ops/sync-run.sh 로 origin/main 을 따라간다. 서버 · BFF · 웹은 아직 개발 트리(뜰 때 한 번 읽고 계속 도는 프로세스)
+RUN="$HOME/.salt-run"
 # node 는 루트 `.node-version` 을 따른다 — 부른 셸의 node(fnm 기본 26 등)가 plist 에 박히지 않게(2026-11-16 새 맥).
 # :A — 심볼릭 링크를 실제 경로로. fnm 의 `command -v node` 는 셸마다 생겼다 사라지는 multishell 경로라 plist 에 박히면 재부팅 뒤 node 가 없다
 NODE_BIN=""
@@ -40,7 +45,7 @@ typeset -A LABEL SCRIPT PORT HEALTH LOG
 LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-rest com.salt.bff-rest bff-ws com.salt.bff-ws bff-worker com.salt.bff-worker forecast com.salt.forecast-daily forecast-live com.salt.forecast-live forecast-intraday com.salt.forecast-intraday forecast-backfill com.salt.forecast-backfill)
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
-        forecast "$ROOT/salt-forecast/ops/daily.sh" forecast-live "$ROOT/salt-forecast/ops/live.sh" forecast-intraday "$ROOT/salt-forecast/ops/intraday.sh" forecast-backfill "$ROOT/salt-forecast/ops/backfill.sh")
+        forecast "$RUN/salt-forecast/ops/daily.sh" forecast-live "$RUN/salt-forecast/ops/live.sh" forecast-intraday "$RUN/salt-forecast/ops/intraday.sh" forecast-backfill "$RUN/salt-forecast/ops/backfill.sh")
 PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - forecast-intraday - forecast-backfill - web 3000 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005)
 HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
@@ -82,6 +87,9 @@ write_plist() {
     schedule="  <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>30</integer>"
   fi
+  # 예측 배치만 — 실행 트리에서 개발 트리를 찾는 길(리포트 옮기기 · 서버 npm). 다른 서비스 plist 는 그대로 둔다(바뀌면 재시작된다)
+  local devroot=""
+  [[ $name == forecast* ]] && devroot="<key>SALT_DEV_ROOT</key><string>$ROOT</string>"
   local stdlog="$LOGS/$label.launchd.log"
   [[ $name == server ]] && stdlog="$LOGS/salt-server.launchd.log"
   [[ $name == forecast ]] && stdlog="$LOGS/salt-forecast-daily.log"
@@ -98,7 +106,7 @@ write_plist() {
   <key>ProgramArguments</key>
   <array>
 $args  </array>
-  <key>EnvironmentVariables</key><dict><key>PATH</key><string>$LAUNCH_PATH</string></dict>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>$LAUNCH_PATH</string>$devroot</dict>
   <key>RunAtLoad</key><true/>
 $schedule
   <key>StandardOutPath</key><string>$stdlog</string>
@@ -120,10 +128,29 @@ manual_pid() {
   [[ -n $p ]] && print -r -- "$p"
 }
 
+# 실행 트리가 없으면 만든다 — origin/main 을 분리 HEAD 로(main 브랜치는 개발 트리가 잡고 있을 수 있다). .env 는 개발 트리 것을 가리킨다
+ensure_run_tree() {
+  if [[ ! -e $RUN/.git ]]; then
+    git -C "$ROOT" fetch -q origin main || { say "  ✗ 실행 트리 — origin fetch 실패"; return 1; }
+    git -C "$ROOT" worktree add -q --detach "$RUN" origin/main || { say "  ✗ 실행 트리 — worktree 만들기 실패"; return 1; }
+    say "  ▲ 실행 트리 $RUN ($(git -C "$RUN" rev-parse --short HEAD))"
+  fi
+  [[ -e $RUN/salt-forecast/.env ]] || ln -s "$ROOT/salt-forecast/.env" "$RUN/salt-forecast/.env"
+}
+
 start_service() {
   local name=$1 replace=$2
   if loaded "$name"; then
-    say "  ✓ $name — 이미 launchd 에 있다"
+    # plist 가 이 스크립트가 만들 것과 다르면(실행 경로 · 환경이 바뀜) 다시 올린다 — 안 그러면 옛 경로로 계속 돈다(2026-11-17)
+    local want; want=$(mktemp)
+    write_plist "$name" "$want"
+    if cmp -s "$want" "$(plist_of "$name")"; then
+      rm -f "$want"; say "  ✓ $name — 이미 launchd 에 있다"; return
+    fi
+    launchctl bootout "gui/$UID_NUM/${LABEL[$name]}" 2>/dev/null || launchctl unload "$(plist_of "$name")"
+    mv "$want" "$(plist_of "$name")"
+    launchctl bootstrap "gui/$UID_NUM" "$(plist_of "$name")" 2>/dev/null || launchctl load "$(plist_of "$name")"
+    say "  ↻ $name — plist 가 바뀌어 다시 올렸다"
     return
   fi
   local holder; holder=$(manual_pid "$name")
@@ -307,9 +334,21 @@ status() {
     printf "  %-15s %-8s %-8s %-6s %s\n" "$name" "$how" "$pid" "$port" "$h"
   done
   pg_isready -q -h localhost -p 5432 && say "  postgres    ok" || say "  postgres    ✗ 꺼짐 — brew services start postgresql"
+  run_tree
   latest
   collection
   panel_cells
+}
+
+# 예측 실행 트리 — 머지된 main 보다 뒤처졌거나(매시 동기화가 다른 배치 때문에 미뤘거나 fetch 실패) 손댄 소스가 있으면 ✗
+run_tree() {
+  [[ -e $RUN/.git ]] || { say "  ✗ 예측 실행 트리 없음 — ops/salt.sh up"; return; }
+  local head main behind dirty
+  head=$(git -C "$RUN" rev-parse --short HEAD); main=$(git -C "$RUN" rev-parse --short origin/main 2>/dev/null)
+  behind=$(git -C "$RUN" rev-list --count HEAD..origin/main 2>/dev/null)
+  dirty=$(git -C "$RUN" status --porcelain -- salt-forecast/src salt-forecast/pyproject.toml salt-forecast/uv.lock | wc -l | tr -d ' ')
+  if [[ ${behind:-0} == 0 && $dirty == 0 ]]; then say "  ok 예측 실행 트리 $head = origin/main"
+  else say "  ✗ 예측 실행 트리 $head — origin/main($main)보다 ${behind:-?}커밋 뒤 · 손댄 소스 $dirty (ops/salt.sh sync)"; fi
 }
 
 down_one() {
@@ -334,11 +373,14 @@ case "${1:-status}" in
     replace=0; [[ "${2:-}" == --replace ]] && replace=1
     pg_isready -q -h localhost -p 5432 || say "  ! postgres 가 꺼져 있다 — brew services start postgresql 먼저"
     say "켜기"
+    ensure_run_tree
     for name in $SERVICES; do start_service "$name" "$replace"; done
     for name in $DEV_APPS; do start_dev "$name"; done
     sleep 4
     status ;;
   status) status ;;
+  sync)
+    ensure_run_tree && SALT_DEV_ROOT="$ROOT" /bin/zsh "$RUN/salt-forecast/ops/sync-run.sh"; run_tree ;;
   down)
     if [[ -n "${2:-}" ]]; then valid "$2"; down_one "$2"; else for name in ${(Oa)ORDER}; do down_one "$name"; done; fi ;;
   restart)
@@ -369,6 +411,6 @@ case "${1:-status}" in
     psql "$url" -At -F '|' -v ON_ERROR_STOP=1 -f "$ROOT/ops/usage-weekly.sql" | while IFS='|' read -r week domain active resume clicks; do
       printf "  %-6s %-10s %6s %8s %6s\n" "$week" "$domain" "$active" "$resume" "$clicks"
     done ;;
-  -h|--help|help) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' ;;
-  *) say "모르는 명령: $1 — up | status | down | restart | logs | plist | usage"; exit 2 ;;
+  -h|--help|help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) say "모르는 명령: $1 — up | status | down | restart | logs | plist | sync | usage"; exit 2 ;;
 esac

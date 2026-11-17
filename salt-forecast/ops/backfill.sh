@@ -7,6 +7,8 @@
 # 다 차 있으면 요청 0건 · 몇 초로 끝난다(ingest_prices 가 상장일까지 찬 종목을 건너뛴다).
 set -u
 cd "$(dirname "$0")/.." || exit 1
+# 실행 트리 동기화(ops/sync-run.sh) 중이면 끝날 때까지 기다린다 — 최대 2분. 개발 트리엔 이 파일이 없다
+for _ in {1..24}; do [[ -e ../.salt-sync.lock ]] || break; sleep 5; done
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
 ts() { date -u +%FT%TZ; }
 rc=0
@@ -39,6 +41,6 @@ if kr_backtest_ready; then
     "$UV" run --frozen python -m "salt_forecast.jobs.${job}" || { echo "[$(ts)] ${job} 실패"; rc=1; }
   done
   # 판단 과거 검산을 원장에 — 성공하면 위 조건(행 없음)이 닫혀 다시 돌지 않는다. 실패하면 다음 시에 셋 다 다시
-  (cd ../salt-server && npm run -s judgments:kr-backtest -- --write) || { echo "[$(ts)] judgments:kr-backtest 실패"; rc=1; }
+  (cd "${SALT_DEV_ROOT:-..}/salt-server" && npm run -s judgments:kr-backtest -- --write) || { echo "[$(ts)] judgments:kr-backtest 실패"; rc=1; }
 fi
 exit $rc

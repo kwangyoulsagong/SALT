@@ -125,3 +125,7 @@
 ## 2026-11-16 — F017 v4 순서 5 짝
 
 - 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`
+
+### 2026-11-17 — `daily.sh` 실행 트리 잠금 대기(`OPS-005`)
+
+- [x] 뉴스 단계 무변경 · `zsh -n` 통과 · 잠금 대기는 `sync-run.test.sh` 가 다루는 잠금과 같은 파일
