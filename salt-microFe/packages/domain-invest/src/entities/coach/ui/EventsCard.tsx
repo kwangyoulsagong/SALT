@@ -6,6 +6,7 @@ import type { EventScope, SymbolEventsResult } from "@repo/core/coach";
 
 import { EVENT_MESSAGES as M } from "../model";
 import { StatusLine } from "@repo/ui/statusLine";
+import { EarningsDetail, formatDay, formatShortDay } from "./EarningsDetail";
 import * as s from "./EventsCard.css";
 import { ReactionDetail } from "./ReactionDetail";
 
@@ -56,12 +57,15 @@ export const EventsCard = ({
   // 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(`useSymbolEvents`) — 서버 렌더에 이 카드가 없어 수화가 갈리지 않는다
   // eslint-disable-next-line @repo/fsd/no-render-read
   const now = new Date();
+  // 다음 실적 공시(2단계)는 '이 종목 일정' 맨 앞 한 줄 — 국내 종목만 온다. 펼침 번호 0
+  const earnings = result.earnings ?? null;
+  const offset = earnings ? 1 : 0;
   // 서버가 이미 종목 사건 → 시장 일정, 시각 순으로 준다. 펼침 번호는 묶음을 넘어 하나로 센다
-  const indexed = result.events.map((event, index) => ({ event, index }));
+  const indexed = result.events.map((event, index) => ({ event, index: index + offset }));
   const groups = SCOPE_ORDER.map((scope) => ({
     scope,
     events: indexed.filter(({ event }) => event.scope === scope),
-  })).filter((group) => group.events.length > 0);
+  })).filter((group) => group.events.length > 0 || (group.scope === "symbol" && earnings !== null));
   const mixedRegions = new Set(result.events.map((e) => e.region)).size > 1;
 
   return (
@@ -77,13 +81,47 @@ export const EventsCard = ({
       </div>
       <p className={s.lead}>{mixedRegions ? M.leadKr : M.lead}</p>
 
-      {result.events.length === 0 ? (
+      {result.events.length === 0 && !earnings ? (
         <StatusLine kind="empty">{M.empty}</StatusLine>
       ) : (
         groups.map((group) => (
           <div key={group.scope}>
             {groups.length > 1 && <h3 className={s.groupTitle}>{M.scope[group.scope]}</h3>}
             <ul className={s.list}>
+              {group.scope === "symbol" && earnings && (
+                <li className={s.item}>
+                  <button
+                    type="button"
+                    className={s.rowButton}
+                    aria-expanded={open === 0}
+                    aria-controls="event-earnings"
+                    onClick={() => setOpen(open === 0 ? -1 : 0)}
+                  >
+                    <span className={s.dday}>
+                      {earnings.confirmed ? M.dday(daysUntil(earnings.confirmed.at, now)) : M.earnings.ddayExpected}
+                    </span>
+                    {/* 이 종목 실적이라 지역 칩은 두지 않는다 — 390 앱 웹뷰에서 이름 칸이 밀려 사라졌다(2026-11-17 실화면) */}
+                    <span className={s.eventName}>{M.earnings.name}</span>
+                    <span className={s.when}>
+                      {earnings.confirmed
+                        ? earnings.confirmed.timeKnown
+                          ? whenFormat.format(new Date(earnings.confirmed.at))
+                          : formatDay(dayKey(new Date(earnings.confirmed.at)))
+                        : earnings.expected
+                          ? M.earnings.expected(formatShortDay(earnings.expected.from), formatShortDay(earnings.expected.to))
+                          : (M.earnings.blocked[earnings.blockedReason ?? ""] ?? M.blockedFallback)}
+                    </span>
+                    <span className={open === 0 ? `${s.chevron} ${s.chevronOpen}` : s.chevron} aria-hidden="true">
+                      ›
+                    </span>
+                  </button>
+                  {open === 0 && (
+                    <div id="event-earnings">
+                      <EarningsDetail earnings={earnings} />
+                    </div>
+                  )}
+                </li>
+              )}
               {group.events.map(({ event, index: i }) => {
                 const expanded = i === open;
                 const id = `event-${event.kind}-${i}`;

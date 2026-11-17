@@ -41,6 +41,37 @@ export const EVENT_MESSAGES = {
     not_generated: "아직 계산 전",
   } as Record<string, string>,
   blockedFallback: "지금은 보여 드릴 수 없어요",
+  /**
+   * 다음 실적 공시(F008 슬라이스 24 2단계 · `FE-REQ-046` FR-3) — 회사가 알린 날이 없으면 **기간**만. 한 날짜로 말하지 않는다
+   * (공통 수용 기준 4). 숫자 · 기간 · 기준은 서버 값
+   */
+  earnings: {
+    name: "실적 공시",
+    expected: (from: string, to: string) => `${from} ~ ${to} · 확정 아님`,
+    /** D-day 칸(좁다) — 회사가 알린 날이 아닐 때 */
+    ddayExpected: "예상",
+    confirmed: (source: string) => `회사가 알린 일정 — ${source}`,
+    confirmedSource: { ir: "실적 설명회 공시", preview: "결산실적 공시 예고" } as const,
+    basis: (sample: number) => `과거 공시일 ${sample}회 기준이에요.`,
+    hitRate: (hits: number, judged: number) => `그때그때 그 전 공시로만 잡은 기간에 실제 공시가 든 적 ${judged}번 중 ${hits}번`,
+    deadline: (date: string) => `비교 기준 — 법정 제출 기한 ${date}`,
+    missesHeading: "기간을 벗어난 결산",
+    noMisses: (judged: number) => `지난 ${judged}번은 모두 기간 안이었어요.`,
+    /** 결산 끝날(YYYY-MM-DD) → "2024년 4분기" — 12월 결산 기준 분기 이름(달로 센다) */
+    periodName: (periodEnd: string) => `${periodEnd.slice(0, 4)}년 ${Math.ceil(Number(periodEnd.slice(5, 7)) / 3)}분기`,
+    miss: (period: string, actual: string, from: string, to: string) =>
+      `${period} — 실제 ${actual} (그때 기간 ${from} ~ ${to})`,
+    reactionKind: "실적 공시",
+    reactionRow: "공시 뒤",
+    reactionNote: "공시일 전날 종가에서 잰 움직임이에요.",
+    blocked: {
+      insufficient_sample: "과거 공시가 모자라 기간을 잡지 않았어요",
+      not_judged: "기간을 채점할 과거 결산이 모자라요",
+      window_passed: "예상 기간이 지났는데 아직 공시가 없어요",
+      window_past: "예상 기간이 지났는데 아직 공시가 없어요",
+      contract_incomplete: "정보가 모자라 기간을 꺼 뒀어요",
+    } as Record<string, string>,
+  },
   empty: "앞으로 5주 안에 예정된 일정이 없어요.",
   unavailable: "주요 사건을 지금 불러올 수 없어요.",
 } as const;

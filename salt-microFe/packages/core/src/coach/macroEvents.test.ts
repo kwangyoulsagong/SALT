@@ -5,7 +5,17 @@ import { EVENT_KIND_LABELS, EVENT_KIND_SHORT_LABELS, type MacroEventKind } from 
 
 /** 종류 이름 누락 0 — 서버 · BFF 가 주는 종류 코드마다 이름이 있다(`FE-REQ-046` FR-8) */
 describe("EVENT_KIND_LABELS", () => {
-  const all: MacroEventKind[] = ["fomc", "cpi", "jobs", "kr_bok_rate", "kr_cpi", "kr_trade", "kr_quad_expiry"];
+  const all: MacroEventKind[] = [
+    "fomc",
+    "cpi",
+    "jobs",
+    "kr_bok_rate",
+    "kr_cpi",
+    "kr_trade",
+    "kr_quad_expiry",
+    "kr_earnings",
+    "kr_ir",
+  ];
   const schedule: KrScheduleKind[] = ["kr_bok_rate", "kr_cpi", "kr_trade", "kr_quad_expiry"];
 
   it("모든 종류에 빈 이름이 없다", () => {
