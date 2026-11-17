@@ -667,8 +667,11 @@ export class SyncKrMinuteBars {
       try {
         const minutes = [];
         let cursor = "153100";
+        // 오늘만 분봉 줄. 지난 날은 백필 줄 — 새 종목(`only`)은 백필, 유니버스 1년은 그 뒤(`bulk`). 1년 백필이 분봉 줄에 서서
+        // 전 종목 일봉 · 시황 제목을 몇 시간 굶겼다(2026-11-17 `SRV-REQ-057` FR-9)
+        const history = date === today ? undefined : only ? "backfill" : "bulk";
         for (let page = 0; page < MINUTE_PAGES_PER_DAY; page++) {
-          const batch = await this.kis.dayMinuteCandles(code, date, cursor);
+          const batch = await this.kis.dayMinuteCandles(code, date, cursor, history ? { history } : {});
           used++;
           if (batch.length === 0) break;
           minutes.push(...batch);

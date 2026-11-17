@@ -64,6 +64,15 @@
 - 멱등 — 원천 키를 `external_ids` 에 두고 upsert. 재적재 2회 뒤 행 수 동일. **처음 안 값을 지킨다**(`bulk_upsert(keep_existing=True)` — 나중 기록이 available_at 을 늦추면 과거 as-of 에서 사라진다). 지금 값만 주는 원천(마스터 소속)은 바뀔 때만 옛 관계 `valid_to` + 새 행
 - LLM 으로 엔티티 · 관계를 추출해 바로 저장하지 않는다 — 규칙 · 원천 구조화 필드로. LLM 추출이 필요해지면 `confidence` + 검토 전 `unverified`
 - 파이프라인 층(`architecture.md`)은 그대로: `ingest` → `store` → `ontology` → `features`. `ontology` 는 `models` 를 모른다
+- **파일 지도 — 이름이 여럿인 이유는 층**(기능 이름을 층마다 반복하는 관례 — `cause_explain` · `move_news` 와 같다. 중복이 아니다):
+
+  | 파일 | 층 | 하는 일 |
+  |---|---|---|
+  | `domain/ontology.py` | domain(I/O 0) | 네 층 뼈대 — id 규칙 · 닫힌 kind/predicate · 시각 둘 · 결과(④) · `Graph` |
+  | `domain/ontology_sources.py` | domain(I/O 0) | 원천 하나 = 함수 하나 → `Graph` 에 더할 행. 원천을 셋 → 열넷으로 늘릴 때 뗐다(2026-11-16 `1f2a10e0`). **새 원천은 여기** |
+  | `store/ontology.py` | store | 원천 읽기 · 네 층 쓰기(as-of 필터는 여기서) |
+  | `ontology/build.py` | ontology(조립) | 위 셋을 이어 한 번 적재 — 규칙 0, 순서만 |
+  | `jobs/ontology_build.py` · `ontology_quality.py` | jobs | 매일 `daily.sh` 입구 · 품질 리포트 |
 
 ## 6. 계약 뷰 — 에이전트 도구가 읽는 모양 (`FC-REQ-023` FR-1)
 

@@ -121,3 +121,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-14 | `KrMoveSourceStore.newsTitlesForAiBody` 포트 · `MarketApi.krNewsTitlesForAiBody` 더함(`SRV-REQ-058` 2a — 국내 제목을 `news` 가 공개 API 로 읽음) |
 | 2026-11-16 | F017 v4 순서 3a 짝(루트 `requirements/specs/in-progress/F017-v4-stage3-intraday-slice.md`) — VI 사건 보관 30일 → 400일(`KR_VI_RETENTION_DAYS` — 장중 기저율 K5 표본, KIS 는 지난 VI 를 주지 않음). 정리 규칙 · 다른 표 무변경 |
 | 2026-11-16 | F017 v4 순서 5b-3 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `KisClient.ts`(머리 주인) `dailyCandles` 에 `backfill` 선택(전 종목 백필만 백필 우선순위 — 주인 `SRV-REQ-040` FR-40). VI · 업종 · 프로그램 수집 무변경 |
+| 2026-11-18 | `SRV-REQ-057` FR-9 짝(`fix/kis-pacer-aging`) — `KisClient.ts`(머리 주인) `KIS_PRIORITY.bulk` · `dayMinuteCandles` `history` 선택. 이 REQ 기능 변경 없음 |

@@ -447,3 +447,7 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 ## 2026-11-16 — `SRV-REQ-057` FR-8 걸침
 
 - 배운 것 없음 — 짝 변경
+
+## 2026-11-18 — `SRV-REQ-057` FR-9 짝
+
+- 회고는 `SRV-REQ-057` — 같은 굶김 2회차, 규칙(페이서)으로 고침

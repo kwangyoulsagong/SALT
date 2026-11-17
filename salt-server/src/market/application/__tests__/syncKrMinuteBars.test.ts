@@ -21,12 +21,12 @@ const setup = (
     clock?: () => Date;
   } = {}
 ) => {
-  const asked: Array<{ code: string; date: string }> = [];
+  const asked: Array<{ code: string; date: string; history?: string }> = [];
   const calendarCalls: Array<{ from: string; to: string }> = [];
   const kis = {
-    dayMinuteCandles: async (code: string, date: string) => {
+    dayMinuteCandles: async (code: string, date: string, _hhmmss: string, o: { history?: string } = {}) => {
       if (opts.fail?.(code, date)) throw new Error("EGW00201");
-      asked.push({ code, date });
+      asked.push({ code, date, history: o.history });
       return [];
     },
   } as unknown as KrStockQuotePort;
@@ -133,5 +133,26 @@ describe("SyncKrMinuteBars", () => {
     // 10월은 봉이 다 있다 — 다시 받는 건 오늘과 최근 5개장일 안 종가 빠진 날뿐(그 앞 빈 날은 1년 백필 몫)
     const dates = [...new Set(asked.map((a) => a.date))].filter((d) => d >= "2026-10-01").sort();
     assert.deepEqual(dates, ["2026-10-27", "2026-10-30"]);
+  });
+
+  it("어느 줄에 서나 — 오늘만 분봉 줄 · 지난 날은 유니버스 bulk · 새 종목 backfill (SRV-REQ-057 FR-9)", async () => {
+    // 15:40 장 마감 회차 — 오늘(10-30)과 지난 날이 섞인다
+    const { sync, asked } = setup();
+    await sync.execute();
+    const today = asked.filter((a) => a.date === "2026-10-30");
+    const past = asked.filter((a) => a.date < "2026-10-30");
+    assert.ok(today.length > 0 && past.length > 0);
+    assert.ok(today.every((a) => a.history === undefined), "오늘은 분봉 줄");
+    assert.ok(past.every((a) => a.history === "bulk"), "지난 날 1년 백필은 맨 뒤");
+    // 큰 백필 회차도 같다
+    const night = setup({ clock: () => AFTER_CLOSE });
+    await night.sync.backfillOffHours();
+    assert.ok(night.asked.filter((a) => a.date < "2026-10-30").every((a) => a.history === "bulk"));
+    // 유니버스에 새로 든 종목 즉시 백필 — 지난 날은 백필 줄(유니버스 1년보다 앞)
+    const joiner = setup();
+    await joiner.sync.execute(["010950"]);
+    const jp = joiner.asked.filter((a) => a.date < "2026-10-30");
+    assert.ok(jp.length > 0 && jp.every((a) => a.history === "backfill"));
+    assert.ok(joiner.asked.filter((a) => a.date === "2026-10-30").every((a) => a.history === undefined));
   });
 });
