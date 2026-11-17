@@ -10,6 +10,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
 > **2026-11-02 1단계 구현** — FR-1 · 3 · 4, FR-2 는 `scope` · `region` 까지(`expectedWindow` 는 서버 2단계 `SRV-REQ-041` FR-4 뒤). 검증 `checklists/BFF-REQ-043.md`.
+> **2026-11-17 2단계** — FR-2 마저(`earnings` 블록 · 종류 `kr_earnings` · `kr_ir`) · FR-4 테스트(창 있음/없음 · 확정 · 깨진 창 넷 · 옛 서버).
 
 ## Summary
 
@@ -21,7 +22,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR | 내용 |
 |---|---|
 | FR-1 | `GET /api/app/coach/events?symbol=` 이 국내 종목 코드를 그대로 넘긴다. 404(소유자 아님)는 그대로 404 |
-| FR-2 | 뷰모델에 `scope` · `region` · `expectedWindow` 를 그대로. 종류 코드(`kr_bok_rate` 등)는 문장으로 바꾸지 않는다(프론트 i18n). **2026-11-02**: `scope` · `region` 완료(옛 서버 응답엔 없으니 `market` · `us` 로 읽는다) — `expectedWindow` 는 2단계 |
+| FR-2 | 뷰모델에 `scope` · `region` · `expectedWindow` 를 그대로. 종류 코드(`kr_bok_rate` 등)는 문장으로 바꾸지 않는다(프론트 i18n). **2026-11-02**: `scope` · `region` 완료(옛 서버 응답엔 없으니 `market` · `us` 로 읽는다) — `expectedWindow` 는 2단계. **2026-11-17 정정 · 완료**: `expectedWindow` 대신 서버 `earnings` 블록을 그대로(`toEarningsOutlook`) — BFF 는 **막기만**: 창 날짜 모양 · 순서(from ≤ to) · 판정 > 0 · 적중 ≤ 판정이 깨지면 창을 빼고 `contract_incomplete`, 빗나간 결산은 모양이 맞는 최근 3, 확정 일정이 있으면 창을 싣지 않는다, 반응 기간은 사건과 같은 `toHorizon`. 옛 서버(필드 없음) · 코인은 `null` |
 | FR-3 | 신규 `GET /api/app/market/kr/schedule?days=` → 서버 `GET /api/market/kr/schedule`. 503 은 그대로(프론트가 "일정 불러올 수 없음"으로) |
 | FR-4 | 테스트 — 국내 행 · 시장/종목 범위 · 창 있음/없음 · 503 |
 
@@ -32,6 +33,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 1단계 구현 · in-progress. `/schedule` 은 `/:code` 앞(라우터 순서가 계약). 일정 뷰모델은 모르는 종류 · 깨진 행을 버린다. 캐시 없음(국내 경로 규칙 그대로) |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): **변경 없음**(짝 영역) — 웹은 이제 `/schedule` 을 부르지 않는다(일정 3건은 요약 응답 `schedule` 안, `FE-REQ-046` FR-5 정정). 경로는 남긴다 — 공개 일정이라 앱 · 다른 화면이 쓸 수 있다 |
+| 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-2 완료**(`earnings` 블록 — 막기만 · 종류 `kr_earnings` · `kr_ir`) · FR-4 시험 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `bff/src/rest/routes/kr-stock.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
   - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

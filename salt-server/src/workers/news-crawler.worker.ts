@@ -13,6 +13,8 @@ const crawlNewsUseCase = contextUseCases.news.crawlNews;
 const refillNewsGap = contextUseCases.news.refillNewsGap;
 const collectAiBodies = contextUseCases.news.collectAiBodies;
 const collectDartDisclosures = contextUseCases.news.collectDartDisclosures;
+const collectDartEarnings = contextUseCases.news.collectDartEarnings;
+const refetchDartBodies = contextUseCases.news.refetchDartBodies;
 
 /** AI 경로 본문 회차 간격(`SRV-REQ-058` FR-2 — 매체 RSS 5분) */
 const AI_BODY_INTERVAL_MS = 5 * 60 * 1000;
@@ -86,6 +88,18 @@ class NewsCrawlerWorker {
         return null;
       });
       if (dart?.enabled) logger.info('[news] dart tick', dart);
+      // 실적 이력 · 일정(F008 슬라이스 24 2단계) — 실패해도 기사 회차는 간다
+      const earnings = await collectDartEarnings.execute().catch((error: any) => {
+        logger.warn('[news] dart earnings tick failed', { code: error?.code ?? null, message: String(error?.message ?? '').slice(0, 120) });
+        return null;
+      });
+      if (earnings?.enabled) logger.info('[news] dart earnings tick', earnings);
+      // 깨진 DART 본문 다시 받기(2026-11-17 디코더 고침) — 남은 것이 없으면 호출 0
+      const refetch = await refetchDartBodies.execute().catch((error: any) => {
+        logger.warn('[news] dart refetch tick failed', { message: String(error?.message ?? '').slice(0, 120) });
+        return null;
+      });
+      if (refetch && refetch.refetched + refetch.failed > 0) logger.info('[news] dart refetch tick', refetch);
       const tick = await collectAiBodies.execute();
       logger.info('[news] ai-body tick', tick);
     } catch (error: any) {

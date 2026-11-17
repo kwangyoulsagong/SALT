@@ -112,9 +112,22 @@ describe("toMacroEvents — 국내 일정 (SRV-REQ-041 FR-1 · FR-2 · FR-3)", (
     assert.deepEqual(events.map((e) => e.kind), ["cpi"]);
   });
 
-  it("모르는 종류 · 시장 종류인데 종목이 붙은 행은 버린다", () => {
-    const events = toMacroEvents([kr({ kind: "kr_earnings", eventSymbol: "005930" }), kr({ kind: "kr_cpi", eventSymbol: "005930" })]);
+  it("모르는 종류 · 시장 종류인데 종목이 붙은 행 · 종목 종류인데 종목이 빈 행은 버린다", () => {
+    const events = toMacroEvents([
+      kr({ kind: "kr_dividend", eventSymbol: "005930" }),
+      kr({ kind: "kr_cpi", eventSymbol: "005930" }),
+      kr({ kind: "kr_earnings", eventSymbol: "" }),
+    ]);
     assert.equal(events.length, 0);
+  });
+
+  it("종목 실적 공시 · 확정 실적 일정은 종목 사건(2단계) — 시장 일정보다 앞", () => {
+    const events = toMacroEvents([kr({ kind: "kr_cpi" }), kr({ kind: "kr_earnings", eventSymbol: "005930" }), kr({ kind: "kr_ir", eventSymbol: "005930" })]);
+    assert.deepEqual(events.map((e) => [e.kind, e.scope, e.region]), [
+      ["kr_earnings", "symbol", "kr"],
+      ["kr_ir", "symbol", "kr"],
+      ["kr_cpi", "market", "kr"],
+    ]);
   });
 
   it("같은 시각 · 같은 종류라도 사건 종목이 다르면 다른 일정이다", () => {

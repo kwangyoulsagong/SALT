@@ -6,9 +6,21 @@
  * 모르는 사건 종류는 버린다. 금액은 없다(수익률 · 비율뿐).
  */
 
-import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
+import {
+  toPerformanceClaim,
+  type PerformanceClaim,
+} from "./performance-claim.viewmodel";
 
-export type MacroEventKind = "fomc" | "cpi" | "jobs" | "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+export type MacroEventKind =
+  | "fomc"
+  | "cpi"
+  | "jobs"
+  | "kr_bok_rate"
+  | "kr_cpi"
+  | "kr_trade"
+  | "kr_quad_expiry"
+  | "kr_earnings"
+  | "kr_ir";
 export type EventScope = "market" | "symbol";
 export type EventRegion = "us" | "kr";
 
@@ -18,12 +30,23 @@ export type EventHorizon =
       renderable: true;
       asOf: string;
       sample: number;
-      range: { q05: number; q25: number; q50: number; q75: number; q95: number };
+      range: {
+        q05: number;
+        q25: number;
+        q50: number;
+        q75: number;
+        q95: number;
+      };
       upRate: number;
       baseline: { q05: number; q50: number; q95: number };
       moveRatio: number;
       preReturn5dMedian: number | null;
-      misses: { eventAt: string; realized: number; low: number; high: number }[];
+      misses: {
+        eventAt: string;
+        realized: number;
+        low: number;
+        high: number;
+      }[];
       recent: { eventAt: string; realized: number }[];
       /** 기간 · 표본 · 평소 날 기준 · 빗나간 수 / 판정 수(F009 FR-33). 서버가 옛 버전이면 `null` */
       claim: PerformanceClaim | null;
@@ -40,29 +63,88 @@ export interface MacroEvent {
   horizons: EventHorizon[];
 }
 
+/**
+ * 국내 종목 다음 실적 공시(F008 슬라이스 24 2단계 · `BFF-REQ-043` FR-2) — 확정 일정이 있으면 그것만, 없으면 예상 창(한 날짜 아님 ·
+ * 확정 아님) + 과거 적중 · 빗나간 결산 · 법정 기한. 모양이 깨진 창은 싣지 않고 `contract_incomplete`(만들어 내는 경로 없음)
+ */
+export interface EarningsOutlook {
+  periodEnd: string;
+  annual: boolean;
+  confirmed: {
+    at: string;
+    timeKnown: boolean;
+    source: "ir" | "preview";
+  } | null;
+  expected: {
+    from: string;
+    to: string;
+    sample: number;
+    hits: number;
+    judged: number;
+    misses: { periodEnd: string; actual: string; from: string; to: string }[];
+    deadline: string;
+  } | null;
+  blockedReason: string | null;
+  horizons: EventHorizon[];
+  asOf: string;
+}
+
 export type EventsResult =
-  | { status: "ok"; symbol: string; label: string; disclaimer: string; events: MacroEvent[] }
+  | {
+      status: "ok";
+      symbol: string;
+      label: string;
+      disclaimer: string;
+      events: MacroEvent[];
+      earnings: EarningsOutlook | null;
+    }
   | { status: "unavailable" };
 
-const KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs", "kr_bok_rate", "kr_cpi", "kr_trade", "kr_quad_expiry"];
+const KINDS: readonly MacroEventKind[] = [
+  "fomc",
+  "cpi",
+  "jobs",
+  "kr_bok_rate",
+  "kr_cpi",
+  "kr_trade",
+  "kr_quad_expiry",
+  "kr_earnings",
+  "kr_ir",
+];
 const SCOPES: readonly EventScope[] = ["market", "symbol"];
 const REGIONS: readonly EventRegion[] = ["us", "kr"];
 export const HORIZONS = [1, 5, 20];
 
-const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : null);
-const allNum = (o: Record<string, unknown> | null, keys: string[]) => Boolean(o) && keys.every((k) => isNum(o![k]));
+const isNum = (v: unknown): v is number =>
+  typeof v === "number" && Number.isFinite(v);
+const obj = (v: unknown) =>
+  v && typeof v === "object" ? (v as Record<string, unknown>) : null;
+const allNum = (o: Record<string, unknown> | null, keys: string[]) =>
+  Boolean(o) && keys.every((k) => isNum(o![k]));
 
 /** 기간 하나 — 쏠림 신호(`positioning.viewmodel.ts`)도 같은 규칙으로 막는다 */
-export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): EventHorizon => {
-  const blocked = (reason: string): EventHorizon => ({ horizonDays: h, renderable: false, blockedReason: reason });
+export const toHorizon = (
+  h: number,
+  raw: Record<string, unknown> | undefined,
+): EventHorizon => {
+  const blocked = (reason: string): EventHorizon => ({
+    horizonDays: h,
+    renderable: false,
+    blockedReason: reason,
+  });
   if (!raw) return blocked("not_generated");
-  if (raw.renderable !== true) return blocked(String(raw.blockedReason ?? "insufficient_sample"));
+  if (raw.renderable !== true)
+    return blocked(String(raw.blockedReason ?? "insufficient_sample"));
 
   const range = obj(raw.range);
   const baseline = obj(raw.baseline);
-  const misses = Array.isArray(raw.misses) ? (raw.misses as Record<string, unknown>[]) : [];
-  const okMisses = misses.filter((m) => typeof m?.eventAt === "string" && allNum(m, ["realized", "low", "high"]));
+  const misses = Array.isArray(raw.misses)
+    ? (raw.misses as Record<string, unknown>[])
+    : [];
+  const okMisses = misses.filter(
+    (m) =>
+      typeof m?.eventAt === "string" && allNum(m, ["realized", "low", "high"]),
+  );
   if (
     !allNum(range, ["q05", "q25", "q50", "q75", "q95"]) ||
     !allNum(baseline, ["q05", "q50", "q95"]) ||
@@ -75,7 +157,9 @@ export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): 
   ) {
     return blocked("contract_incomplete");
   }
-  const recent = Array.isArray(raw.recent) ? (raw.recent as Record<string, unknown>[]) : [];
+  const recent = Array.isArray(raw.recent)
+    ? (raw.recent as Record<string, unknown>[])
+    : [];
   return {
     horizonDays: h,
     renderable: true,
@@ -89,9 +173,15 @@ export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): 
       q95: range!.q95 as number,
     },
     upRate: raw.upRate,
-    baseline: { q05: baseline!.q05 as number, q50: baseline!.q50 as number, q95: baseline!.q95 as number },
+    baseline: {
+      q05: baseline!.q05 as number,
+      q50: baseline!.q50 as number,
+      q95: baseline!.q95 as number,
+    },
     moveRatio: raw.moveRatio,
-    preReturn5dMedian: isNum(raw.preReturn5dMedian) ? raw.preReturn5dMedian : null,
+    preReturn5dMedian: isNum(raw.preReturn5dMedian)
+      ? raw.preReturn5dMedian
+      : null,
     misses: okMisses.slice(0, 3).map((m) => ({
       eventAt: m.eventAt as string,
       realized: m.realized as number,
@@ -101,32 +191,140 @@ export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): 
     recent: recent
       .filter((r) => typeof r?.eventAt === "string" && isNum(r.realized))
       .slice(-5)
-      .map((r) => ({ eventAt: r.eventAt as string, realized: r.realized as number })),
+      .map((r) => ({
+        eventAt: r.eventAt as string,
+        realized: r.realized as number,
+      })),
     claim: toPerformanceClaim(raw.claim),
   };
 };
 
-export const toEventsViewModel = (data: Record<string, unknown>): EventsResult => {
+const isDay = (v: unknown): v is string =>
+  typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const isInt = (v: unknown): v is number => Number.isInteger(v);
+
+export const toEarningsOutlook = (raw: unknown): EarningsOutlook | null => {
+  const e = obj(raw);
+  if (!e || !isDay(e.periodEnd) || typeof e.asOf !== "string") return null;
+  const c = obj(e.confirmed);
+  const confirmed =
+    c &&
+    typeof c.at === "string" &&
+    (c.source === "ir" || c.source === "preview")
+      ? {
+          at: c.at,
+          timeKnown: c.timeKnown === true,
+          source: c.source as "ir" | "preview",
+        }
+      : null;
+  const x = obj(e.expected);
+  let blockedReason =
+    typeof e.blockedReason === "string" ? e.blockedReason : null;
+  let expected: EarningsOutlook["expected"] = null;
+  if (x && !confirmed) {
+    const ok =
+      isDay(x.from) &&
+      isDay(x.to) &&
+      x.from <= x.to &&
+      isDay(x.deadline) &&
+      isInt(x.sample) &&
+      x.sample > 0 &&
+      isInt(x.judged) &&
+      x.judged > 0 &&
+      isInt(x.hits) &&
+      x.hits >= 0 &&
+      x.hits <= x.judged;
+    if (ok) {
+      const misses = Array.isArray(x.misses)
+        ? (x.misses as Record<string, unknown>[])
+        : [];
+      expected = {
+        from: x.from as string,
+        to: x.to as string,
+        sample: x.sample as number,
+        hits: x.hits as number,
+        judged: x.judged as number,
+        misses: misses
+          .filter(
+            (m) =>
+              isDay(m?.periodEnd) &&
+              isDay(m.actual) &&
+              isDay(m.from) &&
+              isDay(m.to),
+          )
+          .slice(-3)
+          .map((m) => ({
+            periodEnd: m.periodEnd as string,
+            actual: m.actual as string,
+            from: m.from as string,
+            to: m.to as string,
+          })),
+        deadline: x.deadline as string,
+      };
+    } else blockedReason = "contract_incomplete";
+  }
+  const horizons = Array.isArray(e.horizons)
+    ? (e.horizons as Record<string, unknown>[])
+    : [];
+  return {
+    periodEnd: e.periodEnd,
+    annual: e.annual === true,
+    confirmed,
+    expected,
+    blockedReason: confirmed || expected ? null : blockedReason,
+    horizons: HORIZONS.map((h) =>
+      toHorizon(
+        h,
+        horizons.find((r) => r.horizonDays === h),
+      ),
+    ),
+    asOf: e.asOf,
+  };
+};
+
+export const toEventsViewModel = (
+  data: Record<string, unknown>,
+): EventsResult => {
   // 면책이 없으면 전체를 내보내지 않는다(`BFF-REQ-025` FR-22 — 면책은 정책)
-  if (typeof data.disclaimer !== "string" || data.disclaimer === "") return { status: "unavailable" };
-  const events = Array.isArray(data.events) ? (data.events as Record<string, unknown>[]) : [];
+  if (typeof data.disclaimer !== "string" || data.disclaimer === "")
+    return { status: "unavailable" };
+  const events = Array.isArray(data.events)
+    ? (data.events as Record<string, unknown>[])
+    : [];
   return {
     status: "ok",
     symbol: String(data.symbol ?? ""),
     label: String(data.label ?? ""),
     disclaimer: data.disclaimer,
+    // 옛 서버(2단계 전)는 필드가 없다 → null
+    earnings: toEarningsOutlook(data.earnings),
     events: events
-      .filter((e) => KINDS.includes(e?.kind as MacroEventKind) && typeof e.eventAt === "string")
+      .filter(
+        (e) =>
+          KINDS.includes(e?.kind as MacroEventKind) &&
+          typeof e.eventAt === "string",
+      )
       .map((e) => {
-        const horizons = Array.isArray(e.horizons) ? (e.horizons as Record<string, unknown>[]) : [];
+        const horizons = Array.isArray(e.horizons)
+          ? (e.horizons as Record<string, unknown>[])
+          : [];
         return {
           kind: e.kind as MacroEventKind,
           // 옛 서버(범위 · 지역 없음)는 미국 거시 시장 일정뿐이었다
-          scope: SCOPES.includes(e.scope as EventScope) ? (e.scope as EventScope) : "market",
-          region: REGIONS.includes(e.region as EventRegion) ? (e.region as EventRegion) : "us",
+          scope: SCOPES.includes(e.scope as EventScope)
+            ? (e.scope as EventScope)
+            : "market",
+          region: REGIONS.includes(e.region as EventRegion)
+            ? (e.region as EventRegion)
+            : "us",
           eventAt: e.eventAt as string,
           announcedAt: String(e.announcedAt ?? ""),
-          horizons: HORIZONS.map((h) => toHorizon(h, horizons.find((x) => x.horizonDays === h))),
+          horizons: HORIZONS.map((h) =>
+            toHorizon(
+              h,
+              horizons.find((x) => x.horizonDays === h),
+            ),
+          ),
         };
       }),
   };

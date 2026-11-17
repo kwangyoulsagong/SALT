@@ -7,7 +7,11 @@ as_of 는 **UTC 자정으로 내린다** — 일봉이 00:00 UTC 에 닫히므�
 | 묶음 | 일봉 | 사건 종류 |
 |---|---|---|
 | 코인(`event_symbols`, 비우면 업비트 일봉 전부) | 업비트 1d | 미국 거시 3 |
-| 국내(`kr_event_symbols` 또는 보유 · 관심 + 거래대금 상위 + `KR-EW`) | KIS 1d | 국내 4 + 미국 거시 3(FR-8) |
+| 국내(`kr_event_symbols` 또는 보유 · 관심 + 상위 + `KR-EW`) | KIS 1d | 국내 4 + 미국 3(FR-8) + 종목 실적 |
+
+국내 종목 실적(FC-REQ-021 FR-11~15) — 서버 export 뷰 `v_dart_earnings_export` 에서 결산마다 첫 실적 공시
+(`kr_earnings`) · 확정 실적 일정(`kr_ir`)을 만들어 `scheduled_event` 에 쓰고, 반응은 그 종목에만,
+다음 실적 공시 예상 창은 `kr_earnings_window` 에.
 """
 
 from __future__ import annotations
@@ -20,7 +24,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.config import settings
-from salt_forecast.domain import kr_market_proxy
+from salt_forecast.domain import kr_earnings, kr_market_proxy
 from salt_forecast.domain.events import (
     HORIZONS,
     KINDS,
@@ -43,6 +47,7 @@ from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, symbols_arg
 from salt_forecast.store.db import engine
 from salt_forecast.store.events import events_known, upsert_events, upsert_reactions, upsert_stats
+from salt_forecast.store.kr_earnings import load_earnings_filings, save_windows
 from salt_forecast.store.kr_stock import kr_tracked_symbols, krx_closed_dates
 from salt_forecast.store.prices import load_ohlcv_series, top_by_value
 from salt_forecast.store.prices import symbols as price_symbols
@@ -73,7 +78,9 @@ def _compute(
 ) -> tuple[list[Reaction], list[ReactionStats]]:
     """종목 하나 — 시장 사건(`symbol == ''`) 과 이 종목 사건만(종목 사건은 2단계, FR-13)."""
     mine = [e for e in events if e.kind in kinds and e.symbol in ("", bars.symbol)]
-    reactions = [r for e in mine if (r := reaction(bars, e, as_of, break_cum)) is not None]
+    reactions = [
+        r for e in mine if (r := reaction(bars, e, as_of, break_cum, kr_earnings.reaction_anchor(e))) is not None
+    ]
     return reactions, [stats(bars, kind, reactions, h, as_of, break_cum) for kind in kinds for h in HORIZONS]
 
 
@@ -164,6 +171,8 @@ def main(argv: list[str] | None = None) -> int:
             all_stats += ss
 
         kr_wanted: list[str] = []
+        windows: list[kr_earnings.EarningsWindow] = []
+        symbol_events: list[ScheduledEvent] = []
         if not args.skip_kr:
             kr_bars = {
                 s: b.as_of(int(as_of.timestamp()))
@@ -173,7 +182,34 @@ def main(argv: list[str] | None = None) -> int:
                 set(kr_tracked_symbols(eng))
                 | set(top_by_value(eng, krx_daily.SOURCE, krx_daily.INTERVAL, as_of, TOP_DAYS, cfg.kr_event_top))
             )
-            kr_kinds = KR_KINDS + KINDS
+            # 종목 실적 — 결산마다 첫 공시 · 확정 일정. 메모리에서 반응에 합치고(드라이런도 같은 숫자) 저장은 아래에서
+            # as_of 에 게시된 공시만 — 사업연도 끝 월 · 결산 추정도 그 시점 것으로(time-and-leakage.md §2)
+            filings = {
+                sym: kept
+                for sym, fs in load_earnings_filings(eng, kr_wanted).items()
+                if (kept := [f for f in fs if f.published_at <= as_of])
+            }
+            fy_month = {sym: kr_earnings.fiscal_end_month(fs) for sym, fs in filings.items()}
+            earn_events = {sym: kr_earnings.earnings_events(fs) for sym, fs in filings.items()}
+            confirmed = {sym: kr_earnings.confirmed_schedules(fs) for sym, fs in filings.items()}
+            symbol_events = [
+                e for sym in filings for e in kr_earnings.to_scheduled_events(earn_events[sym], confirmed[sym])
+            ]
+            # 외부 수집이 아니라 서버 export 뷰라 --skip-ingest 와 무관하게 쓴다 — 반응 행이 이 사건을 FK 로 가리킨다
+            # (첫 실행에서 --skip-ingest 가 사건만 건너뛰어 FK 위반, 2026-11-17)
+            if not args.dry_run:
+                total += upsert_events(eng, symbol_events, now)
+            seen = {(e.kind, e.event_at, e.symbol) for e in known}
+            known += [
+                e
+                for e in symbol_events
+                if e.announced_at <= as_of and e.event_at <= as_of and (e.kind, e.event_at, e.symbol) not in seen
+            ]
+            windows = [
+                kr_earnings.window(sym, as_of, earn_events[sym], confirmed[sym], fy_month[sym])
+                for sym in sorted(filings)
+            ]
+            kr_kinds = KR_KINDS + KINDS + kr_earnings.SYMBOL_KINDS
             for symbol in kr_wanted:
                 bars = kr_bars.get(symbol)
                 if bars is None or bars.available_at.size == 0:
@@ -192,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args.dry_run:
             total += upsert_reactions(eng, all_reactions, now)
             total += upsert_stats(eng, all_stats)
+            total += save_windows(eng, windows, now)
         log.info(
             "사건 통계",
             extra={
@@ -201,6 +238,14 @@ def main(argv: list[str] | None = None) -> int:
                     "events": len(known),
                     "reactions": len(all_reactions),
                     "kr_symbols": len(kr_wanted),
+                    "kr_earnings_events": sum(1 for e in symbol_events if e.kind == "kr_earnings"),
+                    "kr_ir_events": sum(1 for e in symbol_events if e.kind == "kr_ir"),
+                    "earnings_windows": len(windows),
+                    "earnings_windows_renderable": sum(1 for w in windows if w.renderable),
+                    "earnings_windows_blocked": {
+                        r: sum(1 for w in windows if w.blocked_reason == r)
+                        for r in sorted({w.blocked_reason for w in windows if w.blocked_reason})
+                    },
                     "cpi_board_rejected": rejected_cpi,
                     "renderable": sorted({f"{s.kind}:{s.horizon_days}d" for s in all_stats if s.renderable}),
                     "renderable_rows": sum(1 for s in all_stats if s.renderable),

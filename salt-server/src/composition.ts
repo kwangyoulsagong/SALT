@@ -77,6 +77,7 @@ import { createNewsApplication } from "./news/application/api";
 import { OUTLETS } from "./news/domain/Outlets";
 import { AiTitleAdapter } from "./news/infrastructure/AiTitleAdapter";
 import { DartClient } from "./news/infrastructure/DartClient";
+import { PrismaDartEarningsStore } from "./news/infrastructure/PrismaDartEarningsStore";
 import { PrismaDartFilingStore } from "./news/infrastructure/PrismaDartFilingStore";
 import { KrUniverseAdapter } from "./news/infrastructure/KrUniverseAdapter";
 import { OutletFeedClient } from "./news/infrastructure/OutletFeedClient";
@@ -149,6 +150,7 @@ const news = createNewsApplication({
     port: env.DART_API_KEY ? new DartClient(env.DART_API_KEY) : null,
     universe: new KrUniverseAdapter(() => market.api),
     filings: new PrismaDartFilingStore(),
+    earnings: new PrismaDartEarningsStore(),
   },
 });
 

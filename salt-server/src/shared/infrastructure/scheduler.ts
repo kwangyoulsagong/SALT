@@ -24,6 +24,9 @@ import { onWake, type WakeEvent } from "./wake";
  */
 const running = new Set<string>();
 
+/** 지금 도는 스케줄 작업 이름(락 안) — 이벤트 루프 막힘 감시(`loopWatch.ts`)가 범인을 적는다 */
+export const runningJobs = (): string[] => [...running].sort();
+
 /** 같은 깨어남에 놓친 회차 이벤트가 여러 개 와도 한 번만 돈다 */
 const CATCH_UP_COALESCE_MS = 60_000;
 
@@ -49,6 +52,15 @@ export const runGuarded = (name: string, task: () => Promise<unknown>) =>
   guarded(name, async () => {
     await task();
   })();
+
+/**
+ * 부팅 실행 — **cron 과 같은 락으로, 하나씩 차례로**(2026-11-17). 시장 워커가 부팅 때 일곱 작업을 락 밖에서 한꺼번에 돌려
+ * ① 1 · 2분 주기 작업(가격 · 지표)의 cron 회차가 아직 도는 부팅 실행과 겹쳤고 ② 연결 풀이 몰려 재기동 뒤 1분쯤 지나
+ * 패널 · 판단이 25초 동안 504 였다(BFF 예산 400ms, 실측 16:23:35~:56). 하나가 실패해도 다음을 돈다. 기다리지 않는다(서버 기동은 안 막는다)
+ */
+export const runAtBootInOrder = async (jobs: ReadonlyArray<{ name: string; run: () => Promise<unknown> }>) => {
+  for (const job of jobs) await runGuarded(job.name, job.run);
+};
 
 /**
  * 놓친 회차를 한 번 따라 돈다. 이미 도는 중이면 그 회차가 따라잡는다.

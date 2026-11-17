@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { attachCatchUp } from "../scheduler";
+import { attachCatchUp, runAtBootInOrder, runGuarded } from "../scheduler";
 import type { WakeEvent } from "../wake";
 
 /**
@@ -113,5 +113,41 @@ describe("attachCatchUp — 깸 길(프로세스가 뜬 뒤 첫 회차)", () => 
     task.start(); // 08:40 에 제때 돌았다
     hub.wake("2026-11-17T00:00:00Z", "2026-11-17T01:00:00Z");
     assert.equal(runs, 0);
+  });
+});
+
+describe("runAtBootInOrder — 부팅 실행은 cron 과 같은 락 · 하나씩(2026-11-17 재기동 뒤 504)", () => {
+  it("차례로 돈다 — 둘이 겹치지 않는다 · 실패해도 다음을 돈다", async () => {
+    const log: string[] = [];
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const job = (name: string, fail = false) => ({
+      name: `boot-test-${name}`,
+      run: async () => {
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        log.push(`start ${name}`);
+        await new Promise((r) => setTimeout(r, 5));
+        log.push(`end ${name}`);
+        inFlight -= 1;
+        if (fail) throw new Error("boom");
+      },
+    });
+    await runAtBootInOrder([job("a"), job("b", true), job("c")]);
+    assert.deepEqual(log, ["start a", "end a", "start b", "end b", "start c", "end c"]);
+    assert.equal(maxInFlight, 1);
+  });
+
+  it("부팅 실행이 도는 동안 같은 이름의 회차(cron · 깸)는 건너뛴다 — 겹쳐 돌지 않는다", async () => {
+    let runs = 0;
+    let release!: () => void;
+    const slow = { name: "boot-test-lock", run: () => new Promise<void>((r) => { runs += 1; release = r; }) };
+    const boot = runAtBootInOrder([slow]);
+    await runGuarded("boot-test-lock", async () => { runs += 1; });
+    assert.equal(runs, 1);
+    release();
+    await boot;
+    await runGuarded("boot-test-lock", async () => { runs += 1; });
+    assert.equal(runs, 2);
   });
 });

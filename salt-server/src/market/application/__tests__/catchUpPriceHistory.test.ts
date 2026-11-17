@@ -15,7 +15,7 @@ import {
   type PriceHistoryRepository,
   type WatchlistRepository,
 } from "../../domain";
-import { CatchUpPriceHistory, CollectPriceHistory } from "../SyncMarketData";
+import { CatchUpPriceHistory, CollectPriceHistory, PurgePriceHistory } from "../SyncMarketData";
 
 /**
  * 코인 5분봉 따라잡기(`SRV-REQ-057` FR-2) — 시각 주입 + 가짜 거래소로 수면을 재현한다.
@@ -53,6 +53,7 @@ const exchangeOf = (symbols: string[], quiet: string[] = [], clock: { now: Date 
 const storeOf = () => {
   const rows = new Map<string, Map<number, Candle>>();
   let rewrites = 0;
+  let purges = 0;
   const repo = {
     upsertCandles: async (symbol: string, _a: string, tf: string, candles: Candle[]) => {
       if (tf !== "5m") return;
@@ -65,9 +66,11 @@ const storeOf = () => {
       }
       rows.set(symbol, m);
     },
-    purgeOlderThan: async () => {},
+    purgeOlderThan: async () => {
+      purges += 1;
+    },
   } as unknown as PriceHistoryRepository;
-  return { repo, rows, rewrites: () => rewrites };
+  return { repo, rows, rewrites: () => rewrites, purges: () => purges };
 };
 
 const marksOf = (initial: Record<string, Date> = {}) => {
@@ -159,6 +162,10 @@ describe("코인 5분봉 따라잡기 (SRV-REQ-057 FR-2)", () => {
     const sinceStart = holes(ex, store.rows, clock.now).filter((h) => new Date(h.split("@")[1]) >= start);
     assert.equal(sinceStart.length, 0, "위치 뒤 구멍 0");
     assert.equal(store.rewrites(), 0);
+    // 수집 회차는 보관 기한을 지우지 않는다 — 매시 `PurgePriceHistory` 만(지우기가 표를 통째로 훑어 5분마다면 장중 504, 2026-11-17)
+    assert.equal(store.purges(), 0);
+    await new PurgePriceHistory(store.repo).execute();
+    assert.equal(store.purges(), 1);
   });
 });
 

@@ -1,7 +1,9 @@
 import {
   ForecastNotAvailableError,
   isForecastOwner,
+  toEarningsOutlook,
   toMacroEvents,
+  type EarningsOutlookView,
   type ForecastReader,
   type MacroEventView,
 } from "../domain";
@@ -9,6 +11,8 @@ import {
 export interface SymbolEventsView {
   symbol: string;
   events: MacroEventView[];
+  /** 국내 종목 다음 실적 공시 — 확정 일정 또는 예상 창(확정 아님) + 실적 공시 뒤 반응. 코인 · 자료 없음은 `null`(F008 슬라이스 24 2단계) */
+  earnings: EarningsOutlookView | null;
   /** 화면 이름의 근거 — 호재 · 악재를 판정하지 않는다(FEATURE-008 FR-31) */
   label: "주요 사건 (호재 · 악재 판정 아님)";
   disclaimer: string;
@@ -25,16 +29,18 @@ const DISCLAIMER =
 export class GetSymbolEvents {
   constructor(
     private readonly forecasts: ForecastReader,
-    private readonly ownerEmails: readonly string[]
+    private readonly ownerEmails: readonly string[],
+    private readonly now: () => Date = () => new Date()
   ) {}
 
   async execute(user: { userId: string; email?: string }, symbol: string): Promise<SymbolEventsView> {
     if (!isForecastOwner(user.email, this.ownerEmails)) throw new ForecastNotAvailableError();
     const normalized = symbol.trim().toUpperCase();
-    const rows = await this.forecasts.eventCards(normalized);
+    const [rows, earnings] = await Promise.all([this.forecasts.eventCards(normalized), this.forecasts.earningsOutlook(normalized)]);
     return {
       symbol: normalized,
       events: toMacroEvents(rows),
+      earnings: toEarningsOutlook(earnings.window, earnings.reactions, this.now()),
       label: "주요 사건 (호재 · 악재 판정 아님)",
       disclaimer: DISCLAIMER,
     };

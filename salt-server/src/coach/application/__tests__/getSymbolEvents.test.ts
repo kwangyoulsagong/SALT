@@ -4,12 +4,17 @@ import { describe, it } from "node:test";
 import type { ForecastReader } from "../../domain";
 import { GetSymbolEvents } from "../GetSymbolEvents";
 
-const reader = (calls: string[]): ForecastReader => ({
-  eventCards: async (symbol) => {
-    calls.push(symbol);
-    return [];
-  },
-});
+const reader = (calls: string[]): ForecastReader =>
+  ({
+    eventCards: async (symbol: string) => {
+      calls.push(symbol);
+      return [];
+    },
+    earningsOutlook: async (symbol: string) => {
+      calls.push(`earnings:${symbol}`);
+      return { window: null, reactions: [] };
+    },
+  }) as unknown as ForecastReader;
 
 describe("GetSymbolEvents", () => {
   it("소유자가 아니면 404 — 읽지도 않는다 (ADR-003)", async () => {
@@ -27,7 +32,8 @@ describe("GetSymbolEvents", () => {
       { userId: "u", email: "Owner@X.com" },
       " btc "
     );
-    assert.deepEqual(calls, ["BTC"]);
+    assert.deepEqual(calls, ["BTC", "earnings:BTC"]);
+    assert.equal(view.earnings, null);
     assert.equal(view.label, "주요 사건 (호재 · 악재 판정 아님)");
     assert.ok(view.disclaimer.length > 0);
   });

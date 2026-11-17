@@ -27,7 +27,7 @@ FEATURE-008 FR-22 · 23 · 27 에 "DART 미사용"으로 넓게 옮겨 적힌 �
 | FR-4 | 자사주 취득 · 처분(결정 · 결과) → `company` —`traded`→ 자기 자신 · 수량 · 금액 fact | FR-22 |
 | FR-5 | 임원 · 주요주주 특정증권 소유상황 보고 · 대량보유(5%) → `person`/`institution` —`holds`/`traded`→ `company` · 변동 수량 fact | FR-23 |
 | FR-6 | 사건 분류 규칙 먼저 — 주요사항보고서 유형 → fact kind(≈30종, 표를 REQ 부록으로). LLM 분류 0. 분류 안 되는 보고서는 `kind:other` 로 남기고 피처 · 화면에 쓰지 않는다 | FR-27 |
-| FR-7 | 실적 — 잠정실적 · IR 개최 공시는 `FC-REQ-021` 2단계가 같은 수집 결과를 읽는다(중복 수집 0) | FR-70 |
+| FR-7 | 실적 — 잠정실적 · IR 개최 공시는 `FC-REQ-021` 2단계가 같은 수집 결과를 읽는다(중복 수집 0) | FR-70 · **done 2026-11-17** — 서버 표 `dart_earnings_filing`(실적 · IR · 예고, 2016~ · `SRV-REQ-041` FR-8~10) → export 뷰 `v_dart_earnings_export`. 5분 공시 회차가 같은 행을 처음 본 시각으로 넣는다. 회사 사정 목록(`dart_filing`)과는 표가 따로 |
 | FR-8 | 호출 한도 — 오픈API 일일 한도(공식 문서 값 확인 후 기록) 의 50% 이하로 페이서. 원문 문서(XML · ZIP) 보관은 하지 않고 필요한 필드만 | — |
 | FR-9 | 누수 — 피처 · 반응 통계는 `ingested_at` 이 아니라 **공시 접수 시각 이후** 봉부터(`time-and-leakage.md` §1). 장중 접수면 그날 봉은 접수 전 가격 포함 → 다음 봉 기준 |
 | FR-10 | 화면 노출은 이 REQ 범위 밖 — 기존 사건 카드 · 해설이 온톨로지를 읽을 때 따라온다. 반응 분포는 소유자 전용(ADR-003) |
@@ -66,3 +66,4 @@ FEATURE-008 FR-22 · 23 · 27 에 "DART 미사용"으로 넓게 옮겨 적힌 �
 | 2026-11-13 | **범위 복귀**(사용자 결정 · `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-11 회사 사정용 필드 · FR-12 장중 반영 · FR-13 규칙 먼저 · 서술형만 LLM |
 | 2026-11-14 | **F017 v4 2b — AI 경로 몫 서버 수집**(`feat/f017-v4-s2-disclosure-body`): FR-1 · 12 done · FR-3 · 11 일부 · FR-13 정정(LLM + 원문 대조 먼저). 첫 실측 목록 208 · 유니버스 15 · 원문 15 → 사실 34. 온톨로지 몫(FR-2 · 4~10)은 예측 to-do |
 | 2026-11-14 | FR-2 일부(서버) — 고유번호 매핑을 서버가 하루 한 번(유니버스 1년 백필용). 예측 온톨로지 매핑은 여전히 to-do |
+| 2026-11-17 | **FR-7 done**(F008 슬라이스 24 2단계, `feat/f008-slice24-s2-earnings-window`) — 실적 공시 · 일정은 서버 표 `dart_earnings_filing` → 뷰 `v_dart_earnings_export`. 같은 브랜치에서 서버 공시 원문 디코딩 결함(UTF-8 을 EUC-KR 로 — 본문 634건 한글 깨짐) 고침 · 다시 받기(`SRV-REQ-058` FR-9) — 이 REQ 의 FR-11 · 13 사실 칸이 깨진 본문에서 나왔다 |

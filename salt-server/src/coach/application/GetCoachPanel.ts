@@ -109,12 +109,23 @@ export interface GetCoachPanelDeps {
 /** 시세를 못 읽어 시장을 모를 때 — 6자리 숫자는 국내 종목 코드(검색 · 라벨과 같은 규칙) */
 const guessMarket = (symbol: string): ScenarioMarket => (/^\d{6}$/.test(symbol) ? "kr" : "crypto");
 
-const settle = async <T>(what: string, symbol: string, run: () => Promise<T>): Promise<T | null> => {
+/** 패널 한 번이 이보다 오래 걸리면 칸별 시간을 남긴다 — BFF 예산(400ms)의 절반. 재기동 뒤 504 를 칸까지 좁히려고(2026-11-17) */
+export const PANEL_SLOW_MS = 200;
+
+const settle = async <T>(
+  what: string,
+  symbol: string,
+  run: () => Promise<T>,
+  timings?: Record<string, number>,
+): Promise<T | null> => {
+  const started = performance.now();
   try {
     return await run();
   } catch (error) {
     logger.warn(`패널 ${what} 읽기 실패 — 그 칸만 결함`, { symbol, error: String(error) });
     return null;
+  } finally {
+    if (timings) timings[what] = Math.round(performance.now() - started);
   }
 };
 
@@ -150,18 +161,20 @@ export class GetCoachPanel {
 
   async execute(user: { userId: string; email?: string }, rawSymbol: string): Promise<CoachPanelView> {
     const symbol = rawSymbol.trim().toUpperCase();
+    const startedAt = performance.now();
+    const timings: Record<string, number> = {};
     const now = this.deps.now?.() ?? new Date();
 
-    const scenarioP = settle("시나리오", symbol, () => this.deps.scenario.execute(user, symbol));
+    const scenarioP = settle("시나리오", symbol, () => this.deps.scenario.execute(user, symbol), timings);
     const marketP = scenarioP.then((s) => s?.market ?? guessMarket(symbol));
     const since = new Date(now.getTime() - COMPANY_LOOKBACK_DAYS * 24 * 3_600_000);
     const [scenario, check, judgment, explanations, cause, mine, facts] = await Promise.all([
       scenarioP,
-      settle("점검", symbol, () => this.deps.check.execute(user.userId, { symbol, side: "buy" })),
-      settle("판단", symbol, () => this.deps.judgment.execute(user.userId, { symbol, viewerEmail: user.email })),
-      settle("해설", symbol, () => this.deps.explanation.executeModes(symbol, ["scalp", "long_term"])),
-      marketP.then((market) => settle("원인", symbol, () => this.deps.causes.cause(market, symbol))),
-      marketP.then((market) => settle("내 기준", symbol, () => this.mine(user.userId, symbol, market))),
+      settle("점검", symbol, () => this.deps.check.execute(user.userId, { symbol, side: "buy" }), timings),
+      settle("판단", symbol, () => this.deps.judgment.execute(user.userId, { symbol, viewerEmail: user.email }), timings),
+      settle("해설", symbol, () => this.deps.explanation.executeModes(symbol, ["scalp", "long_term"]), timings),
+      marketP.then((market) => settle("원인", symbol, () => this.deps.causes.cause(market, symbol), timings)),
+      marketP.then((market) => settle("내 기준", symbol, () => this.mine(user.userId, symbol, market), timings)),
       settle("회사 사정", symbol, async () =>
         mergeFilingFacts(
           await this.deps.companyFacts.recent(symbol, since, COMPANY_FACT_LIMIT),
@@ -171,8 +184,11 @@ export class GetCoachPanel {
             return [];
           }),
         ),
+        timings,
       ),
     ]);
+    const totalMs = Math.round(performance.now() - startedAt);
+    if (totalMs >= PANEL_SLOW_MS) logger.warn("패널 느림", { symbol, totalMs, cells: timings });
     const market = await marketP;
     const [scalpExplain, longExplain] = explanations ?? [null, null];
 

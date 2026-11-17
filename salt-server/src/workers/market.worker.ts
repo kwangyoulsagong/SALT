@@ -1,6 +1,6 @@
 import { contextUseCases } from "../composition";
 import { logger } from "../shared/config/logger";
-import { runGuarded, schedule } from "../shared/infrastructure/scheduler";
+import { runAtBootInOrder, runGuarded, schedule } from "../shared/infrastructure/scheduler";
 import { onWake } from "../shared/infrastructure/wake";
 
 /**
@@ -55,6 +55,14 @@ const jobs = (): MarketJob[] => {
       run: () => market.collectPriceHistory.execute(),
     },
     {
+      // 보관 기한 지우기 — 매시 :37(예측 :00 · :02 · 장중 회차 · 5분 수집과 어긋나게). 지우기가 표를 통째로 훑어 5분마다면 장중 504(2026-11-17)
+      name: "price-history-purge",
+      expression: "37 * * * *",
+      runAtBoot: false,
+      catchUp: true,
+      run: () => market.purgePriceHistory.execute(),
+    },
+    {
       // 5분봉 따라잡기(SRV-REQ-057 FR-2) — 정기 수집 창 밖으로 밀린 종목만. 정기 회차와 2분 어긋나게(같은 거래소 한도)
       name: "price-history-catchup",
       expression: "2-59/5 * * * *",
@@ -85,21 +93,16 @@ const jobs = (): MarketJob[] => {
   ];
 };
 
-/**
- * 부팅 실행은 **기다리지 않는다.** 네 작업이 전부 거래소를 왕복하고, 그중 하나라도
- * 던지면 서버 기동이 멈춘다 — 시세가 늦는 것과 서버가 안 뜨는 것은 다른 문제다.
- */
-const runAtBoot = (job: MarketJob) => {
-  job.run().catch((error) => {
-    logger.error(`부팅 실행 실패: ${job.name}`, error);
-  });
-};
-
 export const startMarketWorkers = () => {
-  for (const job of jobs()) {
+  const all = jobs();
+  for (const job of all) {
     schedule(job.name, job.expression, () => job.run().then(() => undefined), { catchUp: job.catchUp });
-    if (job.runAtBoot) runAtBoot(job);
   }
+  // 부팅 실행은 **기다리지 않고, cron 과 같은 락으로 하나씩**(`runAtBootInOrder`) — 일곱이 락 밖에서 한꺼번에 돌면 cron 회차와 겹치고
+  // 연결 풀이 몰려 재기동 뒤 패널이 504 였다(2026-11-17). 가격이 먼저(코치 판정 신선도). 실패는 그 작업만 — 서버 기동은 안 막는다
+  const first = ["market-price-update", "price-history-collect", "technical-indicators"];
+  const rank = (name: string) => (first.includes(name) ? first.indexOf(name) : first.length);
+  void runAtBootInOrder(all.filter((job) => job.runAtBoot).sort((a, b) => rank(a.name) - rank(b.name)));
 
   // 깸(SRV-REQ-057 FR-6) — 코인 5분봉 따라잡기 · 그날 스냅샷. 같은 이름 = cron 과 같은 락
   const market = contextUseCases.market;

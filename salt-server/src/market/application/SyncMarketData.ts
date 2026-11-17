@@ -109,6 +109,19 @@ const TIMEFRAME_PAUSE_MS = 50;
  * KST 문자열 파싱까지 워커가 들고 있었다. **그 번역은 `infrastructure` 의 일**이라
  * 어댑터로 내렸고, 여기 남은 것은 배치 크기·쉼·보관 정책이다.
  */
+/**
+ * 시세 이력 보관 기한 지우기(`RETENTION`) — **매시 한 번**(2026-11-17). 5분 수집 회차마다 돌았는데 `DELETE` 가 규칙마다 표(738MB)를
+ * 통째로 훑어 최장 9초 IO 를 잡았다 — 장중 화면 요청이 같은 DB 에서 504 가 된 원인 중 하나(규칙은 일 단위라 5분마다 지울 이유가 없다)
+ */
+export class PurgePriceHistory {
+  constructor(private readonly prices: PriceHistoryRepository) {}
+
+  async execute() {
+    await this.prices.purgeOlderThan(RETENTION);
+    return { rules: RETENTION.length };
+  }
+}
+
 export class CollectPriceHistory {
   constructor(
     private readonly assets: MarketAssetRepository,
@@ -134,7 +147,7 @@ export class CollectPriceHistory {
 
     // 회차 끝에 한 문장(행마다 흩지 않는다 — `noParallelRowWrites`)
     if (this.fillMarks) await this.fillMarks.advance("crypto", "5m", advanced, this.now());
-    await this.prices.purgeOlderThan(RETENTION);
+    // 보관 기한 지우기는 여기서 하지 않는다 — `PurgePriceHistory`(매시 한 번)
     return { symbols: symbols.length, marksAdvanced: advanced.length };
   }
 

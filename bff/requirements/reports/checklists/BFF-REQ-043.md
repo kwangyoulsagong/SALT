@@ -25,3 +25,19 @@
   - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+
+## 2026-11-17 — F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`)
+
+이 REQ 몫: **FR-2 완료**(`earnings` 블록 — 막기만 · 종류 `kr_earnings` · `kr_ir`) · FR-4 시험
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 시험 · 빌드 | 충족 | `npm test` 514/514(새 7 — 창 · 확정 · 깨진 창 넷 · 옛 서버 · 종목 사건 종류) · `npm run build` 0 |
+| 실응답 통과 | 충족 | 서버 실DB 응답 다섯을 `toEventsViewModel` 에 — 창 · 반응 그대로, 코인 `null` |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| HTTP 실토큰 경로 | 위 서버와 같다 | `QA-001` |

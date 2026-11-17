@@ -7,7 +7,16 @@
  */
 
 import type { PerformanceClaim } from "./performanceClaim";
-export type MacroEventKind = "fomc" | "cpi" | "jobs" | "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+export type MacroEventKind =
+  | "fomc"
+  | "cpi"
+  | "jobs"
+  | "kr_bok_rate"
+  | "kr_cpi"
+  | "kr_trade"
+  | "kr_quad_expiry"
+  | "kr_earnings"
+  | "kr_ir";
 /** 시장 일정(모든 종목) · 종목 사건(그 종목만 — 2단계 실적 공시) */
 export type EventScope = "market" | "symbol";
 export type EventRegion = "us" | "kr";
@@ -24,6 +33,9 @@ export const EVENT_KIND_LABELS: Readonly<Record<MacroEventKind, string>> = {
   kr_cpi: "소비자물가동향",
   kr_trade: "수출입동향",
   kr_quad_expiry: "선물 · 옵션 동시만기",
+  // 종목 사건(F008 슬라이스 24 2단계) — 실적 숫자가 처음 공개된 공시 · 회사가 알린 실적 발표 일정
+  kr_earnings: "실적 공시",
+  kr_ir: "실적 발표(회사 공시)",
 };
 
 /** 지역 표시(국내 · 미국)를 옆에 붙일 때의 이름 — "미국 미국 고용보고서" 처럼 겹치지 않게 지역 말을 뺐다 */
@@ -63,6 +75,37 @@ export interface MacroEventView {
   horizons: EventHorizonView[];
 }
 
+/**
+ * 국내 종목 다음 실적 공시(F008 슬라이스 24 2단계 · `FE-REQ-046` FR-3) — 회사가 알린 일정(`confirmed`)이 있으면 그것만,
+ * 없으면 과거 공시일 기준 예상 **기간**(`expected` — 한 날짜가 아니다 · 확정 아님) + 과거 적중 · 빗나간 결산 · 법정 기한.
+ * 날짜는 서울 날짜 `YYYY-MM-DD`. `horizons` 는 실적 공시 뒤 반응(공시일 전 거래일 종가 기준)
+ */
+export interface EarningsOutlookView {
+  periodEnd: string;
+  annual: boolean;
+  confirmed: { at: string; timeKnown: boolean; source: "ir" | "preview" } | null;
+  expected: {
+    from: string;
+    to: string;
+    sample: number;
+    hits: number;
+    judged: number;
+    misses: { periodEnd: string; actual: string; from: string; to: string }[];
+    deadline: string;
+  } | null;
+  blockedReason: string | null;
+  horizons: EventHorizonView[];
+  asOf: string;
+}
+
 export type SymbolEventsResult =
-  | { status: "ok"; symbol: string; label: string; disclaimer: string; events: MacroEventView[] }
+  | {
+      status: "ok";
+      symbol: string;
+      label: string;
+      disclaimer: string;
+      events: MacroEventView[];
+      /** 코인 · 자료 없음 · 옛 BFF 는 `null`(없을 수도 있다) */
+      earnings?: EarningsOutlookView | null;
+    }
   | { status: "unavailable" };

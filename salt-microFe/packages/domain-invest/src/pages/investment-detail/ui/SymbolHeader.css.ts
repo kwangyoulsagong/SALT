@@ -166,6 +166,36 @@ export const stat = style({
   },
 });
 
+/**
+ * 칸이 많은 머리(국내 14칸)는 격자 — 줄바꿈 흐름이면 둘째 줄부터 줄 첫 칸에도 세로 선 · 들여쓰기가 남아
+ * 열이 어긋났다(QA-001 실로그인 1440 · 앱 웹뷰 375, 2026-11-17). 줄 첫 칸은 열 수로 고른다. 코인(3칸 한 줄)은 `stats` 그대로
+ */
+export const statsGrid = style({
+  display: "grid",
+  gridTemplateColumns: "repeat(4, minmax(116px, max-content))",
+  gap: `${vars.space.md} 0`,
+  "@media": {
+    [NARROW]: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))", width: "100%" },
+  },
+});
+
+export const gridStat = style([
+  stat,
+  {
+    paddingRight: vars.space.xl,
+    selectors: { "&:nth-child(4n + 1)": { paddingLeft: 0, borderLeft: "none" } },
+    "@media": {
+      [NARROW]: {
+        paddingRight: 0,
+        // 두 칸이면 줄 첫 칸 = 홀수 칸(4n+1 도 홀수라 위 규칙과 겹치지 않는다)
+        selectors: {
+          "&:nth-child(4n + 3)": { paddingLeft: 0, borderLeft: "none" },
+        },
+      },
+    },
+  },
+]);
+
 /** 시간외 단일가 한 줄(슬라이스 6b) — 새 요소라 흰 카드 위 4.5 이상 회색(`lightGray` 4.6). `statLabel`(neutral 500)은 기존 값 */
 export const afterHoursLine = style({
   margin: 0,

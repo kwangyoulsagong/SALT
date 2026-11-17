@@ -11,8 +11,9 @@ const filing = (rceptNo: string, stockCode: string, over: Partial<DartFiling> = 
   rceptNo, stockCode, corpName: `회사${stockCode}`, reportName: "단일판매ㆍ공급계약체결", rceptDate: "20261114", filer: "x", ...over,
 });
 
-const harness = (opts: { b?: DartFiling[]; i?: DartFiling[]; known?: string[]; fail?: string[]; pages?: number; backfilled?: string[]; past?: DartFiling[]; corpLists?: Record<string, DartFiling[]> }) => {
+const harness = (opts: { b?: DartFiling[]; i?: DartFiling[]; known?: string[]; fail?: string[]; missingDocs?: Record<string, string>; pages?: number; backfilled?: string[]; past?: DartFiling[]; corpLists?: Record<string, DartFiling[]> }) => {
   const saved: Array<{ key: string; symbols: string[]; url: string; publishedAt: Date }> = [];
+  const missing: string[] = [];
   const docs: string[] = [];
   const listed: string[] = [];
   const dart: DartPort = {
@@ -26,6 +27,7 @@ const harness = (opts: { b?: DartFiling[]; i?: DartFiling[]; known?: string[]; f
     listByCorp: async (corp, type) => ({ items: type === "I" ? (opts.corpLists?.[corp] ?? []) : [], totalPage: 1 }),
     document: async (no) => {
       docs.push(no);
+      if (opts.missingDocs?.[no]) throw Object.assign(new Error(`DART document ${opts.missingDocs[no]}`), { code: `DART_${opts.missingDocs[no]}` });
       if (opts.fail?.includes(no)) throw new Error("down");
       return ["1. 계약금액 | 120억원"];
     },
@@ -33,6 +35,7 @@ const harness = (opts: { b?: DartFiling[]; i?: DartFiling[]; known?: string[]; f
   const bodies = {
     statuses: async (keys: string[]) => new Map(keys.filter((k) => opts.known?.includes(k)).map((k) => [k, "ok" as AiBodyStatus])),
     saveDisclosures: async (rows: typeof saved) => (saved.push(...rows), rows.length),
+    markDisclosureMissing: async (row: { key: string }) => void missing.push(row.key),
   } as unknown as AiBodyStore;
   const filingsSaved: string[] = [];
   const backfilledMarks: string[] = [];
@@ -45,7 +48,7 @@ const harness = (opts: { b?: DartFiling[]; i?: DartFiling[]; known?: string[]; f
   };
   const uc = (withDart = true) =>
     new CollectDartDisclosures({ dart: withDart ? dart : null, universe: { codes: async () => ["005930", "000660"] }, bodies, filings }, () => NOW, async () => {});
-  return { uc, saved, docs, listed, filingsSaved, backfilledMarks };
+  return { uc, saved, docs, listed, filingsSaved, backfilledMarks, missing };
 };
 
 describe("CollectDartDisclosures", () => {
@@ -106,5 +109,15 @@ describe("1년 백필 · 과거 원문(2b+)", () => {
     await h.uc().execute();
     assert.deepEqual(h.docs, ["n1", "p2", "p3"]);
   });
-});
 
+  it("원문이 영구히 없으면(013 · 014) 본문 없음으로 남긴다 — 재기동 뒤에도 다시 묻지 않게. 지나가는 실패(020 · 응답 없음)는 남기지 않는다", async () => {
+    const h = harness({
+      i: [filing("1", "005930"), filing("2", "000660"), filing("3", "005930"), filing("4", "000660")],
+      missingDocs: { "1": "014", "2": "013", "3": "020" },
+      fail: ["4"],
+    });
+    const r = await h.uc().execute();
+    assert.deepEqual(h.missing, ["dart:1", "dart:2"]);
+    assert.deepEqual([r.missing, r.failed, r.saved], [2, 4, 0]);
+  });
+});

@@ -11,6 +11,7 @@ import {
   DART_TYPES,
   type AiBodyStore,
   type DartFiling,
+  type DartEarningsStore,
   type DartFilingStore,
   type DartPort,
   type DartType,
@@ -20,9 +21,11 @@ import {
   dartTitle,
   dartViewerUrl,
   isImportantFiling,
+  isPermanentDartMiss,
   kstYmd,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
+import { toEarningsRow } from "./CollectDartEarnings";
 
 export interface DartTick {
   enabled: boolean;
@@ -38,6 +41,8 @@ export interface DartTick {
   failed: number;
   /** 회차 상한으로 다음 회차(원문) */
   deferred: number;
+  /** 원문이 영구히 없는 공시(013 · 014) — 본문 없음으로 남김 */
+  missing: number;
 }
 
 /**
@@ -54,14 +59,14 @@ export class CollectDartDisclosures {
   private readonly failures = new Map<string, number>();
 
   constructor(
-    private readonly deps: { dart: DartPort | null; universe: KrUniverseSource; bodies: AiBodyStore; filings: DartFilingStore },
+    private readonly deps: { dart: DartPort | null; universe: KrUniverseSource; bodies: AiBodyStore; filings: DartFilingStore; earnings?: DartEarningsStore },
     private readonly now: () => Date = () => new Date(),
     private readonly sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   ) {}
 
   async execute(): Promise<DartTick> {
     const out: DartTick = {
-      enabled: this.deps.dart !== null, listed: 0, universe: 0, backfilledStocks: 0, backfilledFilings: 0, fresh: 0, saved: 0, failed: 0, deferred: 0,
+      enabled: this.deps.dart !== null, listed: 0, universe: 0, backfilledStocks: 0, backfilledFilings: 0, fresh: 0, saved: 0, failed: 0, deferred: 0, missing: 0,
     };
     const dart = this.deps.dart;
     if (!dart) return out;
@@ -82,6 +87,10 @@ export class CollectDartDisclosures {
     const mine = today.filter((f) => universe.has(f.stockCode));
     out.universe = mine.length;
     await this.deps.filings.save(mine, now);
+    // 잠정실적 · 실적 IR · 예고는 5분 안에 처음 본 시각으로 실적 표에도(F008 슬라이스 24 2단계 — 반응 기준 봉이 이 시각으로 정해진다)
+    if (this.deps.earnings) {
+      await this.deps.earnings.save(mine.flatMap((f) => toEarningsRow(f, f.type) ?? []), now);
+    }
 
     // 2. 1년 백필 — 종목 하나의 실패는 그 종목만(다음 회차에 다시)
     await this.backfill(dart, codes, now, out);
@@ -165,6 +174,16 @@ export class CollectDartDisclosures {
       );
     } catch (error) {
       out.failed += 1;
+      const code = (error as { code?: string }).code;
+      if (publishedAt && isPermanentDartMiss(code)) {
+        // 다시 불러도 같은 답 — 본문 없음으로 남겨 재기동 뒤에도 다시 묻지 않는다
+        await this.deps.bodies.markDisclosureMissing(
+          { key: dartKey(f.rceptNo), title: dartTitle(f), publishedAt, symbols: [f.stockCode], url: dartViewerUrl(f.rceptNo) },
+          this.now(),
+        );
+        out.missing += 1;
+        return;
+      }
       this.failures.set(f.rceptNo, (this.failures.get(f.rceptNo) ?? 0) + 1);
       logger.warn("[news] dart document failed", { rceptNo: f.rceptNo, code: (error as { code?: string }).code ?? null, message: String((error as Error).message ?? "").slice(0, 120) });
     }

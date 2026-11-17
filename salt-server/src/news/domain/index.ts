@@ -5,6 +5,7 @@ export * from "./NewsSource";
 export * from "./ports";
 export * from "./AiBody";
 export * from "./Dart";
+export * from "./DartEarnings";
 export * from "./Outlets";
 export * from "./Robots";
 export * from "./NewsGap";

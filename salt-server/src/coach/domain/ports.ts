@@ -8,6 +8,7 @@ import type {
   TradeCheckStatus,
 } from "./policy/tradeCheck";
 import type { CauseSnapshotRecord } from "./policy/causeSnapshot";
+import type { EarningsWindowRow } from "./policy/earningsOutlook";
 import type { JudgmentTierRow } from "./policy/judgmentTier";
 import type { ScenarioMarket, ShortHorizonCellRow, ShortHorizonPredictionRow } from "./policy/shortHorizon";
 import type { MoveAsset, MoveCard, MoveSummaryPromptFact, StoredMoveSummary } from "./policy/moveSummary";
@@ -19,6 +20,7 @@ import type {
   CoachGenerationSource,
   EventCardRow,
   PositioningRow,
+  ReactionStatsRow,
   SignalReactionRow,
   GaugeKind,
   GaugeTrackStats,
@@ -718,6 +720,11 @@ export interface ForecastReader {
   /** 앞으로 35일 거시 일정 × 기간별 최신 반응 통계 — `forecast.v_event_card` (FC-REQ-005) */
   eventCards(symbol: string): Promise<EventCardRow[]>;
   /**
+   * 국내 종목 다음 실적 공시 — 예상 창 · 확정 일정 한 행(`forecast.v_kr_earnings_window`)과 실적 공시 뒤 반응 기간별 최신
+   * (`forecast.v_kr_earnings_reaction`), F008 슬라이스 24 2단계. 코인 · 행 없음이면 `window: null`
+   */
+  earningsOutlook(symbol: string): Promise<{ window: EarningsWindowRow | null; reactions: ReactionStatsRow[] }>;
+  /**
    * 쏠림 신호 — 종목 최신 상태 한 행(`forecast.v_market_signal`)과 신호 뒤 반응 통계(`forecast.v_signal_reaction`),
    * `FC-REQ-007`. 상태가 없으면 `row: null`
    */
@@ -1127,7 +1134,7 @@ export interface ExtractedFactRow {
 }
 
 export interface ExtractedFactStore {
-  /** 한 문장 · 같은 (원천, 원문 키, 무엇)은 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
+  /** 같은 (원천, 원문 키, 무엇)은 한 행(upsert). 다시 추출한 원문 키는 이번에 안 나온 옛 사실을 지운다(2026-11-17 DART 다시 받기). 넣은 · 바꾼 수 */
   saveMany(rows: ExtractedFactRow[], at: Date): Promise<number>;
 }
 

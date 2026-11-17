@@ -160,7 +160,8 @@ export class PrismaAiBodyStore implements AiBodyStore {
       FROM news_ai_body b LEFT JOIN news_outlet o ON o.id = b.outlet_id
       WHERE b.status = 'ok' AND b.extracted_at IS NULL AND b.purged_at IS NULL AND b.via <> 'portal'
         AND b.extract_attempts < ${AI_EXTRACT_MAX_ATTEMPTS} AND b.item_url IS NOT NULL AND cardinality(b.symbols) > 0
-      ORDER BY b.fetched_at ASC
+      -- 다시 받은 DART 본문은 다시 받은 때로 줄 선다 — 처음 받은 때(11-14)로 서면 늘 맨 앞이라 오늘 기사 추출이 밀린다(2026-11-17)
+      ORDER BY COALESCE(b.refetched_at, b.fetched_at) ASC
       LIMIT ${limit}`;
     // 두 번 거른다 — SQL(`via <> 'portal'`)과 도메인 허용 목록. 모르는 via 값이 들어와도 AI 로 가지 않는다
     return rows
@@ -197,9 +198,9 @@ export class PrismaAiBodyStore implements AiBodyStore {
     const col = <T,>(pick: (r: (typeof rows)[number]) => T) => rows.map(pick);
     return prisma.$executeRaw`
       INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, paragraphs, body_hash, body_chars,
-        linked_at, fetched_at, symbols)
+        linked_at, fetched_at, symbols, refetched_at)
       SELECT u.key, 'kr', u.title, u.published_at, NULL, 'dart', 'ok', u.url, u.paragraphs::jsonb, u.hash, u.chars, ${at}, ${at},
-        string_to_array(u.symbols, ',')
+        string_to_array(u.symbols, ','), ${at}
       FROM unnest(${col((r) => r.key)}::text[], ${col((r) => r.title)}::text[], ${col((r) => r.publishedAt)}::timestamptz[],
         ${col((r) => r.url)}::text[], ${col((r) => JSON.stringify(r.paragraphs))}::text[], ${col((r) => r.hash)}::text[],
         ${col((r) => r.chars)}::int[], ${col((r) => r.symbols.join(","))}::text[])
@@ -207,9 +208,38 @@ export class PrismaAiBodyStore implements AiBodyStore {
       ON CONFLICT (key) DO NOTHING`;
   }
 
+  async dartBodiesToRefetch(limit: number) {
+    const rows = await prisma.$queryRaw<Array<{ key: string }>>`
+      SELECT key FROM news_ai_body WHERE via = 'dart' AND status = 'ok' AND refetched_at IS NULL
+      ORDER BY title_published_at DESC, key DESC LIMIT ${limit}`;
+    return rows.map((r) => ({ key: r.key, rceptNo: r.key.replace(/^dart:/, "") }));
+  }
+
+  async markDisclosureMissing(row: { key: string; title: string; publishedAt: Date; symbols: string[]; url: string }, at: Date) {
+    await prisma.$executeRaw`
+      INSERT INTO news_ai_body (key, market, title, title_published_at, outlet_id, via, status, item_url, linked_at, fetched_at, symbols, refetched_at)
+      VALUES (${row.key}, 'kr', ${row.title}, ${row.publishedAt}, NULL, 'dart', 'empty', ${row.url}, ${at}, ${at}, ${row.symbols}::text[], ${at})
+      ON CONFLICT (key) DO NOTHING`;
+  }
+
+  async dartRefetchedAwaitingExtraction() {
+    const rows = await prisma.$queryRaw<Array<{ n: bigint }>>`
+      SELECT count(*) AS n FROM news_ai_body
+      WHERE via = 'dart' AND status = 'ok' AND refetched_at IS NOT NULL AND extracted_at IS NULL AND purged_at IS NULL
+        AND refetched_at > fetched_at`;
+    return Number(rows[0]?.n ?? 0);
+  }
+
+  async replaceDisclosureBody(row: { key: string; paragraphs: string[]; hash: string; chars: number }, at: Date) {
+    await prisma.$executeRaw`
+      UPDATE news_ai_body SET paragraphs = ${JSON.stringify(row.paragraphs)}::jsonb, body_hash = ${row.hash}, body_chars = ${row.chars},
+        refetched_at = ${at}, extracted_at = NULL, extract_attempts = 0, purged_at = NULL
+      WHERE key = ${row.key} AND via = 'dart'`;
+  }
+
   async purgeParagraphs(before: Date, at: Date) {
     return prisma.$executeRaw`
       UPDATE news_ai_body SET paragraphs = '[]'::jsonb, purged_at = ${at}
-      WHERE status = 'ok' AND purged_at IS NULL AND (extracted_at IS NOT NULL OR fetched_at < ${before})`;
+      WHERE status = 'ok' AND purged_at IS NULL AND (extracted_at IS NOT NULL OR COALESCE(refetched_at, fetched_at) < ${before})`;
   }
 }

@@ -25,6 +25,7 @@
 - **대량 쓰기는 COPY → 임시 테이블 → `INSERT … ON CONFLICT`** 한 문장(`store/bulk.py`). 행 단위 INSERT 반복 금지.
 - 청크 커밋(5만 행)으로 긴 트랜잭션 · WAL 폭증을 막는다.
 - 읽기 쿼리는 인덱스를 타는지 `EXPLAIN` 으로 확인한다. `forecast.prediction` 은 `(symbol, horizon_weeks, as_of DESC)`.
+- **종목마다 한 값(목록 · 최초 · 최신)은 `GROUP BY` · `DISTINCT` 로 묻지 않는다** — 큰 표(`price_bar` 10GB)를 통째로 훑는다. 기본 키를 건너뛰는 재귀 CTE(`store/prices.py` `SKIP_SYMBOLS_SQL`). 옛 `latest_open` 이 6분마다 4.5GB 를 읽어 서버 화면이 504(2026-11-17, `DB-REQ-017`)
 - 서버 요청 경로는 **뷰 하나 · 종목 하나**만 읽는다. 집계는 게이트 작업이 미리 해 둔다 — 요청 시 집계 금지.
 
 ## 4. 네트워크

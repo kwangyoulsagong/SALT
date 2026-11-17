@@ -34,3 +34,20 @@
 
 - `EventsCard` 의 렌더 중 `new Date()` 에 `no-render-read` 예외 주석 — 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(서버 렌더에 없음, `DEV-001`)
 - 검증: 프론트 전체 `pnpm lint` 12/12 · 규칙 변이(나쁜 6줄 다 걸림 · 처리기 · 효과 · 일반 함수 통과)
+
+
+## 2026-11-17 — F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`)
+
+이 REQ 몫: **FR-3 구현** — 실적 공시 한 줄 · 펼침 3종 + 공시 뒤 반응 · 390 앱 웹뷰 이름 칸 사라짐 고침. FR-8 실화면
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 정적 · 단위 | 충족 | `pnpm check-types` 13/13 · `pnpm lint` 13/13 · `pnpm test`(core 298 — 종류 이름 누락 0) |
+| 운영 빌드 | 충족 | 별도 worktree 에서 zone 다섯 `pnpm build` 5/5 — `/investments/[symbol]` First Load 153 kB(main 과 같음) · 공용 103~105 kB (`@repo/core` 를 바꿔 셸 · 도메인 zone 전부) |
+| 실화면 | 충족 | Playwright(설치된 Chrome) 국내 상세 — 실데이터 응답(000660 · 005930) + `route` 상태: 확정(시각) · 확정(날짜만) · 창 지남 · 옛 BFF(필드 없음 — 기존 카드 그대로) · 불러오기 실패. 1440 · 390 앱 웹뷰(`SALTApp/1.0.0`) pageerror 0 · 가로 넘침 0. 첫 판 결함 둘(왼쪽 칸 '확정 아님' 두 줄 · 390 에서 이름 칸이 밀려 사라짐) 고침 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실로그인 화면 | 소유자 토큰을 못 만들어 사건 응답만 실데이터 + route — 나머지 화면 호출은 게스트 실데이터 | `QA-001` |

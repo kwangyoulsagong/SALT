@@ -35,6 +35,7 @@ export * from "./factExtraction";
 export * from "./companyBrief";
 export * from "./zone";
 export * from "./macroEvents";
+export * from "./earningsOutlook";
 export * from "./positioning";
 export * from "./riskBudget";
 export * from "./sizing";

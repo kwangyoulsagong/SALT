@@ -3,6 +3,7 @@ import type {
   AiBodyStore,
   AiSourceStore,
   AiTitleSource,
+  DartEarningsStore,
   DartFilingStore,
   DartPort,
   StoredDartFiling,
@@ -26,6 +27,8 @@ import type {
 import { dartFilingWhat, dartViewerUrl } from "../../domain";
 import { CollectAiBodies } from "../CollectAiBodies";
 import { CollectDartDisclosures } from "../CollectDartDisclosures";
+import { CollectDartEarnings } from "../CollectDartEarnings";
+import { RefetchDartBodies } from "../RefetchDartBodies";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
 import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import { RefillNewsGap } from "../RefillNewsGap";
@@ -102,7 +105,7 @@ export interface NewsDependencies {
     bodies: AiBodyStore;
   };
   /** DART 공시(F017 v4 2b) — 키가 없으면 `port: null`(회차가 아무것도 하지 않는다) */
-  dart: { port: DartPort | null; universe: KrUniverseSource; filings: DartFilingStore };
+  dart: { port: DartPort | null; universe: KrUniverseSource; filings: DartFilingStore; earnings: DartEarningsStore };
 }
 
 export interface NewsUseCases {
@@ -122,6 +125,10 @@ export interface NewsUseCases {
   collectAiBodies: CollectAiBodies;
   /** DART 공시 한 회차 — 같은 워커 5분 */
   collectDartDisclosures: CollectDartDisclosures;
+  /** DART 실적 공시 · 일정 한 회차(F008 슬라이스 24 2단계) — 같은 워커 5분, 공시 회차 뒤 */
+  collectDartEarnings: CollectDartEarnings;
+  /** 한글이 깨진 채 저장된 DART 본문 다시 받기(2026-11-17) — 같은 워커 5분, 다 끝나면 호출 0 */
+  refetchDartBodies: RefetchDartBodies;
 }
 
 /**
@@ -154,7 +161,9 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     listBookmarks: new ListBookmarks(deps.bookmarks),
     getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
     collectAiBodies: new CollectAiBodies(deps.aiBody),
-    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies, filings: deps.dart.filings }),
+    collectDartDisclosures: new CollectDartDisclosures({ dart: deps.dart.port, universe: deps.dart.universe, bodies: deps.aiBody.bodies, filings: deps.dart.filings, earnings: deps.dart.earnings }),
+    collectDartEarnings: new CollectDartEarnings({ dart: deps.dart.port, universe: deps.dart.universe, earnings: deps.dart.earnings }),
+    refetchDartBodies: new RefetchDartBodies({ dart: deps.dart.port, bodies: deps.aiBody.bodies }),
   };
 
   const api: NewsApi = {
