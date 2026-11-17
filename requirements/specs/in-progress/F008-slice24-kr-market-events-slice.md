@@ -45,6 +45,8 @@ status: in-progress (1단계 구현 2026-11-02 · 2단계 구현 2026-11-17)
 | 1 | **구현 2026-11-02**(`feat/f008-slice24-kr-market-events`) — 사용자 "새브랜치 파고 다음꺼 진행"(§4-1 순위 3 첫 줄). 검증 `requirements/reports/checklists/F008-slice24-kr-market-events.md`, 회고 `requirements/reports/retrospects/F008-slice24-kr-market-events.md` |
 | 2 | **구현 2026-11-17**(`feat/f008-slice24-s2-earnings-window`) — 사용자 "새브랜치 파고 다음 파이프라인 진행"(F017 v4 끝 → §4-1 순위 3 넷째 줄, 막던 `FC-REQ-026` 공시 수집이 F017 v4 2b 로 풀림). 서버 실적 공시 수집(2016~) · IR · 예고 일정 → 예측 결산마다 첫 공시 · 확정 일정 · 예상 창(채점) · 공시 뒤 반응 → 서버 `earnings` 블록 → BFF → 국내 상세 '이 종목 일정' 맨 앞 줄. 같은 브랜치에서 DART 원문 디코딩 결함(`SRV-REQ-058` FR-9) 고침 |
 
+| 2 · QA | **2026-11-17 `QA-001` 1회차**(같은 브랜치) — 사용자 "소유자 실계정 이번에 만들었자나 그걸로" · "데이터가 없구나". 임시 소유자 계정 + API 로 넣은 데이터로 Q-1 · 2 · 3 · 5 닫음 · Q-4 일부(200% 1280 화면 결정 대기) · Q-6 남음. 발견 결함 하나 고침(국내 머리 지표 열, `FE-REQ-041` · `064`). `requirements/specs/in-progress/QA-001-login-qa.md` 결과 절 |
+
 ### 1단계에서 바뀐 판단 (영역 REQ 본문에 정정)
 
 6. **소스는 수동 입력 없이** — 한국은행 연도별 회의 페이지 · 국가데이터처 보도계획 + 게시판 · 수출입은 규칙(8년치 전부 1일) · 동시만기 규칙(`FC-REQ-021` Q2)

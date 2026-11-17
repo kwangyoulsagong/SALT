@@ -272,7 +272,7 @@
 |---|---|
 | 계약 | `trackRecord` · `signalTrackRecord` 에 `alwaysUpRate` · `excessWinRate`(추천은 `horizonHours` 720) · `blockedReason` `insufficient_sample` · `failureCases[].symbol/returnRate` · `signal-performance` 새 모양 — 유스케이스 테스트로 고정(`recommendationLedger.test.ts` · `getCoachDetail.test.ts`) |
 | 소비처 | BFF `coach-report.viewmodel` · `symbol-coach.viewmodel` · `app-signal-performance.service` 동시 변경(`BFF-REQ-024` FR-40) · `@repo/core` 타입(`FE-REQ-026` FR-165) |
-| 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → `QA-001` 로그인 QA |
+| 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → `QA-001` 로그인 QA · **2026-11-17 `QA-001` →** Q-1 닫힘 — 실토큰 22경로 200 · 서버와 BFF 값 같음(위험 예산 · 목표 비중 · 미러) · 실로그인 7화면 `/api/app` 호출 실패 0 · 오류 문구 0 |
 
 ## F010 슬라이스 2 — FR-60 익절 가격선 근거 (2026-09-29)
 
@@ -394,7 +394,7 @@
 | 행동 규칙 문장 | `buildBehaviorRules` 4문장 사실 서술(대기 시간 강제 "30분을 기다리세요" 삭제) — `coachPolicy.test.ts` 특성화 갱신 |
 | 계약 | 추가 필드만. BFF 는 이벤트 이름만 걸러 통과(`BFF-REQ-037` 변경 없음) |
 
-미검증: 실 토큰 스트림(상시 서버 미재기동 — 머지 뒤 · `QA-001`).
+미검증: 실 토큰 스트림(상시 서버 미재기동 — 머지 뒤 · `QA-001`). **2026-11-17 `QA-001` →** 스트림 200 · 첫 바이트 8ms — 그날 LLM 몫 소진이라 `fallback` 한 벌. 문장 하나씩 흐름은 남음(LLM 몫 있는 날)
 
 ## 2026-11-02 — 해설 LLM 스위치
 
@@ -556,5 +556,5 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| HTTP 실토큰 응답(서버 · BFF 경로) | 로컬 옛 HS 창이 닫혀(11-16) 소유자 토큰을 만들 수 없다 — 서명 키 읽기는 권한 거부. 같은 유스케이스 · 리더 · 정책을 실DB 로 프로세스 안에서 돌렸다 | 사용자 로그인 화면 QA(`QA-001`) |
+| HTTP 실토큰 응답(서버 · BFF 경로) | 로컬 옛 HS 창이 닫혀(11-16) 소유자 토큰을 만들 수 없다 — 서명 키 읽기는 권한 거부. 같은 유스케이스 · 리더 · 정책을 실DB 로 프로세스 안에서 돌렸다 | 사용자 로그인 화면 QA(`QA-001`) · **2026-11-17 `QA-001` →** 닫힘 — 임시 계정을 소유자 목록에 넣은 별도 서버(같은 코드 · 같은 DB)로 실로그인 7화면 오류 0 |
 | DART 본문 다시 받기 실회차 | 서버 · 뉴스 워커가 새 코드로 같이 재기동해야 한다(옛 서버 추출은 옛 사실을 안 지운다) | 머지 · `ops/salt.sh restart server news` 뒤 첫 회차 — 634건 · 하루 안 |
