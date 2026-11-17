@@ -1,6 +1,6 @@
 """단타 방향 확률 — 사전등록 short-direction@5(전진 시험 + 동결 재생, FC-REQ-028 FR-1 · FR-4) 의 순수 계산.
 
-@4(2026-11-16): @3 그대로 + 놓친 시각 동결 재생(`replay_hours` · `may_replay`) · 판정 표본을 판정 날짜 전까지
+@4(2026-11-16): @3 그대로 + 놓친 시각 동결 재생(`replay_hours` · `may_write`) · 판정 표본을 판정 날짜 전까지
 (`look_cutoff`) · 마지막 날짜 표본 부족 = below_min.
 
 @3(2026-11-11): 과거 구간(@1 · @2 · 진단으로 세 번 봄)은 참고 성적만.
@@ -71,12 +71,14 @@ def replay_hours(registered: int, written: set[int], now: int) -> list[int]:
     return [t for t in range(first, last + 1, HOUR) if t not in written]
 
 
-def may_replay(cell_model_version: str, current_model_version: str, code_changed: bool) -> bool:
-    """그 시각에 쓰였을 예측 코드와 지금 코드가 같을 때만 — 결과를 본 뒤 코드를 바꿔 과거를 다시 쓰는 길을 막는다.
+def may_write(code_changed: bool) -> bool:
+    """적합 커밋과 지금 디스크의 예측 코드가 같을 때만 그 이름표(model_version)로 쓴다 — 재생 · 실시간 같은 규칙.
 
+    결과를 본 뒤 코드를 바꿔 과거를 다시 쓰는 길 · 다른 코드로 계산한 행에 옛 이름표가 붙는 길을 함께 막는다.
     @5: 커밋 번호가 달라도 그 사이 예측 코드(salt-forecast 소스 · 의존성 잠금)가 안 바뀌었으면 같은 코드다
-    (@4 는 커밋 번호만 봐서 문서 · 서버 커밋 하나에도 그날 밤 재생이 통째로 빠졌다 — 2026-11-16 머지 직후 실측)."""
-    return cell_model_version == current_model_version or not code_changed
+    (@4 는 커밋 번호만 봐서 문서 · 서버 커밋 하나에도 그날 밤 재생이 통째로 빠졌다 — 2026-11-16 머지 직후 실측).
+    커밋 번호가 같아도 디스크가 다르면(커밋 안 한 수정) 다른 코드다 — 같은 번호 지름길을 두지 않는다(2026-11-17)."""
+    return not code_changed
 
 
 def is_realtime(market: str, as_of: int, expires_at: int, written_at: int) -> bool:

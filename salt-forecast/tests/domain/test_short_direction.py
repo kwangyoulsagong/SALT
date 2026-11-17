@@ -350,12 +350,11 @@ def test_replay_hours_boundary_table() -> None:
     assert far[0] >= now - REPLAY_CAP_S and len(far) == REPLAY_CAP_S // h  # 상한 14일
 
 
-def test_may_replay_only_same_code() -> None:
-    from salt_forecast.domain.short_direction import may_replay
+def test_may_write_only_same_code() -> None:
+    from salt_forecast.domain.short_direction import may_write
 
-    assert may_replay("short-direction@5+abc1234", "short-direction@5+abc1234", code_changed=True)  # 같은 커밋
-    assert may_replay("short-direction@5+abc1234", "short-direction@5+def5678", code_changed=False)  # 문서 커밋만
-    assert not may_replay("short-direction@5+abc1234", "short-direction@5+def5678", code_changed=True)  # 예측 코드 바뀜
+    assert may_write(code_changed=False)  # 문서 커밋만 · 같은 커밋 깨끗한 트리
+    assert not may_write(code_changed=True)  # 예측 코드 바뀜 · 같은 커밋이라도 커밋 안 한 수정
 
 
 def test_realtime_vs_replay_rows() -> None:
