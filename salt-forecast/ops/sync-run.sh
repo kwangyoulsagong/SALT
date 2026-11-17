@@ -6,12 +6,16 @@
 #
 # 매시 live.sh 끝(재생 뒤)에 부른다 — 놓친 시각은 옛 코드로 먼저 재생하고 그다음 코드를 바꾼다.
 #   1. 실행 트리가 쓴 리포트(새 파일 · 바뀐 파일)를 개발 트리 reports/ 로 옮긴다 — 리포트는 개발 트리에서 커밋한다
-#   2. origin/main 이 앞서 있고 다른 예측 배치가 안 돌 때만 그 커밋으로 맞춘다(돌고 있으면 다음 시에)
+#   2. origin/main 이 앞서 있고 일일 · 장중 배치가 안 돌 때만 그 커밋으로 맞춘다(돌고 있으면 다음 시에). 백필은 기다리지 않는다 —
+#      5분봉 메우기가 한 번에 평균 4시간 · 최대 20시간이라 기다리면 영영 못 맞춘다(11-17 실측). 백필은 단계마다 새 python 이라
+#      한 프로세스 안에서 코드가 섞이지 않는다
+#   ops/salt.sh sync 는 개발 트리의 이 스크립트를 SALT_RUN_ROOT 로 부른다 — 실행 트리에 아직 이 파일이 없는 첫 맞춤(머지 직후)도 되게
 #   3. 예측 코드(salt-forecast 소스 · 잠금)가 바뀌었으면 단타 시험을 바로 다시 돌려 새 커밋으로 적합한다 — 가드가 옛 적합의
 #      이름표로 쓰기를 막으니(short_direction may_write) 그대로 두면 다음 매일 시험까지 실시간 · 재생이 빈다
 set -u
-FC="${0:A:h:h}"       # 이 트리의 salt-forecast
-RUN="${FC:h}"
+RUN="${SALT_RUN_ROOT:-${0:A:h:h:h}}"   # 실행 트리(기본: 이 스크립트가 있는 트리)
+RUN="${RUN:A}"
+FC="$RUN/salt-forecast"
 DEV="${SALT_DEV_ROOT:-}"
 ts() { date -u +%FT%TZ; }
 if [[ -z $DEV || ${DEV:A} == ${RUN:A} ]]; then
@@ -28,7 +32,7 @@ git -C "$RUN" ls-files -m -o --exclude-standard -- salt-forecast/reports | while
 done
 
 # 2. main 따라가기 — 네트워크가 없으면 다음 시에
-GIT_SSH_COMMAND="ssh -o ConnectTimeout=10 -o BatchMode=yes" GIT_HTTP_LOW_SPEED_LIMIT=1000 GIT_HTTP_LOW_SPEED_TIME=20 \
+GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="ssh -o ConnectTimeout=10 -o BatchMode=yes" GIT_HTTP_LOW_SPEED_LIMIT=1000 GIT_HTTP_LOW_SPEED_TIME=20 \
   git -C "$RUN" fetch -q origin main 2>/dev/null || { echo "[$(ts)] 실행 트리 — fetch 실패, 다음 시에"; exit 0; }
 target=$(git -C "$RUN" rev-parse origin/main) || exit 0
 head=$(git -C "$RUN" rev-parse HEAD) || exit 0
@@ -37,8 +41,8 @@ head=$(git -C "$RUN" rev-parse HEAD) || exit 0
 LOCK="$RUN/.salt-sync.lock"
 shlock -f "$LOCK" -p $$ || { echo "[$(ts)] 실행 트리 — 다른 동기화가 돌고 있다"; exit 0; }
 trap 'rm -f "$LOCK"' EXIT
-# 다른 예측 배치가 도는 중이면 바꾸지 않는다 — 단계마다 새 python 이라 중간에 바꾸면 한 실행에 코드가 섞인다
-if pgrep -f "$RUN/salt-forecast/ops/(daily|intraday|backfill)\.sh" >/dev/null; then
+# 일일 · 장중 배치가 도는 중이면 바꾸지 않는다 — 한 실행(예측 · 채점 · 게이트)의 단계들이 다른 코드로 돌면 안 된다
+if pgrep -f "$RUN/salt-forecast/ops/(daily|intraday)\.sh" >/dev/null; then
   echo "[$(ts)] 실행 트리 — 다른 배치가 돌고 있어 다음 시에 맞춘다(${head:0:8} → ${target:0:8})"
   exit 0
 fi

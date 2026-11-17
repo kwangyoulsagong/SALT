@@ -380,7 +380,8 @@ case "${1:-status}" in
     status ;;
   status) status ;;
   sync)
-    ensure_run_tree && SALT_DEV_ROOT="$ROOT" /bin/zsh "$RUN/salt-forecast/ops/sync-run.sh"; run_tree ;;
+    # 개발 트리의 동기화 스크립트로 — 실행 트리에 아직 그 파일이 없는 첫 맞춤(머지 직후)도 되게
+    ensure_run_tree && SALT_DEV_ROOT="$ROOT" SALT_RUN_ROOT="$RUN" /bin/zsh "$ROOT/salt-forecast/ops/sync-run.sh"; run_tree ;;
   down)
     if [[ -n "${2:-}" ]]; then valid "$2"; down_one "$2"; else for name in ${(Oa)ORDER}; do down_one "$name"; done; fi ;;
   restart)

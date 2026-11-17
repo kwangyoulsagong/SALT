@@ -1,10 +1,11 @@
 #!/bin/zsh
 # ops/sync-run.sh 시험 — 임시 git 저장소(가짜 origin)로 경계 다섯을 센다. 네트워크 · DB 0, uv 는 가짜(부른 인자만 남긴다)
 #   1 개발 트리에서 부르면 아무것도 안 한다   2 실행 트리 리포트를 개발 트리로 옮긴다   3 다른 배치가 돌면 미룬다
-#   4 문서만 바뀌면 맞추고 다시 적합 안 함      5 예측 코드가 바뀌면 맞추고 다시 적합
+#   3b 백필은 기다리지 않는다   4 문서만 바뀌면 맞추고 다시 적합 안 함   5 예측 코드가 바뀌면 맞추고 다시 적합
+#   6 실행 트리에 스크립트가 없는 첫 맞춤(SALT_RUN_ROOT)
 set -u
 SRC="${0:A:h}/sync-run.sh"
-T=$(mktemp -d); T=${T:A}; trap 'pkill -f "$T/run/salt-forecast/ops/daily.sh" 2>/dev/null; rm -rf "$T"' EXIT
+T=$(mktemp -d); T=${T:A}; trap 'pkill -f "$T/run/salt-forecast/ops/" 2>/dev/null; rm -rf "$T"' EXIT
 fail=0
 check() { if eval "$2"; then print -r -- "ok   $1"; else print -r -- "FAIL $1"; fail=1; fi; }
 g() { git -C "$1" -c user.email=t@t -c user.name=t "${@:2}"; }
@@ -46,10 +47,20 @@ run "$OUT"
 check "3 다른 배치가 돌면 미룬다" '[[ $(head_of) == $before ]]'
 kill %1 2>/dev/null; wait 2>/dev/null
 
-# 4 — 이제 맞춘다, 예측 코드는 그대로라 다시 적합 없음
+# 3b — 백필은 기다리지 않는다(한 번에 몇 시간 — 기다리면 영영 못 맞춘다). 문서 커밋을 하나 더 올리고 백필만 돌린다
+print "doc2" >> "$T/dev/README.md"; g "$T/dev" add -A; g "$T/dev" commit -qm c2b; g "$T/dev" push -q origin main
+/bin/zsh -c 'sleep 20; :' "$T/run/salt-forecast/ops/backfill.sh" &  # ; : — 위와 같은 이유
+sleep 0.5
+run "$OUT"
+check "3b 백필이 돌아도 맞춘다" '[[ $(head_of) == $(git -C $T/dev rev-parse HEAD) ]]'
+kill %1 2>/dev/null; wait 2>/dev/null
+
+# 4 — 문서 커밋을 하나 더(3b 가 앞 커밋을 이미 맞췄다) — 맞추고, 예측 코드는 그대로라 다시 적합 없음
+print "doc3" >> "$T/dev/README.md"; g "$T/dev" add -A; g "$T/dev" commit -qm c2c; g "$T/dev" push -q origin main
+before=$(head_of)
 : > "$T/uv.log"
 run "$OUT"
-check "4 문서만 — origin/main 으로 맞춤" '[[ $(head_of) == $(git -C $T/dev rev-parse HEAD) ]]'
+check "4 문서만 — origin/main 으로 맞춤" '[[ $before != $(head_of) && $(head_of) == $(git -C $T/dev rev-parse HEAD) ]]'
 check "4 문서만 — 다시 적합 안 함" '! grep -q "short_direction test" $T/uv.log'
 
 # 5 — 예측 코드 바뀜
@@ -59,4 +70,9 @@ run "$OUT"
 check "5 코드 바뀜 — 맞춤" '[[ $(head_of) == $(git -C $T/dev rev-parse HEAD) ]]'
 check "5 코드 바뀜 — 다시 적합" 'grep -q "short_direction test" $T/uv.log'
 check "5 잠금 파일 남지 않음" '[[ ! -e $T/run/.salt-sync.lock ]]'
+# 6 — 첫 맞춤: 실행 트리에 동기화 스크립트가 아직 없다(머지 직후). 개발 트리 스크립트를 SALT_RUN_ROOT 로 부른다
+git -C "$T/dev" worktree add -q --detach "$T/run0" "$(git -C "$T/dev" rev-list --max-parents=0 HEAD)"
+rm -f "$T/run0/salt-forecast/ops/sync-run.sh"
+SALT_DEV_ROOT="$OUT" SALT_RUN_ROOT="$T/run0" UV="$T/uv" /bin/zsh "$T/dev/salt-forecast/ops/sync-run.sh" >/dev/null 2>&1
+check "6 실행 트리에 스크립트가 없어도 맞춘다" '[[ $(git -C $T/run0 rev-parse HEAD) == $(git -C $T/dev rev-parse HEAD) ]]'
 exit $fail
