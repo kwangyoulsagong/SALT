@@ -42,3 +42,9 @@
 - [x] 서버 뉴스 워커 날짜 검색 메우기 — 경계 표 · 저장 경로 · 변이 2 · 실측(11-15 하루 새 기사 266). 상세 `salt-server/requirements/reports/checklists/SRV-REQ-057.md`
 - [ ] 실 수면 깸 → 메우기 로그 — 머지 · `ops/salt.sh restart news` 뒤 다음 수면
 - [ ] `move-news` 다음 판정에서 "소식 있음" 비율이 잠든 시간 기사로 얼마나 바뀌나 — `v_news_article_export` 는 게시 시각만 내보내 메운 기사가 지난 사건에도 붙는다(받은 시각 `created_at` 은 뷰에 없음). 예측 쪽이 판정 재실행 때 확인
+
+## 2026-11-17 — 첫 실전 수면(11-16 18시 → 11-17 08:44 깸)
+
+- [x] 코인 1h 봉 밤 시간대 구멍 0 · 뉴스 `rss:google-gap` 575 · `naver:*` 766 · `vol-range@3` · `move-news@3` 등록(09:20) · 서버 큰 백필 시세 창 건너뜀
+- [x] 단타 재생 0 → 원인(개발 트리) · 복구 2,022행 · 실행 트리 · 가드(`OPS-005` · `FC-REQ-028` 체크리스트)
+- [ ] `move-news` 늦은 사건 recorded_at 11시 이후 — 오늘 11시 뒤
