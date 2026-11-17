@@ -74,6 +74,7 @@ import {
   BackfillDailyHistory,
   CatchUpPriceHistory,
   CollectPriceHistory,
+  PurgePriceHistory,
   SyncMarketListings,
   UpdateAllMarketPrices,
 } from "../SyncMarketData";
@@ -553,6 +554,8 @@ export interface MarketUseCases {
   syncMarketListings: SyncMarketListings;
   updateAllMarketPrices: UpdateAllMarketPrices;
   collectPriceHistory: CollectPriceHistory;
+  /** 시세 이력 보관 기한 지우기 — 매시 한 번(5분 수집에서 뗐다, 2026-11-17) */
+  purgePriceHistory: PurgePriceHistory;
   /** 코인 5분봉 따라잡기(`SRV-REQ-057` FR-2) — 정기 회차 뒤 · 깸 */
   catchUpPriceHistory: CatchUpPriceHistory;
   /** 추적 목록 일별 스냅샷(`SRV-REQ-057` FR-7) */
@@ -633,6 +636,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices,
       deps.collection.fillMarks
     ),
+    purgePriceHistory: new PurgePriceHistory(deps.prices),
     catchUpPriceHistory: new CatchUpPriceHistory(
       deps.assets,
       deps.exchange,

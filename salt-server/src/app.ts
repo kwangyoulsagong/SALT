@@ -1,3 +1,5 @@
+import { startLoopWatch } from "./shared/infrastructure/loopWatch";
+import { runAsBatch } from "./shared/infrastructure/prisma";
 import express, { Application, Request, Response, NextFunction } from "express";
 import { createDataClassificationRouter, createMyDataRouter } from "./composition.mydata";
 import cors from "cors";
@@ -28,30 +30,34 @@ const app: Application = express();
  * 돌아 첫 요청들이 줄을 섰다(재기동 직후 판단 상세 504, 2026-11-09 `DB-REQ-017`). 스케줄과 락은 워커가, 절차는 유스케이스가 갖는다
  * (`server-architecture.md` §7)
  */
-export const startWorkers = () => {
-  // `market` 의 주기 작업 넷
-  startMarketWorkers();
-  // 국내 주식(F011) — 키가 없으면 등록하지 않는다
-  startKrStockWorkers();
-  // 깸 따라잡기(SRV-REQ-057 FR-6) — 지표는 맨 뒤 한 번(코인 · 국내 봉이 다 들어온 뒤). 구독 순서 = 실행 순서
-  onWake("technical-indicators", () =>
-    runGuarded("technical-indicators", () => contextUseCases.market.refreshTechnicalIndicators.execute())
-  );
-  startWakeWatch();
-  // 3종 결함 10분 줄(SRV-REQ-053 FR-8) — 상태 점검(OPS-003)이 읽는다
-  schedule("coach-triad-gaps", "*/10 * * * *", () => {
-    contextUseCases.coach.reportTriadGaps.execute();
+export const startWorkers = () =>
+  // 배치 풀로 — 여기서 등록한 cron · 타이머 · 부팅 실행은 전부 배치 맥락을 물려받아 화면 요청과 연결 풀을 나눈다(2026-11-17 재기동 뒤 504)
+  runAsBatch(() => {
+    // 이벤트 루프 막힘 감시 — 막힌 창마다 그때 돌던 작업 이름을 남긴다(2026-11-17 재기동 뒤 504)
+    startLoopWatch();
+    // `market` 의 주기 작업 넷
+    startMarketWorkers();
+    // 국내 주식(F011) — 키가 없으면 등록하지 않는다
+    startKrStockWorkers();
+    // 깸 따라잡기(SRV-REQ-057 FR-6) — 지표는 맨 뒤 한 번(코인 · 국내 봉이 다 들어온 뒤). 구독 순서 = 실행 순서
+    onWake("technical-indicators", () =>
+      runGuarded("technical-indicators", () => contextUseCases.market.refreshTechnicalIndicators.execute())
+    );
+    startWakeWatch();
+    // 3종 결함 10분 줄(SRV-REQ-053 FR-8) — 상태 점검(OPS-003)이 읽는다
+    schedule("coach-triad-gaps", "*/10 * * * *", () => {
+      contextUseCases.coach.reportTriadGaps.execute();
+    });
+
+    const insightsWorker = new InvestmentInsightWorker();
+    insightsWorker.start();
+
+    // F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
+    const forecastRunner = new ForecastRunnerWorker();
+    forecastRunner.start();
+    process.once("SIGTERM", () => forecastRunner.stop());
+    process.once("SIGINT", () => forecastRunner.stop());
   });
-
-  const insightsWorker = new InvestmentInsightWorker();
-  insightsWorker.start();
-
-  // F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
-  const forecastRunner = new ForecastRunnerWorker();
-  forecastRunner.start();
-  process.once("SIGTERM", () => forecastRunner.stop());
-  process.once("SIGINT", () => forecastRunner.stop());
-};
 
 // Security
 app.use(helmet());
