@@ -93,15 +93,36 @@ def delete_bars_before(engine: Engine, source: str, interval: str, first_open: d
     return int(result.rowcount)
 
 
-def earliest_open(engine: Engine, source: str, interval: str) -> dict[str, datetime]:
-    """종목별 가장 이른 봉 — 백필 재시작 지점(performance.md §4)."""
-    stmt = (
-        select(price_bar.c.symbol, func.min(price_bar.c.open_time))
-        .where(price_bar.c.source == source, price_bar.c.interval == interval)
-        .group_by(price_bar.c.symbol)
+# 종목마다 한 값(목록 · 최초 · 최신)은 표를 훑지 않고 기본 키 (source, symbol, interval, open_time) 를 건너뛰며 찾는다
+# (재귀 CTE skip-scan). GROUP BY · DISTINCT 로 물으면 Postgres 는 그 출처의 모든 행(10GB · 3,800만 행)을 병렬로 훑는다 —
+# 장중 회차마다 최장 189초 IO 를 잡아 서버 패널이 6분 동안 504 216번(2026-11-17 17:04~17:09).
+# skip-scan 은 종목 수만큼 인덱스 찾기(실측 32ms)
+SKIP_SYMBOLS_SQL = """
+WITH RECURSIVE s AS (
+  SELECT min(symbol) AS sym FROM forecast.price_bar WHERE source = :source
+  UNION ALL
+  SELECT (SELECT min(symbol) FROM forecast.price_bar WHERE source = :source AND symbol > s.sym)
+  FROM s WHERE s.sym IS NOT NULL
+)
+"""
+
+
+def _per_symbol(engine: Engine, source: str, interval: str, agg: str) -> dict[str, datetime]:
+    sql = text(
+        SKIP_SYMBOLS_SQL
+        + f"""SELECT sym, (SELECT {agg}(open_time) FROM forecast.price_bar
+                 WHERE source = :source AND symbol = s.sym AND interval = :interval) AS at
+           FROM s WHERE sym IS NOT NULL"""
     )
     with engine.connect() as conn:
-        return {str(r[0]): r[1] for r in conn.execute(stmt)}
+        rows = conn.execute(sql, {"source": source, "interval": interval}).all()
+    # 그 간격 봉이 없는 종목(다른 간격만 있는 종목)은 뺀다 — GROUP BY 와 같은 결과
+    return {str(r[0]): r[1] for r in rows if r[1] is not None}
+
+
+def earliest_open(engine: Engine, source: str, interval: str) -> dict[str, datetime]:
+    """종목별 가장 이른 봉 — 백필 재시작 지점(performance.md §4). skip-scan(위)."""
+    return _per_symbol(engine, source, interval, "min")
 
 
 def load_close_series(
@@ -119,19 +140,13 @@ def load_close_series(
 
 
 def symbols(engine: Engine, source: str, interval: str) -> list[str]:
-    stmt = select(price_bar.c.symbol).where(price_bar.c.source == source, price_bar.c.interval == interval).distinct()
-    with engine.connect() as conn:
-        return sorted(str(r[0]) for r in conn.execute(stmt))
+    """그 출처 · 간격에 봉이 있는 종목 — skip-scan(위, DISTINCT 는 표 전체를 훑는다)."""
+    return sorted(_per_symbol(engine, source, interval, "max"))
 
 
 def latest_open(engine: Engine, source: str, interval: str) -> dict[str, datetime]:
-    stmt = (
-        select(price_bar.c.symbol, func.max(price_bar.c.open_time))
-        .where(price_bar.c.source == source, price_bar.c.interval == interval)
-        .group_by(price_bar.c.symbol)
-    )
-    with engine.connect() as conn:
-        return {str(r[0]): r[1] for r in conn.execute(stmt)}
+    """종목별 가장 늦은 봉 — 증분 수집 시작점. skip-scan(위)."""
+    return _per_symbol(engine, source, interval, "max")
 
 
 def load_ohlcv_series(
