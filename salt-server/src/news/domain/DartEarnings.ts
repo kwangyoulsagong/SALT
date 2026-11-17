@@ -33,6 +33,11 @@ export const DART_EARNINGS_DOC_MAX_ATTEMPTS = 3;
 export const DART_EARNINGS_DOC_DAYS = 365;
 /** 깨진 본문 다시 받기(`RefetchDartBodies`) — 회차마다. 2b 이후 634건이면 하루 안쪽에 끝난다 */
 export const DART_REFETCH_PER_TICK = 20;
+/**
+ * 다시 받았지만 아직 추출 안 된 본문이 이만큼이면 더 받지 않는다 — 추출은 LLM 하루 몫 안에서만 돌고, 문단은 받은 지 7일이면
+ * 지워진다(`AI_BODY_KEEP_MS`). 한꺼번에 634건을 받으면 상당수가 추출 전에 지워져 깨진 본문의 옛 사실이 남는다(2026-11-17 실회차)
+ */
+export const DART_REFETCH_MAX_PENDING = 20;
 
 const AMEND = /^\s*\[[^\]]*\]/;
 const SUBSIDIARY = /자회사의\s*주요경영사항/;

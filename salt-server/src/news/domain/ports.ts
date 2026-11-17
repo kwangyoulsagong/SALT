@@ -176,6 +176,8 @@ export interface AiBodyStore {
   markExtraction(key: string, outcome: "done" | "failed", at: Date): Promise<void>;
   /** 공시 원문 행(`via: dart`, 받은 채 `ok`) — 같은 키는 한 번(`ON CONFLICT DO NOTHING`). 넣은 수 */
   saveDisclosures(rows: Array<{ key: string; title: string; publishedAt: Date; symbols: string[]; url: string; paragraphs: string[]; hash: string; chars: number }>, at: Date): Promise<number>;
+  /** 다시 받았지만 아직 추출 안 된 DART 본문 수 — 다시 받기가 추출을 앞지르지 않게(문단은 7일 뒤 지워진다) */
+  dartRefetchedAwaitingExtraction(): Promise<number>;
   /** 고친 디코더로 읽지 않은 DART 본문(`refetched_at` 없음) — 최신순 `limit` */
   dartBodiesToRefetch(limit: number): Promise<Array<{ key: string; rceptNo: string }>>;
   /** DART 본문 바꾸기 — 문단 · 해시 · 길이 · `refetched_at`, 추출을 다시(추출 시각 · 시도 · 지움 표시 비움). `fetched_at` 은 지킨다 */

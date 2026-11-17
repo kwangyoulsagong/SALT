@@ -1,19 +1,22 @@
 import { createHash } from "node:crypto";
 
-import { DART_DOC_GAP_MS, DART_REFETCH_PER_TICK, type AiBodyStore, type DartPort } from "../domain";
+import { DART_DOC_GAP_MS, DART_REFETCH_MAX_PENDING, DART_REFETCH_PER_TICK, type AiBodyStore, type DartPort } from "../domain";
 import { logger } from "../../shared/config/logger";
 
 export interface DartRefetchTick {
   enabled: boolean;
   refetched: number;
   failed: number;
+  /** 다시 받았지만 추출을 기다리는 수(회차 시작) */
+  awaiting: number;
 }
 
 /**
  * 한글이 깨진 채 저장된 DART 본문을 다시 받는다(2026-11-17 — `SRV-REQ-058` FR-9). DART 원문은 `charset=euc-kr` 이라 적고 UTF-8 을
  * 보내서, 선언을 믿은 디코더가 F017 v4 2b 이후 본문 전부를 깨뜨렸다(숫자 · 영문만 남아 숫자 대조는 통과했다).
  *
- * 고친 디코더로 읽지 않은 행(`refetched_at` 없음)만, 최신순 회차마다 `DART_REFETCH_PER_TICK`. 바꾼 본문은 추출을 다시 하고
+ * 고친 디코더로 읽지 않은 행(`refetched_at` 없음)만, 최신순 회차마다 `DART_REFETCH_PER_TICK` — 단 추출을 기다리는 다시 받은 본문이
+ * `DART_REFETCH_MAX_PENDING` 아래일 때 그만큼만(추출은 LLM 몫 안에서만 돌고 문단은 7일 뒤 지워진다). 바꾼 본문은 추출을 다시 하고
  * (추출이 그 원문 키의 옛 사실을 바꾼다 — `ExtractedFactStore.saveMany`), 알게 된 시각(`fetched_at`)은 지킨다. 다 끝나면 호출 0
  */
 export class RefetchDartBodies {
@@ -24,10 +27,14 @@ export class RefetchDartBodies {
   ) {}
 
   async execute(): Promise<DartRefetchTick> {
-    const out: DartRefetchTick = { enabled: this.deps.dart !== null, refetched: 0, failed: 0 };
+    const out: DartRefetchTick = { enabled: this.deps.dart !== null, refetched: 0, failed: 0, awaiting: 0 };
     const dart = this.deps.dart;
     if (!dart) return out;
-    const todo = await this.deps.bodies.dartBodiesToRefetch(DART_REFETCH_PER_TICK);
+    // 추출이 따라오는 만큼만 — 받은 본문마다 추출될 7일이 남게
+    out.awaiting = await this.deps.bodies.dartRefetchedAwaitingExtraction();
+    const budget = Math.min(DART_REFETCH_PER_TICK, DART_REFETCH_MAX_PENDING - out.awaiting);
+    if (budget <= 0) return out;
+    const todo = await this.deps.bodies.dartBodiesToRefetch(budget);
     for (const [i, row] of todo.entries()) {
       if (i > 0) await this.sleep(DART_DOC_GAP_MS);
       try {
