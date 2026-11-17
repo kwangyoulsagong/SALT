@@ -329,7 +329,7 @@ model PriceHistory {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([symbol, timeframe, timestamp])
-  @@index([symbol, timeframe, timestamp])
+  // 같은 열의 @@index 는 지웠다(2026-11-17) — 유니크 인덱스와 똑같아 봉을 쓸 때마다 인덱스를 두 번 갱신했다(130MB · 쓰임 4회 vs 2,461만 회)
   @@map("price_history")
 }
 
