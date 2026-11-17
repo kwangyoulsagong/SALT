@@ -138,8 +138,13 @@ const isRetryableKisError = (error: unknown): boolean => {
  * 페이서가 출발 자리가 날 때마다 작은 값부터 보낸다. 폴링 안의 보유 → 관심 → 시총 순서는 유니버스 순서가 정한다
  * (같은 우선순위는 요청 순서). 실시간(WS) 자체는 REST 를 쓰지 않는다 — 승인키 · 토큰 발급이 그 자리다
  */
-/** `backfill` — 과거 제목 백필(F017 단계 6) 같은 밀려도 되는 일. 줄의 맨 뒤 */
-export const KIS_PRIORITY = { realtime: 0, viewer: 1, poll: 2, candles: 3, supplement: 4, backfill: 5 } as const;
+/**
+ * `backfill` — 지난 이력 채우기(전 종목 일봉 5년 · 과거 제목 · 새 종목 5분봉 1년). `bulk` — 그중 가장 큰 것(유니버스 5분봉 1년 ·
+ * 회차 2만 호출)이라 다른 백필보다도 뒤: 국내 장기 3종(과거 검산)이 전 종목 일봉을 기다린다(2026-11-17 `SRV-REQ-057` FR-9).
+ * **오늘 값이 아니면 3(일봉 · 분봉)에 두지 않는다** — 5분봉 1년 백필이 3 에 서서 몇 시간 동안 전 종목 일봉 · 시황 제목을 굶겼다.
+ * 순서는 절대가 아니다 — 페이서가 한 단계당 30초씩 나이를 들여(`pacer.ts` 굶는 요청 0) 낮은 쪽도 묶인 시간 안에 나간다
+ */
+export const KIS_PRIORITY = { realtime: 0, viewer: 1, poll: 2, candles: 3, supplement: 4, backfill: 5, bulk: 6 } as const;
 type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
 
 /**
@@ -359,7 +364,12 @@ export class KisClient
   /**
    * 그날(`date`, KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞). 봉 시각은 그 분의 시작(KST → UTC)
    */
-  async dayMinuteCandles(code: string, date: string, hhmmss: string): Promise<Candle[]> {
+  async dayMinuteCandles(
+    code: string,
+    date: string,
+    hhmmss: string,
+    opts: { history?: "backfill" | "bulk" } = {}
+  ): Promise<Candle[]> {
     const body = await this.get(
       "/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice",
       KIS_QUERY_TR.dailyMinutes,
@@ -371,7 +381,7 @@ export class KisClient
         FID_PW_DATA_INCU_YN: "Y",
         FID_FAKE_TICK_INCU_YN: "",
       },
-      KIS_PRIORITY.candles
+      opts.history ? KIS_PRIORITY[opts.history] : KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows.flatMap((row) => {

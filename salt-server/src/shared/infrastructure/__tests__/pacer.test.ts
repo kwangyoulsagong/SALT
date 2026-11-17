@@ -165,3 +165,67 @@ describe("createRatePacer — 동시 대기 상한 (SRV-REQ-057 FR-3)", () => {
     assert.deepEqual(results.map((r) => r.status), ["fulfilled", "rejected", "fulfilled"]);
   });
 });
+
+describe("createRatePacer — 굶는 요청 0 (SRV-REQ-057 FR-9)", () => {
+  /**
+   * 우선순위 3 일꾼 6개가 끝없이 줄을 채운다(5분봉 1년 백필 — 2026-11-17 실측 18:40~18:50 분봉 1,003회 · 일봉 3회).
+   * 그 사이 낮은 우선순위 한 건을 세우고 언제 나가는지 잰다. 간격 100ms · 한 단계 1초.
+   */
+  const saturate = async (lowPriority: number, enqueueAfterMs = 500) => {
+    let t = 0;
+    let running = true;
+    // 가짜 시계 — 한 번씩 매크로태스크를 양보한다(안 하면 일꾼 · 페이서가 마이크로태스크로만 돌아 시험이 멈춘다).
+    // 가짜 20초가 지나면 일꾼을 멈춘다 — 예전(순수 우선순위) 페이서면 그때서야 낮은 한 건이 나가 시험이 **실패**한다
+    const sleep = async (ms: number) => {
+      await new Promise((r) => setImmediate(r));
+      t += ms;
+      if (t > 20_000) running = false;
+    };
+    const pacer = createRatePacer({ perSecond: 10, agingMs: 1_000, now: () => t, sleep });
+    let highStarts = 0;
+    const workers = Array.from({ length: 6 }, async () => {
+      while (running) await pacer.run(async () => highStarts++, 3);
+    });
+    // 일꾼들이 줄을 채운 뒤 낮은 한 건이 선다
+    while (t < enqueueAfterMs) await new Promise((r) => setImmediate(r));
+    const queuedAt = t;
+    const startedAt = await pacer.run(async () => t, lowPriority);
+    running = false;
+    await Promise.all(workers);
+    return { waited: startedAt - queuedAt, highStarts };
+  };
+
+  for (const { low, gap } of [
+    { low: 4, gap: 1 },
+    { low: 5, gap: 2 },
+    { low: 6, gap: 3 },
+  ]) {
+    it(`우선순위 3 이 줄을 끝없이 채워도 ${low} 는 약 ${gap}초 뒤 나간다 — 그 전엔 앞지르지 않는다`, async () => {
+      const { waited, highStarts } = await saturate(low);
+      // 순수 우선순위였으면 영원히 못 나갔다(예전 페이서 — 이 시험이 멈춘다)
+      assert.ok(waited <= gap * 1_000 + 700, `너무 오래 기다림 ${waited}ms`);
+      // 우선순위는 여전히 뜻이 있다 — 한 단계 값만큼은 높은 쪽이 먼저
+      assert.ok(waited >= gap * 1_000 - 100, `너무 일찍 나감 ${waited}ms`);
+      assert.ok(highStarts > 0);
+    });
+  }
+
+  it("같은 순간에 선 요청은 예전처럼 우선순위 순 · 다 0 이면 요청 순서(Upbit)", async () => {
+    const clock = fakeClock();
+    const pacer = createRatePacer({ perSecond: 1, now: clock.now, sleep: clock.sleep });
+    const order: string[] = [];
+    await Promise.all([
+      pacer.run(async () => order.push("first"), 0),
+      pacer.run(async () => order.push("backfill"), 5),
+      pacer.run(async () => order.push("poll"), 2),
+      pacer.run(async () => order.push("realtime"), 0),
+    ]);
+    assert.deepEqual(order, ["first", "realtime", "poll", "backfill"]);
+  });
+
+  it("agingMs 는 양의 유한수만 — 0 · 무한이면 순수 우선순위로 돌아가 다시 굶긴다", () => {
+    for (const agingMs of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
+      assert.throws(() => createRatePacer({ perSecond: 1, agingMs }), /agingMs/);
+    }
+  });
+});

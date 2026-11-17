@@ -143,12 +143,16 @@ export interface KrStockQuotePort {
   quote(code: string): Promise<KrStockQuoteFact>;
   /**
    * 수정주가 일봉 `[from, to]`(KST 날짜), 한 번에 최대 100건. 봉 시각은 거래일 00:00 KST.
-   * `backfill` — 큰 백필은 페이서 맨 뒤 우선순위로. 아니면 일봉 우선순위(시세 다음)라 백필이 저녁 보조 수집(투자자 동향 · 시간외)을
-   * 굶긴다 — 페이서는 나이 들이기가 없다(2026-11-16 투자자 동향 0행)
+   * `backfill` — 큰 백필은 백필 우선순위로. 일봉 우선순위(시세 다음)에 두면 저녁 보조 수집(투자자 동향 · 시간외)보다 앞선다
+   * (2026-11-16 투자자 동향 0행). 페이서가 나이를 들이므로(2026-11-18) 굶기지는 않지만 순서는 여전히 이 값이 정한다
    */
   dailyCandles(code: string, from: string, to: string, opts?: { backfill?: boolean }): Promise<Candle[]>;
-  /** 그날(KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞) */
-  dayMinuteCandles(code: string, date: string, hhmmss: string): Promise<Candle[]>;
+  /**
+   * 그날(KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞).
+   * `history` — 지난 날 채우기면 백필 줄(`backfill` 새 종목 · `bulk` 유니버스 1년). 오늘 값만 분봉 줄 — 2026-11-17 지난 날 1년 백필이
+   * 분봉 줄에서 전 종목 일봉 · 시황 제목을 굶겼다(`SRV-REQ-057` FR-9)
+   */
+  dayMinuteCandles(code: string, date: string, hhmmss: string, opts?: { history?: "backfill" | "bulk" }): Promise<Candle[]>;
   /** `baseDate`(KST) 부터 앞으로의 달력 한 페이지 */
   marketDays(baseDate: string): Promise<KrMarketDay[]>;
 }

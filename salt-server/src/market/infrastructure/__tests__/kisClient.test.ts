@@ -224,12 +224,16 @@ describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
     assert.equal(await priorities((c) => c.dailyCandles("005930", "2026-10-01", "2026-10-27")), KIS_PRIORITY.candles);
     assert.equal(await priorities((c) => c.intradayMinuteCandles("005930", "153000")), KIS_PRIORITY.candles);
     assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000")), KIS_PRIORITY.candles);
+    // 지난 날 채우기는 백필 줄 — 1년 백필이 분봉 줄에서 전 종목 일봉 · 시황 제목을 굶겼다(2026-11-17 SRV-REQ-057 FR-9)
+    assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000", { history: "backfill" })), KIS_PRIORITY.backfill);
+    assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000", { history: "bulk" })), KIS_PRIORITY.bulk);
+    assert.equal(await priorities((c) => c.dailyCandles("005930", "2021-01-01", "2021-05-01", { backfill: true })), KIS_PRIORITY.backfill);
     assert.equal(await priorities((c) => c.indexQuote("0001")), KIS_PRIORITY.supplement);
     assert.equal(await priorities((c) => c.investorFlows("005930")), KIS_PRIORITY.supplement);
     // 호가는 화면이 기다린다 — 폴링보다 앞(2026-11-10 폴링 줄에서 1.5~10초)
     assert.equal(await priorities((c) => c.orderbook("005930")), KIS_PRIORITY.viewer);
     assert.equal(await priorities((c) => c.afterHoursQuote("005930")), KIS_PRIORITY.supplement);
-    assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.viewer && KIS_PRIORITY.viewer < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
+    assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.viewer && KIS_PRIORITY.viewer < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement && KIS_PRIORITY.supplement < KIS_PRIORITY.backfill && KIS_PRIORITY.backfill < KIS_PRIORITY.bulk);
   });
 });
 
