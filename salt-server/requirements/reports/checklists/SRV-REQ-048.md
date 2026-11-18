@@ -191,3 +191,9 @@
 - `salt-server/src/composition.ts` — 포트폴리오 조립에 일봉 · 뉴스 감성 ACL 과 레이더 설정을 꽂았다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `salt-server/src/composition.ts` — portfolio 조립에 `ledger: { run: runInTransaction }` 한 줄. identity · 알림 무변경
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

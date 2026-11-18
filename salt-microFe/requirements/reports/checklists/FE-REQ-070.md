@@ -61,3 +61,9 @@
 - 목록 미리보기의 유리막은 그대로(시나리오 칸 자리) — 원인 칸은 로그아웃이면 자리 없음(F017 v4 순서 6 · `FE-REQ-064` FR-12)
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- 새 페이지 본문 `PortfolioTransactionsBody` 도 유리막(`SignInRequired`) 뒤 — 거래는 사람 칸
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

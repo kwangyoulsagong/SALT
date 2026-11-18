@@ -326,3 +326,4 @@ export { importLedger as POST } from '@/app/api-routes';
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/model/tabs.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 - 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `layer-rules.cjs` features 레지스트리에 `read-privacy`(저장하는 것 · AI 로 가는 것 읽기)
+| 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — 페이지 레지스트리(`layer-rules.cjs` `pages`)에 `portfolio-transactions` 한 줄 — `/portfolio/transactions`. 레이어 검사 시험(차단 16 · 통과 10) 통과 |

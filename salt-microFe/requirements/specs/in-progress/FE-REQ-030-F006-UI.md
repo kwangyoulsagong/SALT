@@ -149,7 +149,7 @@ created: 2026-09-09
 | FR-103 | **리스크 레이더** 4축(집중도 · 변동성 · 낙폭 · 뉴스 리스크) — `RadarChart` + 축별 값/상한 표. 상한 초과 축은 `colors.status.danger` + 사유 문구. `value: null` 축은 "데이터 부족" | Must |
 | FR-104 | **[거래 기록 추가] 바텀시트**(PC는 모달): 자산군 → 종목(검색) → 매수/매도 → 수량 → 단가 → 거래일 → **미리보기 카드**(보유 수량 · 평단 전 → 후, 총 취득금액) → 저장. 미리보기는 서버 값이다 **(기본안 — 감사 문서 B14)** | Must |
 | FR-105 | 과매도는 저장 버튼 비활성 + 서버 사유 문구. 입력은 보존 | Must |
-| FR-106 | **거래 목록**(`/assets/transactions`): 최신순. 행 → 같은 시트로 수정(종목 · 매수/매도는 잠김), 삭제는 `useDialog().confirm` | Must |
+| FR-106 | **거래 목록**(~~`/assets/transactions`~~ **`/portfolio/transactions`** — 3탭 IA 를 안 만들어 포트폴리오 아래): 최신순. 행 → 같은 시트로 수정(종목 · 매수/매도는 잠김), 삭제는 ~~`useDialog().confirm`~~ **시트 안 확인 한 줄**(앱에 `DialogProvider` 가 없다 — 정정 2026-11-18) | Must |
 | FR-107 | 보유 0건: Hero 대신 첫 기록 안내 + [거래 기록 추가]. 차트 · 레이더를 그리지 않는다 | Must |
 | FR-108 | 시트 · 목록에 외부 주문 링크 · 버튼 0건 | Must |
 | FR-109 | 포지션 하단에 `보유 기록 관리 →`(거래 목록) · `설정 →` 링크 | Must |
@@ -282,3 +282,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-31 오늘의 브리핑(지난 대화 다음 · 이번 질문 앞, 저장 0) · FR-35 · 36 답 카드(`RecommendationCard` 재사용 · 막히면 회색 사유) · FR-38 생성 시각(서울) · FR-39 위로 더 읽기. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | F006 대화 2단계 확인 2회차 — 한 화면에 같은 추천 카드는 한 번(`@repo/core/coach` `firstCardHolders`, 나머지 자리는 한 줄) |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-100~103 · 107 + 보유 행 → 상세 링크: `/portfolio` 위쪽 `widgets/position-overview` — Hero(`PositionHero`) · 평가금 흐름(기간 4 · MDD · 구간 수익률, `ValueFlow`) · 리스크 레이더(`@repo/ui/radarChart` 새 컴포넌트 + 축별 표 · 사유 문장) · 보유 0 이면 첫 기록 안내 + 종목 찾기. 상한 넘음은 경고 노랑(되돌릴 수 있는 상태 — `danger` 아님). **정정 FR-2**: 3탭 세그먼트가 아니라 포트폴리오 페이지(`FE-REQ-069`). 남은 것 FR-104~106 · 109(거래 시트 · 목록). 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
+| 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-104 `features/record-transaction` `TransactionSheet`(좁으면 바텀시트 · 넓으면 모달 — `useNarrowViewport` 를 `run-preflight` 에서 `@repo/web-shared/lib` 로 내림) · 미리보기 카드 `LedgerPreviewCard` · 종목 찾기 `LedgerSymbolPicker`(기존 `useAssetSearch`) · FR-105 과매도 = 저장 막음 + 서버 사유 · 입력 보존 · FR-106 정정(경로 · 확인) `widgets/transaction-list` · `pages/portfolio-transactions` · FR-107 빈 상태 [거래 기록 추가] · FR-108 주문 링크 0 · FR-109 포지션 아래 보유 기록 관리 · 설정(코치 설정) 링크. 실화면 1440 · 390 앱 웹뷰 · 실패 둘(목록 · 미리보기) |

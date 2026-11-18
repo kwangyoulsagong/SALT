@@ -66,3 +66,16 @@
 - `@repo/ui` RadarChart 스토리 셋 · build-storybook — pass
 - 미충족: FR-104~106 · 109 거래 시트 · 목록(2단계) · FR-2 세그먼트(3탭 IA 안 만듦 — 정정)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`)
+
+- FR-104 — `TransactionSheet` · 1440 모달 · 390 앱 웹뷰 바텀시트 실화면 — pass
+- FR-105 — 매도 20(보유 12) → 저장 막힘 + "그 거래일에 가진 수량보다…" · 입력 그대로 — pass
+- FR-106(정정) — `/portfolio/transactions` 목록 최신순 · 행 → 고치기(잠김 문구) · 수량 2 → 3 저장 · 첫 매수 지우기 → 서버 거부 문구 · 매도 지우기 → 목록 8 → 7 — pass
+- FR-107 · 108 · 109 — 빈 상태 버튼 · 주문 링크 0 · 하단 링크 둘(보유 기록 관리 · 설정) — pass
+- 상태: 목록 실패 문구(route 500) · 미리보기 실패 문구 + 저장 가능(route 500) · 390 가로 넘침 0 — pass
+- axe(대화 상자 안 · 목록): 새 요소 0. 남은 2건은 `@repo/ui` 세그먼트 미선택 칸 4.18:1 — 기존 컴포넌트 · 모든 화면 공통, 규칙 "대비 수정은 새 요소에만"(`done-checklist` §2.3)이라 바꾸지 않음
+- 실화면에서 고친 결함 넷: 수정 시트 첫 렌더 잘못된 날짜로 블록 깨짐 · 시트 `<form>` 안 검색칸 `<form>`(수화 경고) · 미리보기 라벨 4.41:1 · 목록 보조 글자 호버 면 4.41:1
+- `check-types` 13/13 · `lint` · `pnpm test`(core 302 · ui 63) · `test:layer-check` · `web-investment` 운영 빌드(복사본 — `/portfolio` 149 kB = 1단계 149 · `/portfolio/transactions` 149 kB) · 레이어 훅 사후(바뀐 파일 전부 통과) — pass
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

@@ -342,3 +342,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-18 F006 코치 대화 — 페이지 슬라이스 `coach-chat`
 
 - 레지스트리에 `coach-chat` · lint 13 통과 · layer-check 16+10 · 운영 빌드 리포트 149 kB = main
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- 페이지 레지스트리(`layer-rules.cjs` `pages`)에 `portfolio-transactions` 한 줄 — `/portfolio/transactions`. 레이어 검사 시험(차단 16 · 통과 10) 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

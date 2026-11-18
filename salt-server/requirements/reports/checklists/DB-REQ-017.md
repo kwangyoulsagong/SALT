@@ -372,3 +372,9 @@
 - `salt-server/src/market/infrastructure/PrismaPriceHistoryRepository.ts` — 일봉 종가 읽기 `dailyClosesSince` 를 더했다(주기 `1d` · 종목 × 자산군 — 유니크 인덱스 비트맵 2.1ms, 봉 표 전체 스캔 0). 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `salt-server/src/shared/infrastructure/prisma.ts` — 연결 고르기(`routedClient`)에 **열린 트랜잭션** 맥락을 더했다(`runInTransaction`). 화면 · 배치 풀 나눔은 그대로(시험 `prismaRouting.test.ts` 한 줄 더함)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

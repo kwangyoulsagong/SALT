@@ -72,3 +72,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 2026-11-10 | 번들 — 보드가 `NewsModalHost` 를 `?news=` 있을 때만 dynamic 으로(`c914fe2e`): `/investments` 첫 로드 166 → 156 kB(`87eb8083` 의 정적 barrel import 가 +12) |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 공용 설정 `routes.ts` — `COACH_MODE_PARAM` 삭제(소비처 0) · 리포트 섹션 `targetWeight` 삭제 · `WHY_MOVED_ANCHOR_ID` 추가(F017 v4 순서 6) |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `@repo/web-shared/config` `routes.ts` — `portfolioTransactions` 경로 한 줄. 이 REQ 범위 동작 무변경 |

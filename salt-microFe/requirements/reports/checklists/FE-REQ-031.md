@@ -25,3 +25,13 @@
 - FR-90~93 — Playwright `route` 상태 확인 · 기간 전환 시 요청 목록(흐름 1회) — pass
 - 미충족: FR-80~83 거래 시트 · 미리보기 디바운스(2단계)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`)
+
+- FR-80 — 필드 순서(자산군 → 종목 → 매수/매도 → 수량 → 단가 → 거래일) — pass
+- FR-81 — 세 칸 유효 · 300ms · 키가 입력(앞 요청 끊김) — 실화면 미리보기 12 → 10 서버 값 — pass
+- FR-82 — 평단 · 총액 계산 0(grep `* price` 0) · 미리보기 실패 = 문구 + 저장 가능 — pass
+- FR-83 — 재시도 0 · 낙관적 0 · 저장 뒤 Hero 보유 · 목록 다시 받음(실화면) — pass
+- 같은 원인 고침: `useRecordTrade` 가 `positionAll` 무효화
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

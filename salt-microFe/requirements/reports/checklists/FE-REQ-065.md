@@ -65,3 +65,9 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `@repo/web-shared/config` `routes.ts` — `portfolioTransactions` 경로 한 줄. 이 REQ 범위 동작 무변경
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

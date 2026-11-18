@@ -96,3 +96,9 @@
 - `salt-server/src/portfolio/application/api/index.ts` — 포지션 유스케이스 둘 · 의존 셋(일봉 · 뉴스 감성 · 설정)을 조립에 더했다 — 다른 스키마 조인 0(공개 API 로만). 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `salt-server/src/portfolio/application/api/index.ts` — 유스케이스 하나(`previewTransaction`) · 의존 하나(`ledger`). 교차 스키마 조인 0 · 테이블 주인 무변경
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

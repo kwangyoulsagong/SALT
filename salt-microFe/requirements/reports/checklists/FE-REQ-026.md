@@ -419,3 +419,9 @@
 - 상세 분석 4블록 + 펼침으로 다시 짬 — 판단 카드 · 단타/장기 스위치(`?mode=`) · 구간 선 · 띠 · 범례 · 하단 고정 면책을 뺐고, 차트 위 선은 틀리는 선 하나(`invalidationToPriceLines`). 미리보기도 원인 · 틀리는 선 · 시나리오 한 칸으로(F017 v4 순서 6 · `FE-REQ-064` FR-12). FR-111 의 모드 주소는 기간 탭 `?horizon=` 이 대신
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `run-preflight` `PreflightCard.tsx` — 좁은 화면 훅 `useNarrowViewport` 를 `@repo/web-shared/lib` 로 내림(거래 시트가 두 번째 소비처). 동작 무변경 — 390 상세에서 시트 열림 실측
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
