@@ -94,6 +94,8 @@ export const allowedFacts = (input: CoachExplanationInput, scope: { news: boolea
     ...(input.cause
       ? [input.cause.headline, input.cause.note, input.cause.result, ...input.cause.evidence.flatMap((e) => [e.value, e.compare ?? ""])]
       : []),
+    // 에이전트 도구 사실(O3 · `SRV-REQ-059`) — 예측 계약이 낸 숫자. 제목 줄(공시 · 소식)의 숫자는 기사와 같이 뉴스 칸에서만
+    ...(input.tools?.facts ?? []).filter((f) => scope.news || !f.news).map((f) => f.text),
     COACH_HORIZON[input.mode].phrase,
     ...PROMPT_PHRASES,
   ];

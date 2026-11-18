@@ -1,5 +1,7 @@
 import { ReportTriadGaps } from "../ReportTriadGaps";
 import type {
+  AgentPlanner,
+  AgentToolReader,
   CoachExplainer,
   ExplanationSnapshotStore,
   LlmBudgetLimits,
@@ -69,6 +71,7 @@ import { GetSymbolEvents } from "../GetSymbolEvents";
 import { GetSymbolScenario } from "../GetSymbolScenario";
 import { GetCoachPanel } from "../GetCoachPanel";
 import { StreamSymbolExplanation } from "../StreamSymbolExplanation";
+import { CompareAgentExplanation } from "../CompareAgentExplanation";
 import { MeasurePanelCells } from "../MeasurePanelCells";
 import { RecordMoveCauses } from "../RecordMoveCauses";
 import { ExplanationGenerations } from "../lib/explanationGeneration";
@@ -144,6 +147,8 @@ export interface CoachDependencies {
   companyFacts?: CompanyFactReader;
   /** 공시 목록 사실(F017 v4 2b+) */
   companyFilings?: CompanyFilingReader;
+  /** 에이전트 도구(O3 · `SRV-REQ-059`) — 예측 계약 읽기 + 고르기 모델. 지금은 A/B 측정(`compareAgentExplanation`)만 쓴다 */
+  agentTools?: { reader: AgentToolReader; planner?: AgentPlanner };
   /** 사실 추출(F017 v4 2c · `SRV-REQ-053` FR-14) — AI 경로 본문 → 사실. 없으면 배치 0 */
   factExtraction?: {
     sources: FactSourceReader;
@@ -221,6 +226,8 @@ export interface CoachUseCases {
   getSymbolScenario: GetSymbolScenario;
   /** 한 장 패널 한 번 응답 — 칸마다 tier · status(F017 v4 1d · `SRV-REQ-053` FR-13) */
   getCoachPanel: GetCoachPanel;
+  /** 템플릿 vs 에이전트 한 쌍 — 블라인드 A/B 측정용(O3 · `SRV-REQ-059` FR-6). 화면 경로 0 · 저장 0 */
+  compareAgentExplanation: CompareAgentExplanation;
   /** 해설 스트림 — 저장본이 있으면 한 번, 없으면 생성하며 문장부터(F017 v4 1f · `SRV-REQ-053` FR-9) */
   streamSymbolExplanation: StreamSymbolExplanation;
   /** 패널 칸 채움 실측 — 하루 두 번 워커가 부른다(OPS-004) */
@@ -386,6 +393,25 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       causes: deps.moveCauses,
       company: deps.companyFacts ? { facts: deps.companyFacts, filings: deps.companyFilings ?? { recent: async () => [] } } : undefined,
       generations: explanationGenerations,
+    }),
+    compareAgentExplanation: new CompareAgentExplanation({
+      ...explanationMaterials,
+      explainer: deps.explainer,
+      // 도구가 없으면 빈 리더 — 사실 0 이라 해설은 기존 재료로(측정이 "에이전트 없음"을 바로 드러낸다)
+      agent: deps.agentTools ?? {
+        reader: {
+          forecastCards: async () => [],
+          neighbors: async () => [],
+          eventKinds: async () => [],
+          recentEvents: async () => [],
+          eventReactions: async () => [],
+          documents: async () => [],
+        },
+      },
+      causes: deps.moveCauses,
+      company: deps.companyFacts ? { facts: deps.companyFacts, filings: deps.companyFilings ?? { recent: async () => [] } } : undefined,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
     }),
     streamSymbolExplanation: new StreamSymbolExplanation({
       ...explanationMaterials,

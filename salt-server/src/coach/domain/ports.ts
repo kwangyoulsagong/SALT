@@ -10,6 +10,14 @@ import type {
 import type { CauseSnapshotRecord } from "./policy/causeSnapshot";
 import type { EarningsWindowRow } from "./policy/earningsOutlook";
 import type { JudgmentTierRow } from "./policy/judgmentTier";
+import type {
+  AgentDocumentRow,
+  AgentForecastCardRow,
+  AgentNeighborRow,
+  AgentReactionRow,
+  AgentRecentEvent,
+  AgentToolFact,
+} from "./policy/agentTools";
 import type { ScenarioMarket, ShortHorizonCellRow, ShortHorizonPredictionRow } from "./policy/shortHorizon";
 import type { MoveAsset, MoveCard, MoveSummaryPromptFact, StoredMoveSummary } from "./policy/moveSummary";
 
@@ -337,6 +345,12 @@ export interface CoachExplanationInput {
    * 숫자 · 단위는 원문 그대로 — 문장이 인용하면 출처 이름으로 단다. 걸리는 점은 늘 같이 간다(좋은 점만 싣지 않는다)
    */
   company?: { lines: Array<{ text: string; source: string; concern: boolean }> };
+  /**
+   * 에이전트 도구 사실(O3 · `SRV-REQ-059` · `FC-REQ-023`) — 에이전트가 고른 도구의 결과 줄. 숫자 · 출처 · 시각이 같이 다닌다.
+   * 있으면 검증기의 허용 숫자 · 인용 사실표가 된다(제목 줄 `news: true` 의 숫자는 뉴스 칸에서만). 전망 카드 줄은 소유자 전용 숫자다 —
+   * 이 칸이 있는 해설은 소유자에게만(`ADR-003`). 생성할 때만(원인 · 회사 사정과 같다)
+   */
+  tools?: { facts: AgentToolFact[] };
   news?: Array<{
     title: string;
     summary?: string;
@@ -442,6 +456,45 @@ export interface ExplainHooks {
   onLine?(line: { section: ExplanationLineSection; text: string }): void;
 }
 
+/**
+ * 에이전트 도구가 읽는 예측 계약(`FC-REQ-023` FR-1 · `DB-REQ-045`) — `forecast.v_forecast_card` · `f_agent_neighbors` ·
+ * `v_agent_event_reactions` · `f_agent_documents`. 모두 `available_at <= asOf` 행만 · 채점 통과 행만. 사용자 열 0
+ */
+export interface AgentToolReader {
+  forecastCards(symbol: string, asset: "kr" | "crypto", asOf: Date): Promise<AgentForecastCardRow[]>;
+  neighbors(entity: string, depth: number, asOf: Date): Promise<AgentNeighborRow[]>;
+  /** 이 종목(범위 symbol) · 이 시장(범위 market)에 반응 통계가 있는 사건 종류 */
+  eventKinds(symbol: string, asset: "kr" | "crypto"): Promise<string[]>;
+  /** 그 종목에 since ~ asOf 사이 실제로 닿은 사건(일정 · 신호) — 반응 도구 메뉴의 문턱(`agentEventMenu`) */
+  recentEvents(entity: string, since: Date, asOf: Date): Promise<AgentRecentEvent[]>;
+  eventReactions(eventKind: string, symbol: string, asset: "kr" | "crypto"): Promise<AgentReactionRow[]>;
+  documents(entity: string, since: Date, asOf: Date, limit: number): Promise<AgentDocumentRow[]>;
+}
+
+/** 고르기 한 번에 모델에게 주는 것 — 종목 · 관점 · 지금까지 사실 · 고를 수 있는 대상 · 사건 종류. 개인 금액 필드 0(FR-4) */
+export interface AgentPlanRequest {
+  koreanName: string;
+  entity: string;
+  mode: CoachMode;
+  /** 판단 · 근거 줄(해설 입력의 근거 그대로 — 시장 층) */
+  evidence: Array<{ label: string; value: string }>;
+  /** 고를 수 있는 대상 — 이 종목 + 앞 결과의 이웃 종목(id · 이름) */
+  entities: Array<{ id: string; name: string }>;
+  /** 최근 이 종목에 일어난 사건 종류만(날짜 포함) — 없으면 반응 도구를 고를 수 없다 */
+  eventKinds: Array<{ kind: string; label: string }>;
+  /** 앞 왕복에서 얻은 사실 줄 */
+  found: string[];
+  remainingCalls: number;
+}
+
+/**
+ * 고르기 모델(로컬 CLI → Gemini) — 답은 JSON 원문(`{"calls":[…]}`), 검사는 도메인(`parseAgentPlan` · `acceptAgentCalls`).
+ * **트랜잭션 밖에서 호출**(수 초~수십 초). 시도마다 사용량 원장에 `purpose: agent_plan`
+ */
+export interface AgentPlanner {
+  plan(request: AgentPlanRequest, options: { geminiAllowed: boolean }): Promise<string>;
+}
+
 export interface CoachExplainer {
   /**
    * `signal` — 요청한 화면이 떠나면 끊는다. 안 끊으면 아무도 안 읽을 LLM 호출이
@@ -464,8 +517,8 @@ export interface LlmCallRecord {
   userId: string | null;
   /** 어느 공급자의 시도인가(`SRV-REQ-050` FR-9). 토큰 상한은 `gemini` 만 센다 */
   provider: ExplainProvider;
-  /** 어느 기능의 호출인가 — 해설(`coach_explain`) · 오늘 등락 한 줄(`move_summary`, F016 단계 D) · 사실 추출(`fact_extract`, F017 v4 2c) */
-  purpose: "coach_explain" | "move_summary" | "fact_extract";
+  /** 어느 기능의 호출인가 — 해설(`coach_explain`) · 오늘 등락 한 줄(`move_summary`, F016 단계 D) · 사실 추출(`fact_extract`, F017 v4 2c) · 에이전트 고르기(`agent_plan`, O3 `SRV-REQ-059`) */
+  purpose: "coach_explain" | "move_summary" | "fact_extract" | "agent_plan";
   model: string;
   requestedAt: Date;
   durationMs: number;

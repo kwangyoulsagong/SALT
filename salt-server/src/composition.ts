@@ -7,6 +7,8 @@ import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplai
 import { CompanyFilingAdapter } from "./coach/infrastructure/CompanyFilingAdapter";
 import { FactSourceAdapter } from "./coach/infrastructure/FactSourceAdapter";
 import { LlmFactExtractor } from "./coach/infrastructure/LlmFactExtractor";
+import { LlmAgentPlanner } from "./coach/infrastructure/LlmAgentPlanner";
+import { PrismaAgentToolReader } from "./coach/infrastructure/PrismaAgentToolReader";
 import { LlmMoveSummaryWriter } from "./coach/infrastructure/LlmMoveSummaryWriter";
 import { PrismaCompanyFactReader } from "./coach/infrastructure/PrismaCompanyFactReader";
 import { PrismaExtractedFactStore } from "./coach/infrastructure/PrismaExtractedFactStore";
@@ -277,8 +279,13 @@ const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUs
 const moveSummaryWriter = new LlmMoveSummaryWriter(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
 /** 사실 추출(F017 v4 2c) — 같은 로컬 CLI → Gemini · 같은 게이트 */
 const factExtractor = new LlmFactExtractor(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
-if (env.COACH_EXPLAIN_LLM === "on") {
-  void detectLocalCli(env.COACH_LLM_LOCAL)
+/** 에이전트 고르기(O3 · `SRV-REQ-059`) — 같은 로컬 CLI → Gemini · 같은 게이트. 지금은 A/B 측정만 부른다 */
+const agentPlanner = new LlmAgentPlanner(llmUsage, { localModel: env.COACH_LLM_LOCAL_MODEL, gate: localCliGate });
+/** 로컬 CLI 감지가 끝나면 풀린다 — 측정 스크립트(`scripts/explain-agent-ab.ts`)가 기다린다. 서버는 기다리지 않는다(감지 전엔 Gemini) */
+export const localCliReady: Promise<void> =
+  env.COACH_EXPLAIN_LLM !== "on"
+    ? Promise.resolve()
+    : detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
       if (!found) {
         logger.info(`해설 로컬 CLI 없음(${env.COACH_LLM_LOCAL}) — 전부 Gemini`);
@@ -289,10 +296,12 @@ if (env.COACH_EXPLAIN_LLM === "on") {
       );
       moveSummaryWriter.useLocal({ provider: found.provider, bin: found.bin });
       factExtractor.useLocal({ provider: found.provider, bin: found.bin });
+      agentPlanner.useLocal({ provider: found.provider, bin: found.bin });
       logger.info(`해설 로컬 CLI ${found.provider} ${found.version} (${found.bin})`);
     })
-    .catch((error: unknown) => logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`));
-}
+    .catch((error: unknown) => {
+      logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`);
+    });
 // 판단 채점 · 기저율 · 사이즈 비용 — 코인은 도메인 상수, 국내 주식은 수수료 설정값 + 매도일 거래세 표(F011 FR-44)
 const roundTripCosts: RoundTripCosts = {
   ...DEFAULT_ROUND_TRIP_COSTS,
@@ -309,6 +318,8 @@ const coach = createCoachApplication({
   explainer,
   // 해설 스냅샷 — 배치가 쓰고 화면 읽기가 읽는다(F017 v2 단계 3)
   explanations: new PrismaExplanationSnapshotStore(),
+  // 에이전트 도구 — 예측 계약 읽기 + 고르기(O3 · `SRV-REQ-059`)
+  agentTools: { reader: new PrismaAgentToolReader(), planner: agentPlanner },
   llmUsage,
   // 기본 켜짐. `COACH_EXPLAIN_LLM=off` 면 배치가 해설을 만들지 않는다 — 화면은 사실표 문장(`SRV-REQ-037` FR-16 · `SRV-REQ-053` FR-3)
   llmEnabled: env.COACH_EXPLAIN_LLM === "on",
