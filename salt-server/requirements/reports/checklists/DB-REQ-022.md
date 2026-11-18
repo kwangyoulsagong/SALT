@@ -15,3 +15,10 @@
 - FR-60 — 주문 Port 0 — pass
 - 미충족: FR-11 · 14(카드) · FR-22(LLM 취소 — LLM 없음) · FR-32(정합성 검증 쿼리) — F006 2단계
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-10 — 문장과 같은 조건부 UPDATE 한 번에 카드 — pass
+- FR-11 — 게이트 칸 넷 — pass · FR-12 정정(막힌 카드에 행동 · 종목 · 근거 0 — 시험 · 실 DB 키 5개)
+- FR-13 — SSE 단일 이벤트 — pass · FR-14 — 복사본(추천이 바뀌어도 저장본 그대로 — 시험) — pass
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

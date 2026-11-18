@@ -30,6 +30,7 @@ const MESSAGE_SELECT = {
   linksJson: true,
   gaps: true,
   errorCode: true,
+  cardPayload: true,
   createdAt: true,
 } as const;
 
@@ -46,6 +47,10 @@ const toMessage = (row: MessageRow): CoachMessageRecord => ({
   links: Array.isArray(row.linksJson) ? (row.linksJson as unknown as CoachAnswer["links"]) : [],
   gaps: row.gaps as CoachAnswerGap[],
   errorCode: row.errorCode,
+  card:
+    row.cardPayload && typeof row.cardPayload === "object" && !Array.isArray(row.cardPayload)
+      ? (row.cardPayload as Record<string, unknown>)
+      : null,
   createdAt: row.createdAt,
 });
 
@@ -106,7 +111,10 @@ export class PrismaCoachConversationStore implements CoachConversationStore {
 
   async completeAnswer(
     messageId: string,
-    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps"> & { explanationSource: "rule" | "llm" }
+    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps" | "card"> & {
+      explanationSource: "rule" | "llm";
+      insightId: string | null;
+    }
   ) {
     const result = await prisma.coachMessage.updateMany({
       where: { id: messageId, status: "streaming" },
@@ -117,6 +125,9 @@ export class PrismaCoachConversationStore implements CoachConversationStore {
         explanationSource: answer.explanationSource,
         linksJson: answer.links as unknown as Prisma.InputJsonValue,
         gaps: answer.gaps,
+        // 카드는 문장과 같은 UPDATE 한 번 — 부분 상태가 저장되지 않는다(DB-REQ-022 FR-10)
+        cardPayload: answer.card ? (answer.card as Prisma.InputJsonValue) : Prisma.DbNull,
+        insightId: answer.insightId,
       },
     });
     return result.count > 0;

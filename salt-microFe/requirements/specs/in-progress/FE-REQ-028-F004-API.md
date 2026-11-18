@@ -218,3 +218,4 @@ created: 2026-09-09
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc`) — FR-89 뒤집힘: `@repo/core` `ModeCoachViewModel` 한 모양(판단 늘 · `caveats`)
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 - 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `entities/coach/api/endpoints.ts` 시나리오 줄 주석 정정(소유자만 → 모든 종목 · 기간 넷에 늘) — 경로 · 이 REQ 의 FR 변경 0. 주인 REQ `FE-REQ-064` FR-8
+| 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `endpoints.ts`(머리 주인)에 브리핑 경로 · 메시지 커서(주인 `FE-REQ-032`). 종목 판단 경로 변경 0 |

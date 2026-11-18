@@ -22,3 +22,11 @@
 - FR-60 — 주문 Port 0 · 주문 요청 갈래 — pass
 - 미충족: FR-5 · 6 · 26 · 30~34 · 44(LLM 경로 없음) · FR-50~54(카드) · 홈 · 포지션 · 알림 · 설정 — F006 2단계
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-50~54 — `ReadConversationCard`(`application/lib/recommendationCard.ts`) · `AnswerCoachMessage` 카드 복사 · 시험 `recommendationCard.test.ts`(통과 · 막힘 셋 · 근거 없음 · 추천 없음) · `coachConversation.test.ts`(복사본 · 재연결이 카드를 다시 읽지 않음 · 카드 실패 = gap) — pass
+- 브리핑 — `GetCoachBriefing` · `composeCoachBriefing` 재료 조합 140갈래 검사기 통과 · 0 안 씀 — pass
+- 변이: 막힌 카드에 내용을 펼침 → 3 실패 · 팔기에서 카드 재료 뺌 → 2 · 위험 답에 카드 → 1 · 브리핑 실패를 0 으로 → 2
+- 미충족: LLM 경로(FR-5 · 6 · 26 · 30~34 · 44 — A/B 먼저) · 홈 · 포지션 · 알림 · 설정
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

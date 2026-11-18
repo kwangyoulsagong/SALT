@@ -11,3 +11,8 @@
 - FR-17 — 완료 뒤 목록 · 메시지 키 `refetchType: none`(말풍선 두 번 방지) — pass
 - FR-50 — 뷰모델 타입 core — pass · FR-51 이벤트 union 은 기능 안 타입(카드 없음) — 부분
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-21 · 51 · 52 — `entities/coach/api/useCoachConversationHistory.ts` · `useCoachBriefing.ts` · core 타입 — check-types 13 · lint 13 — pass
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

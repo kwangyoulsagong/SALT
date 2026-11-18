@@ -566,3 +566,7 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 ## 2026-11-18 — `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`)
 
 - `explanationPrompt.ts`(머리 주인): 원인 단계 '없음'이면 두 프롬프트(줄 형식 · JSON) 모두 원인 줄을 쓰지 않게 — 원인 줄은 서버 문장(`fixedCauseLine`). 프롬프트 @4. 시험 `explanationPromptCause.test.ts` · `explanationServerCause.test.ts` · 변이(규칙을 끄면 실패). 상세 `SRV-REQ-060` 체크리스트
+
+## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
+
+- `GetCoachDetail.ts`(머리 주인) — 추천 조립을 `application/lib/recommendationCard.ts` 로 옮겨 대화와 같이 쓴다(동작 변경 0 — 같은 함수 본문 · 기존 상세 시험 전부 통과). 주인 `SRV-REQ-028` — 영역 시험 전부 통과 · 2회차 실 저장 추천으로 main · 브랜치 상세 응답 바이트 동일

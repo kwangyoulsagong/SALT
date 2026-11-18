@@ -14,6 +14,7 @@ import type {
   TradePlanListResult,
   TradeCheckResult,
   TradeCheckSide,
+  CoachBriefing,
   CoachConversationItem,
   CoachConversationPage,
   CoachMessage,
@@ -233,9 +234,21 @@ export const coachApi = {
   },
 
   /** 대화의 메시지 — 최신이 앞(F006). 남의 · 없는 대화면 404 */
-  coachMessages: async (conversationId: string, limit: number, signal?: AbortSignal): Promise<CoachConversationPage<CoachMessage>> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachMessages(conversationId, limit)}`, { signal });
+  coachMessages: async (
+    conversationId: string,
+    limit: number,
+    cursor: string | null,
+    signal?: AbortSignal,
+  ): Promise<CoachConversationPage<CoachMessage>> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachMessages(conversationId, limit, cursor)}`, { signal });
     if (!response.ok) throw await readApiError(response, "coach messages");
     return ((await response.json()) as AppEnvelope<CoachConversationPage<CoachMessage>>).data;
+  },
+
+  /** 오늘의 브리핑(F006 FR-21) — 대화 첫 메시지. 서버 규칙 문장 그대로 + 카드 */
+  coachBriefing: async (signal?: AbortSignal): Promise<CoachBriefing> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachBriefing}`, { signal });
+    if (!response.ok) throw await readApiError(response, "coach briefing");
+    return ((await response.json()) as AppEnvelope<CoachBriefing>).data;
   },
 };

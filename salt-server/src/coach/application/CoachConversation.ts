@@ -2,6 +2,8 @@ import {
   ANSWER_MATERIALS,
   COACH_CHIP_QUESTION,
   composeCoachAnswer,
+  composeCoachBriefing,
+  type CoachBriefing,
   conversationTitle,
   routeCoachQuestion,
   CoachConversationNotFoundError,
@@ -16,6 +18,10 @@ import {
   type SellPlanFacts,
 } from "../domain";
 import type { BehaviorCoachView } from "./AnalyzeTradingBehavior";
+import type {
+  ConversationCard,
+  ConversationCardPayload,
+} from "./lib/recommendationCard";
 import type { RiskBudgetView } from "./ManageRiskBudget";
 
 /**
@@ -41,9 +47,16 @@ export interface CoachAnswerSources {
     }>;
   };
   behavior: { execute(userId: string): Promise<BehaviorCoachView> };
+  /** 가장 최근 저장 추천을 3종 게이트를 지난 카드로(`ReadConversationCard`) — 코치 상세와 같은 조립 */
+  card: { execute(userId: string): Promise<ConversationCard | null> };
 }
 
-const SELL_STATUSES = new Set<SellPlanFacts["status"]>(["take_profit_review", "stop_loss_review", "raise_stop_review", "hold_plan"]);
+const SELL_STATUSES = new Set<SellPlanFacts["status"]>([
+  "take_profit_review",
+  "stop_loss_review",
+  "raise_stop_review",
+  "hold_plan",
+]);
 
 const toRiskFacts = (view: RiskBudgetView): RiskAnswerFacts => ({
   totalValueKrw: view.totalValue.toDecimal(),
@@ -58,18 +71,27 @@ const toRiskFacts = (view: RiskBudgetView): RiskAnswerFacts => ({
     topWeight: view.gauges.concentration.topWeight,
     limit: view.gauges.concentration.limit,
   },
-  btcBeta: { status: view.gauges.btcBeta.status, btcEquivalentKrw: view.gauges.btcBeta.btcEquivalent?.toDecimal() ?? null },
+  btcBeta: {
+    status: view.gauges.btcBeta.status,
+    btcEquivalentKrw: view.gauges.btcBeta.btcEquivalent?.toDecimal() ?? null,
+  },
 });
 
 const toBehaviorFacts = (view: BehaviorCoachView): BehaviorAnswerFacts => ({
   status: view.status,
   transactionCount: view.evidence.transactionCount,
   minimumRequired: view.evidence.minimumRequired ?? null,
-  warnings: view.warnings.map((warning) => ({ title: warning.title, message: warning.message })),
+  warnings: view.warnings.map((warning) => ({
+    title: warning.title,
+    message: warning.message,
+  })),
 });
 
 /** 재료 하나 실패 = 그 칸만 `null`(대화는 산다 — FR-25). 실패 원인은 로그로만 */
-const settle = async <T>(work: () => Promise<T>, onError: (error: unknown) => void): Promise<T | null> => {
+const settle = async <T>(
+  work: () => Promise<T>,
+  onError: (error: unknown) => void,
+): Promise<T | null> => {
   try {
     return await work();
   } catch (error) {
@@ -80,6 +102,8 @@ const settle = async <T>(work: () => Promise<T>, onError: (error: unknown) => vo
 
 export interface CoachAnswerResult {
   answer: CoachAnswer;
+  /** 답에 붙은 카드(완성 객체 — SSE `message.card` 한 번). 없으면 `null` */
+  card: Record<string, unknown> | null;
   /** 이미 저장돼 있던 답을 다시 보낸 것 — 재연결(FR-3 · `SRV-REQ-029` FR-4) */
   replayed: boolean;
 }
@@ -88,24 +112,41 @@ export interface CoachAnswerResult {
 export class AskCoach {
   constructor(
     private readonly store: CoachConversationStore,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
   ) {}
 
   async execute(
     userId: string,
-    command: { conversationId: string | null; content: string | null; chip: CoachQuestionChip | null }
-  ): Promise<{ conversationId: string; questionId: string; messageId: string }> {
+    command: {
+      conversationId: string | null;
+      content: string | null;
+      chip: CoachQuestionChip | null;
+    },
+  ): Promise<{
+    conversationId: string;
+    questionId: string;
+    messageId: string;
+  }> {
     // 칩만 눌렀으면 칩 문장이 사용자 말풍선이 된다. DTO 가 둘 중 하나는 있게 막는다
-    const question = (command.content?.trim() || (command.chip ? COACH_CHIP_QUESTION[command.chip] : "")).trim();
+    const question = (
+      command.content?.trim() ||
+      (command.chip ? COACH_CHIP_QUESTION[command.chip] : "")
+    ).trim();
     const saved = await this.store.ask({
       userId,
       conversationId: command.conversationId,
       title: conversationTitle(question),
-      question: command.chip ? `${CHIP_MARK}${command.chip}${CHIP_MARK}${question}` : question,
+      question: command.chip
+        ? `${CHIP_MARK}${command.chip}${CHIP_MARK}${question}`
+        : question,
       at: this.now(),
     });
     if (!saved) throw new CoachConversationNotFoundError();
-    return { conversationId: saved.conversationId, questionId: saved.questionId, messageId: saved.answerId };
+    return {
+      conversationId: saved.conversationId,
+      questionId: saved.questionId,
+      messageId: saved.answerId,
+    };
   }
 }
 
@@ -116,10 +157,13 @@ export class AskCoach {
 const CHIP_MARK = "⁣";
 const CHIP_PATTERN = new RegExp(`^${CHIP_MARK}([a-z_]+)${CHIP_MARK}`);
 
-export const visibleQuestion = (content: string): string => content.replace(CHIP_PATTERN, "");
+export const visibleQuestion = (content: string): string =>
+  content.replace(CHIP_PATTERN, "");
 const chipOf = (content: string): CoachQuestionChip | null => {
   const code = CHIP_PATTERN.exec(content)?.[1];
-  return code && code in COACH_CHIP_QUESTION ? (code as CoachQuestionChip) : null;
+  return code && code in COACH_CHIP_QUESTION
+    ? (code as CoachQuestionChip)
+    : null;
 };
 
 /** 답 하나 — 저장돼 있으면 그대로, `streaming` 이면 지금 만든다(`SRV-REQ-028` FR-1 · 3) */
@@ -130,14 +174,24 @@ export class AnswerCoachMessage {
     private readonly log: (message: string) => void = () => undefined,
     private readonly now: () => Date = () => new Date(),
     /** 답 자리가 이보다 오래 `streaming` 이면 만들지 않고 실패로(FR-7 — 대화당 60초) */
-    private readonly maxAnswerMs = 60_000
+    private readonly maxAnswerMs = 60_000,
   ) {}
 
-  async execute(userId: string, messageId: string): Promise<CoachAnswerResult | { failed: string }> {
+  async execute(
+    userId: string,
+    messageId: string,
+  ): Promise<CoachAnswerResult | { failed: string }> {
     const message = await this.store.findMessage(userId, messageId);
-    if (!message || message.role !== "assistant") throw new CoachConversationNotFoundError();
-    if (message.status === "complete") return { answer: storedAnswer(message), replayed: true };
-    if (message.status === "failed") return { failed: message.errorCode ?? "LLM_ERROR" };
+    if (!message || message.role !== "assistant")
+      throw new CoachConversationNotFoundError();
+    if (message.status === "complete")
+      return {
+        answer: storedAnswer(message),
+        card: message.card,
+        replayed: true,
+      };
+    if (message.status === "failed")
+      return { failed: message.errorCode ?? "LLM_ERROR" };
     if (this.now().getTime() - message.createdAt.getTime() > this.maxAnswerMs) {
       await this.store.failAnswer(message.id, "LLM_TIMEOUT");
       return { failed: "LLM_TIMEOUT" };
@@ -145,54 +199,162 @@ export class AnswerCoachMessage {
 
     const question = await this.store.findQuestionFor(message);
     const content = question?.content ?? "";
-    const intent = routeCoachQuestion(visibleQuestion(content), chipOf(content));
-    const facts = await this.gather(userId, ANSWER_MATERIALS[intent]);
+    const intent = routeCoachQuestion(
+      visibleQuestion(content),
+      chipOf(content),
+    );
+    const { facts, card } = await this.gather(userId, ANSWER_MATERIALS[intent]);
     const answer = composeCoachAnswer(intent, facts);
-    if (answer.dropped > 0) this.log(`코치 대화 규칙 문장 ${answer.dropped}개가 검사기에 걸림 — ${intent}`);
+    if (answer.dropped > 0)
+      this.log(
+        `코치 대화 규칙 문장 ${answer.dropped}개가 검사기에 걸림 — ${intent}`,
+      );
+    const payload: ConversationCardPayload | null = card?.payload ?? null;
 
     const wrote = await this.store.completeAnswer(message.id, {
       content: answer.sentences.join("\n"),
       intent,
       links: answer.links,
       gaps: answer.gaps,
+      card: payload as Record<string, unknown> | null,
+      insightId: card?.insightId ?? null,
       explanationSource: "rule",
     });
-    if (wrote) return { answer, replayed: false };
+    if (wrote)
+      return {
+        answer,
+        card: payload as Record<string, unknown> | null,
+        replayed: false,
+      };
     // 겹친 스트림이 먼저 채웠다 — 그 답을 보낸다(같은 질문에 답이 둘이 되지 않게)
     const winner = await this.store.findMessage(userId, messageId);
-    if (winner?.status === "complete") return { answer: storedAnswer(winner), replayed: true };
+    if (winner?.status === "complete")
+      return {
+        answer: storedAnswer(winner),
+        card: winner.card,
+        replayed: true,
+      };
     return { failed: winner?.errorCode ?? "LLM_ERROR" };
   }
 
-  private async gather(userId: string, materials: readonly string[]): Promise<CoachAnswerFacts> {
-    const want = new Set(materials);
-    const fail = (name: string) => (error: unknown) => this.log(`코치 대화 재료 실패 — ${name}: ${(error as Error).name}`);
-    const [risk, plans, behavior] = await Promise.all([
-      want.has("risk") ? settle(() => this.sources.riskBudget.execute(userId), fail("risk")) : Promise.resolve(undefined),
-      want.has("plans") ? settle(() => this.sources.profitPlans.execute(userId), fail("plans")) : Promise.resolve(undefined),
-      want.has("behavior") ? settle(() => this.sources.behavior.execute(userId), fail("behavior")) : Promise.resolve(undefined),
-    ]);
-    return {
-      risk: risk === undefined ? undefined : risk && toRiskFacts(risk),
-      plans:
-        plans === undefined
-          ? undefined
-          : plans &&
-            plans.plans
-              .filter((plan): plan is typeof plan & { status: SellPlanFacts["status"] } =>
-                SELL_STATUSES.has(plan.status as SellPlanFacts["status"])
-              )
-              .map((plan) => ({
-                symbol: plan.symbol,
-                status: plan.status,
-                unrealizedProfitRate: plan.unrealizedProfitRate,
-                currentPrice: plan.currentPrice,
-                stages: plan.stages.map((stage) => ({ label: stage.label, price: stage.price })),
+  private async gather(
+    userId: string,
+    materials: readonly string[],
+  ): Promise<{ facts: CoachAnswerFacts; card: ConversationCard | null }> {
+    const facts = await gatherFacts(this.sources, userId, materials, this.log);
+    return facts;
+  }
+}
+
+/** 카드 실패와 "추천 없음"을 가른다 — 실패는 `"unavailable"`(문장이 그렇게 말한다), 없음은 `null`(문장 없음) */
+const UNAVAILABLE_CARD = "unavailable" as const;
+
+const gatherFacts = async (
+  sources: CoachAnswerSources,
+  userId: string,
+  materials: readonly string[],
+  log: (message: string) => void,
+): Promise<{ facts: CoachAnswerFacts; card: ConversationCard | null }> => {
+  const want = new Set(materials);
+  const fail = (name: string) => (error: unknown) =>
+    log(`코치 대화 재료 실패 — ${name}: ${(error as Error).name}`);
+  const [risk, plans, behavior, card] = await Promise.all([
+    want.has("risk")
+      ? settle(() => sources.riskBudget.execute(userId), fail("risk"))
+      : Promise.resolve(undefined),
+    want.has("plans")
+      ? settle(() => sources.profitPlans.execute(userId), fail("plans"))
+      : Promise.resolve(undefined),
+    want.has("behavior")
+      ? settle(() => sources.behavior.execute(userId), fail("behavior"))
+      : Promise.resolve(undefined),
+    want.has("recommendation")
+      ? sources.card.execute(userId).catch((error: unknown) => {
+          fail("recommendation")(error);
+          return UNAVAILABLE_CARD as typeof UNAVAILABLE_CARD;
+        })
+      : Promise.resolve(undefined),
+  ]);
+  const facts: CoachAnswerFacts = {
+    recommendation:
+      card === undefined
+        ? undefined
+        : card === UNAVAILABLE_CARD
+          ? "unavailable"
+          : card === null
+            ? null
+            : card.summary,
+    risk: risk === undefined ? undefined : risk && toRiskFacts(risk),
+    plans:
+      plans === undefined
+        ? undefined
+        : plans &&
+          plans.plans
+            .filter(
+              (
+                plan,
+              ): plan is typeof plan & { status: SellPlanFacts["status"] } =>
+                SELL_STATUSES.has(plan.status as SellPlanFacts["status"]),
+            )
+            .map((plan) => ({
+              symbol: plan.symbol,
+              status: plan.status,
+              unrealizedProfitRate: plan.unrealizedProfitRate,
+              currentPrice: plan.currentPrice,
+              stages: plan.stages.map((stage) => ({
+                label: stage.label,
+                price: stage.price,
               })),
-      behavior: behavior === undefined ? undefined : behavior && toBehaviorFacts(behavior),
-      // 한 번 거래 손실 한도 — 위험 예산 설정의 원 환산. 위험 예산을 못 읽었으면 `undefined`(못 읽음), 안 정했으면 `null`
-      perTradeMaxLossKrw:
-        risk === undefined || risk === null ? undefined : (risk.settings.perTradeMaxLossKrw?.toDecimal() ?? null),
+            })),
+    behavior:
+      behavior === undefined
+        ? undefined
+        : behavior && toBehaviorFacts(behavior),
+    // 한 번 거래 손실 한도 — 위험 예산 설정의 원 환산. 위험 예산을 못 읽었으면 `undefined`(못 읽음), 안 정했으면 `null`
+    perTradeMaxLossKrw:
+      risk === undefined || risk === null
+        ? undefined
+        : (risk.settings.perTradeMaxLossKrw?.toDecimal() ?? null),
+  };
+  return {
+    facts,
+    card: card === undefined || card === UNAVAILABLE_CARD ? null : card,
+  };
+};
+
+/**
+ * 오늘의 브리핑 — 대화 첫 메시지(FEATURE-006 FR-21 · `SRV-REQ-028` 2단계). 저장하지 않는다(화면을 열 때마다 대화 행이 생기지 않게).
+ * 재료는 답과 같은 셋(보유 점검 · 위험 예산 · 저장 추천 카드) — 숫자를 새로 만들지 않는다
+ */
+export class GetCoachBriefing {
+  constructor(
+    private readonly sources: CoachAnswerSources,
+    private readonly log: (message: string) => void = () => undefined,
+    private readonly now: () => Date = () => new Date(),
+  ) {}
+
+  async execute(
+    userId: string,
+  ): Promise<
+    CoachBriefing & { generatedAt: Date; card: Record<string, unknown> | null }
+  > {
+    const { facts, card } = await gatherFacts(
+      this.sources,
+      userId,
+      ["plans", "risk", "recommendation"],
+      this.log,
+    );
+    const briefing = composeCoachBriefing({
+      plans: facts.plans ?? null,
+      risk: facts.risk ?? null,
+      recommendation: facts.recommendation ?? null,
+    });
+    if (briefing.dropped > 0)
+      this.log(`코치 브리핑 규칙 문장 ${briefing.dropped}개가 검사기에 걸림`);
+    return {
+      ...briefing,
+      generatedAt: this.now(),
+      card: (card?.payload as Record<string, unknown> | undefined) ?? null,
     };
   }
 }
@@ -209,8 +371,15 @@ const storedAnswer = (message: CoachMessageRecord): CoachAnswer => ({
 export class ListCoachConversations {
   constructor(private readonly store: CoachConversationStore) {}
   async execute(userId: string, limit: number, cursor: string | null) {
-    const items: CoachConversationRecord[] = await this.store.listConversations(userId, limit, cursor);
-    return { items, nextCursor: items.length === limit ? items[items.length - 1].id : null };
+    const items: CoachConversationRecord[] = await this.store.listConversations(
+      userId,
+      limit,
+      cursor,
+    );
+    return {
+      items,
+      nextCursor: items.length === limit ? items[items.length - 1].id : null,
+    };
   }
 }
 
@@ -218,14 +387,28 @@ export class ListCoachMessages {
   constructor(
     private readonly store: CoachConversationStore,
     /** 읽기 전에 멈춘 답을 실패로 — 재기동으로 남은 `streaming` 이 목록에 영원히 "답하는 중"으로 남지 않게(FR-8). 워커 대신 읽는 자리에서 */
-    private readonly failStale: FailStaleCoachAnswers
+    private readonly failStale: FailStaleCoachAnswers,
   ) {}
-  async execute(userId: string, conversationId: string, limit: number, cursor: string | null) {
+  async execute(
+    userId: string,
+    conversationId: string,
+    limit: number,
+    cursor: string | null,
+  ) {
     await this.failStale.execute();
-    const items = await this.store.listMessages(userId, conversationId, limit, cursor);
+    const items = await this.store.listMessages(
+      userId,
+      conversationId,
+      limit,
+      cursor,
+    );
     if (!items) throw new CoachConversationNotFoundError();
     return {
-      items: items.map((item) => ({ ...item, content: item.role === "user" ? visibleQuestion(item.content) : item.content })),
+      items: items.map((item) => ({
+        ...item,
+        content:
+          item.role === "user" ? visibleQuestion(item.content) : item.content,
+      })),
       nextCursor: items.length === limit ? items[items.length - 1].id : null,
     };
   }
@@ -234,7 +417,8 @@ export class ListCoachMessages {
 export class DeleteCoachConversation {
   constructor(private readonly store: CoachConversationStore) {}
   async execute(userId: string, conversationId: string) {
-    if (!(await this.store.deleteConversation(userId, conversationId))) throw new CoachConversationNotFoundError();
+    if (!(await this.store.deleteConversation(userId, conversationId)))
+      throw new CoachConversationNotFoundError();
   }
 }
 
@@ -243,9 +427,11 @@ export class FailStaleCoachAnswers {
   constructor(
     private readonly store: CoachConversationStore,
     private readonly now: () => Date = () => new Date(),
-    private readonly maxAnswerMs = 60_000
+    private readonly maxAnswerMs = 60_000,
   ) {}
   async execute(): Promise<number> {
-    return this.store.failStale(new Date(this.now().getTime() - this.maxAnswerMs));
+    return this.store.failStale(
+      new Date(this.now().getTime() - this.maxAnswerMs),
+    );
   }
 }

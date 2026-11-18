@@ -210,3 +210,4 @@ model User {
 | 2026-09-21 | ADR-002 머리 배너. 개정: 홈 5블록 → 3블록(D6), FR-32(`FxRate` 전제 제거) · FR-33 보류 · FR-41 · 알림 1종(D5). 추가: FR-42~43(알림 타입 · 중복), FR-50~58(포지션 신규 모델 없음 B13 · 거래일 수정 B14 · `User.alertsEnabled` D9 · `User.firstHoldingSkippedAt` B12 · 레이더 설정값 · F004 컬럼 소유). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **대화 표 둘 생김** — 마이그레이션 `20261118300000_coach_conversation`(`coach_conversations` · `coach_messages`, CHECK 셋 · 역순 인덱스 · 등급 주석 record). FR-1 · 2 · 6 · 8 · 10. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-4 · 5: `card_payload` JSONB · `insight_id` FK `ON DELETE SET NULL` + 인덱스 · 질문 줄엔 카드 0(CHECK). 마이그레이션 `20261118400000_coach_message_card`(추가만, 로컬 DB 적용 끝). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |

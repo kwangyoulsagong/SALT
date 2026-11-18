@@ -181,3 +181,7 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
+
+- `coach/domain/ports.ts`(머리 주인)의 대화 메시지 포트에 `card` · `insightId`(주인 `SRV-REQ-028`). identity · notification 포트 변경 0 — 영역 시험 전부 통과

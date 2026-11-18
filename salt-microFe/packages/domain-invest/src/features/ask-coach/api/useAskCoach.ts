@@ -1,6 +1,6 @@
 "use client";
 
-import type { CoachAnswerLink, CoachMessage, CoachQuestionChip } from "@repo/core/coach";
+import type { CoachAnswerLink, CoachCard, CoachMessage, CoachQuestionChip } from "@repo/core/coach";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -81,6 +81,12 @@ export const useAskCoach = (initialConversationId: string | null) => {
         const delta = parse<{ text: string }>(event);
         if (delta) patch(answerId, (m) => ({ ...m, reconnecting: false, sentences: [...m.sentences, delta.text] }));
       });
+      // 카드는 완성 객체 한 번(`FE-REQ-031` FR-5) — 받은 그대로 붙인다. 게이트는 카드 컴포넌트가 한 번 더 본다
+      source.addEventListener("message.card", (event) => {
+        if (finished) return;
+        const card = parse<CoachCard>(event);
+        if (card) patch(answerId, (m) => ({ ...m, reconnecting: false, card }));
+      });
       source.addEventListener("message.done", (event) => {
         if (finished) return;
         const done = parse<DoneEvent>(event);
@@ -112,7 +118,7 @@ export const useAskCoach = (initialConversationId: string | null) => {
   const retry = useCallback(
     (answerId: string) => {
       if (!conversationId) return;
-      patch(answerId, (m) => ({ ...m, status: "streaming", sentences: [], errorCode: null, canRetry: false }));
+      patch(answerId, (m) => ({ ...m, status: "streaming", sentences: [], card: null, errorCode: null, canRetry: false }));
       listen(answerId, conversationId);
     },
     [conversationId, listen, patch]
@@ -127,7 +133,7 @@ export const useAskCoach = (initialConversationId: string | null) => {
         const content = "content" in input ? input.content.trim() : null;
         const result = await askCoachApi.ask({ conversationId, content, chip });
         const now = new Date().toISOString();
-        const base = { links: [], gaps: [], errorCode: null, createdAt: now };
+        const base = { links: [], gaps: [], errorCode: null, card: null, createdAt: now };
         setConversationId(result.conversationId);
         setMessages((list) => [
           ...list,

@@ -52,3 +52,10 @@
 - 미충족: FR-31 첫 메시지 브리핑 카드 · FR-39 위로 더 읽기 · FR-51 PC 격자 — F006 2단계
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
 - 운영 빌드(worktree): 리포트 · 설정 첫 로드 156 kB 퇴행(같은 페이지 배럴) → `pages/coach-chat` 분리로 149 kB = main · `/coach/chat` 155 kB
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-31 · 35 · 36 · 38 · 39 — `features/ask-coach/ui/CoachConversation.tsx` · 실화면 1280(실데이터 · 막힌 카드) · 390 앱 웹뷰 UA(통과 카드 `route`) · 브리핑 실패 `route` 502 = 한 줄 · 가로 넘침 0 · 콘솔 오류 0(대화 경로) — pass
+- 2회차: 같은 카드 한 화면 한 번(`firstCardHolders`) · 로딩 · 로그아웃 · 다시 받기 실화면 · zone 다섯 운영 빌드 — pass
+- 미충족: PC 격자(FR-51) · 홈 · 포지션 · 알림 · 설정
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

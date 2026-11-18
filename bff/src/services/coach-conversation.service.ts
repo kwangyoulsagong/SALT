@@ -1,6 +1,7 @@
 import { AppError } from "../utils/error.util";
 import { createSseParser } from "../utils/sse.util";
 import { backendApi } from "./backend-api.service";
+import { toReportRecommendation, type ReportRecommendation } from "./coach-report.viewmodel";
 
 /**
  * 코치 대화 중계(F006 C절 · `BFF-REQ-027` · `BFF-REQ-028`) — 서버 `/api/coach/messages` · `/conversations`.
@@ -16,6 +17,30 @@ export type CoachLinkKind = (typeof COACH_LINK_KINDS)[number];
 export type CoachLink = { kind: CoachLinkKind; symbol?: string };
 export const COACH_CHIPS = ["sell_check", "weekly_amount", "risk_check", "mistake_review"] as const;
 
+/**
+ * 답 · 브리핑에 붙는 저장 추천 카드 — 코치 리포트 `recommendation` 과 **같은 타입**(`BFF-REQ-028` 결정 · `FE-REQ-032` FR-52)이라 화면이
+ * `RecommendationCard` 를 그대로 쓴다. 변환도 같은 함수(`toReportRecommendation`) — 게이트 칸을 채우지 않고 좁히기만(`BFF-REQ-027` FR-42).
+ * `generatedAt` = 그 판단을 만든 시각(FEATURE-006 FR-27)
+ */
+export type CoachCardViewModel = ReportRecommendation & { generatedAt: string | null };
+
+/** 깨진 카드는 버린다(`null`) — 반쯤 그린 카드가 게이트를 우회하지 않게. 답 문장은 그대로 간다 */
+export const toCoachCard = (raw: unknown): CoachCardViewModel | null => {
+  if (!isRecord(raw)) return null;
+  const card = toReportRecommendation(raw);
+  if (!card) return null;
+  return { ...card, generatedAt: typeof raw.generatedAt === "string" ? raw.generatedAt : null };
+};
+
+export interface CoachBriefingViewModel {
+  generatedAt: string;
+  sentences: string[];
+  source: "rule" | "llm";
+  links: CoachLink[];
+  gaps: string[];
+  card: CoachCardViewModel | null;
+}
+
 export interface CoachMessageViewModel {
   id: string;
   role: "user" | "assistant";
@@ -26,6 +51,7 @@ export interface CoachMessageViewModel {
   links: CoachLink[];
   gaps: string[];
   errorCode: string | null;
+  card: CoachCardViewModel | null;
   createdAt: string;
 }
 
@@ -39,6 +65,7 @@ export interface CoachConversationItemViewModel {
 export type CoachStreamEvent =
   | { event: "message.start"; data: { messageId: string } }
   | { event: "message.delta"; data: { text: string }; id?: string }
+  | { event: "message.card"; data: CoachCardViewModel; id?: string }
   | {
       event: "message.done";
       data: { messageId: string; intent: string; source: "rule" | "llm"; links: CoachLink[]; gaps: string[]; replayed: boolean };
@@ -49,7 +76,9 @@ export class CoachConversationContractError extends Error {}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SYMBOL = /^[A-Z0-9]{1,20}$/;
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 const str = (value: unknown, name: string): string => {
   if (typeof value !== "string") throw new CoachConversationContractError(`${name} 가 문자열이 아니다`);
   return value;
@@ -80,6 +109,7 @@ export const toCoachMessage = (raw: unknown): CoachMessageViewModel => {
     links: toLinks(raw.links),
     gaps: toGaps(raw.gaps),
     errorCode: typeof raw.errorCode === "string" ? raw.errorCode : null,
+    card: role === "assistant" ? toCoachCard(raw.card) : null,
     createdAt: str(raw.createdAt, "createdAt"),
   };
 };
@@ -135,6 +165,21 @@ export const coachConversationService = {
     return { conversationId: str(data.conversationId, "conversationId"), messageId: str(data.messageId, "messageId") };
   },
 
+  /** 오늘의 브리핑(FEATURE-006 FR-21) — 서버 규칙 문장 그대로 + 카드 */
+  async briefing(token: string): Promise<CoachBriefingViewModel> {
+    const response = await backendApi.proxyAuthRequest("GET", "/coach/briefing", token);
+    const data = (response.data as BackendEnvelope<unknown>).data;
+    if (!isRecord(data) || !Array.isArray(data.sentences)) throw new CoachConversationContractError("브리핑 모양이 다르다");
+    return {
+      generatedAt: str(data.generatedAt, "generatedAt"),
+      sentences: data.sentences.filter((line): line is string => typeof line === "string" && line.length > 0),
+      source: data.explanationSource === "llm" ? "llm" : "rule",
+      links: toLinks(data.links),
+      gaps: toGaps(data.gaps),
+      card: toCoachCard(data.card),
+    };
+  },
+
   async listConversations(token: string, query: { limit?: unknown; cursor?: unknown }) {
     const response = await backendApi.proxyAuthRequest("GET", `/coach/conversations${page(query)}`, token);
     const data = (response.data as BackendEnvelope<{ items?: unknown; nextCursor?: unknown }>).data;
@@ -186,6 +231,10 @@ export const coachConversationService = {
         onEvent({ event, data: { messageId: body.messageId } });
       } else if (event === "message.delta" && typeof body.text === "string") {
         onEvent({ event, data: { text: body.text }, ...(eventId ? { id: eventId } : {}) });
+      } else if (event === "message.card") {
+        // 완성 객체 한 번 — 쪼개지 않고, 깨졌으면 보내지 않는다(`BFF-REQ-027` FR-3)
+        const card = toCoachCard(body);
+        if (card) onEvent({ event, data: card, ...(eventId ? { id: eventId } : {}) });
       } else if (event === "message.done" && typeof body.messageId === "string") {
         onEvent({
           event,

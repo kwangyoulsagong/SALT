@@ -279,3 +279,5 @@ created: 2026-09-09
 | 2026-11-02 | FR-3 · Q1 정정 — `apps/web-tax` zone 은 지웠다(`ADR-005` · `FE-REQ-052`). 링크를 뺀 판단은 그대로. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 메모 — 앱 하단 탭이 4개(홈 · 저축 · 가계부 · 투자)가 됐다(`FE-REQ-054`, `FEATURE-015` FR-8). 이 REQ 의 3탭(홈 · 코치 · 자산)은 투자 zone 안 탭으로 다시 쓰는 범위(`FEATURE-015` 범위 밖)다. 코드 무변경 |
 | 2026-11-18 | **`/coach/chat` 대화 화면** — 칩 넷 · `ChatBubble` · `TextArea` · `role="log"` · 출처 배지(규칙 계산) · 링크 · 면책 · 머리 메뉴 "코치 대화". FR-30 · 32(칩 문구 "지금 팔 때인가?" 정정) · 33 · 34. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-31 오늘의 브리핑(지난 대화 다음 · 이번 질문 앞, 저장 0) · FR-35 · 36 답 카드(`RecommendationCard` 재사용 · 막히면 회색 사유) · FR-38 생성 시각(서울) · FR-39 위로 더 읽기. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
+| 2026-11-18 | F006 대화 2단계 확인 2회차 — 한 화면에 같은 추천 카드는 한 번(`@repo/core/coach` `firstCardHolders`, 나머지 자리는 한 줄) |

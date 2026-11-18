@@ -52,4 +52,6 @@ export const coachQueryKeys = {
   /** 코치 대화(F006) — 묻기가 끝나면 목록 · 그 대화 메시지를 버린다 */
   conversations: () => ["coach", "conversations"] as const,
   messages: (conversationId: string) => ["coach", "conversations", conversationId, "messages"] as const,
+  /** 오늘의 브리핑 — 보유 · 위험 · 저장 추천에서. 묻기가 끝나도 그대로(브리핑은 화면을 연 때의 것) */
+  briefing: () => ["coach", "briefing"] as const,
 } as const;

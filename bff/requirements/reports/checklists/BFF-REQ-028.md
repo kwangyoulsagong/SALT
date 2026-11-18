@@ -7,3 +7,9 @@
 - FR-31 — 뷰모델 타입 core 공유 — pass
 - FR-3 · 4 — 카드 없음 — 해당 없음(2단계)
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-3 · 4 — 시험 · 실호출(4011 → 4020) — pass
+- 브리핑 경로 — 시험 · 실호출 — pass
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

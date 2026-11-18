@@ -12,3 +12,4 @@ export * from "./useJudgmentScoreboard";
 export * from "./useTradeCheck";
 export * from "./useCoachPanel";
 export * from "./useCoachConversationHistory";
+export * from "./useCoachBriefing";

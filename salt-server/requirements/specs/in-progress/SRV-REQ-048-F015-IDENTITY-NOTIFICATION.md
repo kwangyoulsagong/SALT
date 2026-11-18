@@ -69,3 +69,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝(공유 파일 `coach/domain/ports.ts`) — `ForecastReader.earningsOutlook` |
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 coach `domain/ports.ts` 에 포트 둘(`AgentToolReader` · `AgentPlanner`) · LLM 용도 `agent_plan` 을 더했다(주인 `SRV-REQ-059`). `ExplainCaller.userId: null` 그대로 — LLM 으로 가는 사람 기록 0. 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `coach/domain/ports.ts`(머리 주인)의 대화 메시지 포트에 `card` · `insightId`(주인 `SRV-REQ-028`). identity · notification 포트 변경 0 |

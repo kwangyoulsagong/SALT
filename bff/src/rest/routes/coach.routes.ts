@@ -19,6 +19,7 @@ router.get("/report", appCoachController.report);
 // 코치 대화(F006 C절 · `BFF-REQ-027` · `028`) — 서버 `/api/coach/messages` · `/conversations`. 묻기(201) → 답 스트림(SSE)
 router.post("/messages", appCoachConversationController.ask);
 router.get("/messages/:id/stream", appCoachConversationController.stream);
+router.get("/briefing", appCoachConversationController.briefing);
 router.get("/conversations", appCoachConversationController.listConversations);
 router.get("/conversations/:id/messages", appCoachConversationController.listMessages);
 router.delete("/conversations/:id", appCoachConversationController.deleteConversation);

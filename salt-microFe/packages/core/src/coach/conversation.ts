@@ -1,3 +1,5 @@
+import type { ReportRecommendation } from "./coachReport";
+
 /**
  * 코치 대화 뷰모델(F006 C절 · `BFF-REQ-028`) — BFF `services/coach-conversation.service.ts` 와 같은 모양.
  * 문장 · 숫자는 서버 규칙 답 그대로다 — 화면은 표시만 한다(공통 수용 기준 3).
@@ -18,6 +20,22 @@ export interface CoachAnswerLink {
   symbol?: string;
 }
 
+/**
+ * 답 · 브리핑에 붙는 저장 추천 카드(F006 2단계 · `FE-REQ-032` FR-52) — 코치 리포트 추천과 **같은 타입**이라
+ * `RecommendationCard` 를 그대로 쓴다(게이트는 카드 자신이). `generatedAt` = 그 판단을 만든 시각(FEATURE-006 FR-27)
+ */
+export type CoachCard = ReportRecommendation & { generatedAt: string | null };
+
+/** 오늘의 브리핑 — 대화 첫 메시지(FEATURE-006 FR-21). 저장되지 않는다 */
+export interface CoachBriefing {
+  generatedAt: string;
+  sentences: string[];
+  source: "rule" | "llm";
+  links: CoachAnswerLink[];
+  gaps: string[];
+  card: CoachCard | null;
+}
+
 export interface CoachMessage {
   id: string;
   role: "user" | "assistant";
@@ -28,6 +46,8 @@ export interface CoachMessage {
   links: CoachAnswerLink[];
   gaps: string[];
   errorCode: string | null;
+  /** 답에 붙은 카드 — 그 시점 사본(추천이 바뀌어도 그대로). 질문 · 카드 없는 답은 `null` */
+  card: CoachCard | null;
   createdAt: string;
 }
 
@@ -47,3 +67,27 @@ export interface CoachAskResult {
   conversationId: string;
   messageId: string;
 }
+
+/** 같은 판단의 카드인가 — 판단 시각 · 통과 여부 · 종목(막히면 사유)이 같으면 같은 카드다 */
+const cardKey = (card: CoachCard): string =>
+  card.renderable
+    ? `ok|${card.generatedAt ?? ""}|${card.symbol}|${card.action}`
+    : `blocked|${card.generatedAt ?? ""}|${card.blockedReason}`;
+
+/**
+ * 한 화면에 같은 카드는 한 번만(`screen-desktop.md` §5 "같은 숫자 두 번" — F006 2단계 실화면에서 지난 답 · 브리핑 · 새 답에
+ * 같은 카드가 세 번 나왔다). 위에서부터 처음 나온 자리의 id 만 돌려준다 — 나머지 자리는 한 줄로 가리킨다.
+ * 순서는 화면 순서 그대로 넘긴다(위로 더 읽기로 오래된 쪽이 붙으면 처음 자리가 그쪽으로 옮겨 간다)
+ */
+export const firstCardHolders = (items: ReadonlyArray<{ id: string; card: CoachCard | null }>): Set<string> => {
+  const seen = new Set<string>();
+  const first = new Set<string>();
+  for (const item of items) {
+    if (!item.card) continue;
+    const key = cardKey(item.card);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    first.add(item.id);
+  }
+  return first;
+};

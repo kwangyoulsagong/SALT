@@ -1219,6 +1219,11 @@ export interface CoachMessageRecord {
   links: import("./policy/coachConversation").CoachAnswer["links"];
   gaps: import("./policy/coachConversation").CoachAnswerGap[];
   errorCode: string | null;
+  /**
+   * 답에 붙은 저장 추천 카드 — 게이트를 지난 완성 객체의 사본(`DB-REQ-022` FR-10~14). 모양은 응용층의 카드 조립이 정하고
+   * 도메인은 열어 보지 않는다(문장은 `RecommendationCardFacts` 로 고른다)
+   */
+  card: Record<string, unknown> | null;
   createdAt: Date;
 }
 
@@ -1249,7 +1254,11 @@ export interface CoachConversationStore {
   /** `streaming` 일 때만 채운다 — 두 스트림이 겹치면 먼저 쓴 쪽 하나(`SRV-REQ-028` FR-3 · 4). 바뀌었으면 true */
   completeAnswer(
     messageId: string,
-    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps"> & { explanationSource: "rule" | "llm" }
+    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps" | "card"> & {
+      explanationSource: "rule" | "llm";
+      /** 카드가 복사해 온 추천 행(`DB-REQ-021` FR-5) — 카드가 없으면 `null` */
+      insightId: string | null;
+    }
   ): Promise<boolean>;
   /** `streaming` 일 때만 실패로 — 실패한 답도 대화에 남는다(`DB-REQ-022` FR-23 · 24) */
   failAnswer(messageId: string, errorCode: string): Promise<void>;

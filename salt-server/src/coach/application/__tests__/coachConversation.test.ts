@@ -11,10 +11,12 @@ import {
   AnswerCoachMessage,
   AskCoach,
   FailStaleCoachAnswers,
+  GetCoachBriefing,
   ListCoachMessages,
   type CoachAnswerSources,
 } from "../CoachConversation";
 import type { RiskBudgetView } from "../ManageRiskBudget";
+import type { ConversationCard } from "../lib/recommendationCard";
 
 /**
  * 코치 대화 유스케이스(F006 · `SRV-REQ-028` FR-1~9 · 20~25 · `SRV-REQ-029` FR-3 · 4 · 28).
@@ -34,7 +36,7 @@ class MemoryStore implements CoachConversationStore {
       conversation = { id: this.id(), userId: input.userId, title: input.title, messageCount: 0, lastMessageAt: input.at, createdAt: input.at };
       this.conversations.push(conversation);
     }
-    const base = { conversationId: conversation.id, userId: input.userId, intent: null, explanationSource: null, links: [], gaps: [], errorCode: null };
+    const base = { conversationId: conversation.id, userId: input.userId, intent: null, explanationSource: null, links: [], gaps: [], errorCode: null, card: null };
     const question = { ...base, id: this.id(), role: "user" as const, content: input.question, status: "complete" as const, createdAt: input.at };
     const answer = { ...base, id: this.id(), role: "assistant" as const, content: "", status: "streaming" as const, createdAt: new Date(input.at.getTime() + 1) };
     this.messages.push(question, answer);
@@ -49,11 +51,18 @@ class MemoryStore implements CoachConversationStore {
     return [...this.messages].reverse().find((m) => m.conversationId === answer.conversationId && m.role === "user" && m.createdAt < answer.createdAt) ?? null;
   }
   completeCalls = 0;
-  async completeAnswer(id: string, answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps"> & { explanationSource: "rule" | "llm" }) {
+  insightIds = new Map<string, string | null>();
+  async completeAnswer(
+    id: string,
+    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps" | "card"> & { explanationSource: "rule" | "llm"; insightId: string | null }
+  ) {
     this.completeCalls += 1;
     const row = this.messages.find((m) => m.id === id);
     if (!row || row.status !== "streaming") return false;
-    Object.assign(row, answer, { status: "complete" });
+    const { insightId, ...rest } = answer;
+    // 저장소는 JSON 으로 복사한다 — 카드 원본이 나중에 바뀌어도 저장본은 그대로(DB-REQ-022 FR-14)
+    Object.assign(row, rest, { card: rest.card ? JSON.parse(JSON.stringify(rest.card)) : null, status: "complete" });
+    this.insightIds.set(id, insightId);
     return true;
   }
   async failAnswer(id: string, errorCode: string) {
@@ -89,7 +98,7 @@ const riskView = (): RiskBudgetView =>
   }) as unknown as RiskBudgetView;
 
 const sources = (over: Partial<Record<keyof CoachAnswerSources, () => Promise<unknown>>> = {}) => {
-  const calls = { riskBudget: 0, profitPlans: 0, behavior: 0 };
+  const calls = { riskBudget: 0, profitPlans: 0, behavior: 0, card: 0 };
   const wrap = <K extends keyof CoachAnswerSources>(key: K, fallback: () => Promise<unknown>) =>
     ({
       execute: async () => {
@@ -103,6 +112,7 @@ const sources = (over: Partial<Record<keyof CoachAnswerSources, () => Promise<un
       riskBudget: wrap("riskBudget", async () => riskView()),
       profitPlans: wrap("profitPlans", async () => ({ plans: [] })),
       behavior: wrap("behavior", async () => ({ status: "stable", warnings: [], evidence: { transactionCount: 9 } }) as unknown as BehaviorCoachView),
+      card: wrap("card", async () => null),
     } satisfies CoachAnswerSources,
   };
 };
@@ -117,7 +127,7 @@ describe("코치 대화 — 묻기 · 답", () => {
     const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
     assert.ok(!("failed" in result));
     assert.equal(result.answer.intent, "risk_check");
-    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 0, behavior: 0 });
+    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 0, behavior: 0, card: 0 }, "위험 답에는 추천 카드를 끼우지 않는다");
     assert.match(result.answer.sentences.join(" "), /BTC가 70%로 정해 둔 상한 60%를 넘었어요/);
 
     const list = await new ListCoachMessages(store, new FailStaleCoachAnswers(store, () => T0)).execute("u1", asked.conversationId, 20, null);
@@ -194,5 +204,128 @@ describe("코치 대화 — 묻기 · 답", () => {
     await ask.execute("u1", { conversationId: first.conversationId, content: "잘못했나", chip: null });
     assert.equal(store.conversations[0].messageCount, 4);
     assert.equal(store.conversations[0].title, "위험한가");
+  });
+});
+
+const renderableCard = (): ConversationCard => ({
+  insightId: "insight-1",
+  payload: {
+    action: "hold",
+    symbol: "BTC",
+    assetType: "crypto",
+    score: 55,
+    scoreNote: "점수는 확률이 아닙니다",
+    renderable: true,
+    blockedReason: null,
+    reasons: [{ type: "trend", message: "추세 유지" }],
+    topFactors: [],
+    signalTrackRecord: { signalType: "coach.hold", sample: 24 } as never,
+    failureCases: [{ date: "2026-10-01", event: "coach.hold", outcome: "miss", symbol: "ETH", returnRate: -0.08 }],
+    explanation: { text: "보유 유지", source: "rule" },
+    generatedAt: "2026-11-18T08:00:00.000Z",
+  },
+  summary: { renderable: true, symbol: "BTC", staleHours: 1 },
+});
+
+describe("코치 대화 — 추천 카드(2단계 · SRV-REQ-028 FR-50~54 · DB-REQ-022 FR-10~14)", () => {
+  it("팔기 질문 — 카드를 완성 객체로 복사해 저장 · 추천 행 id 연결 · 카드 문장 한 줄", async () => {
+    const store = new MemoryStore();
+    const card = renderableCard();
+    const { sources: src, calls } = sources({ card: async () => card });
+    const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "sell_check" });
+    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    assert.ok(!("failed" in result));
+    assert.equal(calls.card, 1);
+    assert.equal(result.card?.symbol, "BTC");
+    assert.equal(result.card?.renderable, true);
+    assert.equal(store.insightIds.get(asked.messageId), "insight-1");
+    assert.match(result.answer.sentences.at(-1)!, /가장 최근 코치 판단\(BTC\)을 아래 카드로/);
+
+    // 추천이 나중에 바뀌어도(덮어쓰기) 지난 대화 카드는 그대로 — 복사본이다(FR-53)
+    (card.payload as { symbol: string }).symbol = "ETH";
+    const replay = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    assert.ok(!("failed" in replay));
+    assert.equal(replay.replayed, true);
+    assert.equal(replay.card?.symbol, "BTC");
+    assert.equal(calls.card, 1, "재연결은 카드를 다시 읽지 않는다");
+  });
+
+  it("막힌 카드 — 행동 · 종목 · 근거 없이 게이트 칸만, 문장은 사유만(FR-51 · DB-REQ-022 FR-12)", async () => {
+    const store = new MemoryStore();
+    const blocked: ConversationCard = {
+      insightId: "insight-2",
+      payload: {
+        renderable: false,
+        blockedReason: "insufficient_sample",
+        signalTrackRecord: { signalType: "coach.buy", sample: 3 } as never,
+        failureCases: [],
+        generatedAt: "2026-11-18T08:00:00.000Z",
+      },
+      summary: { renderable: false, symbol: null, staleHours: 30 },
+    };
+    const { sources: src } = sources({ card: async () => blocked });
+    const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: "이번 주 얼마 넣을까", chip: null });
+    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    assert.ok(!("failed" in result));
+    assert.equal(result.card?.renderable, false);
+    for (const key of ["action", "symbol", "reasons", "score"]) assert.equal(key in (result.card ?? {}), false, key);
+    const last = result.answer.sentences.at(-1)!;
+    assert.match(last, /사유만/);
+    assert.match(last, /30시간 전/);
+  });
+
+  it("추천이 없으면 카드 · 카드 문장 둘 다 없다", async () => {
+    const store = new MemoryStore();
+    const { sources: src } = sources();
+    const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "sell_check" });
+    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    assert.ok(!("failed" in result));
+    assert.equal(result.card, null);
+    assert.equal(store.insightIds.get(asked.messageId), null);
+    assert.ok(!result.answer.sentences.some((s) => /코치 판단/.test(s)));
+  });
+
+  it("카드 읽기 실패 = 답은 살고 그 사실 한 줄 + gaps", async () => {
+    const store = new MemoryStore();
+    const { sources: src } = sources({ card: async () => { throw new Error("db"); } });
+    const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "sell_check" });
+    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    assert.ok(!("failed" in result));
+    assert.equal(result.card, null);
+    assert.deepEqual(result.answer.gaps, ["recommendation"]);
+    assert.match(result.answer.sentences.at(-1)!, /불러올 수 없어 카드 없이/);
+  });
+});
+
+describe("오늘의 브리핑(FR-21)", () => {
+  it("보유 점검 · 위험 · 카드 — 저장하지 않고 같은 재료에서", async () => {
+    const plans = {
+      plans: [
+        { symbol: "BTC", status: "stop_loss_review", currentPrice: 100, unrealizedProfitRate: -12, stages: [] },
+        { symbol: "ETH", status: "hold_plan", currentPrice: 100, unrealizedProfitRate: 2, stages: [] },
+      ],
+    };
+    const { sources: src, calls } = sources({ profitPlans: async () => plans, card: async () => renderableCard() });
+    const result = await new GetCoachBriefing(src, undefined, () => T0).execute("u1");
+    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 1, behavior: 0, card: 1 });
+    assert.equal(result.generatedAt.toISOString(), T0.toISOString());
+    assert.equal(result.card?.symbol, "BTC");
+    const text = result.sentences.join(" ");
+    assert.match(text, /코인 보유 2개 중 점검 지점에 온 것이 1개예요\(손실 제한 검토 1\)/);
+    assert.match(text, /정해 둔 위험 기준을 넘은 항목이 1개/);
+    assert.deepEqual(result.links, [{ kind: "profit_plan" }, { kind: "risk_budget" }]);
+    assert.equal(result.dropped, 0);
+  });
+
+  it("재료 둘 실패 · 추천 없음 — 그 줄만 '불러올 수 없어요', 0 을 쓰지 않는다", async () => {
+    const boom = async () => { throw new Error("x"); };
+    const { sources: src } = sources({ profitPlans: boom, riskBudget: boom });
+    const result = await new GetCoachBriefing(src).execute("u1");
+    assert.deepEqual(result.gaps, ["plans", "risk"]);
+    assert.equal(result.card, null);
+    const text = result.sentences.join(" ");
+    assert.match(text, /코인 보유 점검은 지금 불러올 수 없어요/);
+    assert.match(text, /아직 만든 코치 판단이 없어요/);
+    assert.ok(!/0개/.test(text));
   });
 });

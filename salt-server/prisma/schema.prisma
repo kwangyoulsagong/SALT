@@ -530,6 +530,9 @@ model InvestmentInsight {
   createdAt DateTime  @default(now()) @map("created_at")
   expiresAt DateTime? @map("expires_at")
 
+  /// 이 추천을 카드로 복사해 둔 코치 대화 메시지(F006 2단계) — 추천이 지워져도 대화 카드는 남는다(SET NULL)
+  coachMessages CoachMessage[]
+
   @@unique([userId, type, dedupeKey])
   @@index([userId, type])
   @@index([userId, createdAt])
@@ -679,13 +682,19 @@ model CoachMessage {
   /// 답 아래 화면 이동 코드 · 못 읽은 재료 — 조건으로 쓰지 않는다(표시용)
   linksJson         Json?             @map("links_json")
   gaps              String[]          @default([])
-  errorCode         String?           @map("error_code")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  conversation      CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  errorCode         String?            @map("error_code")
+  /// 저장 추천 카드 — 게이트를 지난 완성 객체를 그 시점 그대로 복사(DB-REQ-021 FR-4 · DB-REQ-022 FR-10~14). 조건으로 쓰지 않는다
+  cardPayload       Json?              @map("card_payload")
+  /// 카드가 복사해 온 추천(DB-REQ-021 FR-5) — 추천 행은 덮어써지니 내용은 `cardPayload` 가 진실
+  insightId         String?            @map("insight_id")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  conversation      CoachConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  insight           InvestmentInsight? @relation(fields: [insightId], references: [id], onDelete: SetNull)
 
   @@index([conversationId, createdAt(sort: Desc)])
   @@index([userId])
+  @@index([insightId])
   @@map("coach_messages")
 }
 

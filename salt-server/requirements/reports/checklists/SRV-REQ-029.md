@@ -19,3 +19,10 @@
 - FR-28 · 29 · 32 — 역순 커서 · 사용자 지울 때만 · Swagger(Coach Conversation) — pass
 - 미충족: 홈 · 패널 배치 · 포지션 · 알림 계약 — F006 다음 슬라이스
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-5 — `coachConversation.controller.ts` stream · 실호출: 문장 6 → `id: 6 message.card` → done, `Last-Event-ID: 5` 재연결 = card · done 만 — pass
+- `GET /api/coach/briefing` — Swagger · `authMiddleware` · 실호출(임시 계정) — pass
+- 목록 `card` — 실호출 assistant 행에만 — pass
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
