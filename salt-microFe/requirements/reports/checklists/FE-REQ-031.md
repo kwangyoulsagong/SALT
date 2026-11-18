@@ -19,3 +19,9 @@
 - FR-20 — 실화면: 맨 위 → 32 → 41 요소 · 보던 자리 유지(scrollTop 0 → 1860) · 끝나면 버튼 없음 — pass
 - FR-21 — 실화면: 스트림 2초 지연 중 위로(200) → 자리 유지 · "새 답 보기" → 맨 아래 0px · 버튼 사라짐 — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- FR-90~93 — Playwright `route` 상태 확인 · 기간 전환 시 요청 목록(흐름 1회) — pass
+- 미충족: FR-80~83 거래 시트 · 미리보기 디바운스(2단계)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

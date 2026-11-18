@@ -185,3 +185,9 @@
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `coach/domain/ports.ts`(머리 주인)의 대화 메시지 포트에 `card` · `insightId`(주인 `SRV-REQ-028`). identity · notification 포트 변경 0 — 영역 시험 전부 통과
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/composition.ts` — 포트폴리오 조립에 일봉 · 뉴스 감성 ACL 과 레이더 설정을 꽂았다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

@@ -18,3 +18,9 @@
 
 - FR-3 · 42 — `coach-conversation.service.ts` `toCoachCard` · 시험 다섯 · 변이(변환 우회 → 2 실패) — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- FR-70~72 — `app-portfolio.service.ts` `getPosition` · `getPositionFlow` · `position.viewmodel.ts`(null 보존 · degraded 전달 · 모르는 축 버림) · 시험 `position.viewmodel.test.ts`(5) · 실호출(개요 18ms · 흐름 4~10ms · 400) — pass
+- 미충족: 거래 쓰기 중계 FR-80~83(2단계)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

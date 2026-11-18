@@ -59,3 +59,10 @@
 - 2회차: 같은 카드 한 화면 한 번(`firstCardHolders`) · 로딩 · 로그아웃 · 다시 받기 실화면 · zone 다섯 운영 빌드 — pass
 - 미충족: PC 격자(FR-51) · 홈 · 포지션 · 알림 · 설정
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- FR-100~103 · 107 — 실화면 1440 · 390 앱 웹뷰 · 상태 다섯(빈 · 개요 실패 · 흐름 실패 · 매입가 숨김 · 데이터 부족) · 기간 버튼 키보드 · 가로 넘침 0 — pass(결함 넷 고침)
+- `@repo/ui` RadarChart 스토리 셋 · build-storybook — pass
+- 미충족: FR-104~106 · 109 거래 시트 · 목록(2단계) · FR-2 세그먼트(3탭 IA 안 만듦 — 정정)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

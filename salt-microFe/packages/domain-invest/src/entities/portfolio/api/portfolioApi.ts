@@ -2,6 +2,8 @@ import { apiFetch } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { PORTFOLIO_MESSAGES } from "../model/messages";
+import type { FlowRange, PositionFlowVM, PositionOverviewVM } from "../model/position";
+import { POSITION_MESSAGES } from "../model/position";
 import { PortfolioSummary } from "../model/types";
 
 /**
@@ -21,5 +23,18 @@ export const portfolioApi = {
       throw new Error(PORTFOLIO_MESSAGES.holdingsLoadFailed);
     }
     return (await response.json()) as PortfolioSummary;
+  },
+
+  /** 포지션 개요 — Hero · 리스크 레이더(F006 G절). BFF 뷰모델 */
+  position: async (signal?: AbortSignal): Promise<PositionOverviewVM> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio/position`, { signal });
+    if (!response.ok) throw new Error(POSITION_MESSAGES.loadFailed);
+    return (await response.json()) as PositionOverviewVM;
+  },
+  /** 평가금 흐름 — 기간 버튼은 이것만 다시 부른다(FE FR-91) */
+  positionFlow: async (range: FlowRange, signal?: AbortSignal): Promise<PositionFlowVM> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio/position/flow?range=${range}`, { signal });
+    if (!response.ok) throw new Error(POSITION_MESSAGES.flowLoadFailed);
+    return (await response.json()) as PositionFlowVM;
   },
 };

@@ -52,5 +52,6 @@ source: 사용자 2026-11-09 "상세 모달에 뉴스 기사 렌더링" · "국�
 | 2026-11-14 | 규칙 판 7 → 8 — 매체가 가린 기자 메일 줄(`[email protected] … 기자`) 버림 · 국내 제목 1건 다시 찾아 확인. 공인 주소 에이전트를 `publicAgents()` 로 꺼내 AI 경로(`SRV-REQ-058`)와 같이 씀 |
 | 2026-11-16 | `news` 조립에 `gap` 의존 · `refillNewsGap` 유스케이스(`SRV-REQ-057` FR-8 뉴스 잠든 날 메우기) — 본문 경로 무변경 · 본문은 여전히 AI 입력 0 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝(공유 파일 `news/application/api/index.ts`) — `collectDartEarnings` · `refetchDartBodies` 조립 |
+| 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/news/application/api/index.ts` 에 공개 API `sentimentCounts`(종목별 감성 기사 수 · 부정 수)를 더했다. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/market/presentation/krStock.routes.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

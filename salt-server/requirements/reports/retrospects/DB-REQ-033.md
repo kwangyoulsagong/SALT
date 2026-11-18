@@ -86,3 +86,7 @@
 
 - 짝 — portfolio 포트 `distinctUserIds` · API `ledgerOwnerIds`. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
 - Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로
+
+## 2026-11-18 F006 포지션 1단계
+
+- 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음

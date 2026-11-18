@@ -86,3 +86,9 @@
 |---|---|---|
 | HTTP 실토큰 응답(서버 · BFF 경로) | 로컬 옛 HS 창이 닫혀(11-16) 소유자 토큰을 만들 수 없다 — 서명 키 읽기는 권한 거부. 같은 유스케이스 · 리더 · 정책을 실DB 로 프로세스 안에서 돌렸다 | 사용자 로그인 화면 QA(`QA-001`) |
 | DART 본문 다시 받기 실회차 | 서버 · 뉴스 워커가 새 코드로 같이 재기동해야 한다(옛 서버 추출은 옛 사실을 안 지운다) | 머지 · `ops/salt.sh restart server news` 뒤 첫 회차 — 634건 · 하루 안 |
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/news/application/api/index.ts` — 공개 API `sentimentCounts`(종목별 감성 기사 수 · 부정 수)를 더했다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

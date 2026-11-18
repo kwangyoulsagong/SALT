@@ -1,7 +1,9 @@
 import type {
+  DailyCloseSource,
   Holding,
   HoldingRepository,
   KrStockQuoteSource,
+  NewsSentimentSource,
   PortfolioAssetType,
   PriceHistorySource,
   Transaction,
@@ -21,6 +23,9 @@ import {
   RevalueKrStockHoldings,
   UpdateHoldingPrices,
 } from "../ReadPortfolio";
+import { GetPositionFlow, GetPositionOverview, type PositionSettings } from "../ReadPosition";
+
+export type { FlowRange, PositionSettings } from "../ReadPosition";
 
 /**
  * `portfolio` 의 **공개 API** (FR-4).
@@ -93,6 +98,9 @@ export interface PortfolioDependencies {
   holdings: HoldingRepository;
   prices: PriceHistorySource;
   krStock: KrStockQuoteSource;
+  dailyCloses: DailyCloseSource;
+  newsSentiment: NewsSentimentSource;
+  position: PositionSettings;
 }
 
 export interface PortfolioUseCases {
@@ -107,6 +115,9 @@ export interface PortfolioUseCases {
   /** 국내 주식 보유 평가 — 시세 회차 뒤 워커가 부른다(F011 슬라이스 3b) */
   revalueKrStockHoldings: RevalueKrStockHoldings;
   getPerformanceSeries: GetPerformanceSeries;
+  /** 포지션 개요 · 평가금 흐름(F006 G절) */
+  getPositionOverview: GetPositionOverview;
+  getPositionFlow: GetPositionFlow;
 }
 
 /** 공개 API 가 쓰는 기본 페이지 크기. 밖에서 부를 때 전체를 긋지 않게 한다. */
@@ -126,6 +137,14 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     updateHoldingPrices: new UpdateHoldingPrices(deps.holdings),
     revalueKrStockHoldings: new RevalueKrStockHoldings(deps.holdings, deps.krStock),
     getPerformanceSeries: new GetPerformanceSeries(deps.holdings, deps.prices),
+    getPositionOverview: new GetPositionOverview(
+      deps.holdings,
+      deps.transactions,
+      deps.dailyCloses,
+      deps.newsSentiment,
+      deps.position,
+    ),
+    getPositionFlow: new GetPositionFlow(deps.transactions, deps.dailyCloses, deps.position.windows),
   };
 
   const api: PortfolioApi = {

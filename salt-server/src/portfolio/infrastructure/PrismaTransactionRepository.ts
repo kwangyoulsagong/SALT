@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   PortfolioAssetType,
+  TimelineTrade,
   Transaction,
   TransactionFact,
   TransactionFilter,
@@ -144,6 +145,26 @@ export class PrismaTransactionRepository implements TransactionRepository {
       totalAmount: row.totalAmount,
       fee: row.fee,
     }));
+  }
+
+  /** 수량 복원 칸 다섯만 · 오름차순 · `limit + 1` 행으로 넘침을 안다(`(user_id, …)` 인덱스) */
+  async findTimeline(userId: string, limit: number): Promise<{ trades: TimelineTrade[]; truncated: boolean }> {
+    const rows = await prisma.portfolioTransaction.findMany({
+      where: { userId },
+      orderBy: [{ transactionDate: "asc" }, { id: "asc" }],
+      take: limit + 1,
+      select: { symbol: true, assetType: true, transactionType: true, quantity: true, transactionDate: true },
+    });
+    return {
+      trades: rows.slice(0, limit).map((row) => ({
+        symbol: row.symbol,
+        assetType: row.assetType,
+        transactionType: row.transactionType === "sell" ? "sell" : "buy",
+        quantity: row.quantity,
+        transactionDate: row.transactionDate,
+      })),
+      truncated: rows.length > limit,
+    };
   }
 
   countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number> {

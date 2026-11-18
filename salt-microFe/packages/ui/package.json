@@ -61,6 +61,7 @@
     "./toggle": "./src/Toggle/Toggle.tsx",
     "./divider": "./src/Divider/Divider.tsx",
     "./sparkline": "./src/Sparkline/Sparkline.tsx",
+    "./radarChart": "./src/RadarChart/RadarChart.tsx",
     "./slider": "./src/Slider/Slider.tsx",
     "./bottomCTA": "./src/BottomCTA/BottomCTA.tsx",
     "./iconButton": "./src/IconButton/IconButton.tsx",

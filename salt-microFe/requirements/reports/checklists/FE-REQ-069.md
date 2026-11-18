@@ -37,3 +37,9 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- zone 운영 빌드 `/portfolio` 149 kB · 실화면 순서(포지션 → 내 보유 → 숨김 토글) — pass
+- 미충족: 없음(이 REQ 몫)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

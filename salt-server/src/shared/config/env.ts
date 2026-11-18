@@ -146,6 +146,28 @@ const envSchema = z.object({
    * 낮추면 이미 넘은 사용자의 관심 종목을 지우지 않고 새 등록만 막는다(FR-85)
    */
   TRACKED_ASSET_LIMIT: z.coerce.number().int().positive().default(10),
+  /**
+   * 포트폴리오 리스크 레이더(F006 G절 FR-73 · `SRV-REQ-028` FR-82) — 축 정의 · 상한은 여기 한 곳(코드 상수 0).
+   * 점수는 0~100. 집중도 · 뉴스는 % 그대로, 변동성 · 낙폭은 "만점 기준" 대비. 상한 = 그 점수 이상이면 넘음.
+   * 첫 값: 집중도 60 은 스토리보드 그대로, 나머지는 판단값(2026-11-18) — 연율 변동성 80% · 낙폭 50% 를 100 점으로
+   */
+  PORTFOLIO_RADAR_CONCENTRATION_LIMIT: z.coerce.number().positive().max(100).default(60),
+  PORTFOLIO_RADAR_VOLATILITY_FULL_SCALE_PCT: z.coerce.number().positive().default(80),
+  PORTFOLIO_RADAR_VOLATILITY_LIMIT: z.coerce.number().positive().max(100).default(60),
+  PORTFOLIO_RADAR_DRAWDOWN_FULL_SCALE_PCT: z.coerce.number().positive().default(50),
+  PORTFOLIO_RADAR_DRAWDOWN_LIMIT: z.coerce.number().positive().max(100).default(60),
+  PORTFOLIO_RADAR_NEWS_LIMIT: z.coerce.number().positive().max(100).default(40),
+  /** 뉴스 축 — 종목 하나가 들어가려면 감성 붙은 기사 몇 건 이상 · 그 종목들이 평가금의 몇 % 이상이어야 값을 내나 */
+  PORTFOLIO_RADAR_NEWS_MIN_ARTICLES: z.coerce.number().int().positive().default(3),
+  PORTFOLIO_RADAR_NEWS_MIN_COVERAGE_PCT: z.coerce.number().positive().max(100).default(50),
+  /** 창(일) — 30일 수익률 · 변동성 30 · 낙폭 90 · 뉴스 7(FR-82 정의). 변동성은 하루 수익률 20개 이상일 때만 */
+  PORTFOLIO_RETURN_DAYS: z.coerce.number().int().positive().default(30),
+  PORTFOLIO_VOLATILITY_DAYS: z.coerce.number().int().positive().default(30),
+  PORTFOLIO_VOLATILITY_MIN_DAYS: z.coerce.number().int().positive().default(20),
+  PORTFOLIO_DRAWDOWN_DAYS: z.coerce.number().int().positive().default(90),
+  PORTFOLIO_NEWS_DAYS: z.coerce.number().int().positive().default(7),
+  /** 평가금 흐름이 수량 복원에 읽는 거래 상한 — 넘으면 `degraded`(수기 입력이라 수백 건 이하) */
+  PORTFOLIO_TIMELINE_LIMIT: z.coerce.number().int().positive().default(5000),
   /** 요약 태그 `wide_move` 임계(24시간 변동률 %, 절댓값) */
   MARKET_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
   /**

@@ -99,6 +99,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
 | 2026-11-11 | F017 v2 단계 5 — `TradePlanCard` 주석의 자리 설명 '변동 범위 카드 아래' → '시나리오 카드 아래'(코드 변경 0) |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — "내 거래 미러" → "내 매매 거울" 한 패널(코인 · 국내 세그먼트) · 상세 "내 계획"은 "내 거래" 한 카드 안 칸(3종 고지는 카드에 한 번 — FR-32 는 그 카드로 지킨다)(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
+| 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 매입가 숨김 판정(보유 패널 인라인)을 `entities/coach` `usePurchasePriceVisibility` 로 — 두 번째 소비처(포지션 Hero 원금 · 손익)가 생겨 한 곳으로. 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/features/record-transaction/ui/RecordTradeCard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

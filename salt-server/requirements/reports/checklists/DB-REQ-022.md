@@ -22,3 +22,9 @@
 - FR-11 — 게이트 칸 넷 — pass · FR-12 정정(막힌 카드에 행동 · 종목 · 근거 0 — 시험 · 실 DB 키 5개)
 - FR-13 — SSE 단일 이벤트 — pass · FR-14 — 복사본(추천이 바뀌어도 저장본 그대로 — 시험) — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- 읽기 Port `findTimeline` — EXPLAIN 0.07ms · 계정 삭제 뒤 사람 행 0 — pass
+- 미충족: FR-70~74 거래 미리보기 · 음수 거부(2단계)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

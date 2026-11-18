@@ -384,3 +384,9 @@
 
 - 주의 칸 불변식 정정: "늘 채움" → "규칙 주의가 있을 때만"(`explanationQuality.test.ts` 빈 칸 기준 · `explainRouting.test.ts` 채움 칸) — 옛 문구로 되돌리면 2건 실패(변이)
 - "마감" · 서버 원인 줄 경계 표 `explanationGate.test.ts` 17건 · 규칙을 끄면 각각 실패(변이 4종). 상세 `SRV-REQ-060` 체크리스트
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/market/application/api/index.ts` — 공개 API `dailyClosesSince` 를 더했다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

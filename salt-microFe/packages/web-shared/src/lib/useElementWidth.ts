@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * 요소의 현재 폭(px)을 따라간다.
@@ -10,13 +10,17 @@ import { useEffect, useRef, useState } from "react";
  *
  * 첫 측정 전에는 `fallback` 을 돌려준다 — 측정은 `useEffect` 안에서만 한다(`ssr.md`).
  * 같은 폭이면 상태를 바꾸지 않아 리렌더가 생기지 않는다.
+ *
+ * **ref 는 콜백이다(2026-11-18).** 전에는 객체 ref 를 첫 마운트 때 한 번만 봐서, 재는 칸이 데이터가 온 뒤에 붙으면
+ * 폭이 `fallback` 으로 굳었다(포트폴리오 평가금 흐름 320px — 투자 미리보기 차트는 같은 결함을 "측정 상자를 늘 둔다" 주석으로 피했다).
+ * 이제 칸이 언제 붙든 · 바뀌든 그 칸을 본다
  */
 export const useElementWidth = <T extends HTMLElement>(fallback: number) => {
-  const ref = useRef<T>(null);
+  const [element, setElement] = useState<T | null>(null);
   const [width, setWidth] = useState(fallback);
+  const ref = useCallback((node: T | null) => setElement(node), []);
 
   useEffect(() => {
-    const element = ref.current;
     if (!element) return;
 
     const observer = new ResizeObserver(([entry]) => {
@@ -26,7 +30,7 @@ export const useElementWidth = <T extends HTMLElement>(fallback: number) => {
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [element]);
 
   return [ref, width] as const;
 };

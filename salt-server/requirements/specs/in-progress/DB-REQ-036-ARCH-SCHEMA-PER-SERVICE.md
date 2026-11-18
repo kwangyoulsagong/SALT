@@ -105,3 +105,4 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 예측 `store/ontology.py` 가 `public.kr_stock_master` 를 읽는다: **부록 B8 에 이미 있는 표**(새 직접 읽기 0). 원인 스냅샷은 새 export 뷰 `public.v_cause_snapshot_export`(사용자 열 0)로만 — FR-3 목록 무증가 |
 | 2026-11-16 | F017 v4 순서 5b-2 짝 — 예측이 새로 읽는 서버 표는 **export 뷰로만**: `public.v_extracted_fact_export`(coach `extracted_fact`) · `v_crypto_name_export`(market `market_assets` 이름 열만). FR-3 직접 읽기 목록 무증가 |
 | 2026-11-16 | F017 v4 순서 5b-3 짝 — 수급 export 뷰 둘(`v_kr_investor_flow_export` · `v_kr_program_flow_export`, 주인 market). FR-3 직접 읽기 목록 무증가 |
+| 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/portfolio/application/api/index.ts` 에 포지션 유스케이스 둘 · 의존 셋(일봉 · 뉴스 감성 · 설정)을 조립에 더했다 — 다른 스키마 조인 0(공개 API 로만). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |

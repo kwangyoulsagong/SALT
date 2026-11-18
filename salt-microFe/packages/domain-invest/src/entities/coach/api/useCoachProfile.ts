@@ -32,3 +32,14 @@ export const useCoachProfile = () => {
 
   return { ...query, isSignedOut: signedIn === false };
 };
+
+/**
+ * 매입가 숨김 보기 상태 — 보유 패널 · 포지션 Hero 가 같이 쓴다(두 번째 소비처가 생겨 한 곳으로, 2026-11-18 F006 G절).
+ * 로그아웃 · 실패 = 서버 기본(보임), 오는 중 = `"unknown"`(아직 그리지 않는다)
+ */
+export const usePurchasePriceVisibility = (): "shown" | "hidden" | "unknown" => {
+  const profile = useCoachProfile();
+  if (profile.isSignedOut || profile.isError) return "shown";
+  if (profile.isPending) return "unknown";
+  return profile.data.hidePurchasePrice ? "hidden" : "shown";
+};

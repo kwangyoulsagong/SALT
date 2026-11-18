@@ -484,6 +484,14 @@ export interface PriceHistoryRepository {
   /** 여러 심볼의 종가를 한 번에. 화면·성과 계산이 N+1 을 만들지 않게 하는 자리다. */
   closesSince(symbols: string[], since: Date): Promise<ClosePoint[]>;
   /**
+   * 일봉(`1d`) 종가만 — 종목 · 자산군 쌍으로(F006 G절 평가금 흐름). `(symbol, timeframe, timestamp)` 유니크 인덱스를 탄다.
+   * `closesSince` 는 주기를 거르지 않아 분봉까지 읽는다 — 1년 구간에 쓰면 봉 표를 훑는다
+   */
+  dailyClosesSince(
+    items: Array<{ symbol: string; assetType: MarketAssetType }>,
+    since: Date
+  ): Promise<Array<ClosePoint & { assetType: MarketAssetType }>>;
+  /**
    * `since` 이후 5분봉 **최고 종가**를 심볼별로.
    *
    * 행을 옮겨 와서 `Math.max` 하지 않는다 — 48시간이면 심볼당 576행이다

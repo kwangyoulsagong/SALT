@@ -323,5 +323,126 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
     authMiddleware,
     portfolioController.getPerformance,
   );
+
+  /**
+   * @swagger
+   * /api/portfolio/position:
+   *   get:
+   *     summary: 포지션 개요 — Hero 6항목 · 리스크 레이더 4축 (F006 G절)
+   *     description: |
+   *       보유가 없으면 `empty: true` 이고 `hero` · `radar` 는 null(0 으로 그리지 않는다).
+   *       금액은 원 단위 정수, 비율은 %. 30일 수익률은 매수 · 매도 금액을 뺀 시간가중이고, 30일 전부터 들고 있지 않았으면 null.
+   *       레이더 축마다 `value`(0~100 점, 재료가 모자라면 null) · `raw`(원래 단위) · `limit` · `breached` · `reasonCode`.
+   *       축 정의 · 상한은 서버 설정(`PORTFOLIO_RADAR_*`). 사용자는 토큰으로 정한다.
+   *     tags: [Portfolio]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: 성공
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     empty: { type: boolean }
+   *                     hero:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         totalValueKrw: { type: integer }
+   *                         unrealizedProfitKrw: { type: integer }
+   *                         unrealizedProfitRatePct: { type: number, nullable: true }
+   *                         investedKrw: { type: integer }
+   *                         holdingsCount: { type: integer }
+   *                         topWeight:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             symbol: { type: string }
+   *                             assetType: { type: string, enum: [crypto, stock, kr_stock] }
+   *                             pct: { type: number }
+   *                         return30dPct: { type: number, nullable: true }
+   *                     radar:
+   *                       type: array
+   *                       nullable: true
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           key: { type: string, enum: [concentration, volatility, drawdown, news] }
+   *                           value: { type: number, nullable: true }
+   *                           raw: { type: number, nullable: true }
+   *                           limit: { type: number }
+   *                           breached: { type: boolean }
+   *                           reasonCode: { type: string, enum: [over_limit, within_limit, insufficient_data] }
+   *                           subject: { type: string, nullable: true }
+   *                     unvaluedSymbols: { type: array, items: { type: string } }
+   *                     degraded: { type: boolean }
+   *                     degradedReasons:
+   *                       type: array
+   *                       items: { type: string, enum: [unvalued_holding, timeline_truncated, missing_close, flow_unavailable, news_unavailable] }
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/position", authMiddleware, portfolioController.getPositionOverview);
+
+  /**
+   * @swagger
+   * /api/portfolio/position/flow:
+   *   get:
+   *     summary: 평가금 흐름 — 그날 실제 수량 × 일봉 종가 + 기간 최대 낙폭 (F006 G절 FR-71)
+   *     description: |
+   *       점은 KST 날짜별 평가금(원). MDD · 구간 수익률은 매수 · 매도 금액을 뺀 시간가중 지수로 잰다(판 날이 낙폭이 되지 않게).
+   *       과거 사실이고 예측이 아니다. 종가가 아직 없던 보유는 `missingSymbols` + `degraded`.
+   *     tags: [Portfolio]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: range
+   *         schema: { type: string, enum: ['1w', '1m', '3m', '1y'], default: '1m' }
+   *     responses:
+   *       200:
+   *         description: 성공
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     range: { type: string }
+   *                     points:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           date: { type: string, format: date }
+   *                           valueKrw: { type: integer }
+   *                     maxDrawdown:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         pct: { type: number }
+   *                         peakDate: { type: string, format: date }
+   *                         troughDate: { type: string, format: date }
+   *                     periodReturnPct: { type: number, nullable: true }
+   *                     missingSymbols: { type: array, items: { type: string } }
+   *                     degraded: { type: boolean }
+   *                     degradedReasons: { type: array, items: { type: string, enum: [timeline_truncated, missing_close] } }
+   *       400:
+   *         description: 모르는 기간
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/position/flow", authMiddleware, portfolioController.getPositionFlow);
   return router;
 };

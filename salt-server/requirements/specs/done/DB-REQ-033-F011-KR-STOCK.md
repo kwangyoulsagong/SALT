@@ -72,3 +72,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 |---|---|
 | 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `SymbolNewsItem` 에 `imageUrl` · `symbols`(선택 칸) — market 종목 뉴스가 코인 뉴스 BFF 경로의 upstream 이 되며 카드 이미지 · 측정 태그의 관련 종목 수에 쓴다 |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `portfolio/domain/ports.ts`(머리 주인) — `TransactionRepository.distinctUserIds` · 공개 API `ledgerOwnerIds`(코치 배치 대상). 국내 몫 변경 0 |
+| 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/market/domain/ports.ts` 에 Port `dailyClosesSince` 선언을 더했다. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |

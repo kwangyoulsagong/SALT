@@ -1,7 +1,7 @@
 "use client";
 
 // 클라이언트 잎: 코치 설정(매입가 숨김)을 읽어 보유 요약에 넘긴다.
-import { useCoachProfile } from "@/entities/coach";
+import { usePurchasePriceVisibility } from "@/entities/coach";
 import { InvestmentSummary } from "@/entities/portfolio";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
@@ -17,15 +17,7 @@ import { COACH_CONSOLE_MESSAGES } from "../model";
  * 사라지면 숨김이 아니다.
  */
 export const HoldingsPanel = () => {
-  const profile = useCoachProfile();
-  const purchasePrice =
-    profile.isSignedOut || profile.isError
-      ? "shown"
-      : profile.isPending
-        ? "unknown"
-        : profile.data.hidePurchasePrice
-          ? "hidden"
-          : "shown";
+  const purchasePrice = usePurchasePriceVisibility();
 
   return (
     <section className={panel}>

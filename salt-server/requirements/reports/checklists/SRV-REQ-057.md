@@ -107,3 +107,9 @@
 |---|---|---|
 | 실 KIS 회차 | 시세 창(08:30~16:00)엔 큰 백필이 돌지 않고, 같은 앱 키로 포화 시험을 하면 서버 장중 폴링이 초과를 맞는다 | 11-18 16:15 · 16:20 회차 — 10분 지표에 `FHKST03010100` 몫 · 시황 제목 건너뜀 0 |
 | 국내 장기 3종 결함 50 → 0 | 전 종목 일봉이 다 차야 백테스트(`judgments:kr-backtest`)가 돈다 — 약 190종목/시간 · 장 마감 뒤만 | 3~5평일 뒤 `status` 성적(장기) 국내 결함 0 |
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/news/infrastructure/PrismaArticleRepository.ts` — `sentimentCounts` 쿼리를 더했다(7일 창 · 1.5ms). 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

@@ -231,3 +231,4 @@ created: 2026-09-09
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **묻기 · 답 받기 흐름** — POST → 같은 답 id 로 EventSource · 문장을 마지막 말풍선에만 · 재연결 3회 넘으면 끊고 "다시 받기"(질문 다시 안 보냄) · "연결 중". FR-2 · 3 · 10 · 13~15 · 24 · 26 · 60. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 카드 한 번에 · FR-20 역순 커서 위로 · FR-21 맨 아래를 보던 사람만 따라감 + "새 답 보기"(문턱 80px). 내가 보낸 질문은 늘 따라간다. FR-4(토큰 버퍼)는 문장 단위라 해당 없음. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
+| 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-90 섹션 독립(흐름 실패가 Hero · 레이더를 가리지 않음) · FR-91 기간 버튼은 흐름만 다시 부름(실측 1회) · FR-92 null 을 0 으로 그리지 않음("데이터 부족" · "30일 미만 보유") · FR-93 축 키 · 사유 코드 → 문구(`entities/portfolio/model/position.ts`). 남은 것 FR-80~83 거래 시트. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |

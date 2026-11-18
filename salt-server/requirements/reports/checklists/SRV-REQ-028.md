@@ -30,3 +30,12 @@
 - 변이: 막힌 카드에 내용을 펼침 → 3 실패 · 팔기에서 카드 재료 뺌 → 2 · 위험 답에 카드 → 1 · 브리핑 실패를 0 으로 → 2
 - 미충족: LLM 경로(FR-5 · 6 · 26 · 30~34 · 44 — A/B 먼저) · 홈 · 포지션 · 알림 · 설정
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- FR-80 · 82~84 · 89 — `ReadPosition.ts` · `PositionFlow.ts` · `policy/riskRadar.ts` · 시험 `positionFlow.test.ts`(15 — KST 날짜 · 판 날 지수 · 산 날 돈 · 휴장 이어 쓰기 · 종가 없음 · 상한 경계 · null · 0~100 자르기 · 뉴스 커버리지) · `readPosition.test.ts`(7 — 빈 보유 · Hero 합계 · 30일 미만 · 원천 실패 격리 · 시세 미반영 · 흐름 빈 거래 · 1주 8점) — pass
+- FR-81(정정) — 새 흐름 경로 · 일봉만(`dailyClosesSince`, EXPLAIN 2.1ms) — pass
+- 변이: 뉴스 실패를 올림 → 1 실패 · 30일 조건 뺌 → 1 실패
+- 실데이터: 손 계산 대조(총 평가금 · 원금 · 비중 60.43% · 30일 = 1개월 구간 · 90일 낙폭 = 3개월 MDD) — pass
+- 미충족: FR-85 미리보기 · FR-86 수정 · 삭제 과매도 거부 · FR-87(2단계) · FR-88 소멸
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

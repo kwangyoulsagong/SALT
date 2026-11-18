@@ -62,3 +62,7 @@
 ## 2026-11-16 — F017 v4 순서 5 짝
 
 - 이 REQ 의 기능 변경 없음 — 공유 파일에 한 자리. 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage5-ontology.md`
+
+## 2026-11-18 F006 포지션 1단계
+
+- 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음
