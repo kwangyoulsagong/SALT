@@ -1201,3 +1201,64 @@ export interface CompanyFilingReader {
   recent(code: string, since: Date, limit: number): Promise<import("./policy/companyBrief").CompanyFact[]>;
 }
 
+
+// ─── 코치 대화(F006 C절 · `SRV-REQ-028` FR-1~10 · `DB-REQ-021` · `DB-REQ-022`) ───
+
+export type CoachMessageRole = "user" | "assistant";
+export type CoachMessageStatus = "streaming" | "complete" | "failed";
+
+export interface CoachMessageRecord {
+  id: string;
+  conversationId: string;
+  role: CoachMessageRole;
+  content: string;
+  /** 답 행에만 */
+  intent: import("./policy/coachConversation").CoachQuestionIntent | null;
+  status: CoachMessageStatus;
+  explanationSource: "rule" | "llm" | null;
+  links: import("./policy/coachConversation").CoachAnswer["links"];
+  gaps: import("./policy/coachConversation").CoachAnswerGap[];
+  errorCode: string | null;
+  createdAt: Date;
+}
+
+export interface CoachConversationRecord {
+  id: string;
+  title: string | null;
+  messageCount: number;
+  lastMessageAt: Date;
+  createdAt: Date;
+}
+
+export interface CoachConversationStore {
+  /**
+   * 질문 한 줄 + 답 자리(`streaming`) 한 줄을 한 번에 — 메시지 수 · 마지막 시각도 같은 쓰기(`DB-REQ-022` FR-30 · 31).
+   * `conversationId` 가 있는데 이 사람 것이 아니면 `null`(없는 것과 같다 — 남의 대화 존재를 알리지 않는다)
+   */
+  ask(input: {
+    userId: string;
+    conversationId: string | null;
+    title: string;
+    question: string;
+    at: Date;
+  }): Promise<{ conversationId: string; questionId: string; answerId: string } | null>;
+  /** 이 사람 메시지만 — 남의 것이면 `null` */
+  findMessage(userId: string, messageId: string): Promise<CoachMessageRecord | null>;
+  /** 그 답의 질문(같은 대화 · 바로 앞 사용자 줄) */
+  findQuestionFor(answer: CoachMessageRecord): Promise<CoachMessageRecord | null>;
+  /** `streaming` 일 때만 채운다 — 두 스트림이 겹치면 먼저 쓴 쪽 하나(`SRV-REQ-028` FR-3 · 4). 바뀌었으면 true */
+  completeAnswer(
+    messageId: string,
+    answer: Pick<CoachMessageRecord, "content" | "intent" | "links" | "gaps"> & { explanationSource: "rule" | "llm" }
+  ): Promise<boolean>;
+  /** `streaming` 일 때만 실패로 — 실패한 답도 대화에 남는다(`DB-REQ-022` FR-23 · 24) */
+  failAnswer(messageId: string, errorCode: string): Promise<void>;
+  /** 오래 `streaming` 인 답을 실패로(재기동 · 60초 — `SRV-REQ-028` FR-7 · 8). 바꾼 수 */
+  failStale(olderThan: Date): Promise<number>;
+  /** 최근 대화가 앞 — 커서는 앞 쪽 마지막 대화 id */
+  listConversations(userId: string, limit: number, cursor: string | null): Promise<CoachConversationRecord[]>;
+  /** 최신 메시지가 앞(역순 커서 — `SRV-REQ-029` FR-28). 남의 대화면 `null` */
+  listMessages(userId: string, conversationId: string, limit: number, cursor: string | null): Promise<CoachMessageRecord[] | null>;
+  /** 사용자가 지울 때만(`SRV-REQ-029` FR-29). 지웠으면 true */
+  deleteConversation(userId: string, conversationId: string): Promise<boolean>;
+}

@@ -66,3 +66,4 @@ export * from "./moveSummary";
 export * from "./llmInputs";
 export * from "./causeSnapshot";
 export * from "./agentTools";
+export * from "./coachConversation";
