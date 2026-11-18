@@ -2,13 +2,13 @@
 
 import type { PreflightMode } from "@repo/core/coach";
 import { BottomSheet } from "@repo/ui/bottomSheet";
+import { useNarrowViewport } from "@repo/web-shared/lib";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { useHasSession } from "@repo/web-shared/api";
 import { PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 
-import { useNarrowViewport } from "../lib";
 import { RUN_PREFLIGHT_MESSAGES as MSG } from "../model";
 import { PreflightForm } from "./PreflightForm";
 import { description, form, head, hint, launcher, launcherHint, title } from "./Preflight.css";
