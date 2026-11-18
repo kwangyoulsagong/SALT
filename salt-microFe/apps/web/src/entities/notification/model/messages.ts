@@ -43,8 +43,9 @@ const ALERT_TEXT: Readonly<Record<string, (p: Params, symbol: string | null) => 
   },
 };
 
+/** 모르는 코드는 null — 자기 키만 본다(`toString` 같은 프로토타입 이름이 함수로 잡히지 않게, `@repo/core/labels` `labelOf` 와 같은 규칙) */
 export const alertTextOf = (messageCode: string, params: Params, symbol: string | null): AlertText | null =>
-  ALERT_TEXT[messageCode]?.(params, symbol) ?? null;
+  Object.prototype.hasOwnProperty.call(ALERT_TEXT, messageCode) ? (ALERT_TEXT[messageCode]?.(params, symbol) ?? null) : null;
 
 export const ALERT_MESSAGES = {
   unreadDot: "안 읽음",
