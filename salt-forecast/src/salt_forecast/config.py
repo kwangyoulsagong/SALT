@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="FORECAST_", env_file=".env", extra="ignore")
 
     database_url: SecretStr
-    extra_symbols: str = ""
     upbit_base_url: str = "https://api.upbit.com/v1"
     # 업비트 시세 조회 한도(초당 10) 의 80% — data-pipeline.md §3
     upbit_requests_per_second: float = Field(default=8.0, gt=0)
@@ -78,9 +77,6 @@ class Settings(BaseSettings):
 
     def kr_event_symbol_list(self) -> list[str]:
         return [s.strip() for s in self.kr_event_symbols.split(",") if s.strip()]
-
-    def extra_symbol_list(self) -> list[str]:
-        return [s.strip() for s in self.extra_symbols.split(",") if s.strip()]
 
 
 @lru_cache(maxsize=1)

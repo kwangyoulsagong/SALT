@@ -22,3 +22,6 @@
 ## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
 
 - 변경 없음(짝)
+## 2026-11-18 — 죽은 설정 정리(`feat/fc-req-024-personal-projection-scoring`)
+
+- 쓰는 곳이 없는 설정이 `.env.example` 에 남아 있어 사용자가 무엇을 넣어야 하는지 물었다 — 설정을 지우는 변경은 `.env.example` 까지 같은 커밋에서
