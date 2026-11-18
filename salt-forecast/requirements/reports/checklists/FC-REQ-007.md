@@ -54,3 +54,7 @@
 | `config.py` 에 등락 분해 창 설정 넷(F016 단계 C `FC-REQ-027`) — 쏠림 설정 무변경 | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 이 REQ 몫 기능 변경 0 — `config.py` 에 ECOS 주소 · 키(빈 값 = 없음). 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)

@@ -95,3 +95,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 표본 코드 교체 | 충족 | `npm test` 448 |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 타입만 — `npm run build` · `npm test` 514/514
+
+### 미검증 · 범위 밖
+
+없음

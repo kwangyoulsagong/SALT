@@ -129,3 +129,7 @@
 ### 2026-11-17 — `daily.sh` 실행 트리 잠금 대기(`OPS-005`)
 
 - [x] 뉴스 단계 무변경 · `zsh -n` 통과 · 잠금 대기는 `sync-run.test.sh` 가 다루는 잠금과 같은 파일
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 이 REQ 몫 기능 변경 0 — `ops/daily.sh` 단계 끝에 `personal_scoring`. 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)

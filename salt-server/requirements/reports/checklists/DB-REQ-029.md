@@ -137,3 +137,12 @@
 |---|---|---|
 | HTTP 실토큰 응답(서버 · BFF 경로) | 로컬 옛 HS 창이 닫혀(11-16) 소유자 토큰을 만들 수 없다 — 서명 키 읽기는 권한 거부. 같은 유스케이스 · 리더 · 정책을 실DB 로 프로세스 안에서 돌렸다 | 사용자 로그인 화면 QA(`QA-001`) |
 | DART 본문 다시 받기 실회차 | 서버 · 뉴스 워커가 새 코드로 같이 재기동해야 한다(옛 서버 추출은 옛 사실을 안 지운다) | 머지 · `ops/salt.sh restart server news` 뒤 첫 회차 — 634건 · 하루 안 |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 마이그레이션 로컬 운영 적용(`prisma migrate deploy`) · Testcontainers 가 같은 파일을 읽어 적용(`PlatformContainers`) — GRANT 까지 같은 SQL
+- `test_schema_contract.py` 통과 · 금액 · 원 사용자 열 0(실 DB 시험)
+
+### 미검증 · 범위 밖
+
+없음

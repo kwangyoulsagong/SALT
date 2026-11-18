@@ -69,3 +69,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `ops/daily.sh`(머리 주인) 단계에 `ontology_build` · `cause_explain`(vol_range 뒤 · 합 약 1초) — 뉴스 수집 무변경 |
 | 2026-11-16 | F017 v4 순서 5b-3 짝 — `ops/daily.sh` 에 주 1회 `ontology_quality`(O2 재채점 · 이름 충돌) — 뉴스 수집 무변경 |
 | 2026-11-17 | `ops/daily.sh` 머리에 실행 트리 동기화 잠금 대기(최대 2분, `OPS-005`) — 뉴스 수집 무변경 |
+| 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 파일에 O4 몫: `ops/daily.sh` 단계 끝에 `personal_scoring`. 주인 `FC-REQ-024`. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |

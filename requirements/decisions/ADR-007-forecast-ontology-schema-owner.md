@@ -14,7 +14,7 @@
 2. **에이전트는 문장만** — 도구 4종(`get_forecast_card` · `get_neighbors` · `get_event_reactions` · `get_documents`)만 쓰고,
    도구 결과에 없는 숫자는 검증기가 막는다. 개인 금액은 프롬프트 밖. 실패하면 템플릿(`FC-REQ-023`).
 3. **예측 규율을 투자 밖으로** — 저축 도달 구간 · 월말 지출 착지도 구간 + 채점 이력. 계산은 도메인 서비스가 요청 시,
-   채점은 forecast 가 `savings.ProjectionIssued` 이벤트로 받아 사용자 해시로만(`FC-REQ-024`).
+   채점은 forecast 가 ~~`savings.ProjectionIssued` 이벤트로 받아~~ **서비스 export 뷰로 읽어(정정 2026-11-18 — 배치라 상시 구독자가 없고 이벤트 본문에 원 사용자 id · 금액이 있다. 해시는 뷰의 `sha256(user_id)`)** 사용자 해시로만(`FC-REQ-024`, 루트 `MONEY-O4-personal-projection-scoring-slice.md`).
 4. **스키마 주인 이전** — 서버가 Flyway 로 가는 시점(서버 S5)에 forecast DDL 을 `salt-forecast` 안(plain SQL + 버전 표)으로.
    `public` 직접 읽기 ~~4곳~~ **6개 표 7곳 — 정정 2026-11-03**(보유 ∪ 관심 종목 코드 읽기가 빠져 있었다, `DB-REQ-036` 부록 B9)(`price_history` · `market_holidays` · `kr_stock_master` · `judgment_ledger` · `portfolio_holdings` · `investment_watchlist`)은 export 뷰로(`FC-REQ-025`).
 

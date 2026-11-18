@@ -155,3 +155,4 @@ flowchart LR
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 가계부 화면에 때맞춘 팁 칸(5월 종합소득세 · 11~12월 연말정산 미리보기 — `FE-REQ-058` FR-6) |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FixedCostIncreased` 의 content 구독 예정이 ~~금융 팁 S2b~~ S2d 로(계약 설명 · 어댑터 주석, `a1938bb2`) |
 | 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — `FixedCostIncreased` 를 content 가 구독(주거 분류만 → 월세 세액공제 글). 가계부 노동시간 설정의 급여(켜 둔 것만)를 금융 팁 내 숫자가 읽는다(BFF 경유 · 저장 0) |
+| 2026-11-18 | O4 개인 재무 구간 채점(루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md`) — 예측이 저축 도달 · 가계부 착지 구간을 export 뷰로 읽어 판정 · 커버리지(3 · 6개월) · 소비자물가(ECOS) 수집. 저축 목표 화면 적중 한 줄 · 오늘 돈(F012 FR-5 · FR-9), 가계부 월 화면 쌓인 적중 한 줄(F013 FR-7). 첫 실판정은 발행이 쌓인 뒤 |

@@ -54,3 +54,7 @@
 ## F017 v2 단계 3 (2026-11-11, `feat/f017-s3-explain-always`)
 
 - 액션: 없음
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 바뀐 것 없음 — 타입만

@@ -151,3 +151,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-05 | `57121a0c` — F4h 확인 단계: 사람 장부 줄 버튼 이름에 대상(접근성 트리로 발견). UI 고치기 · 지우기 · 봉투 지우기 · 새 명세서 · 서버 HTML 띠 · 접근성 트리 실화면 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 가계부 `/household` 머리 설명 아래 때맞춘 팁 칸 0~1장(`TimelyTip` context=household — 달 트리거) |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(가계부 줄은 그대로) |
+| 2026-11-18 | FR-7 이어서(O4) — 착지 상자에 "이 구간이 맞은 기록" 한 줄(서버 집계) 또는 이유. 실화면 중 찾은 결함 고침: 머리 링크 여섯이 앱 웹뷰 390 에서 145px 넘침 → 줄바꿈. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |

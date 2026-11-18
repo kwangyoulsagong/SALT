@@ -51,3 +51,4 @@ FR-2 는 PK 교체라 되돌리려면 `symbol <> ''` 행을 먼저 지워야 한
 | 2026-11-02 | 1단계 구현 · in-progress — FR-1~3 · FR-7 추가. `EXPLAIN ANALYZE` 0.10ms(`v_upcoming_event`) · 0.19ms(`v_event_card` 한 종목, `event_reaction_stats_latest` 인덱스) |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`): **DDL 없음** — FR-7 `v_upcoming_event` 의 웹 소비처가 국내 요약 응답 `schedule`(`SRV-REQ-042` FR-5)로 바뀌었다(같은 읽기) |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-4 · 5 · 8 구현** — `kind` 둘 · `kr_earnings_window`(3종 · 확정 일정 열 확대) · `v_kr_earnings_reaction`(신규). 추가만 |
+| 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 예측 `store/tables.py` 에 O4 표 둘 선언만 더했다(주인 `FC-REQ-024` · `DB-REQ-029`). 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |

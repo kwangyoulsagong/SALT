@@ -48,3 +48,12 @@
 
 - 파일만 걸침 — `packages/domain-savings/src/entities/goal/api/goalApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 타입만(그대로 전달) — `npm run build` 0 · `npm test` 514/514
+- 실화면에서 BFF 경유 숫자 확인(임시 계정)
+
+### 미검증 · 범위 밖
+
+없음

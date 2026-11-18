@@ -62,3 +62,12 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- `V6__forecast_export.sql` 로컬 운영 적용 · Testcontainers 적용(`./gradlew check`)
+- EXPLAIN 0.08ms(발행 · 목표 PK) · 계정 삭제 뒤 뷰에서 사라짐(실계정)
+
+### 미검증 · 범위 밖
+
+없음

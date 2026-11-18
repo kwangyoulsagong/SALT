@@ -53,7 +53,8 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-3 | done — 기한 → 월 적립(원 단위 올림) · 월 적립 → 도달 월 · 세후 단리(15.4% 상수, FR-13 사본 전) · 경계(기한 이번 달 · 지남 · 0 · 달성 · 100년) + 저장 없는 `POST /api/savings/calculate`(스펙 API 목록 밖 — 만들기 화면 디바운스 자리) | `SavingsMath` · `Calculate` |
 | FR-4 | done — 단건 · 나눠 넣기(합계 = 나눈 합, 같은 목표 두 번 거부, 2개 이상) · 목표 행 잠금(id 순) | `RecordDeposits` |
 | FR-5 | done — 다 찬 달 3개월 이상: 월 적립 10 · 90% 분위 → 늦은 · 빠른 끝(빈 달 0 · 이번 달 제외 · 가져온 잔액 제외), 미만 `plan_only` + 이유. 늦은 끝이 없으면 하위 10% 0 → `slow_side_open`, 아니면 `not_reachable`(2026-11-03 `2207c02b`). 만들기 · 적립 때만 `projection_issued` + `savings.ProjectionIssued` | `ProjectionEngine` · `ProjectionIssuer` |
-| FR-6 | 부분 — 채점 사본 없음 → `track: null` + `trackReason: history_short` 늘 | `FC-REQ-024` 뒤 |
+| FR-6 | **done 2026-11-18(O4)** — 예측 집계 뷰를 요청 때 읽어 `track`(판정 수 · 맞은 수 · 사람 수 · 명목) 또는 `trackReason`(history_short · unavailable) | `Track` · `JooqForecastReads` |
+| FR-10 | **done 2026-11-18(O4)** — `todayMoney`(as-of 기준 달 · 값어치 · 같은 값어치 · 변화율 · 이유) | `TodayMoney` |
 | FR-8 | done — 이번 달 넣은 돈 · 계획 · 차이 · 상태 키(`no_plan` · `under_plan` · `plan_met`). 서버 문장 0(키만) | `Milestone` |
 | FR-9 | done — `frame` saved/remaining(50%) | `Frame` |
 | FR-15 | done — `GET /api/savings/home-card` 숫자(목표 수 · 진행 중 · 모은 돈 · 진척 최대 진행 중 목표). 포맷은 BFF 카드 계약 | `HomeCard` |
@@ -123,3 +124,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-12 | F016 단계 D 짝(이 REQ 가 머리 주인인 `ops/salt.sh`): status 에 오늘 등락 한 줄 줄 하나(통과 · 검사 막음 · LLM 실패 — `SRV-REQ-052` FR-8) |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름). 이 REQ 몫 기능 변경 0 |
 | 2026-11-16 | 새 맥 이전(루트 `requirements/specs/done/OPS-002-new-mac-setup-slice.md`) — `run-platform.sh`: 55672 가 닫혀 있으면 네이티브 RabbitMQ(brew)를 먼저 켠다, 없으면 Compose(55672 로 덮어). 동작 계약 무변경 |
+| 2026-11-18 | FR-6 done · FR-10 done(O4) — 목록 · 상세 `projection.track`(6개월 판정 10 이상일 때 판정 수 · 맞은 수 · 사람 수 · 명목 %, 아니면 `trackReason` history_short · unavailable) · 상세 `todayMoney`(만든 때 알던 물가 달 ↔ 지금 아는 달 · 정한 금액의 지금 값어치 · 같은 값어치 금액 · 변화율 · 6개월 안 · 새 지수 없음 · 못 읽음은 이유). 예측 뷰를 세이브포인트 안에서 읽어 실패해도 그 칸만 — 쓰기(적립) 트랜잭션도 산다. 홈 카드 · 목표 시계는 예측을 읽지 않는다. 목록 쿼리 3 → 4. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |

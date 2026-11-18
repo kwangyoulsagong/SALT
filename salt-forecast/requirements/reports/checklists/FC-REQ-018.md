@@ -36,3 +36,7 @@
 |---|---|---|
 | 원장 점검 코인만 | 충족 | ruff · format · pyright 0 · pytest 362 · `ops_monitor --dry-run` 새 쿼리 실행 · 발행일 27/27 같음 |
 | 국내 원장 빈 날 점검 | 미착수 | F017 1c(`OPS-003` 상태 점검) |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 이 REQ 몫 기능 변경 0 — `domain/ops_health.py` 상태 값 `under_nominal`(개인 커버리지 점검). 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)

@@ -18,3 +18,7 @@
 
 - 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 변경 없음(짝)
