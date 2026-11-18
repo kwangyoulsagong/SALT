@@ -40,7 +40,9 @@ const measure = () => {
     const all = [t.modeReasoning, ...t.keyDrivers, ...t.risks, ...t.newsSummary].flatMap(sentences);
     violations += all.filter((s) => languageViolations(s).length > 0).length;
     lengths.push(...all.map((s) => s.length));
-    if (!t.modeReasoning || t.keyDrivers.length === 0 || t.risks.length === 0) emptySections += 1;
+    // 주의 칸은 규칙이 준 주의가 있을 때만 — 없으면 비는 것이 맞다(지어낸 문장 · 내부 문구 0, `SRV-REQ-060` FR-5)
+    const hasCaution = input.evidence.some((e) => e.label.includes("주의"));
+    if (!t.modeReasoning || t.keyDrivers.length === 0 || (hasCaution && t.risks.length === 0) || (!hasCaution && t.risks.length > 0)) emptySections += 1;
     for (const line of t.newsSummary) {
       const src = (input.news ?? []).find((n) => line.startsWith(n.title));
       if (!src?.source) continue; // 출처 이름 없는 기사 — 붙일 출처가 없다

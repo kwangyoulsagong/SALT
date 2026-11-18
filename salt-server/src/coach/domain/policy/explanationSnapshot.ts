@@ -26,8 +26,8 @@ import { MODE_DECISION_RULE_VERSION, type ModeDecisionAction } from "./modeDecis
  */
 
 /** 프롬프트(`explanationPrompt.ts`) · 검증기(`explanationTemplate.ts` `verifyExplanation`)가 바뀌면 올린다 — 지문이 바뀌어 다시 만든다 */
-export const EXPLANATION_PROMPT_VERSION = "explain-prompt@3"; // @3 2026-11-14 — 회사 사정 재료(F017 v4 2b+ FR-16)
-export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@4"; // @4 2026-11-14 — 회사 사정 인용(③')
+export const EXPLANATION_PROMPT_VERSION = "explain-prompt@4"; // @4 2026-11-18 — 원인 단계 '없음'이면 원인 줄은 서버 문장(SRV-REQ-060 FR-6) · @3 2026-11-14 — 회사 사정 재료(F017 v4 2b+ FR-16)
+export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@5"; // @5 2026-11-18 — 입력이 말하지 않은 "마감" · 서버 원인 줄 · 빈 주의 칸(SRV-REQ-060 FR-4~6) · @4 2026-11-14 회사 사정 인용(③')
 
 /** 지문에 넣는 뉴스 수 — 맨 위 몇 건이 바뀌면 다시 만든다(뒤쪽 순서 변화로 매번 다시 만들지 않게) */
 export const EXPLANATION_FINGERPRINT_NEWS = 3;

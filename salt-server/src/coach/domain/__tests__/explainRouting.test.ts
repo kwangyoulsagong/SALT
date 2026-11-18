@@ -70,8 +70,13 @@ describe("줄 검사 · 묶기 (FR-13)", () => {
     const { explanation, filled } = completeExplanation(kept, input, new Date());
     assert.equal(explanation.modeReasoning, "첫 문장이에요. 둘째 문장이에요.");
     assert.deepEqual(explanation.keyDrivers, ["근거예요."]);
-    assert.ok(explanation.risks.length > 0);
-    assert.deepEqual(filled.sort(), ["newsSummary", "risks"]);
+    // 규칙 주의가 없는 입력 — 주의 칸은 비고 채운 칸으로 세지 않는다(`SRV-REQ-060` FR-5)
+    assert.deepEqual(explanation.risks, []);
+    assert.deepEqual(filled.sort(), ["newsSummary"]);
+    const withCaution = { ...input, evidence: [...input.evidence, { label: "주의", value: "손절 기준이 아직 없어요" }] };
+    const r = completeExplanation(kept, withCaution, new Date());
+    assert.deepEqual(r.explanation.risks, ["손절 기준이 아직 없어요"]);
+    assert.deepEqual(r.filled.sort(), ["newsSummary", "risks"]);
   });
 
   it("판단 문단은 문장 단위 — 걸린 문장만 빠진다(FR-14, 예전엔 통째 템플릿)", () => {

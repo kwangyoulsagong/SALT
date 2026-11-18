@@ -7,6 +7,8 @@ import {
   EXPLANATION_SECTION_CAP,
   EXPLANATION_TOTAL_CAP,
   createLineGate,
+  fixedCauseLine,
+  guardExplanationLine,
   sentenceSimilarity,
   templateExplanation,
   verifyExplanation,
@@ -157,5 +159,93 @@ describe("사실표 문장 — 칸이 다 차도 6문장(F017 v4 1f)", () => {
     const n = [...(t.modeReasoning.match(/.+?[.!?](?=\s|$)|.+$/gs) ?? []), ...t.keyDrivers, ...t.risks, ...t.newsSummary].length;
     assert.ok(n <= EXPLANATION_TOTAL_CAP, `n=${n}`);
     assert.equal(verifyExplanation(t, full, new Date("2026-11-13T06:00:00Z")).dropped.length, 0);
+  });
+});
+
+/**
+ * 입력이 말하지 않은 "마감"(`SRV-REQ-060` FR-4) — 해설은 장중 · 24시간 코인에도 만들어진다.
+ * 불변식: 판단 · 근거 · 주의 칸의 "마감"은 입력 사실(뉴스 제외)에 마감이 있을 때만 통과 · 뉴스 칸은 제목 인용이라 건너뛴다
+ */
+describe("입력이 말하지 않은 마감", () => {
+  const withCause = input({ cause: { ...cause, result: "오늘 +3.20%" } });
+  const news = input({ news: [{ title: "도지코인 22일 주봉 마감 반등 분수령" }] });
+  const closedFact = input({ evidence: [...input().evidence, { label: "근거", value: "장 마감 뒤 판단이에요" }] });
+  const cases: Array<[string, Parameters<typeof guardExplanationLine>[0], string, CoachExplanationInput, boolean]> = [
+    ["근거 칸 — 마감 없는 입력", "keyDrivers", "그 결과 오늘 +3.20%로 마감했어요.", withCause, false],
+    ["판단 칸 — 마감 흐름", "modeReasoning", "삼성전자 장기 관점은 관망이고 오늘 마감 흐름이에요.", withCause, false],
+    ["주의 칸 — 마감 없는 입력", "risks", "마감 뒤 흐름이 바뀌면 이 판단은 약해질 수 있어요.", withCause, false],
+    ["근거 칸 — 마감 아닌 같은 문장", "keyDrivers", "그 결과 오늘 +3.20% 움직였어요.", withCause, true],
+    ["뉴스 칸 — 제목 인용", "newsSummary", "도지코인이 22일 주봉 마감이 반등 분수령이라는 기사가 나왔어요.", news, true],
+    ["뉴스 제목의 마감은 근거 칸을 받치지 않는다", "keyDrivers", "주봉 마감이 반등 분수령이에요.", news, false],
+    ["입력 사실이 마감을 말하면 통과", "keyDrivers", "장 마감 뒤 판단이에요.", closedFact, true],
+  ];
+  for (const [name, section, text, inp, ok] of cases) {
+    it(name, () => {
+      const r = guardExplanationLine(section, text, inp);
+      assert.equal(r.ok, ok);
+      if (!ok) assert.deepEqual(r.ok ? [] : r.reasons, ["unsupported_close"]);
+    });
+  }
+});
+
+/**
+ * 원인 단계 '없음'의 원인 줄은 서버 문장(`SRV-REQ-060` FR-6) — 모델이 바꿔 쓰면 "평소 범위 안이라 소식이 없어요"로 인과가 뒤집혔다.
+ * 불변식: 단계 '없음'이면 원인 줄은 서버 문장 하나 · 모델이 판단 · 근거 칸에서 원인을 다시 말하면 버린다 · 단계가 있으면 지금 그대로
+ */
+describe("서버 원인 줄 — 단계 '없음'", () => {
+  const quiet = input({
+    cause: { strength: "none", headline: "평소 범위 안의 움직임이에요", note: "따로 볼 만한 원인을 찾지 않았어요", evidence: [], result: "오늘 +3.20%" },
+  });
+  const noNews = input({
+    cause: { strength: "none", headline: "확인된 소식이 없어요", note: "아직 알려지지 않은 이유일 수 있어요", evidence: [], result: "오늘 +3.20%" },
+  });
+
+  it("문장은 서버 머리말 — 맺음말 그대로", () => {
+    assert.equal(fixedCauseLine(quiet), "평소 범위 안의 움직임이에요 — 따로 볼 만한 원인을 찾지 않았어요.");
+    assert.equal(fixedCauseLine(noNews), "확인된 소식이 없어요 — 아직 알려지지 않은 이유일 수 있어요.");
+    assert.equal(fixedCauseLine(input({ cause })), null);
+    assert.equal(fixedCauseLine(input()), null);
+  });
+
+  const cases: Array<[string, Parameters<typeof guardExplanationLine>[0], string, CoachExplanationInput, boolean]> = [
+    ["뒤집기 — 범위 안이라 소식 없음", "keyDrivers", "오늘 움직임은 평소 범위 안이라 따로 확인된 소식이 없어요.", quiet, false],
+    ["원인을 다시 말함", "keyDrivers", "뚜렷한 원인은 확인되지 않았어요.", noNews, false],
+    ["판단 칸에서도", "modeReasoning", "확인된 소식이 없어 관망이에요.", noNews, false],
+    ["원인 말 없는 근거는 통과", "keyDrivers", "RSI 56은 중간 구간이에요.", quiet, true],
+    ["주의 칸은 원인 규칙 밖", "risks", "새 소식이 나오면 이 판단은 약해질 수 있어요.", quiet, true],
+    ["단계가 있으면 모델이 옮긴다", "keyDrivers", "주주환원 확대 공시가 원인으로 보여요.", input({ cause }), true],
+  ];
+  for (const [name, section, text, inp, ok] of cases) {
+    it(name, () => {
+      const r = guardExplanationLine(section, text, inp);
+      assert.equal(r.ok, ok);
+      if (!ok) assert.deepEqual(r.ok ? [] : r.reasons, ["cause_rewrite"]);
+    });
+  }
+
+  it("배치 검증 — 원인 줄이 근거 첫 줄 · 모델의 원인 문장은 빠짐 · 상한에 센다", () => {
+    const v = verifyExplanation(
+      {
+        modeReasoning: "삼성전자 장기 관점은 관망이에요.",
+        timeframe: "",
+        keyDrivers: ["오늘 움직임은 평소 범위 안이라 확인된 소식이 없어요.", "RSI 56은 중간 구간이에요.", "판단은 관망이에요.", "흐름이 엇갈려요."],
+        risks: [],
+        newsSummary: [],
+        disclaimer: "",
+        generatedAt: "",
+        cached: false,
+      },
+      quiet,
+      new Date("2026-11-18T04:00:00Z")
+    );
+    assert.equal(v.explanation.keyDrivers[0], fixedCauseLine(quiet));
+    assert.ok(!v.explanation.keyDrivers.some((l) => l.includes("범위 안이라")));
+    assert.equal(v.explanation.keyDrivers.length, EXPLANATION_SECTION_CAP.keyDrivers);
+    assert.deepEqual(v.explanation.risks, []);
+  });
+
+  it("줄 문지기 — 원인 줄 몫을 미리 센다(근거 칸 둘만 더)", () => {
+    const gate = createLineGate(quiet);
+    assert.deepEqual(["RSI 56은 중간이에요.", "판단은 관망이에요.", "흐름이 엇갈려요."].map((l) => gate("keyDrivers", l).ok), [true, true, false]);
   });
 });

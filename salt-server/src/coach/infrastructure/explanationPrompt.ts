@@ -173,6 +173,9 @@ export const factsBlock = (input: CoachExplanationInput): string[] => {
   ];
 };
 
+/** 원인 단계 '없음' — 원인 줄은 서버 문장 그대로(`fixedCauseLine`), 모델은 근거 · 결과만(`SRV-REQ-060` FR-6) */
+const causeIsServerLine = (input: CoachExplanationInput): boolean => input.cause?.strength === "none";
+
 export const buildExplanationPrompt = (input: CoachExplanationInput): string => {
   const modeLabel = input.mode === "scalp" ? "단타 (스캘프)" : "장기 (long_term)";
   return [
@@ -183,7 +186,10 @@ export const buildExplanationPrompt = (input: CoachExplanationInput): string => 
       {
         modeReasoning: `결론 한 문장 — ${modeLabel} 판단이 어떻게 나왔는지`,
         timeframe: COACH_HORIZON[input.mode].phrase,
-        keyDrivers: ["원인(원인 후보의 단계 그대로)", "근거(숫자는 주어진 표기 그대로)", "결과(오늘 등락)"],
+        // 원인 단계 '없음'이면 원인 줄은 서버가 붙인다(SRV-REQ-060 FR-6) — 모델은 근거 · 결과만
+        keyDrivers: causeIsServerLine(input)
+          ? ["근거(숫자는 주어진 표기 그대로 · 원인은 쓰지 않기)", "결과(오늘 등락)"]
+          : ["원인(원인 후보의 단계 그대로)", "근거(숫자는 주어진 표기 그대로)", "결과(오늘 등락)"],
         risks: ["이 판단이 약해지는 조건 한 문장"],
         newsSummary: (input.news ?? []).length > 0 ? ["가장 관련 있는 기사 한 문장(하나만)"] : [],
       },
@@ -247,7 +253,9 @@ export const buildLineExplanationPrompt = (input: CoachExplanationInput): string
     "",
     "분석해서 아래 줄 형식으로만 답하세요. 한 줄에 한 문장, 줄 앞에 라벨과 콜론.",
     `판단: (1줄) 결론 — ${modeLabel} 판단이 어떻게 나왔는지 한 문장`,
-    input.cause
+    causeIsServerLine(input)
+      ? "근거: (1~2줄) 근거 → 결과 순서. 원인 줄은 쓰지 않기(따로 붙는다) — '범위 안' · '소식이 없' · '원인' 같은 말을 쓰지 않기 · 근거 숫자는 주어진 표기 그대로 · 마지막은 결과(오늘 등락)"
+      : input.cause
       ? "근거: (1~3줄) 원인 → 근거 → 결과 순서. 원인은 '원인 후보'의 단계를 말투로만 옮기기(가장 유력 → \"~로 보여요\", 가능성 → \"~일 가능성이 있어요\", 확인된 소식 없음 → \"확인된 소식이 없어요\") · 단계 이름이나 '원인 후보'라는 말은 쓰지 않기 · 근거 숫자는 주어진 표기 그대로 · 마지막은 결과(오늘 등락)"
       : "근거: (1~3줄) 근거 데이터 중 이 판단을 가장 크게 받치는 것 — 그 값이 이 관점에서 무엇을 뜻하는지. 값은 주어진 그대로 인용",
     input.company?.lines.some((l) => l.concern)
