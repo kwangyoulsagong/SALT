@@ -19,6 +19,10 @@
 | 공용 함수 소비처(`HoldingsPanel` 판정 → `usePurchasePriceVisibility`) | 보유 패널 · Hero 같은 훅. 숨김 상태 실화면 확인 | pass |
 | 계정 삭제 | 앱 삭제 경로 200 · 사람 표 남은 행 0 · 초대 코드 0 · 4020/4011 닫힘 · `.side-tmp.ts` 지움 | pass |
 | 콘솔 | 남은 오류는 의도한 500 · 503 과 셸이 서비스하는 좁은 화면 이미지 400(3002 직접 열어서 — 설계상) | pass |
+| 레이어 훅 사후 | 바뀐 소스 45 파일에 훅 실제 실행 — 막힘 0 · 음성 대조 셋(FE 위 레이어 import · 서버 domain → `@prisma/client` · application → infrastructure) exit 2 | pass |
+| Storybook 재빌드 | RadarChart 좌우 글자 자리 · 축소를 고친 뒤 다시 — 통과 | pass |
+| zone 빌드 main 대조 | main worktree 빌드와 나란히 — `/portfolio` 1.95 → 2.03 kB · 첫 로드 149 = 149 · `/investments` 157 = 157 | pass |
+| 공용 훅 소비처 main 대조(`useElementWidth`) | main 빌드(3012) · 브랜치(3002)를 같은 BFF 로 1440 · 1100 — 요약 띠 216/216 · 미리보기 363/363 · 320/320 **둘이 같음** | pass |
 | `node scripts/check-done.mjs` | 통과(6번 외부 서비스 이름은 이 맥에 목록 파일이 없어 건너뜀) | pass |
 
 ## 미검증 · 범위 밖
