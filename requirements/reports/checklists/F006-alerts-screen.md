@@ -109,3 +109,7 @@ BFF 4001 을 브랜치 코드로 재기동(경로 · 칸 더하기만 — 옛 �
 ## 8. 토큰 변경 — 사용자 "토큰 바꿔"
 
 `text.tertiary` `#8B95A1` → `#656D76`. 상세 · 남은 위반 원인 표는 `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`. 임시 계정 삭제 200 · 행 0.
+
+## 9. 회색 글자 정리 — 사용자 "지금 바로 ㄱㄱ"
+
+토큰 `#616871` · `neutral.600` 글자 71곳 · 기타 회색 글자 — axe 19화면 등락 색 말고 위반 0. 상세 · 단계 표는 `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`. 임시 계정(토큰 만료로 첫 삭제 401 → 다시 로그인해 삭제 200) · 확인 계정 0.
