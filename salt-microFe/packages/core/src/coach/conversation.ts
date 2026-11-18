@@ -67,3 +67,27 @@ export interface CoachAskResult {
   conversationId: string;
   messageId: string;
 }
+
+/** 같은 판단의 카드인가 — 판단 시각 · 통과 여부 · 종목(막히면 사유)이 같으면 같은 카드다 */
+const cardKey = (card: CoachCard): string =>
+  card.renderable
+    ? `ok|${card.generatedAt ?? ""}|${card.symbol}|${card.action}`
+    : `blocked|${card.generatedAt ?? ""}|${card.blockedReason}`;
+
+/**
+ * 한 화면에 같은 카드는 한 번만(`screen-desktop.md` §5 "같은 숫자 두 번" — F006 2단계 실화면에서 지난 답 · 브리핑 · 새 답에
+ * 같은 카드가 세 번 나왔다). 위에서부터 처음 나온 자리의 id 만 돌려준다 — 나머지 자리는 한 줄로 가리킨다.
+ * 순서는 화면 순서 그대로 넘긴다(위로 더 읽기로 오래된 쪽이 붙으면 처음 자리가 그쪽으로 옮겨 간다)
+ */
+export const firstCardHolders = (items: ReadonlyArray<{ id: string; card: CoachCard | null }>): Set<string> => {
+  const seen = new Set<string>();
+  const first = new Set<string>();
+  for (const item of items) {
+    if (!item.card) continue;
+    const key = cardKey(item.card);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    first.add(item.id);
+  }
+  return first;
+};

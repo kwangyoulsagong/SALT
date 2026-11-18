@@ -33,6 +33,8 @@ export const ASK_COACH_MESSAGES = {
   /** 생성 시각(FEATURE-006 FR-27) — 서울 시각 */
   generatedAt: (time: string) => `${time} 계산`,
   cardJudgedAt: (time: string) => `이 판단을 만든 때 ${time}`,
+  /** 같은 카드가 위에 이미 있을 때 — 한 화면에 같은 숫자 두 번 금지(`screen-desktop.md` §5) */
+  sameCardAbove: (time: string) => `카드는 위에 붙인 것과 같은 판단이에요${time ? `(${time})` : ""}.`,
 } as const;
 
 export const COACH_CHIP_LABEL: Record<CoachQuestionChip, string> = {
