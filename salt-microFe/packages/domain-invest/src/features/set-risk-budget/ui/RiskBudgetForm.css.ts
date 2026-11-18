@@ -37,7 +37,7 @@ export const label = style({
 
 export const unit = style({ color: "rgba(26, 31, 41, 0.89)", fontSize: "13px", fontWeight: vars.fontWeights.medium });
 
-export const hint = style({ margin: 0, color: vars.colors.neutral[600], fontSize: "12px", lineHeight: "18px" });
+export const hint = style({ margin: 0, color: vars.colors.text.tertiary, fontSize: "12px", lineHeight: "18px" });
 
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: vars.space.sm, fontFamily: vars.fontFamily.base });
 

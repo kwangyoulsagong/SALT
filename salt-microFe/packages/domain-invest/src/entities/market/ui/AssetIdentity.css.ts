@@ -32,7 +32,7 @@ export const identityName = styleVariants({
   sm: [
     nameBase,
     {
-      color: vars.colors.neutral[600],
+      color: vars.colors.text.tertiary,
       fontSize: "12px",
       lineHeight: "16px",
       fontWeight: vars.fontWeights.semibold,
@@ -41,7 +41,7 @@ export const identityName = styleVariants({
 });
 
 export const identitySymbol = style({
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,

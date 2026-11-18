@@ -13,7 +13,7 @@ const CARD_SHADOW = SURFACE.hairline;
 
 export const backLink = style({
   alignSelf: "flex-start",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
@@ -89,7 +89,7 @@ export const ticker = style({
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontVariantNumeric: vars.numeric.tabular,
 });
 
@@ -209,7 +209,7 @@ export const statLabel = style({
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
 });
 
 export const statValue = style({

@@ -16,7 +16,7 @@ const label = {
   fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
 } as const;
 
 export const panel = style({

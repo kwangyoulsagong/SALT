@@ -11,4 +11,4 @@ export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fo
 /** 버튼이 카드 폭으로 늘지 않게 */
 export const actions = style({ display: "flex", gap: "8px" });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

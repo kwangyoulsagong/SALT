@@ -32,7 +32,7 @@ export const title = style({
 
 export const description = style({
   margin: 0,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });
@@ -117,7 +117,7 @@ export const lineStrong = style([
 
 export const hint = style({
   margin: 0,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });
@@ -139,7 +139,7 @@ export const closing = style({
   margin: 0,
   paddingTop: "10px",
   borderTop: `1px solid ${vars.colors.neutral[100]}`,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });
@@ -168,7 +168,7 @@ export const launcher = style({
 });
 
 export const launcherHint = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   fontWeight: vars.fontWeights.medium,
 });

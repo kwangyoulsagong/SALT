@@ -12,7 +12,7 @@ export const legend = style({ marginBottom: "8px", fontSize: "14px", lineHeight:
 
 export const chips = style({ display: "flex", flexWrap: "wrap", gap: "8px" });
 
-export const hint = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const hint = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const result = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
 

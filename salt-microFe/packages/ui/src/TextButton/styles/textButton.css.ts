@@ -32,7 +32,7 @@ export const textButtonStyles = recipe({
   variants: {
     tone: {
       brand: { color: vars.colors.brand.primary },
-      neutral: { color: vars.colors.neutral[600] },
+      neutral: { color: vars.colors.text.tertiary },
       danger: { color: vars.colors.status.errorDark },
     },
 

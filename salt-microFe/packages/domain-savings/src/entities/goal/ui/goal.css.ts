@@ -24,7 +24,7 @@ export const row = style({ display: "flex", alignItems: "baseline", justifyConte
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const value = style({
   fontSize: "13px",

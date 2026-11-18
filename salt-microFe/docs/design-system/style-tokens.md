@@ -89,7 +89,7 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | `vars.colors.neutral.300` | `#D1D6DB` | 비활성 경계 |
 | `vars.colors.neutral.400` | `#B0B8C1` | 회색 문자·비활성 |
 | `vars.colors.neutral.500` | `#8B95A1` | 보조 문자 |
-| `vars.colors.neutral.600` | `#6B7684` | 중간 위계 문자 |
+| `vars.colors.neutral.600` | `#6B7684` | 회색 단계 — 글자가 아닌 면 · 선 · 아이콘(2026-11-18 글자색 쓰임 71곳은 `text.tertiary` 로 — 회색 바탕 4.18:1 미달) |
 | `vars.colors.neutral.700` | `#4E5968` | 강한 보조 문자 |
 | `vars.colors.neutral.800` | `#333D4B` | 본문 강조 |
 | `vars.colors.neutral.900` | `#191F28` | 가장 진한 문자 |
@@ -102,11 +102,11 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | --- | --- | --- |
 | `vars.colors.text.primary` | `#191F28` | 기본 본문 |
 | `vars.colors.text.secondary` | `#2A282F` | 보조 본문 |
-| `vars.colors.text.tertiary` | `#656D76` | 부가 정보 글자(2026-11-18 `#8B95A1` 에서 — 흰 5.25 · 회색 바탕 4.76:1). 글자가 아닌 면 · 선은 `neutral.500` |
+| `vars.colors.text.tertiary` | `#616871` | 부가 정보 글자(2026-11-18 `#8B95A1` 에서 — 흰 5.63 · 회색 바탕 5.11:1). 글자가 아닌 면 · 선은 `neutral.500` |
 | `vars.colors.text.disabled` | `#B0B8C1` | 비활성 |
 | `vars.colors.text.white` | `#FFFFFF` | 흰색 텍스트 |
 | `vars.colors.text.inverse` | `#FFFFFF` | 어두운 배경 위 텍스트 |
-| `vars.colors.text.lightGray` | `#6B7684` | 약한 본문 |
+| `vars.colors.text.lightGray` | `#616871` | 약한 본문(2026-11-18 `#6B7684` 에서 — `tertiary` 와 같은 값) |
 | `vars.colors.text.base` | `#FFFFFF` | 사용 중단 |
 | `vars.colors.text.nickname` | `#2A282F` | 사용 중단 |
 | `vars.colors.text.email` | `#B0B8C1` | 사용 중단 |

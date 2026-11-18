@@ -92,12 +92,13 @@ export const tokens = {
     text: {
       primary: "#191F28",
       secondary: "#2A282F",
-      /** 부가 정보 글자 — 2026-11-18 #8B95A1 → #656D76(흰 3.03 → 5.25 · 회색 바탕 2.75 → 4.76:1, `FE-REQ-047` FR-13 · 사용자 결정). 글자가 아닌 자리(차트 면 · 선 · 화살표)는 `neutral[500]` */
-      tertiary: "#656D76",
+      /** 부가 정보 글자 — 2026-11-18 #8B95A1 → #616871(흰 3.03 → 5.63 · 회색 바탕 2.75 → 5.11 · 회색 위 옅은 면 #E9EBEF 4.75:1, `FE-REQ-047` FR-13 · 사용자 결정). 글자가 아닌 자리(차트 면 · 선 · 화살표)는 `neutral[500]` */
+      tertiary: "#616871",
       disabled: "#B0B8C1",
       white: "#FFFFFF",
       inverse: "#FFFFFF", // 다크 배경 위의 텍스트
-      lightGray: "#6B7684",
+      /** 2026-11-18 #6B7684 → #616871(`tertiary` 와 같은 값) — 회색 바탕 4.18 → 5.11:1(`FE-REQ-047` FR-13). 회색 단계 `neutral.600` 은 그대로(글자가 아닌 막대 · 테두리 · 아이콘 대체 색이 쓴다) */
+      lightGray: "#616871",
 
       /** @deprecated `text.white`를 사용한다. */
       base: "#FFFFFF",

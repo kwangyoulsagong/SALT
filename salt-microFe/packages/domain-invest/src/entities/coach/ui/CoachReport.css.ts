@@ -97,7 +97,7 @@ export const factBody = style({
 });
 
 export const factMeta = style({
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
@@ -172,7 +172,7 @@ export const stageCell = style({
 });
 
 export const stageLabel = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
@@ -188,7 +188,7 @@ export const stagePrice = style({
 });
 
 export const stageGap = style({
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
@@ -200,7 +200,7 @@ export const trendLine = style({
   margin: 0,
   display: "flex",
   gap: "6px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,

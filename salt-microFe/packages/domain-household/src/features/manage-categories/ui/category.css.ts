@@ -16,4 +16,4 @@ export const name = style({ fontSize: "14px", lineHeight: "20px", fontWeight: 50
 
 export const actions = style({ display: "flex", alignItems: "center", gap: "8px" });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

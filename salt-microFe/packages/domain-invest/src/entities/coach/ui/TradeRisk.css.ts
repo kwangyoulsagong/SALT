@@ -51,7 +51,7 @@ export const lineStrong = style({
 /** 계산 불가 · 안내 — 회색 12px. 대비는 AA(neutral 600) */
 export const hint = style({
   margin: 0,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });
@@ -176,7 +176,7 @@ export const planRow = style({
 });
 
 export const planLabel = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
@@ -197,7 +197,7 @@ export const planMeta = style({
   flexWrap: "wrap",
   alignItems: "center",
   gap: "6px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });

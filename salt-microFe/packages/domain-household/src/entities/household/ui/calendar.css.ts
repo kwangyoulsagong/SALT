@@ -11,7 +11,7 @@ export const head = style({ display: "flex", alignItems: "baseline", justifyCont
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const count = style({ fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const count = style({ fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const grid = style({ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "4px", margin: 0, padding: 0, listStyle: "none" });
 
@@ -28,7 +28,7 @@ export const srOnly = style({
   border: 0,
 });
 
-export const weekday = style({ textAlign: "center", fontSize: "11px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const weekday = style({ textAlign: "center", fontSize: "11px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 const cellBase = style({
   position: "relative",
@@ -44,7 +44,7 @@ const cellBase = style({
 });
 
 export const cell = styleVariants({
-  future: [cellBase, { color: vars.colors.neutral[600] }],
+  future: [cellBase, { color: vars.colors.text.tertiary }],
   spent: [cellBase],
   no_spend: [cellBase, { background: "rgba(7, 25, 76, 0.06)" }],
   blank: [cellBase],
@@ -80,4 +80,4 @@ export const dayButton = style({
   selectors: { "&:hover": { background: "rgba(7, 25, 76, 0.06)" }, "&:disabled": { cursor: "default" } },
 });
 
-export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

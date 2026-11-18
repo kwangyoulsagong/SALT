@@ -64,7 +64,7 @@ export const excerptStyles = style({
   WebkitLineClamp: 2,
   WebkitBoxOrient: "vertical",
   overflow: "hidden",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,
   wordBreak: "keep-all",

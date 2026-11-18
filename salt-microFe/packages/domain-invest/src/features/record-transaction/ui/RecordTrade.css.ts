@@ -23,7 +23,7 @@ export const title = style({
 
 export const description = style({
   margin: 0,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });
@@ -141,7 +141,7 @@ export const checklistBox = style({ flexShrink: 0, margin: 0, width: "16px", hei
 
 export const hint = style({
   margin: 0,
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
 });

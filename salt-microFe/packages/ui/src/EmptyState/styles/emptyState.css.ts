@@ -66,7 +66,7 @@ export const titleStyles = style({
   wordBreak: "keep-all",
 });
 
-/** 설명 — `text.tertiary`(2026-11-18 #656D76 으로 바꿔 흰 5.25 · 회색 바탕 4.76:1, `FE-REQ-047` FR-13) */
+/** 설명 — `text.tertiary`(2026-11-18 #616871 으로 바꿔 흰 5.63 · 회색 바탕 5.11:1, `FE-REQ-047` FR-13) */
 export const descriptionStyles = style({
   margin: 0,
   maxWidth: "320px",
