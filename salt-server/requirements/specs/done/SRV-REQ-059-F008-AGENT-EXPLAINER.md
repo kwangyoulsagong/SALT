@@ -6,7 +6,7 @@ kind: FUNC
 title: "해설 에이전트(O3) — 도구 고르기 · 서버가 예측 계약을 부름 · 기존 작성기 · 검증기 · 블라인드 A/B"
 priority: medium
 created: 2026-11-18
-status: in-progress
+status: done
 source: salt-forecast/requirements/specs/in-progress/FC-REQ-023-F008-AGENT-TOOLS.md (FR-7 — "착수 시점에 서버 REQ 추가") · ADR-007 §1-2
 ---
 
@@ -39,15 +39,16 @@ Spring AI 도구 호출은 S6 에 Kotlin 으로 옮길 때 다시 본다.
 | FR-5 | 개인 금액 0 — 해설 입력 · 고르기 요청 · 도구 사실 타입에 보유 수량 · 평단 · 손익 필드 없음(컴파일 시험) · 에이전트 코드 grep 시험 | done |
 | FR-6 | 실패 · 검증 탈락 · 비용 상한 → 기존 재료 해설 · 템플릿(빈칸 0). 고르기는 같은 24시간 원장 · 같은 로컬 CLI 게이트 | done |
 | FR-7 | 측정 — `CompareAgentExplanation`(저장 0) · `npm run explain:agent-ab` 평가지 둘(① 템플릿 vs 에이전트 · ② 지금 운영 해설 vs 에이전트) · 독립 평가자 셋 다수결 | done — 결과는 체크리스트 |
-| FR-8 | 켜기 — FR-7 에서 이긴 경우만 소유자 전용으로(전망 카드 줄이 소유자 전용 숫자) | 아래 판정 |
+| FR-8 | 켜기 — FR-7 에서 이긴 경우만 소유자 전용으로(전망 카드 줄이 소유자 전용 숫자) | **판정 2026-11-18: 켜지 않음** — 원인 분리 3회차 대조군 10 : 에이전트 6 |
 
 ## 판정 (FR-8)
 
-체크리스트 `SRV-REQ-059.md` "A/B" 절이 진실이다. 요약은 Changelog.
+**켜지 않는다.** 템플릿 대비 20:0 · 운영 해설 대비 14:5 를 넘었지만, 작성 프롬프트의 도구 줄만 같고 도구 사실이 0인 대조군이 에이전트를 10:6 으로 이겼다(원인 분리, 사용자 "원인 분리 실험 먼저" — 그래도 이기면 켬). 도구는 해설을 낫게 하지 않는다. 측정 경로는 남긴다. 표는 체크리스트 "A/B" 절.
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-18 | 신규(in-progress) — `FC-REQ-023` FR-7 의 서버 REQ. FR-1~7 구현(`feat/fc-req-023-agent-tools`) |
-| 2026-11-18 | A/B 두 회차 — ① 템플릿 대비 20:0 · 20:0 / ② 운영 해설 대비 3:17(도구를 늘 메뉴에) → 14:5(최근 실제 사건만 · 같이 언급 3건 이상만 · agent-plan@2). FR-8 켜기는 판정 대기(도구 인용 20건 중 2건 — 원인 분리 전). 루트 `requirements/specs/in-progress/F008-O3-agent-tools-slice.md` |
+| 2026-11-18 | A/B 두 회차 — ① 템플릿 대비 20:0 · 20:0 / ② 운영 해설 대비 3:17(도구를 늘 메뉴에) → 14:5(최근 실제 사건만 · 같이 언급 3건 이상만 · agent-plan@2). FR-8 켜기는 판정 대기(도구 인용 20건 중 2건 — 원인 분리 전). 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
+| 2026-11-18 | **done** — 원인 분리 3회차(`-r3-rule`) 대조군 10 : 에이전트 6 · 같음 4 → FR-8 켜지 않음. 대조군을 만들려고 도구 줄 조건을 "칸이 있으면"으로(운영 프롬프트 그대로 — `agentPrompt.test.ts`). 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |

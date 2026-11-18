@@ -1,0 +1,546 @@
+[
+  {
+    "no": 1,
+    "symbol": "005930",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:005930"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:005930"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 2,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 18187
+  },
+  {
+    "no": 2,
+    "symbol": "005930",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:005930"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:005930"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 2,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 25193
+  },
+  {
+    "no": 3,
+    "symbol": "000660",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:000660"
+      },
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:000660"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 2,
+    "currentDropped": 1,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 29088
+  },
+  {
+    "no": 4,
+    "symbol": "000660",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:000660"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:000660"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 28110
+  },
+  {
+    "no": 5,
+    "symbol": "035420",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:035420"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:035420"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 2,
+    "agentDropped": 1,
+    "currentDropped": 2,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 21215
+  },
+  {
+    "no": 6,
+    "symbol": "035420",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:035420"
+      },
+      {
+        "tool": "get_event_reactions",
+        "entity": "asset:kr:035420",
+        "eventKind": "earnings"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:035420"
+      },
+      {
+        "tool": "get_event_reactions",
+        "entity": "asset:kr:035420",
+        "eventKind": "ir"
+      }
+    ],
+    "rejected": 0,
+    "failedCalls": 0,
+    "toolFacts": 6,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 24748
+  },
+  {
+    "no": 7,
+    "symbol": "005380",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:005380"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:005380"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 23773
+  },
+  {
+    "no": 8,
+    "symbol": "005380",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:005380"
+      },
+      {
+        "tool": "get_event_reactions",
+        "entity": "asset:kr:005380",
+        "eventKind": "earnings"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:005380"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 5,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 28524
+  },
+  {
+    "no": 9,
+    "symbol": "068270",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:068270"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:068270"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 1,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 24223
+  },
+  {
+    "no": 10,
+    "symbol": "068270",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 2,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:kr:068270"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:kr:068270"
+      },
+      {
+        "tool": "get_neighbors",
+        "entity": "asset:kr:068270"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 29382
+  },
+  {
+    "no": 11,
+    "symbol": "BTC",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:BTC"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:BTC"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 7,
+    "toolCited": 0,
+    "ms": 25440
+  },
+  {
+    "no": 12,
+    "symbol": "BTC",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:BTC"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:BTC"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 6,
+    "toolCited": 0,
+    "ms": 26509
+  },
+  {
+    "no": 13,
+    "symbol": "ETH",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:ETH"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:ETH"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 2,
+    "currentDropped": 1,
+    "sentences": 5,
+    "toolCited": 0,
+    "ms": 31253
+  },
+  {
+    "no": 14,
+    "symbol": "ETH",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_event_reactions",
+        "entity": "asset:crypto:ETH",
+        "eventKind": "funding_short_crowded"
+      },
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:ETH"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:ETH"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 5,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 6,
+    "toolCited": 0,
+    "ms": 32099
+  },
+  {
+    "no": 15,
+    "symbol": "XRP",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:XRP"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:XRP"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 6,
+    "toolCited": 1,
+    "ms": 26093
+  },
+  {
+    "no": 16,
+    "symbol": "XRP",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:XRP"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:XRP"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 1,
+    "sentences": 6,
+    "toolCited": 1,
+    "ms": 29154
+  },
+  {
+    "no": 17,
+    "symbol": "SOL",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:SOL"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:SOL"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 0,
+    "sentences": 7,
+    "toolCited": 1,
+    "ms": 22498
+  },
+  {
+    "no": 18,
+    "symbol": "SOL",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:SOL"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:SOL"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 0,
+    "currentDropped": 0,
+    "sentences": 6,
+    "toolCited": 0,
+    "ms": 29451
+  },
+  {
+    "no": 19,
+    "symbol": "DOGE",
+    "mode": "scalp",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:DOGE"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:DOGE"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 6,
+    "toolCited": 1,
+    "ms": 27189
+  },
+  {
+    "no": 20,
+    "symbol": "DOGE",
+    "mode": "long_term",
+    "provider": "local_claude",
+    "plannedBy": "model",
+    "rounds": 1,
+    "calls": [
+      {
+        "tool": "get_forecast_card",
+        "entity": "asset:crypto:DOGE"
+      },
+      {
+        "tool": "get_documents",
+        "entity": "asset:crypto:DOGE"
+      }
+    ],
+    "rejected": 1,
+    "failedCalls": 0,
+    "toolFacts": 3,
+    "agentDropped": 1,
+    "currentDropped": 1,
+    "sentences": 6,
+    "toolCited": 0,
+    "ms": 31552
+  }
+]

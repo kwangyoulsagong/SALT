@@ -5,7 +5,7 @@ area: forecast
 kind: FUNC
 title: "에이전트 O3 — 도구 4종 · 검증기 연결 · 템플릿 대비 블라인드 A/B, 숫자는 만들지 않는다"
 priority: medium
-status: in-progress
+status: done
 created: 2026-10-30
 source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 ---
@@ -24,13 +24,13 @@ Python 상시 서버를 띄우지 않는다. 이 REQ 의 forecast 몫은 **도�
 | FR-3 | 검증기 재사용 — 숫자 대조(도구 결과에 없는 숫자 0) · 금지어 · 명령형 · 인용(`SRV-REQ-059` FR-4) | FR-41 | done |
 | FR-4 | 개인 금액(보유 수량 · 평단 · 원화 손익) 프롬프트 0 | 공통 수용 기준 | done |
 | FR-5 | 실패 · 검증 탈락 · 비용 상한 → 기존 재료 해설 · 템플릿 | FR-45 | done |
-| FR-6 | 평가 — 블라인드 A/B 20건(템플릿 vs 에이전트). 이긴 경우만 소유자 전용으로 켬. O2 관문 미달이면 mentions 간선 제외(관문은 `ontology_quality_gate` — `FC-REQ-022` FR-11). **더함 2026-11-18**: 지금 운영 해설(LLM, 2026-11-02 템플릿을 17:3 으로 이김) vs 에이전트도 잰다 — 템플릿만 이기면 약한 문턱 | FR-49 | 체크리스트 |
+| FR-6 | 평가 — 블라인드 A/B 20건(템플릿 vs 에이전트). 이긴 경우만 소유자 전용으로 켬. O2 관문 미달이면 mentions 간선 제외(관문은 `ontology_quality_gate` — `FC-REQ-022` FR-11). **더함 2026-11-18**: 지금 운영 해설(LLM, 2026-11-02 템플릿을 17:3 으로 이김) vs 에이전트도 잰다 — 템플릿만 이기면 약한 문턱 | FR-49 | **done 2026-11-18 — 켜지 않음**(템플릿 20:0 · 운영 해설 14:5 · 원인 분리 대조군 10 : 에이전트 6) |
 | FR-7 | 서버 쪽 구현 — S6 전이라 TS coach · 서버 REQ `SRV-REQ-059` | — | done |
 
 ## Acceptance Criteria
 
 - [x] 숫자 대조 변이 — 도구 결과에 없는 숫자 삽입 시 탈락(서버 `agentTools.test.ts` — 47% 통과 · 62% 탈락 · 도구 없으면 47% 도 탈락)
-- [ ] A/B 20건 결과 기록 · 판정
+- [x] A/B 20건 결과 기록 · 판정 — 세 회차 · 켜지 않음(체크리스트)
 - [x] 개인 금액 필드가 프롬프트 빌더 입력 타입에 없다(컴파일 시험 + 에이전트 코드 grep 시험)
 
 ## Changelog
@@ -38,4 +38,5 @@ Python 상시 서버를 띄우지 않는다. 이 REQ 의 forecast 몫은 **도�
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
-| 2026-11-18 | **구현**(`feat/fc-req-023-agent-tools` · 루트 `requirements/specs/in-progress/F008-O3-agent-tools-slice.md`) — to-do → in-progress. FR-1 · 2 정정(함수 · 반응 인자 · 출처) · FR-6 기준 더함(운영 해설 대비). 예측 몫: O2 관문 표 쓰기 · 도구 계약 시험(누수 1,000회 · 관문 · 백필 공시 · 허브 성능). 서버 몫 `SRV-REQ-059` · DDL `DB-REQ-045` |
+| 2026-11-18 | **구현**(`feat/fc-req-023-agent-tools` · 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md`) — to-do → in-progress. FR-1 · 2 정정(함수 · 반응 인자 · 출처) · FR-6 기준 더함(운영 해설 대비). 예측 몫: O2 관문 표 쓰기 · 도구 계약 시험(누수 1,000회 · 관문 · 백필 공시 · 허브 성능). 서버 몫 `SRV-REQ-059` · DDL `DB-REQ-045` |
+| 2026-11-18 | **done** — FR-6 판정: 켜지 않음. 원인 분리에서 도구 사실을 더한 해설이 더하지 않은 해설에 10:6 으로 졌다(평가자 셋). 계약 · 측정 경로는 남긴다. 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
