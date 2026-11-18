@@ -81,6 +81,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/previewChart` | `PreviewChart` | `data`, 크기와 차트 옵션 | `packages/ui/src/PreviewChart/PreviewChart.tsx` |
 | `@repo/ui/tradingChart` | `TradingChart` | `candles`(epoch ms), `height`, `intraday`, `name`, `priceLines`, `resetKey` — 캔버스 · 이동/확대 · 이동평균 · 거래량 | `packages/ui/src/TradingChart/TradingChart.tsx` |
 | `@repo/ui/sparkline` | `Sparkline` | `points`, `tone`, `width`, `height`, `label` | `packages/ui/src/Sparkline/Sparkline.tsx` |
+| `@repo/ui/radarChart` | `RadarChart` | `axes`(`value` null 허용 · `limit` · `breached`), `label`, `max`, `size` | `packages/ui/src/RadarChart/RadarChart.tsx` |
 | `@repo/ui/barChart` | `BarChart` | `items`, `label`, `height`, `max`, `showValues`, `format` | `packages/ui/src/BarChart/BarChart.tsx` |
 | `@repo/ui/highlight` | `Highlight` | `tone('brand'\|'ai'\|'up'\|'down'\|'neutral')` | `packages/ui/src/Highlight/Highlight.tsx` |
 | `@repo/ui/progressStepper` | `ProgressStepper` | `steps`, `current`, `label` | `packages/ui/src/ProgressStepper/ProgressStepper.tsx` |
@@ -190,6 +191,8 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 짧은 액션 목록 | `Menu` | 항목이 많거나 모바일이면 `BottomSheet` |
 | 지표·용어 설명 | `Tooltip` | 지금 읽어야 하는 경고는 `Banner`, 화면 아래 면책은 `BottomInfo` |
 | 코치 대화 한 마디 | `ChatBubble` | 감싸는 목록에 `role="log"`을 준다 |
+| 축 3개 이상 점수 · 상한 | `RadarChart` | 값 없는 축이 있으면 다각형을 잇지 않는다 · 그림 밖에 표를 둔다 |
+| 축 3개 이상 점수 · 상한 | `RadarChart` | 값 없는 축이 있으면 다각형을 잇지 않는다 · 그림 밖에 표를 둔다 |
 | 막대 비교 | `BarChart` | 캔들은 `PreviewChart`, 칩 추세선은 `Sparkline` |
 | PC에서 여러 패널 동시 보기 | `MovableGrid` | 탭으로 나누지 않는다 |
 
@@ -207,7 +210,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 
 ## Storybook 커버리지
 
-대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AppNavigation`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
+대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AppNavigation`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `RadarChart`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
 
 story가 없는 것: `Header`, `Icon`, `InputField`, `RadioButton`, `ServiceIcon`, `ServiceWrapper`, `StarIcon`, `Wrapper`. 이 중 `Header`·`InputField`·`RadioButton`은 각각 `AppBar`·`TextField`·`Checkbox`/`Toggle`로 대체 가능하다.
 
