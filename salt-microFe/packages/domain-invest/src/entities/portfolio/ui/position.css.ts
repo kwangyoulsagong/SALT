@@ -42,3 +42,20 @@ export const pairGrid = style({
 
 /** 표 안 짧은 낱말(축 이름) — 좁은 칸에서 한 글자씩 꺾이지 않게 */
 export const noWrap = style({ whiteSpace: "nowrap" });
+
+/** 거래 기록 한 줄(F006 G절 2단계) — 왼쪽 아이콘 · 이름 · 날짜, 오른쪽 수량 × 단가 · 총액. 좁은 칸은 금액 묶음이 아랫줄로 */
+export const ledgerRow = style({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 8,
+  width: "100%",
+});
+export const ledgerIdentity = style({ display: "flex", alignItems: "center", gap: 12, minWidth: 0 });
+export const ledgerAmounts = style({ display: "grid", justifyItems: "end", gap: 2, fontVariantNumeric: "tabular-nums", marginLeft: "auto" });
+export const ledgerTexts = style({ display: "grid", gap: 2, minWidth: 0 });
+export const ledgerName = style({ fontWeight: 600, color: vars.colors.text.primary, overflowWrap: "anywhere" });
+/** 작은 보조 글자 — 행 호버 면(neutral 50) 위에서도 AA. `subtle` 단은 흰 면 4.62 · 호버 면 4.41 이라 모자랐다(2026-11-18 axe) */
+export const ledgerSub = style({ fontSize: 13, color: vars.colors.text.secondary });
+export const ledgerTotal = style({ fontWeight: 600, color: vars.colors.text.primary });

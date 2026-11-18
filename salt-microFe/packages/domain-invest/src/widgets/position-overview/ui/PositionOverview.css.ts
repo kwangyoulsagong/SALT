@@ -14,3 +14,9 @@ export const emptyLink = style({
   textDecoration: "none",
   ":hover": { color: vars.colors.text.primary },
 });
+
+/** 패널 머리 오른쪽 [거래 기록 추가] */
+export const headAction = style({ marginLeft: "auto" });
+
+/** 하단 링크 둘(FR-109) — 다른 페이지로 가니 오른쪽 셰브론 · 글자 링크 */
+export const footLinks = style({ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "flex-end" });

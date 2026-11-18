@@ -37,6 +37,8 @@ export const ROUTES = {
   coachChat: "/coach/chat",
   /** 익절 · 손절 계획이 있는 곳 — 포트폴리오(보유마다 점검 가격) */
   portfolio: "/portfolio",
+  /** 보유 기록 관리 — 거래 목록 · 고치기 · 지우기(F006 G절 2단계) */
+  portfolioTransactions: "/portfolio/transactions",
   /** 코치 리포트의 한 섹션 — 투자 화면 요약 띠가 여기로 간다 */
   coachReportSection: (id: CoachReportSection) => `/coach/report#${id}`,
   /** 판정 근거 상세 — 성적표 그룹 하나(`[kr_stock.]<mode>.<action>`). 성적표 그룹이 여기로 온다(F004 FR-33) */
