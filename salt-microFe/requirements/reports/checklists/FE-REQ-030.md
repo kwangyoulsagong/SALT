@@ -79,3 +79,4 @@
 - `check-types` 13/13 · `lint` · `pnpm test`(core 302 · ui 63) · `test:layer-check` · `web-investment` 운영 빌드(복사본 — `/portfolio` 149 kB = 1단계 149 · `/portfolio/transactions` 149 kB) · 레이어 훅 사후(바뀐 파일 전부 통과) — pass
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+- 확인 2회차: 시트 숫자 · 날짜 칸 Enter 저장 되살림(`<form>` 을 걷으며 빠진 동작) — 타입 · lint pass

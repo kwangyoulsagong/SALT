@@ -35,3 +35,4 @@
 - 같은 원인 고침: `useRecordTrade` 가 `positionAll` 무효화
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+- 확인 2회차: main 대조 — 상세 기록 → 같은 zone 안 이동으로 돌아온 포지션 갱신(2,788,000 → 2,858,000), 무효화 줄을 빼면 그대로(main 결함 재현) — pass

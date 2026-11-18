@@ -9,7 +9,7 @@ import { SegmentedControl } from "@repo/ui/segmentedControl";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { StatusLine } from "@repo/ui/statusLine";
 import { TextField } from "@repo/ui/textField";
-import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import {
   INSUFFICIENT_QUANTITY_CODE,
@@ -206,6 +206,13 @@ const LedgerForm = ({ editing, onClose }: { editing: PositionTransactionVM | nul
     );
   };
 
+  // `<form>` 이 아니라 Enter 저장이 저절로 안 된다 — 숫자 · 날짜 칸에서 Enter 면 저장 버튼과 같은 길(막힘 · 진행 중이면 무시)
+  const submitOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    if (!saving) onSubmit();
+  };
+
   const writeMessage =
     writeError?.code === INSUFFICIENT_QUANTITY_CODE ? M.insufficient : hasApiStatus(writeError, 404) ? M.notFound : writeError ? M.failed : null;
   const deleteMessage =
@@ -268,6 +275,7 @@ const LedgerForm = ({ editing, onClose }: { editing: PositionTransactionVM | nul
           autoComplete="off"
           value={nums.value("quantity")}
           onChange={(value) => nums.change("quantity", value)}
+          onKeyDown={submitOnEnter}
           error={nums.message("quantity") ?? (touched && quantity === null ? M.invalidAmount : undefined)}
         />
       </Field>
@@ -279,12 +287,13 @@ const LedgerForm = ({ editing, onClose }: { editing: PositionTransactionVM | nul
           autoComplete="off"
           value={nums.value("price")}
           onChange={(value) => nums.change("price", value)}
+          onKeyDown={submitOnEnter}
           trailing={<span className={note}>{M.priceUnit}</span>}
           error={nums.message("price") ?? (touched && price === null ? M.invalidAmount : undefined)}
         />
       </Field>
       <Field id={ids.date} label={M.date}>
-        <TextField id={ids.date} variant="compact" type="date" max={today || undefined} value={date} onChange={setDate} />
+        <TextField id={ids.date} variant="compact" type="date" max={today || undefined} value={date} onChange={setDate} onKeyDown={submitOnEnter} />
       </Field>
 
       <LedgerPreviewCard
