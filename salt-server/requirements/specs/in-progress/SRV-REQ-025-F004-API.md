@@ -355,3 +355,4 @@ type ExplainResult =
 | 2026-11-16 | 단타 방향 확률 사전등록 키 `short-direction@3` → `@4`(`SHORT_DIRECTION_KEY` · 라우트 문서 주석) — 예측 배치의 동결 재생(FC-REQ-028 2026-11-16). 응답 모양 무변경 |
 | 2026-11-16 | 단타 키 `@4` → `@5`(예측 쪽 재생 코드 가드 정정 — FC-REQ-028). 응답 모양 무변경 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `/api/coach/events` Swagger 에 `earnings` 블록 · 종류 둘 |
+| 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 `explanationPrompt.ts` 에 도구 사실 블록 · 쓰는 조건 한 줄을 더했다(입력에 `tools` 가 있을 때만 — 없으면 프롬프트 바이트 같음, 주인 `SRV-REQ-059`). 루트 `requirements/specs/in-progress/F008-O3-agent-tools-slice.md` |

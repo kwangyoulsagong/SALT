@@ -38,6 +38,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 ## Changelog
 
+- 2026-11-18: 해설 허용 숫자(`allowedFacts`)에 에이전트 도구 사실 — 예측 계약 숫자는 모든 칸, 제목 줄 숫자는 뉴스 칸만(기사 규칙과 같다). 도구 칸이 없으면 동작 같음(주인 `SRV-REQ-059`, 루트 `requirements/specs/in-progress/F008-O3-agent-tools-slice.md`)
 - 2026-11-12: `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만)
 - 2026-10-23: F011 5e — 국내 상태 사유 4개를 `KNOWN_RANGE_REASONS` 에(`FC-REQ-020` FR-9). 없으면 "표본이 쌓이는 중"으로 접힌다
 
