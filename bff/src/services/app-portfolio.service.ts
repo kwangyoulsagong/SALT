@@ -5,6 +5,15 @@ import {
   type PortfolioSummaryVM,
   type ServerPortfolioSummary,
 } from "./portfolio.viewmodel";
+import {
+  toPositionFlowViewModel,
+  toPositionOverviewViewModel,
+  type FlowRange,
+  type PositionFlowVM,
+  type PositionOverviewVM,
+  type ServerPositionFlow,
+  type ServerPositionOverview,
+} from "./position.viewmodel";
 
 export type { PortfolioSummaryVM };
 
@@ -82,6 +91,56 @@ class AppPortfolioService {
     }
 
     return toPortfolioSummaryViewModel(summary, nameBySymbol, namesDegraded, logoBySymbol);
+  }
+
+  /**
+   * 포지션 개요(F006 G절 FR-70 · 73) — 서버 계산을 그대로 옮기고 최대 비중 종목에만 이름 · 로고를 붙인다.
+   * 이름 조회는 개요를 받은 **뒤** 한 종목만(최대 비중) — 실패하면 심볼을 이름 자리에 두고 `namesDegraded`(금액은 그대로)
+   */
+  async getPosition(token: string): Promise<PositionOverviewVM> {
+    const response = await backendApi.proxyAuthRequest("GET", "/portfolio/position", token);
+    const server = (response.data as { data: ServerPositionOverview }).data;
+    const top = server.hero?.topWeight;
+    if (!top) return toPositionOverviewViewModel(server, new Map(), false);
+    const { names, degraded } = await this.namesFor(token, [{ symbol: top.symbol, assetType: top.assetType }]);
+    return toPositionOverviewViewModel(server, names, degraded);
+  }
+
+  /** 평가금 흐름(기간 버튼) — 서버 그대로(BFF 계산 0) */
+  async getPositionFlow(token: string, range: FlowRange): Promise<PositionFlowVM> {
+    const response = await backendApi.proxyAuthRequest("GET", `/portfolio/position/flow?range=${range}`, token);
+    return toPositionFlowViewModel((response.data as { data: ServerPositionFlow }).data);
+  }
+
+  /** 종목 이름 · 로고 — 코인은 시세 목록, 국내는 국내 목록(보유 요약과 같은 출처) */
+  private async namesFor(
+    token: string,
+    items: Array<{ symbol: string; assetType: string }>,
+  ): Promise<{ names: Map<string, { name: string; logoUrl: string | null }>; degraded: boolean }> {
+    const names = new Map<string, { name: string; logoUrl: string | null }>();
+    let degraded = false;
+    const crypto = items.filter((i) => i.assetType === "crypto").map((i) => i.symbol.toUpperCase());
+    const [marketResult, krResult] = await Promise.allSettled([
+      crypto.length > 0 ? backendApi.getMarketOverview({ page: 1, limit: NAME_LOOKUP_LIMIT }) : Promise.resolve(null),
+      this.krNames(token, { items: items.map((i) => ({ ...i, currentValue: 0, profitRate: 0 })) }),
+    ]);
+    if (marketResult.status === "fulfilled") {
+      for (const asset of marketResult.value?.items ?? []) {
+        const symbol = String(asset?.symbol ?? "").toUpperCase();
+        if (crypto.includes(symbol) && asset?.koreanName) {
+          names.set(symbol, { name: asset.koreanName, logoUrl: typeof asset.logoUrl === "string" && asset.logoUrl ? asset.logoUrl : null });
+        }
+      }
+      if (crypto.some((symbol) => !names.has(symbol))) degraded = true;
+    } else {
+      degraded = true;
+      logger.warn("포지션에 종목명을 붙이지 못했다 — 심볼로 대체한다", { reason: marketResult.reason?.message });
+    }
+    if (krResult.status === "fulfilled" && krResult.value) {
+      for (const [code, value] of krResult.value.found) names.set(code, value);
+      if (krResult.value.degraded) degraded = true;
+    }
+    return { names, degraded };
   }
 
   /**
