@@ -42,6 +42,8 @@ import { CoachedUsersAdapter } from "./coach/infrastructure/CoachedUsersAdapter"
 import { TrackedAssetAdapter } from "./coach/infrastructure/TrackedAssetAdapter";
 import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
 import { createCoachReportRouter } from "./coach/presentation/coachReport.routes";
+import { createCoachConversationRouter } from "./coach/presentation/coachConversation.routes";
+import { PrismaCoachConversationStore } from "./coach/infrastructure/PrismaCoachConversationStore";
 import {
   createBehaviorCoachRouter,
   createProfitPlanRouter,
@@ -311,6 +313,8 @@ const roundTripCosts: RoundTripCosts = {
 // 원인 칸(패널) · 원인 스냅샷(5a)이 같은 ACL 하나를 쓴다
 const moveCauseAdapter = new MoveCauseAdapter(market.api);
 const coach = createCoachApplication({
+  // 코치 대화(F006 C절)
+  conversations: new PrismaCoachConversationStore(),
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
   // 판단 변화 = 이벤트 `coach.DecisionChanged`(coach.outbox → 플랫폼 릴레이 → notification, `SRV-REQ-048` FR-5)
@@ -418,4 +422,5 @@ export const contextRouters = {
   tradePreflight: createTradePreflightRouter(coach.useCases),
   signalPerformance: createSignalPerformanceRouter(coach.useCases),
   coachReport: createCoachReportRouter(coach.useCases),
+  coachConversation: createCoachConversationRouter(coach.useCases),
 };

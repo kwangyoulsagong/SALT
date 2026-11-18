@@ -96,6 +96,8 @@ app.use("/api/behavior-coach", contextRouters.behaviorCoach);
 app.use("/api/profit-plan", contextRouters.profitPlan);
 app.use("/api/signal-performance", contextRouters.signalPerformance);
 app.use("/api/coach", contextRouters.coachReport);
+// 코치 대화(F006 C절) — 같은 접두사, 경로가 겹치지 않는다(`/messages` · `/conversations`)
+app.use("/api/coach", contextRouters.coachConversation);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {

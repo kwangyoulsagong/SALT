@@ -37,6 +37,7 @@ source: 사용자 2026-11-10 — "헤더바 좌측은 유지이고 헤더에는 
 |---|---|
 | 2026-11-10 | 신규 · in-progress — 리서치 · 결정(레일 복원 · 투자 메뉴 다섯 · 검색은 투자만 · 포트폴리오 분리) |
 | 2026-11-10 | in-progress → done — `f193c6aa` · `29b9a212` · 번들 `c914fe2e`(뉴스 모달 늦게 싣기 — `FE-REQ-065`) |
+| 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/pages/investments/ui/InvestHeaderNav.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/portfolio/ui/PortfolioBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

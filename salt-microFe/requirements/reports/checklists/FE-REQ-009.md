@@ -338,3 +338,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `layer-rules.cjs`(머리 주인) 위젯 `scenario-panel` 더함 · 기능 `explain-symbol` 뺌(슬라이스 삭제) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |
+
+## 2026-11-18 F006 코치 대화 — 페이지 슬라이스 `coach-chat`
+
+- 레지스트리에 `coach-chat` · lint 13 통과 · layer-check 16+10 · 운영 빌드 리포트 149 kB = main

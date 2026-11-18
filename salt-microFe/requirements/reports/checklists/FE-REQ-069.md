@@ -33,3 +33,7 @@
   - `salt-microFe/packages/domain-invest/src/pages/portfolio/ui/PortfolioBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
+
+- 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)

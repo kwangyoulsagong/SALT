@@ -78,3 +78,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-16 | FR-15 — 수급 export 뷰 둘(`v_kr_investor_flow_export` · `v_kr_program_flow_export`, 마이그레이션 `20261116210200`) · `forecast.fact.value_num` double → numeric(`20261116210300` — 원화 금액이 들어와서, db-contract §3) |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `extracted_fact` 저장이 원문 키 단위로 바꿈(다시 추출하면 같은 '무엇'은 같은 id 갱신 · 안 나온 것 지움, `SRV-REQ-058` FR-9). 실DB 시험 행으로 확인 |
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 coach `application/api/index.ts` 에 측정 유스케이스 `compareAgentExplanation` 조립만 더했다(주인 `SRV-REQ-059`). 스냅샷 표 · 뷰 변경 0. 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
+| 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |

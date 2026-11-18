@@ -2,6 +2,7 @@ import { ReportTriadGaps } from "../ReportTriadGaps";
 import type {
   AgentPlanner,
   AgentToolReader,
+  CoachConversationStore,
   CoachExplainer,
   ExplanationSnapshotStore,
   LlmBudgetLimits,
@@ -94,6 +95,15 @@ import {
 import { PublishJudgmentLedger } from "../PublishJudgmentLedger";
 import { RefreshGaugeTrackRecords } from "../RefreshGaugeTrackRecords";
 import { RequestCoachGeneration } from "../RequestCoachGeneration";
+import {
+  AnswerCoachMessage,
+  AskCoach,
+  DeleteCoachConversation,
+  FailStaleCoachAnswers,
+  ListCoachConversations,
+  ListCoachMessages,
+} from "../CoachConversation";
+import { logger } from "../../../shared/config/logger";
 
 /**
  * `coach` 의 조립 팩토리.
@@ -189,6 +199,8 @@ export interface CoachDependencies {
   /** 원인 스냅샷(F017 v4 5a) — 원인 칸과 같은 조립 + 분해 · `cause_snapshot` */
   causeSnapshots: CauseSnapshotReader;
   causeSnapshotStore: CauseSnapshotStore;
+  /** 코치 대화(F006 C절) — `coach_conversations` · `coach_messages` */
+  conversations: CoachConversationStore;
 }
 
 export interface CoachUseCases {
@@ -264,6 +276,13 @@ export interface CoachUseCases {
   /** F009 슬라이스 6 — 월간 복기(월초 배치 · 첫 조회가 만든다) */
   buildMonthlyReview: BuildMonthlyReview;
   getMonthlyReview: GetMonthlyReview;
+  /** 코치 대화(F006 C절 · `SRV-REQ-028`) — 질문 저장 · 규칙 답 · 목록 · 지우기 · 멈춘 답 정리 */
+  askCoach: AskCoach;
+  answerCoachMessage: AnswerCoachMessage;
+  listCoachConversations: ListCoachConversations;
+  listCoachMessages: ListCoachMessages;
+  deleteCoachConversation: DeleteCoachConversation;
+  failStaleCoachAnswers: FailStaleCoachAnswers;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -301,6 +320,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
   );
 
   const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market, deps.forecasts);
+  const getBehaviorCoach = new GetBehaviorCoach(deps.portfolio, analyzeTradingBehavior);
+  const listProfitPlans = new ListProfitPlans(deps.portfolio, deps.forecasts);
+  const failStaleCoachAnswers = new FailStaleCoachAnswers(deps.conversations);
   const buildMonthlyReview = new BuildMonthlyReview(
     deps.monthlyReviews,
     deps.profiles,
@@ -443,13 +465,13 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     }),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
-    getBehaviorCoach: new GetBehaviorCoach(deps.portfolio, analyzeTradingBehavior),
+    getBehaviorCoach,
     checkTradePreflight: new CheckTradePreflight(
       deps.market,
       deps.portfolio,
       deps.profiles
     ),
-    listProfitPlans: new ListProfitPlans(deps.portfolio, deps.forecasts),
+    listProfitPlans,
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
     getJudgmentScoreboard: new GetJudgmentScoreboard(
       deps.judgments,
@@ -530,6 +552,17 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       buildMonthlyReview,
       deps.market
     ),
+    askCoach: new AskCoach(deps.conversations),
+    // 답 재료는 같은 컨텍스트의 기존 계산 — 위험 예산 · 익절/손절 계획 · 행동 코치(숫자를 새로 만들지 않는다)
+    answerCoachMessage: new AnswerCoachMessage(
+      deps.conversations,
+      { riskBudget: getRiskBudget, profitPlans: listProfitPlans, behavior: getBehaviorCoach },
+      (message) => logger.warn(message)
+    ),
+    listCoachConversations: new ListCoachConversations(deps.conversations),
+    listCoachMessages: new ListCoachMessages(deps.conversations, failStaleCoachAnswers),
+    deleteCoachConversation: new DeleteCoachConversation(deps.conversations),
+    failStaleCoachAnswers,
   };
 
   return { useCases };

@@ -191,3 +191,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 홈 3블록(FR-20 · 25), FR-27(`fxBasisCode` nullable), FR-29(홈 알림 목록 → 안 읽은 수, D6). 추가: FR-70~73(포지션 B13) · FR-80~85(거래 쓰기 중계 B14) · FR-90~93(알림 D5 · B19) · FR-100~104(설정 D9 · B16) · FR-110~112(온보딩 B12, **BREAKING** 단계 키). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-10-29 | 전수 조사 — 서버 홈 조립 부재 · 기존 거래 쓰기 경로 기록 |
+| 2026-11-18 | **대화 중계 구현** — `/api/app/coach/messages` · `/messages/:id/stream` · `/conversations` · 지우기. FR-9 · 10 · 11 · 12 · 40 · 41 · 65. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |

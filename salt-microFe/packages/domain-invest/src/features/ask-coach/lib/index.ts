@@ -1,0 +1,1 @@
+export { coachLinkTarget } from "./linkHref";

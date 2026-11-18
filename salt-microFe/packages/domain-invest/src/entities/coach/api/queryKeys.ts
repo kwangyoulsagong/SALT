@@ -49,4 +49,7 @@ export const coachQueryKeys = {
   monthlyReview: (month: string | null) => ["coach", "monthly-review", month ?? "latest"] as const,
   /** 국내판(F011 FR-48) — 코인판과 따로 저장되고 따로 바뀌지 않는다 */
   krMonthlyReview: (month: string | null) => ["coach", "monthly-review", "kr-stock", month ?? "latest"] as const,
+  /** 코치 대화(F006) — 묻기가 끝나면 목록 · 그 대화 메시지를 버린다 */
+  conversations: () => ["coach", "conversations"] as const,
+  messages: (conversationId: string) => ["coach", "conversations", conversationId, "messages"] as const,
 } as const;

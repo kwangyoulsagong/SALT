@@ -646,6 +646,49 @@ model JudgmentLedgerEntry {
 
 /// 사기 전 · 팔기 전 점검 원장(F017 v2 단계 2 · SRV-REQ-053 FR-4 · DB-REQ-043 FR-7). 사용자 열 0 — 종목 · 조건 · 기준 봉 단위로
 /// 처음 본 한 줄만(같은 키는 ON CONFLICT DO NOTHING). 나중 채점(FC-REQ-028 FR-4)이 첫 점검 가격 → h 뒤 종가를 본다
+// 코치 대화 (F006 C절 · DB-REQ-021 FR-1~10 · SRV-REQ-028). 사람 표 — 대화 하나에 메시지 여럿, 최신부터 읽는다.
+// 답은 서버 규칙 문장(LLM 0 — 이번 판). 메시지 수 · 마지막 시각은 메시지 쓰기와 같은 트랜잭션(DB-REQ-022 FR-30 · 31)
+model CoachConversation {
+  id            String         @id @default(uuid())
+  userId        String         @map("user_id")
+  title         String?
+  messageCount  Int            @default(0) @map("message_count")
+  lastMessageAt DateTime       @map("last_message_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  messages      CoachMessage[]
+
+  @@index([userId, lastMessageAt(sort: Desc)])
+  @@map("coach_conversations")
+}
+
+// 메시지 한 줄 — 사용자 질문 또는 코치 답. 답은 질문과 같은 트랜잭션에 `streaming` 으로 먼저 생기고(messageId 선발급 — FR-2)
+// 스트림이 열릴 때 규칙 답으로 `complete` 가 된다. 조건부 UPDATE(status = streaming) 라 두 스트림이 겹쳐도 한 벌
+model CoachMessage {
+  id                String            @id @default(uuid())
+  conversationId    String            @map("conversation_id")
+  userId            String            @map("user_id")
+  /// user | assistant
+  role              String
+  content           String            @default("")
+  /// 질문 분류(SRV-REQ-028 FR-20) — 답 행에만
+  intent            String?
+  /// streaming | complete | failed
+  status            String            @default("complete")
+  /// rule | llm — 이번 판은 rule 만(DB-REQ-021 FR-6)
+  explanationSource String?           @map("explanation_source")
+  /// 답 아래 화면 이동 코드 · 못 읽은 재료 — 조건으로 쓰지 않는다(표시용)
+  linksJson         Json?             @map("links_json")
+  gaps              String[]          @default([])
+  errorCode         String?           @map("error_code")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  conversation      CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("coach_messages")
+}
+
 // 해설 스냅샷 (F017 v2 단계 3 · DB-REQ-043 FR-1 · SRV-REQ-053 FR-3). 시장 층 — 사용자 열 0.
 // 배치가 종목 지문이 바뀐 것만 만들고 요청 경로는 읽기만 한다. 불변(UPDATE 트리거 차단) · 보존 종목 · 모드당 최근 N
 model ExplanationSnapshot {

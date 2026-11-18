@@ -44,3 +44,11 @@
 
 - 메모 — 앱 하단 탭이 4개(홈 · 저축 · 가계부 · 투자)가 됐다(`FE-REQ-054`, `FEATURE-015` FR-8). 이 REQ 의 3탭(홈 · 코치 · 자산)은 투자 zone 안 탭으로 다시 쓰는 범위(`FEATURE-015` 범위 밖)다. 코드 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-18 F006 코치 대화 1단계(`feat/f006-coach-conversation`)
+
+- FR-30 · 32 · 33 · 34 — `features/ask-coach/ui/CoachConversation.tsx` — 실화면 1280 · 390 앱 웹뷰 pass
+- FR-32 정정 — "지금 팔아야 하나?" 는 검사기 명령형 → "지금 팔 때인가?"
+- 미충족: FR-31 첫 메시지 브리핑 카드 · FR-39 위로 더 읽기 · FR-51 PC 격자 — F006 2단계
+- 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+- 운영 빌드(worktree): 리포트 · 설정 첫 로드 156 kB 퇴행(같은 페이지 배럴) → `pages/coach-chat` 분리로 149 kB = main · `/coach/chat` 155 kB

@@ -61,3 +61,7 @@
 - 공용 설정 `routes.ts` — `COACH_MODE_PARAM` 삭제(소비처 0) · 리포트 섹션 `targetWeight` 삭제 · `WHY_MOVED_ANCHOR_ID` 추가(F017 v4 순서 6)
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
+
+- 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)

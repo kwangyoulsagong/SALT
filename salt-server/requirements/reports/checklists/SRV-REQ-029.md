@@ -7,3 +7,15 @@
 | 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 이 REQ 의 나머지 FR | F006 본편 | F006 슬라이스 |
+
+## 2026-11-18 F006 코치 대화 1단계(`feat/f006-coach-conversation`)
+
+- FR-1 · 2 — POST 즉시 201(답 자리 선발급) — pass
+- FR-3 · 4 — `Last-Event-ID` = 문장 번호, 다음 문장부터 · 저장본은 전문 + done(`replayed`) — 실 curl pass
+- FR-5 — 카드 이벤트 없음(이번 답에 카드 없음) — 해당 없음
+- FR-6 — `message.error` + `fallbackText` — pass
+- FR-8 — SSE 헤더 — pass
+- FR-10 — 사람마다 4 넘으면 429 — pass
+- FR-28 · 29 · 32 — 역순 커서 · 사용자 지울 때만 · Swagger(Coach Conversation) — pass
+- 미충족: 홈 · 패널 배치 · 포지션 · 알림 계약 — F006 다음 슬라이스
+- 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`

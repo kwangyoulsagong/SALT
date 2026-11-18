@@ -33,6 +33,10 @@ export const ROUTES = {
   investmentDetail: (symbol: string) => `/investments/${encodeURIComponent(symbol)}`,
   /** 코치 리포트. 투자 화면 머리에서 들어온다 */
   coachReport: "/coach/report",
+  /** 코치 대화 — 투자 머리 메뉴에서 들어온다(F006 C절 · `FE-REQ-031`) */
+  coachChat: "/coach/chat",
+  /** 익절 · 손절 계획이 있는 곳 — 포트폴리오(보유마다 점검 가격) */
+  portfolio: "/portfolio",
   /** 코치 리포트의 한 섹션 — 투자 화면 요약 띠가 여기로 간다 */
   coachReportSection: (id: CoachReportSection) => `/coach/report#${id}`,
   /** 판정 근거 상세 — 성적표 그룹 하나(`[kr_stock.]<mode>.<action>`). 성적표 그룹이 여기로 온다(F004 FR-33) */

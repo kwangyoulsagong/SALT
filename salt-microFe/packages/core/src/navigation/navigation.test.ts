@@ -104,6 +104,7 @@ describe("투자 zone 머리 메뉴(FE-REQ-069 FR-2)", () => {
     ["/portfolio", null, InvestMenuId.Portfolio],
     ["/coach/report", null, InvestMenuId.Report],
     ["/coach/signals/whale_buy", null, InvestMenuId.Report],
+    ["/coach/chat", null, InvestMenuId.CoachChat],
     ["/coach/settings", null, InvestMenuId.CoachSettings],
     ["/search", null, null],
     ["/home", null, null],
@@ -112,7 +113,7 @@ describe("투자 zone 머리 메뉴(FE-REQ-069 FR-2)", () => {
   });
 
   it("메뉴 순서 · 주식만 국내 소유자", () => {
-    expect(INVEST_MENU.map((m) => m.label)).toEqual(["코인", "주식", "포트폴리오", "리포트", "코치 설정"]);
+    expect(INVEST_MENU.map((m) => m.label)).toEqual(["코인", "주식", "포트폴리오", "리포트", "코치 대화", "코치 설정"]);
     expect(INVEST_MENU.filter((m) => m.requiresKrViewer).map((m) => m.id)).toEqual([InvestMenuId.Stock]);
   });
 });
