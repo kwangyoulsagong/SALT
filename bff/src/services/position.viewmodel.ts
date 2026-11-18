@@ -64,6 +64,74 @@ export interface PositionFlowVM {
   degraded: boolean;
   degradedReasons: string[];
 }
+
+/** 거래 기록(F006 G절 2단계 · `BFF-REQ-027` FR-80~85) — 주문이 아니다. 이미 한 거래를 적는다 */
+export type LedgerAssetType = "crypto" | "kr_stock";
+export type LedgerSide = "buy" | "sell";
+
+export interface PositionTransactionVM {
+  id: string;
+  symbol: string;
+  assetType: LedgerAssetType;
+  /** 이름을 못 붙이면 심볼 · 코드 — `namesDegraded` */
+  name: string;
+  logoUrl: string | null;
+  side: LedgerSide;
+  quantity: number;
+  price: number;
+  /** 서버가 저장한 수량 × 단가 */
+  totalAmount: number;
+  fee: number;
+  /** ISO 시각 */
+  transactionDate: string;
+}
+
+export interface PositionTransactionPageVM {
+  /** 최신순 */
+  items: PositionTransactionVM[];
+  page: number;
+  totalPages: number;
+  total: number;
+  namesDegraded: boolean;
+}
+
+/** 보유 수량 · 평단 · 총 취득금액 — 서버 FIFO 재계산 값. 보유가 없어지면 셋 다 0 */
+export interface LedgerFigures {
+  quantity: number;
+  averageBuyPrice: number;
+  totalInvested: number;
+}
+
+export interface TransactionPreviewVM {
+  symbol: string;
+  assetType: LedgerAssetType;
+  before: LedgerFigures;
+  after: LedgerFigures;
+}
+
+/** 새 거래 — 종목 · 매수/매도는 만들 때만 정한다 */
+export interface TransactionCreateInput {
+  assetType: LedgerAssetType;
+  symbol: string;
+  side: LedgerSide;
+  quantity: number;
+  price: number;
+  /** ISO 시각. 주지 않으면 지금 */
+  transactionDate?: string;
+}
+
+/** 수정 — 종목 · 매수/매도는 바꾸지 않는다(지우고 다시 적는다) */
+export interface TransactionPatchInput {
+  quantity?: number;
+  price?: number;
+  transactionDate?: string;
+}
+
+/** 미리보기 — 새 거래 또는 고친 거래(`transactionId`) */
+export type TransactionPreviewInput = TransactionCreateInput | (TransactionPatchInput & { transactionId: string });
+
+/** 거래 쓰기 거부 코드 — 서버 코드 그대로. 문구는 화면이 고른다 */
+export const INSUFFICIENT_QUANTITY_CODE = "PORTFOLIO_INSUFFICIENT_QUANTITY";
 // CONTRACT:END PositionView
 
 export interface ServerPositionOverview {
@@ -144,4 +212,67 @@ export const toPositionFlowViewModel = (server: ServerPositionFlow): PositionFlo
   missingSymbols: server.missingSymbols,
   degraded: server.degraded,
   degradedReasons: server.degradedReasons,
+});
+
+/** 서버 거래 행(`GET /api/portfolio/transactions` · 쓰기 응답) — 쓰는 칸만 */
+export interface ServerTransaction {
+  id: string;
+  symbol: string;
+  assetType: string;
+  transactionType: string;
+  quantity: number;
+  price: number;
+  totalAmount: number;
+  fee: number;
+  transactionDate: string;
+}
+
+export interface ServerTransactionPage {
+  transactions: ServerTransaction[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/** 이 화면이 아는 자산군만 — 다른 자산군 행(옛 `stock` 등)은 목록에서 고칠 수 없어 싣지 않는다 */
+export const isLedgerAssetType = (value: string): value is LedgerAssetType => value === "crypto" || value === "kr_stock";
+
+export const toPositionTransactionViewModel = (
+  row: ServerTransaction & { assetType: LedgerAssetType },
+  names: ReadonlyMap<string, { name: string; logoUrl: string | null }>,
+): PositionTransactionVM => {
+  const named = names.get(row.symbol.toUpperCase()) ?? { name: row.symbol, logoUrl: null };
+  return {
+    id: row.id,
+    symbol: row.symbol,
+    assetType: row.assetType,
+    name: named.name,
+    logoUrl: named.logoUrl,
+    side: row.transactionType === "sell" ? "sell" : "buy",
+    quantity: row.quantity,
+    price: row.price,
+    totalAmount: row.totalAmount,
+    fee: row.fee,
+    transactionDate: new Date(row.transactionDate).toISOString(),
+  };
+};
+
+export const toPositionTransactionPageViewModel = (
+  server: ServerTransactionPage,
+  names: ReadonlyMap<string, { name: string; logoUrl: string | null }>,
+  namesDegraded: boolean,
+): PositionTransactionPageVM => ({
+  items: server.transactions
+    .filter((row): row is ServerTransaction & { assetType: LedgerAssetType } => isLedgerAssetType(row.assetType))
+    .map((row) => toPositionTransactionViewModel(row, names)),
+  page: server.pagination.page,
+  totalPages: server.pagination.totalPages,
+  total: server.pagination.total,
+  namesDegraded,
+});
+
+/** 미리보기 — 서버 값 그대로(BFF 가 평단을 계산하지 않는다, FR-81) */
+export const toTransactionPreviewViewModel = (server: TransactionPreviewVM): TransactionPreviewVM => ({
+  symbol: server.symbol,
+  assetType: server.assetType,
+  before: { quantity: server.before.quantity, averageBuyPrice: server.before.averageBuyPrice, totalInvested: server.before.totalInvested },
+  after: { quantity: server.after.quantity, averageBuyPrice: server.after.averageBuyPrice, totalInvested: server.after.totalInvested },
 });

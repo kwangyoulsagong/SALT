@@ -8,7 +8,19 @@ import {
 import {
   toPositionFlowViewModel,
   toPositionOverviewViewModel,
+  toPositionTransactionPageViewModel,
+  toPositionTransactionViewModel,
+  toTransactionPreviewViewModel,
+  isLedgerAssetType,
   type FlowRange,
+  type PositionTransactionPageVM,
+  type PositionTransactionVM,
+  type ServerTransaction,
+  type ServerTransactionPage,
+  type TransactionCreateInput,
+  type TransactionPatchInput,
+  type TransactionPreviewInput,
+  type TransactionPreviewVM,
   type PositionFlowVM,
   type PositionOverviewVM,
   type ServerPositionFlow,
@@ -19,6 +31,14 @@ export type { PortfolioSummaryVM };
 
 /** 이름을 붙이려고 읽는 시세 목록 크기. 실시간 테이블과 같은 상한이다. */
 const NAME_LOOKUP_LIMIT = 100;
+/** 거래 목록 한 쪽 — 서버 기본 50 과 같다 */
+export const TRANSACTION_PAGE_SIZE = 50;
+/**
+ * 거래 쓰기 · 미리보기 예산. 쓰기는 **재시도 0회**(같은 거래가 두 번 생긴다, FR-84) — `backendApi` 는 재시도하지 않는다.
+ * 원장 잠금 · 재계산이 한 트랜잭션이라 화면 조회(400ms)보다 넉넉히
+ */
+const LEDGER_WRITE_TIMEOUT_MS = 5_000;
+const LEDGER_PREVIEW_TIMEOUT_MS = 1_500;
 /** 국내 주식 이름 조회 — 서버 저장값 읽기(`app-kr-stock.service` 와 같은 800ms) */
 const KR_NAME_TIMEOUT_MS = 800;
 
@@ -110,6 +130,77 @@ class AppPortfolioService {
   async getPositionFlow(token: string, range: FlowRange): Promise<PositionFlowVM> {
     const response = await backendApi.proxyAuthRequest("GET", `/portfolio/position/flow?range=${range}`, token);
     return toPositionFlowViewModel((response.data as { data: ServerPositionFlow }).data);
+  }
+
+  /**
+   * 거래 목록(F006 G절 2단계 · `BFF-REQ-027` FR-80) — 최신순 한 쪽 + 종목 이름 · 로고. 이름은 그 쪽에 나온 종목만(중복 없이) 한 번에.
+   * 이름 실패는 심볼을 이름 자리에 두고 `namesDegraded` — 행은 그대로
+   */
+  async listTransactions(token: string, page: number): Promise<PositionTransactionPageVM> {
+    const response = await backendApi.proxyAuthRequest(
+      "GET",
+      `/portfolio/transactions?page=${page}&limit=${TRANSACTION_PAGE_SIZE}`,
+      token,
+    );
+    const server = (response.data as { data: ServerTransactionPage }).data;
+    const seen = new Map<string, { symbol: string; assetType: string }>();
+    for (const row of server.transactions) {
+      if (isLedgerAssetType(row.assetType)) seen.set(`${row.assetType}:${row.symbol}`, { symbol: row.symbol, assetType: row.assetType });
+    }
+    const { names, degraded } = seen.size > 0 ? await this.namesFor(token, [...seen.values()]) : { names: new Map(), degraded: false };
+    return toPositionTransactionPageViewModel(server, names, degraded);
+  }
+
+  /** 거래 미리보기 — 쓰지 않는다 · 서버 값 그대로(FR-81). 과매도 · 남의 거래는 서버 4xx 코드 그대로(error middleware) */
+  async previewTransaction(token: string, input: TransactionPreviewInput): Promise<TransactionPreviewVM> {
+    const body =
+      "transactionId" in input
+        ? input
+        : { assetType: input.assetType, symbol: input.symbol, transactionType: input.side, quantity: input.quantity, price: input.price, ...(input.transactionDate ? { transactionDate: input.transactionDate } : {}) };
+    const response = await backendApi.proxyAuthRequest("POST", "/portfolio/transactions/preview", token, body, {
+      timeout: LEDGER_PREVIEW_TIMEOUT_MS,
+    });
+    return toTransactionPreviewViewModel((response.data as { data: TransactionPreviewVM }).data);
+  }
+
+  /** 거래 기록 — **주문이 아니다**(거래소 호출 0, FR-85). 재시도 0회 */
+  async createTransaction(token: string, input: TransactionCreateInput): Promise<PositionTransactionVM> {
+    const response = await backendApi.proxyAuthRequest(
+      "POST",
+      "/portfolio/transactions",
+      token,
+      {
+        assetType: input.assetType,
+        symbol: input.symbol,
+        transactionType: input.side,
+        quantity: input.quantity,
+        price: input.price,
+        ...(input.transactionDate ? { transactionDate: input.transactionDate } : {}),
+      },
+      { timeout: LEDGER_WRITE_TIMEOUT_MS },
+    );
+    return this.namedTransaction(token, (response.data as { data: ServerTransaction }).data);
+  }
+
+  /** 거래 수정 — 수량 · 단가 · 거래일만(종목 · 매수/매도는 서버가 400) */
+  async updateTransaction(token: string, id: string, patch: TransactionPatchInput): Promise<PositionTransactionVM> {
+    const response = await backendApi.proxyAuthRequest("PATCH", `/portfolio/transactions/${encodeURIComponent(id)}`, token, patch, {
+      timeout: LEDGER_WRITE_TIMEOUT_MS,
+    });
+    return this.namedTransaction(token, (response.data as { data: ServerTransaction }).data);
+  }
+
+  async deleteTransaction(token: string, id: string): Promise<void> {
+    await backendApi.proxyAuthRequest("DELETE", `/portfolio/transactions/${encodeURIComponent(id)}`, token, undefined, {
+      timeout: LEDGER_WRITE_TIMEOUT_MS,
+    });
+  }
+
+  /** 쓰기 응답 한 행에 이름 — 이름 실패는 쓰기 실패가 아니다(심볼로) */
+  private async namedTransaction(token: string, row: ServerTransaction): Promise<PositionTransactionVM> {
+    const assetType = isLedgerAssetType(row.assetType) ? row.assetType : "crypto";
+    const { names } = await this.namesFor(token, [{ symbol: row.symbol, assetType }]).catch(() => ({ names: new Map() }));
+    return toPositionTransactionViewModel({ ...row, assetType }, names);
   }
 
   /** 종목 이름 · 로고 — 코인은 시세 목록, 국내는 국내 목록(보유 요약과 같은 출처) */
