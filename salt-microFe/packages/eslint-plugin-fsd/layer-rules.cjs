@@ -162,6 +162,8 @@ const REGISTRY = {
   pages: [
     "home",
     "coach",
+    // 코치 대화 `/coach/chat`(F006 C절, 2026-11-18) — `coach` 와 배럴을 나눠 리포트 · 설정 첫 로드에 대화 코드가 실리지 않게
+    "coach-chat",
     "assets",
     "goals",
     "add-goal",

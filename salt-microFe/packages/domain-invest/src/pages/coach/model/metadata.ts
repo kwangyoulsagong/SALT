@@ -8,6 +8,3 @@ export const signalEvidenceMetadata = privatePageMetadata("판정 근거");
 
 /** 내 코치 설정 — 검색에 싣지 않는다 */
 export const coachSettingsMetadata = privatePageMetadata("투자 코치 설정");
-
-/** 코치 대화 — 내 보유로 답하는 화면이라 검색에 싣지 않는다 */
-export const coachChatMetadata = privatePageMetadata("코치 대화");

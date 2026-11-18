@@ -16,10 +16,3 @@ export const SIGNAL_EVIDENCE_PAGE = {
   blockName: "판정 근거",
   blockMinHeight: 320,
 } as const;
-
-/** 코치 대화(F006 C절) — 스켈레톤은 대화 면(소개 · 칩 · 입력) 높이 */
-export const COACH_CHAT_PAGE = {
-  title: "코치 대화",
-  blockName: "코치 대화",
-  blockMinHeight: 320,
-} as const;

@@ -30,8 +30,8 @@ pages/{page-name}/
 
 **2026-11-02 현재(셸):** `login`(`/`) · `home`(`/home`) · ~~`add-goal`(`/goals/addgoals`)~~(**2026-11-03 저축 zone 으로** — `FE-REQ-056`) · `onboarding` · `settings`(`/settings` — 도메인별 설정 링크 목록, 2026-11-02) · `streaming-probe`(측정 전용, 기본 404).
 404 는 zone 이 같이 쓴다 — `@repo/web-shared/layout` `NotFoundPage`(`FE-REQ-044` → `FE-REQ-053`).
-투자 페이지(`investments` · `investment-detail` · `coach`(`/coach/report` · `/coach/signals/[signalType]` · `/coach/settings`) · `search` · `portfolio`(`/portfolio` — 2026-11-10 `FE-REQ-069`))는 `packages/domain-invest/src/pages` 로 옮겼다(2026-11-02 `FE-REQ-053`).
-`investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
+투자 페이지(`investments` · `investment-detail` · `coach`(`/coach/report` · `/coach/signals/[signalType]` · `/coach/settings`) · `coach-chat`(`/coach/chat` — 2026-11-18 F006 대화, 배럴이 같으면 대화 코드가 리포트 첫 로드에 실려 슬라이스를 나눴다) · `search` · `portfolio`(`/portfolio` — 2026-11-10 `FE-REQ-069`))는 `packages/domain-invest/src/pages` 로 옮겼다(2026-11-02 `FE-REQ-053`).
+`investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). ~~코치 탭 `/coach`(대화)는 그때 생긴다.~~ **2026-11-18** 대화는 `/coach/chat`(투자 머리 메뉴 "코치 대화").
 
 ### 도메인 zone 4개(`apps/web-investment` · `web-savings` · `web-household` · `web-tips`)
 
