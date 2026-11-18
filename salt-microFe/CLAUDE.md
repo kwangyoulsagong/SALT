@@ -32,7 +32,7 @@ pnpm dev                        # zone 5개 동시 기동 (web:3000 · 투자 30
 pnpm build
 pnpm lint
 pnpm check-types
-pnpm test                       # 단위 테스트 — @repo/core · @repo/ui (vitest, node)
+pnpm test                       # 단위 테스트 — @repo/core · @repo/ui · web(셸, 2026-11-18) (vitest, node)
 pnpm --filter web dev
 pnpm --filter web-investment dev  # 도메인 zone 하나만 (savings · household · tips 도 같은 꼴)
 pnpm --filter @repo/ui lint

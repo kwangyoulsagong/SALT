@@ -205,3 +205,9 @@
 | 항목 | 결과 |
 |---|---|
 | 움직임 변형 0(크기 · 글자만) · 줄인 모션 그대로 · Storybook `Article` 빌드 | 통과 |
+
+## 2026-11-18 F006 알림 화면 확인 3회차(`feat/f006-alerts-screen`)
+
+- 패널 등장(`enterReveal`) 무변경 · zone 다섯 빌드 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md` §7

@@ -106,3 +106,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-04 | FR-1 머리 로고 칸 닫힘 — `FE-REQ-051` done(`25f182f6`, 글자 로고 24 · 그 아래 심볼). 이 REQ 의 나머지(검색 상자 · 바탕 · 패널 · 글자색 · 글꼴)는 to-do 그대로 — **사용자 2026-11-04 "기능부터"** 로 디자인 당김(D1~D4)을 취소, 기능 뒤 |
 | 2026-11-09 | FR-1 · 도식 정정 — 도메인 내비 왼쪽 레일 → 머리 글자 링크 · 검색 상자 200×32 구현(`FE-REQ-067`) |
 | 2026-11-10 | `AppNavigation.css.ts` — 레일 복원 · 글자 3단 토큰 메모는 그대로 이 REQ 몫(`FE-REQ-069` 이 파일만 걸침) |
+| 2026-11-18 | F006 알림 화면 확인 3회차(`feat/f006-alerts-screen`) — FR-13 일부 — 공용 두 곳만 2단 `rgba(22,31,46,.64)` 로: `@repo/web-shared` `panelDescription`(25 파일) · `@repo/ui` `EmptyState` 설명(18 파일). 전 값 neutral 500 / `text.tertiary`(#8B95A1)는 흰 위 3.03 · 회색 위 2.75:1. 사용자 결정(알림 화면 axe). `text.tertiary` 토큰 자체(31 파일) · 뒤로 링크(4.18) · 가계부 화면별 값 등 나머지는 이 REQ 에 남김. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
