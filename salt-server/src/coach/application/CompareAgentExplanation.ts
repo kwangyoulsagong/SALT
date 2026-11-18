@@ -54,15 +54,6 @@ export interface AgentComparison {
 export class CompareAgentExplanation {
   constructor(private readonly deps: CompareAgentExplanationDeps) {}
 
-  /** 해설 재료만(배치와 같은 함수 · 원인 · 회사 사정) — 작성기 프롬프트 A/B(`SRV-REQ-060`)가 같은 입력으로 두 판을 만든다. LLM 0 */
-  async prepareBase(symbol: string, mode: CoachMode): Promise<{ input: CoachExplanationInput; template: CoachExplanation } | null> {
-    const now = this.deps.now?.() ?? new Date();
-    const prepared = await prepareExplanation(this.deps, symbol, mode, now);
-    if (!prepared.input) return null;
-    const input = await withCompany(this.deps.company, prepared, await withCause(this.deps.causes, prepared, prepared.input), now);
-    return { input, template: templateExplanation(input, now) };
-  }
-
   /**
    * `plain` — 지금 운영 해설(도구 칸 없음)도 만든다. `plainRule` — 대신 "도구 칸은 있고 사실 0"(작성 프롬프트의 도구 줄만 같고 도구 사실만 다른 대조군,
    * 원인 분리 실험 — 2회차 승리가 도구 덕인지 그 한 줄 덕인지)
