@@ -58,6 +58,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-11 | F017 v2 단계 5 — `coachTools.controller` 에 `getScenario`(전망과 같은 소유자 판정 · 404). `/api/coach/forecast` 는 그대로(화면 소비처 0 — `FE-REQ-064` FR-4) |
 | 2026-11-13 | F017 v4 1f 짝(`SRV-REQ-053` FR-16) — `explanationQuality.test.ts`(머리 주인) — 사실표 문장 상한 시험 · 소식 분모를 칸 상한(1)으로. 50건 평균 5문장 · 버림 0 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `GetSymbolEvents` 에 `earnings` · 종류 표(`EVENT_KIND_META`) 둘 |
+| 2026-11-18 | `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`) — `explanationTemplate.ts` · `explanationQuality.test.ts`(머리 주인): 입력이 말하지 않은 "마감" 거름 · 규칙 주의가 없으면 주의 칸을 비움(내부 문구 0) · 원인 단계 '없음'이면 원인 줄은 서버 문장(`fixedCauseLine`, 모델이 원인을 다시 말하면 버림). 프롬프트 @4 · 검증기 @5 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — 해설은 판단 꼬리표로 막지 않는다(`ExplainBlockedReason` = `facts_unavailable` 하나)
   - `salt-server/src/coach/application/ExplainCoachDecision.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

@@ -55,10 +55,10 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
     // 결론 2 + 근거 2 + 주의 1 + 소식 1 = 6 — 사실표 문장도 LLM 과 같은 상한(`EXPLANATION_TOTAL_CAP`)
   ).slice(0, 2);
 
-  const cautions = valuesOf(input, "주의").slice(0, EXPLANATION_SECTION_CAP.risks);
-  // 규칙이 준 주의가 없으면 그 사실을 말한다(2026-11-02). 전엔 "가격 변동이 커질 수 있는 구간입니다."를 끼워 넣었는데,
-  // 입력에 없는 일반론이라 블라인드 평가자 셋이 2차에서 근거 없는 문장으로 짚었다(FEATURE-008 FR-49)
-  const risks = cautions.length > 0 ? cautions : ["이 판단에 규칙이 적은 주의 사항은 없습니다."];
+  // 규칙이 준 주의가 없으면 칸을 비운다(2026-11-18 `SRV-REQ-060` FR-5, 사용자 결정). 11-02 전엔 근거 없는 일반론
+  // "가격 변동이 커질 수 있는 구간입니다.", 11-18 전엔 "이 판단에 규칙이 적은 주의 사항은 없습니다." — 앞의 것은 지어낸 문장,
+  // 뒤의 것은 내부 문구라 평가자 셋이 두 번(O3 · 근거 줄 A/B) 짚었다. 화면은 문장 목록이라 칸이 비면 한 줄 적을 뿐이다
+  const risks = valuesOf(input, "주의").slice(0, EXPLANATION_SECTION_CAP.risks);
 
   const newsSummary = (input.news ?? [])
     .slice(0, EXPLANATION_SECTION_CAP.newsSummary)
@@ -151,11 +151,12 @@ export const verifyExplanation = (
     return kept.length > 0 || llm[field].length === 0 ? kept : template[field];
   };
 
+  const fixed = fixedCauseLine(input);
   const explanation: CoachExplanation = {
     ...llm,
     modeReasoning: reasoning.length > 0 ? reasoning.join(" ") : template.modeReasoning,
     timeframe: template.timeframe,
-    keyDrivers: list("keyDrivers"),
+    keyDrivers: fixed ? [fixed, ...list("keyDrivers")] : list("keyDrivers"),
     risks: list("risks"),
     newsSummary: list("newsSummary"),
   };
@@ -204,8 +205,10 @@ export const sentenceSimilarity = (a: string, b: string): number => {
  * 사실 · 극성은 `guardExplanationLine`, 그 위에 칸 상한 · 되풀이
  */
 export const createLineGate = (input: CoachExplanationInput) => {
-  const counts: Record<ExplanationLineSection, number> = { modeReasoning: 0, keyDrivers: 0, risks: 0, newsSummary: 0 };
-  const earlier: string[] = [];
+  const fixed = fixedCauseLine(input);
+  // 서버가 붙이는 원인 줄(FR-6)도 칸 상한 · 전체 6 · 되풀이에 센다
+  const counts: Record<ExplanationLineSection, number> = { modeReasoning: 0, keyDrivers: fixed ? 1 : 0, risks: 0, newsSummary: 0 };
+  const earlier: string[] = fixed ? [fixed] : [];
   return (section: ExplanationLineSection, text: string): { ok: true } | { ok: false; reasons: LanguageViolation[] } => {
     const base = guardExplanationLine(section, text, input);
     if (!base.ok) return base;
@@ -234,8 +237,43 @@ export const guardExplanationLine = (
   const facts = allowedFacts(input, { news: section === "newsSummary" });
   const stance = section === "modeReasoning" || section === "keyDrivers" ? input.stance : undefined;
   const r = guardSentences([text], facts, stance);
-  return r.kept.length === 1 ? { ok: true } : { ok: false, reasons: r.dropped[0]?.reasons ?? [] };
+  if (r.kept.length !== 1) return { ok: false, reasons: r.dropped[0]?.reasons ?? [] };
+  if (section !== "newsSummary" && CLOSE_WORD.test(text) && !CLOSE_WORD.test(ownFactsText(input))) {
+    return { ok: false, reasons: ["unsupported_close"] };
+  }
+  if (fixedCauseLine(input) && (section === "modeReasoning" || section === "keyDrivers") && CAUSE_TALK.test(text)) {
+    return { ok: false, reasons: ["cause_rewrite"] };
+  }
+  return { ok: true };
 };
+
+/**
+ * 원인 단계 '없음'의 원인 줄 — **서버 문장 그대로**(`SRV-REQ-060` FR-6, 사용자 결정 2026-11-18). 모델에게 말투로 옮기게 하면
+ * "평소 범위 안의 움직임 — 원인을 찾지 않았어요 · 작은 움직임이라 소식과 견주지 않았어요"가 "평소 범위 안이라 확인된 소식이 없어요"로
+ * 뒤집혔다(운영 18건 · 평가자 지적 두 회차). 단계가 있는 원인(가장 유력 · 가능성)은 지금처럼 모델이 말투로 옮긴다
+ */
+export const fixedCauseLine = (input: CoachExplanationInput): string | null => {
+  const c = input.cause;
+  if (!c || c.strength !== "none") return null;
+  const line = `${c.headline}${c.note ? ` — ${c.note}` : ""}`.trim();
+  return /[.!?]$/.test(line) ? line : `${line}.`;
+};
+
+/** 원인 줄이 서버 몫일 때 모델이 원인을 다시 말한 문장 — "범위 안이라 …" · "확인된 소식이 없어요" · "원인은 …" */
+const CAUSE_TALK = /범위 안|소식이 없|원인/;
+
+/**
+ * "마감" — 판단 · 근거 · 주의 칸은 입력 사실(뉴스 제외)이 마감을 말할 때만. 해설은 장중 · 24시간 코인에도 만들어지는데
+ * 원인 칸의 "결과: 오늘 +1.26%" 를 모델이 "+1.26%로 마감했어요"로 옮겼다(`SRV-REQ-060` FR-4). 뉴스 칸은 제목 인용("주봉 마감")이라 건너뛴다
+ */
+const CLOSE_WORD = /마감/;
+const ownFactsText = (input: CoachExplanationInput): string =>
+  [
+    ...input.evidence.flatMap((e) => [e.label, e.value]),
+    ...(input.cause ? [input.cause.headline, input.cause.note, input.cause.result, ...input.cause.evidence.map((e) => e.value)] : []),
+    ...(input.company?.lines ?? []).map((l) => l.text),
+    ...(input.tools?.facts ?? []).filter((f) => !f.news).map((f) => f.text),
+  ].join("\n");
 
 /**
  * 줄 단위로 통과한 문장을 해설 한 벌로 묶는다. 빈 칸은 템플릿 — `verifyExplanation` 의 "다 빠지면 템플릿" 과 같다.

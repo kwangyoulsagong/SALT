@@ -209,3 +209,8 @@
 ## 2026-11-18 — F008 O3 해설 에이전트 도구(`feat/fc-req-023-agent-tools`)
 
 - 숫자 대조 변이: 도구 숫자 47% 통과 · 없는 숫자 62% 탈락 · 도구 없으면 47% 도 탈락 · 제목 숫자는 뉴스 칸만(`agentTools.test.ts`)
+
+## 2026-11-18 — `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`)
+
+- 주의 칸 불변식 정정: "늘 채움" → "규칙 주의가 있을 때만"(`explanationQuality.test.ts` 빈 칸 기준 · `explainRouting.test.ts` 채움 칸) — 옛 문구로 되돌리면 2건 실패(변이)
+- "마감" · 서버 원인 줄 경계 표 `explanationGate.test.ts` 17건 · 규칙을 끄면 각각 실패(변이 4종). 상세 `SRV-REQ-060` 체크리스트

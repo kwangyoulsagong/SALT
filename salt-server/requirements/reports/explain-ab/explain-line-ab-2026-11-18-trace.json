@@ -1,0 +1,142 @@
+[
+  {
+    "no": 1,
+    "symbol": "005930",
+    "mode": "scalp",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 2,
+    "symbol": "005930",
+    "mode": "long_term",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 3,
+    "symbol": "000660",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 4,
+    "symbol": "000660",
+    "mode": "long_term",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 5,
+    "symbol": "035420",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 6,
+    "symbol": "035420",
+    "mode": "long_term",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 7,
+    "symbol": "005380",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 0
+  },
+  {
+    "no": 8,
+    "symbol": "005380",
+    "mode": "long_term",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 9,
+    "symbol": "068270",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 0
+  },
+  {
+    "no": 10,
+    "symbol": "068270",
+    "mode": "long_term",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 11,
+    "symbol": "BTC",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 12,
+    "symbol": "BTC",
+    "mode": "long_term",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 13,
+    "symbol": "ETH",
+    "mode": "scalp",
+    "currentDropped": 2,
+    "lineDropped": 1
+  },
+  {
+    "no": 14,
+    "symbol": "ETH",
+    "mode": "long_term",
+    "currentDropped": 2,
+    "lineDropped": 1
+  },
+  {
+    "no": 15,
+    "symbol": "XRP",
+    "mode": "scalp",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 16,
+    "symbol": "XRP",
+    "mode": "long_term",
+    "currentDropped": 1,
+    "lineDropped": 0
+  },
+  {
+    "no": 17,
+    "symbol": "SOL",
+    "mode": "scalp",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 18,
+    "symbol": "SOL",
+    "mode": "long_term",
+    "currentDropped": 0,
+    "lineDropped": 0
+  },
+  {
+    "no": 19,
+    "symbol": "DOGE",
+    "mode": "scalp",
+    "currentDropped": 1,
+    "lineDropped": 1
+  },
+  {
+    "no": 20,
+    "symbol": "DOGE",
+    "mode": "long_term",
+    "currentDropped": 2,
+    "lineDropped": 1
+  }
+]

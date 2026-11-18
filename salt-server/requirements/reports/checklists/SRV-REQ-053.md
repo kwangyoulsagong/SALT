@@ -379,3 +379,8 @@
 ## 2026-11-18 — F008 O3 해설 에이전트 도구(`feat/fc-req-023-agent-tools`)
 
 - 인용 순서: `agentTools.test.ts` "숫자가 앞쪽 사실과 우연히 겹쳐도 …" — 고치기 전 코드(scratchpad 사본)로 실패 15/16 · 지금 통과. 기존 해설 시험 전부 통과(coach 991)
+
+## 2026-11-18 — `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`)
+
+- 주의 칸 불변식 정정: "늘 채움" → "규칙 주의가 있을 때만"(`explanationQuality.test.ts` 빈 칸 기준 · `explainRouting.test.ts` 채움 칸) — 옛 문구로 되돌리면 2건 실패(변이)
+- "마감" · 서버 원인 줄 경계 표 `explanationGate.test.ts` 17건 · 규칙을 끄면 각각 실패(변이 4종). 상세 `SRV-REQ-060` 체크리스트

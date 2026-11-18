@@ -81,3 +81,7 @@
 | 바뀐 것 | 확인 |
 |---|---|
 | 라우터 상태 → `LocalCliGate`(해설 · 한 줄 공유) | 기존 라우터 테스트 35 통과(동작 그대로) · 공유 테스트(한 줄 쪽 3번 실패 → 해설도 10분 Gemini) · 변이(쉬기 제거) 잡힘 · CLI 인자 main 과 같음 |
+
+## 2026-11-18 — `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`)
+
+- `explainRouting.test.ts`(머리 주인) · 줄 문지기 · 스트림: 줄 문지기가 서버 원인 줄 몫을 미리 센다 · 스트림은 판단 다음 · 모델 근거보다 먼저 그 줄을 한 번 흘린다(저장 순서와 같게) · 채움 칸 시험을 "규칙 주의가 있을 때만 주의 칸"으로 정정. 시험 `explanationPromptCause.test.ts` · `explanationServerCause.test.ts` · 변이(규칙을 끄면 실패). 상세 `SRV-REQ-060` 체크리스트

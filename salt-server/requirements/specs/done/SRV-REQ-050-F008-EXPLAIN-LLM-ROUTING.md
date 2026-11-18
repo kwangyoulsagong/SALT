@@ -89,3 +89,4 @@ source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널�
   - `salt-server/src/shared/infrastructure/__tests__/ownerGateScope.test.ts` — 기계 검사 — 소유자 판정(`isForecastOwner`)은 전망 셋 + 해설 라우팅만 · `isKrStockViewer` 0
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): 로컬 CLI 격리 인자를 함수 하나로 뺐다(`localCliArgs`) — 해설 · 한 줄이 같은 격리(도구 0 · 설정 · MCP 0 · stdin 프롬프트). 해설은 그대로 `stream-json`, 한 줄은 `text` |
 | 2026-11-12 | F016 단계 D 확인 2회차 — 라우터 상태(동시 · 연속 실패 · 쉬기)를 `LocalCliGate` 로 빼 오늘 등락 한 줄 작성기와 공유(`c518c96f`). 동작 그대로 |
+| 2026-11-18 | `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`) — `explainRouting.test.ts`(머리 주인) · 줄 문지기 · 스트림: 줄 문지기가 서버 원인 줄 몫을 미리 센다 · 스트림은 판단 다음 · 모델 근거보다 먼저 그 줄을 한 번 흘린다(저장 순서와 같게) · 채움 칸 시험을 "규칙 주의가 있을 때만 주의 칸"으로 정정 |

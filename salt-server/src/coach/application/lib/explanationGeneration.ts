@@ -6,6 +6,7 @@ import {
   EXPLANATION_VERIFIER_VERSION,
   citeSentence,
   createLineGate,
+  fixedCauseLine,
   explanationFactCatalog,
   explanationFactsHash,
   explanationSentences,
@@ -142,7 +143,13 @@ export const generateExplanation = async (
   const startedAt = deps.now();
   const catalog = explanationFactCatalog(input, startedAt);
   const gate = createLineGate(input);
+  // 원인 단계 '없음'의 원인 줄은 서버 문장(`SRV-REQ-060` FR-6) — 판단 줄 다음, 모델의 근거 줄보다 먼저 흘린다(저장 순서와 같게)
+  let fixedCause = fixedCauseLine(input);
   let streamed = 0;
+  const emit = (section: ExplanationSentence["section"], text: string) => {
+    streamed += 1;
+    onSentence({ section, text: text.trim(), citations: citeSentence(section, text, catalog) });
+  };
   try {
     const llm = await deps.explainer.explain(
       input,
@@ -151,11 +158,16 @@ export const generateExplanation = async (
       {
         onLine: (line) => {
           if (!gate(line.section, line.text).ok) return;
-          streamed += 1;
-          onSentence({ section: line.section, text: line.text.trim(), citations: citeSentence(line.section, line.text, catalog) });
+          if (fixedCause && line.section !== "modeReasoning") {
+            emit("keyDrivers", fixedCause);
+            fixedCause = null;
+          }
+          emit(line.section, line.text);
         },
       }
     );
+    // 판단 줄만 통과했으면 원인 줄을 끝에서라도 — 저장본에는 늘 있다
+    if (fixedCause && streamed > 0) emit("keyDrivers", fixedCause);
     const generatedAt = deps.now();
     const verified = verifyExplanation(llm, input, generatedAt);
     if (llm.callId && deps.usage) {
