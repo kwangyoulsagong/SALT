@@ -68,3 +68,17 @@ describe("routedClient", () => {
     assert.deepEqual(seen.slice(0, 2), [true, true]);
   });
 });
+
+describe("routedClient — 열린 트랜잭션(원장 쓰기 · F006 G절 2단계)", () => {
+  it("트랜잭션이 열려 있으면 화면 · 배치 맥락보다 그 클라이언트가 먼저 — 저장소 코드는 그대로", async () => {
+    let active: object | undefined;
+    const tx = fake("tx");
+    const prisma = routedClient(fake("http"), fake("batch"), inBatchContext, () => active);
+    assert.equal(await prisma.user.findMany(), "http");
+    active = tx;
+    assert.equal(await prisma.user.findMany(), "tx");
+    assert.equal(await runAsBatch(() => prisma.$queryRaw()), "tx");
+    active = undefined;
+    assert.equal(await runAsBatch(() => prisma.user.findMany()), "batch");
+  });
+});

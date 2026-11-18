@@ -12,13 +12,28 @@ export const createTransactionSchema = z.object({
   transactionDate: z.string().datetime().optional(),
 });
 
-export const updateTransactionSchema = z.object({
-  quantity: z.number().positive().optional(),
-  price: z.number().positive().optional(),
-  fee: z.number().min(0).optional(),
-  note: z.string().max(500).optional(),
-  transactionDate: z.string().datetime().optional(),
-});
+/**
+ * 거래 수정 — 수량 · 단가 · 수수료 · 메모 · 거래일. **종목 · 자산군 · 매수/매도는 받지 않는다**(`SRV-REQ-028` FR-87 — 지우고 다시 적는다).
+ * `strict` — 모르는 키(그 셋 포함)는 조용히 버리지 않고 400. 버리면 "바꿨는데 안 바뀐" 응답이 성공으로 온다
+ */
+export const updateTransactionSchema = z
+  .object({
+    quantity: z.number().positive().optional(),
+    price: z.number().positive().optional(),
+    fee: z.number().min(0).optional(),
+    note: z.string().max(500).optional(),
+    transactionDate: z.string().datetime().optional(),
+  })
+  .strict();
+
+/**
+ * 거래 미리보기(F006 G절 2단계 · `SRV-REQ-028` FR-85) — 두 모양. `transactionId` 가 있으면 그 거래를 고친 경우, 없으면 새 거래.
+ * 메모는 계산과 무관해 받지 않는다
+ */
+export const previewTransactionSchema = z.union([
+  updateTransactionSchema.omit({ note: true }).extend({ transactionId: z.string().min(1) }).strict(),
+  createTransactionSchema.omit({ note: true }).strict(),
+]);
 
 export const queryTransactionsSchema = z.object({
   symbol: z.string().optional(),
@@ -39,6 +54,7 @@ export const positionFlowQuerySchema = z.object({
 });
 
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;
+export type PreviewTransactionDto = z.infer<typeof previewTransactionSchema>;
 export type UpdateTransactionDto = z.infer<typeof updateTransactionSchema>;
 export type QueryTransactionsDto = z.infer<typeof queryTransactionsSchema>;
 export type QueryHoldingsDto = z.infer<typeof queryHoldingsSchema>;

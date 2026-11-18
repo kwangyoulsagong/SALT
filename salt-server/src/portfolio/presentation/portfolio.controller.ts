@@ -7,6 +7,7 @@ import {
   positionFlowQuerySchema,
   queryHoldingsSchema,
   queryTransactionsSchema,
+  previewTransactionSchema,
   updateTransactionSchema,
 } from "./dto/portfolio.dto";
 
@@ -123,6 +124,38 @@ export class PortfolioController {
         result,
         "Transaction updated successfully"
       );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 쓰지 않는 전후 계산 — 저장과 같은 규칙. 과매도면 저장과 같은 `PORTFOLIO_INSUFFICIENT_QUANTITY` */
+  previewTransaction = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = previewTransactionSchema.parse(req.body);
+      const userId = req.user!.userId;
+      const toDate = (value: string | undefined) => (value ? new Date(value) : undefined);
+      const result =
+        "transactionId" in data
+          ? await this.useCases.previewTransaction.execute({
+              userId,
+              kind: "update",
+              transactionId: data.transactionId,
+              patch: { quantity: data.quantity, price: data.price, fee: data.fee, transactionDate: toDate(data.transactionDate) },
+            })
+          : await this.useCases.previewTransaction.execute({
+              userId,
+              kind: "create",
+              assetType: data.assetType,
+              symbol: data.symbol,
+              transactionType: data.transactionType,
+              quantity: data.quantity,
+              price: data.price,
+              fee: data.fee,
+              // 저장과 같은 기본값 — 거래일을 안 주면 지금
+              transactionDate: toDate(data.transactionDate) ?? new Date(),
+            });
+      return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);
     }

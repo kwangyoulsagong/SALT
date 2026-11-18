@@ -1,4 +1,5 @@
-import type { HoldingSnapshot, TransactionFact } from "./HoldingRecalculation";
+import type { HoldingSnapshot } from "./HoldingRecalculation";
+import type { LedgerEntry } from "./LedgerChange";
 import type { ClosePriceFact } from "./PerformanceSeries";
 import type { DailyClose, TimelineTrade } from "./PositionFlow";
 
@@ -63,7 +64,8 @@ export interface TransactionRepository {
     note?: string;
     transactionDate: Date;
   }): Promise<Transaction>;
-  findById(transactionId: string): Promise<Transaction | null>;
+  /** 그 사람의 거래 한 건. **남의 거래면 없는 것과 같다**(`null` — 존재를 알리지 않는다, `DB-REQ-022` FR-74) */
+  findOwned(userId: string, transactionId: string): Promise<Transaction | null>;
   update(
     transactionId: string,
     patch: Partial<
@@ -77,12 +79,15 @@ export interface TransactionRepository {
   findPage(
     filter: TransactionFilter
   ): Promise<{ transactions: Transaction[]; total: number }>;
-  /** **거래일 오름차순.** FIFO 는 이 순서가 곧 원가 소진 순서다. */
-  findForRecalculation(
-    userId: string,
-    symbol: string,
-    assetType: PortfolioAssetType
-  ): Promise<TransactionFact[]>;
+  /**
+   * 한 종목 원장 — **`compareLedger` 순서**(거래일 → 같은 시각이면 매수 먼저 → id). FIFO 는 이 순서가 곧 원가 소진 순서이고,
+   * 과매도 검사(`assertNotOversold`)도 이 순서로 걷는다
+   */
+  findLedger(userId: string, symbol: string, assetType: PortfolioAssetType): Promise<LedgerEntry[]>;
+  /**
+   * 그 사람 · 종목 원장을 트랜잭션 끝까지 잠근다 — 동시에 두 매도가 서로의 검사를 통과하지 않게. **`LedgerTransaction.run` 안에서만** 부른다
+   */
+  lockLedger(userId: string, symbol: string, assetType: PortfolioAssetType): Promise<void>;
   /** `assetType` 을 주면 그 자산군만 센다. 행을 옮겨 와서 세지 않는다. */
   countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number>;
   /**
@@ -92,6 +97,14 @@ export interface TransactionRepository {
   findTimeline(userId: string, limit: number): Promise<{ trades: TimelineTrade[]; truncated: boolean }>;
   /** 거래가 하나라도 있는 사용자 id(정렬) — 사람마다 도는 배치의 대상. 서버 S3b 에 사용자 표가 identity 로 가서 그 표를 읽지 않는다 */
   distinctUserIds(): Promise<string[]>;
+}
+
+/**
+ * 원장 쓰기 한 번을 한 트랜잭션으로(`DB-REQ-022` FR-72) — 안에서 부른 저장소가 같은 연결 · 같은 커밋에 든다.
+ * **외부 I/O 를 넣지 않는다**(국내 주식 평가는 커밋 뒤)
+ */
+export interface LedgerTransaction {
+  run<T>(fn: () => Promise<T>): Promise<T>;
 }
 
 export interface HoldingRepository {
