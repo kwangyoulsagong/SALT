@@ -248,3 +248,10 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 실기기 | 설치 Chrome · 앱 웹뷰 UA 까지 | 앱 착수(`RN-REQ-001`) |
+
+## 2026-11-18 `text.tertiary` 토큰 변경 짝(`feat/f006-alerts-screen`, 파일만 걸침)
+
+- 시나리오 머리 세로선 색을 `text.tertiary` → `neutral.500`(같은 옛 hex — 모양 그대로)
+- zone 다섯 빌드 · 스크린샷 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`

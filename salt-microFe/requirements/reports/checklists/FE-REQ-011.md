@@ -226,3 +226,10 @@
   - `salt-microFe/packages/web-shared/src/api/refreshSession.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-18 `text.tertiary` 토큰 변경 짝(`feat/f006-alerts-screen`, 파일만 걸침)
+
+- `@repo/ui` 표 정렬 화살표 색을 `text.tertiary` → `neutral.500`(같은 옛 hex — 토큰이 바뀌어도 모양 그대로)
+- zone 다섯 빌드 · 스크린샷 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`
