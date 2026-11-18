@@ -179,3 +179,4 @@ created: 2026-09-09
 | 2026-09-21 | ADR-002 머리 배너. 개정: 호출 배치 표(세금 · 청구서 · 홈 알림 삭제), FR-1 · FR-6(3블록). 추가: §G FR-60~69(포지션 B13 · 거래 · 미리보기 B14 · 알림 D5 · 설정 D9 · B16 · 온보딩 B12, **BREAKING** `OnboardingStepKey`). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **대화 API 층** — 목록 읽기 `entities/coach` `useCoachConversationHistory` · 묻기 mutation `features/ask-coach` · 429 문구 · 완료 뒤 캐시 낡음 표시. FR-10 · 12~17 · 40 · 41 · 50. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-21 `useInfiniteQuery`(쪽마다 역순 → 뒤집어 오래된 것이 위) · FR-51 `card` 이벤트 · FR-52 `CoachCard` = `ReportRecommendation` + `generatedAt`(`@repo/core/coach`). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |

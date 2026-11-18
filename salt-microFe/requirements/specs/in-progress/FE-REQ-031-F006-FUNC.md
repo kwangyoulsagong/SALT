@@ -230,3 +230,4 @@ created: 2026-09-09
 | 2026-09-21 | ADR-002 머리 배너. 개정: FR-32(블록 순서 D6) · FR-36(세금 툴팁 삭제). 추가: FR-70~72(세그먼트 D7 · 벨 D5) · FR-80~87(거래 시트 B14) · FR-90~93(포지션 B13) · FR-100~103(알림 D5 · B19) · FR-110~113(설정 D9 · B16) · FR-120~122(온보딩 B12). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **묻기 · 답 받기 흐름** — POST → 같은 답 id 로 EventSource · 문장을 마지막 말풍선에만 · 재연결 3회 넘으면 끊고 "다시 받기"(질문 다시 안 보냄) · "연결 중". FR-2 · 3 · 10 · 13~15 · 24 · 26 · 60. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 카드 한 번에 · FR-20 역순 커서 위로 · FR-21 맨 아래를 보던 사람만 따라감 + "새 답 보기"(문턱 80px). 내가 보낸 질문은 늘 따라간다. FR-4(토큰 버퍼)는 문장 단위라 해당 없음. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |

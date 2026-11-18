@@ -12,3 +12,10 @@
 - FR-60 — 주문 버튼 · 거래소 링크 0 — pass
 - 미충족: FR-20 · 21 위로 더 읽기 · 자동 스크롤 — F006 2단계
 - 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
+
+## 2026-11-18 F006 코치 대화 2단계(`feat/f006-coach-conversation-s2`)
+
+- FR-5 — `useAskCoach` `message.card` — pass
+- FR-20 — 실화면: 맨 위 → 32 → 41 요소 · 보던 자리 유지(scrollTop 0 → 1860) · 끝나면 버튼 없음 — pass
+- FR-21 — 실화면: 스트림 2초 지연 중 위로(200) → 자리 유지 · "새 답 보기" → 맨 아래 0px · 버튼 사라짐 — pass
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계

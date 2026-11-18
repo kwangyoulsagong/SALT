@@ -357,3 +357,4 @@ type ExplainResult =
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `/api/coach/events` Swagger 에 `earnings` 블록 · 종류 둘 |
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 `explanationPrompt.ts` 에 도구 사실 블록 · 쓰는 조건 한 줄을 더했다(입력에 `tools` 가 있을 때만 — 없으면 프롬프트 바이트 같음, 주인 `SRV-REQ-059`). 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
 | 2026-11-18 | `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`) — `explanationPrompt.ts`(머리 주인): 원인 단계 '없음'이면 두 프롬프트(줄 형식 · JSON) 모두 원인 줄을 쓰지 않게 — 원인 줄은 서버 문장(`fixedCauseLine`). 프롬프트 @4 |
+| 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `GetCoachDetail.ts`(머리 주인) — 추천 조립을 `application/lib/recommendationCard.ts` 로 옮겨 대화와 같이 쓴다(동작 변경 0 — 같은 함수 본문 · 기존 상세 시험 전부 통과). 주인 `SRV-REQ-028` |

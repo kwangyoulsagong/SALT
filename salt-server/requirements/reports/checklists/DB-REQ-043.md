@@ -177,3 +177,7 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
+
+- `coach/application/api/index.ts`(머리 주인) 조립에 대화 재료 묶음 · `ReadConversationCard` · `GetCoachBriefing`(주인 `SRV-REQ-028`). 이 REQ 의 표 · 뷰 변경 0 — 영역 시험 전부 통과

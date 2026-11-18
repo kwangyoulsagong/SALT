@@ -205,3 +205,4 @@ type SettingsViewModel = {
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 엔드포인트 표 · `HomeViewModel`(3블록, `unreadAlertCount`, `fxBasisCode` nullable, `first_holding`) · FR-20 · FR-24 · FR-26 · FR-27. 추가: 포지션 · 성과 · 거래 · 미리보기 · 알림 · 설정 뷰모델과 FR-40~48(B13 · B14 · D5 · D9 · B16 · B19). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-11-18 | **대화 계약 구현** — 뷰모델(`services/coach-conversation.service.ts`) · 이벤트 `message.start · delta(id) · done · error` · 모르는 링크 코드 버림 · core 타입(`@repo/core/coach` `conversation.ts`). FR-8 · 29 · 31. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-3 · 4 카드 단일 이벤트 · `CardViewModel` = 리포트 `ReportRecommendation` + `generatedAt` · `GET /api/app/coach/briefing`. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
