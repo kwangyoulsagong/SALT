@@ -8,7 +8,8 @@ export const page = style({ display: "flex", flexDirection: "column", gap: "16px
 
 export const head = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" });
 
-export const actions = style({ display: "flex", gap: "8px" });
+/** 링크가 여섯이라 앱 웹뷰 390 에서 한 줄이면 145px 넘쳤다 — 줄을 바꾼다(2026-11-18 O4 실화면) */
+export const actions = style({ display: "flex", gap: "8px", flexWrap: "wrap" });
 
 /** 머리 오른쪽 작은 링크(32 높이 · 14/600 · 모서리 8, `screen-desktop.md` §3) — 저축 `addLink` 와 같은 값 */
 export const link = style({

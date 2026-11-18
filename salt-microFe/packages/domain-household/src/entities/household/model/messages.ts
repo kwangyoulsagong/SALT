@@ -1,6 +1,17 @@
 import { formatPrice } from "@repo/web-shared/lib";
 
-import type { AccountKey, BucketKey, CalendarDayState, ChallengePhase, DefaultCategoryKey, ChallengePresetKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
+import type {
+  AccountKey,
+  BucketKey,
+  CalendarDayState,
+  ChallengePhase,
+  DefaultCategoryKey,
+  ChallengePresetKey,
+  EmotionKey,
+  GoalClock,
+  HouseholdCoverage,
+  HouseholdTrack,
+} from "./types";
 
 /**
  * 가계부 문구 — **사실만 말한다.** 칭찬 · 재촉 · 경고 · 명령형 0(`FE-REQ-057` 수용 기준 · FEATURE-013 정책 "차단 · 경고 팝업 없음").
@@ -113,6 +124,14 @@ export const LANDING_MESSAGES = {
   trackReason: {
     not_issued: "지난달 이맘때 낸 구간이 없어요",
     history_short: "지난달 이맘때는 기록이 짧아 구간을 내지 않았어요",
+  } as Readonly<Record<string, string>>,
+  coverageTitle: "이 구간이 맞은 기록",
+  /** 서버 숫자 그대로 — 판정 수 · 맞은 수 · 사람 수를 같이(적중률만 말하지 않는다) */
+  coverage: (c: HouseholdCoverage) =>
+    `지난 ${c.windowMonths}개월, 쓰는 분들의 ${c.nominalPercent}% 구간이 실제 그 달 합을 담은 건 ${c.intervals}번 중 ${c.hits}번이에요(${c.people}명)`,
+  coverageReason: {
+    history_short: "구간이 맞았는지는 판정이 10번 쌓이면 보여 드려요",
+    unavailable: "지금은 맞은 기록을 불러오지 못했어요",
   } as Readonly<Record<string, string>>,
 } as const;
 

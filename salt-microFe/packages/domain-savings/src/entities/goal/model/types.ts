@@ -46,9 +46,34 @@ export interface SavingsProjection {
   planMonth: string | null;
   reason: ProjectionReason | null;
   monthsOfHistory: number;
-  /** 적중 이력 — 채점(`FC-REQ-024`)이 생기기 전엔 null 이고 `trackReason` 이 이유 */
-  track: unknown;
-  trackReason: string | null;
+  /** 적중 이력 — 예측 채점 집계(계산기 전체, `FC-REQ-024`). 없으면 null 이고 `trackReason` 이 이유(둘 중 하나는 늘 있다) */
+  track: SavingsTrack | null;
+  trackReason: TrackReason | null;
+}
+
+export type TrackReason = "history_short" | "unavailable";
+
+/** 판정 수 · 맞은 수 · 사람 수 · 명목(%)이 한 덩어리 — 서버 값 그대로(계산 0) */
+export interface SavingsTrack {
+  windowMonths: number;
+  intervals: number;
+  hits: number;
+  people: number;
+  nominalPercent: number;
+}
+
+export type TodayMoneyReason = "too_recent" | "no_new_index" | "unavailable";
+
+/** 오늘 돈(FR-7) — 목표를 정한 때 알던 물가 달 ↔ 지금 아는 물가 달. 금액 · 변화율은 서버 계산 */
+export interface SavingsTodayMoney {
+  baseMonth: string | null;
+  latestMonth: string | null;
+  worthToday: number | null;
+  sameValue: number | null;
+  changePercent: number | string | null;
+  indexBase: string | null;
+  source: string;
+  reason: TodayMoneyReason | null;
 }
 
 export interface SavingsGoal {
@@ -196,6 +221,7 @@ export interface SavingsGoalDetail {
   units: SavingsItemUnit[];
   /** 목표 하나에 둘 수 있는 단위 수 — 서버 상한(화면이 상수를 복사하지 않는다) */
   unitLimit: number;
+  todayMoney: SavingsTodayMoney;
 }
 
 /** 계산 요청 — 금액 + (기한 | 월 적립). 서버가 계산한다 */

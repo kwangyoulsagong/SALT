@@ -47,9 +47,36 @@ export interface SavingsProjectionVM {
   /** history_short · reached · slow_side_open · no_plan · degraded · not_reachable(100년 안에 못 닿음 — 2026-11-03) */
   reason: string | null;
   monthsOfHistory: number;
-  /** 적중 이력(채점 `FC-REQ-024` 뒤). 없으면 null 이고 trackReason 이 이유 */
-  track: unknown;
+  /** 적중 이력 — 예측 채점 집계(계산기 전체 · 최근 windowMonths개월, `FC-REQ-024`). 없으면 null 이고 trackReason 이 이유 */
+  track: SavingsTrackVM | null;
+  /** history_short(판정 모자람) · unavailable(채점 숫자를 못 읽음) */
   trackReason: string | null;
+}
+
+/** 판정 수 · 맞은 수 · 사람 수 · 명목(%)이 한 덩어리(서버 `SRV-REQ-045` FR-6) — 문장은 프론트 */
+export interface SavingsTrackVM {
+  windowMonths: number;
+  intervals: number;
+  hits: number;
+  people: number;
+  nominalPercent: number;
+}
+
+/**
+ * 오늘 돈(서버 `SRV-REQ-045` FR-10) — 목표를 정한 때 알던 물가 달 ↔ 지금 아는 물가 달. 숫자가 없으면 reason
+ * (too_recent · no_new_index · unavailable). 금액 · 변화율은 서버 계산 그대로
+ */
+export interface SavingsTodayMoneyVM {
+  baseMonth: string | null;
+  latestMonth: string | null;
+  worthToday: number | null;
+  sameValue: number | null;
+  /** "5.3" — 소수 한 자리 % */
+  changePercent: string | number | null;
+  indexBase: string | null;
+  /** ecos_cpi — 한국은행 ECOS 소비자물가지수 */
+  source: string;
+  reason: string | null;
 }
 
 export interface SavingsGoalVM {
@@ -180,6 +207,7 @@ export interface SavingsGoalDetailVM {
   units: SavingsUnitVM[];
   /** 목표 하나에 둘 수 있는 단위 수(서버 상한) */
   unitLimit: number;
+  todayMoney: SavingsTodayMoneyVM;
 }
 
 export interface SavingsSplitVM {

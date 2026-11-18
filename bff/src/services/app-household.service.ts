@@ -193,6 +193,15 @@ export interface HouseholdLandingVM {
   daysOfHistory: number;
 }
 
+/** 판정 수 · 맞은 수 · 사람 수 · 명목(%)이 한 덩어리 — 적중률만 따로 내지 않는다. 문장은 프론트 */
+export interface HouseholdCoverageVM {
+  windowMonths: number;
+  intervals: number;
+  hits: number;
+  people: number;
+  nominalPercent: number;
+}
+
 export interface HouseholdTrackVM {
   month: string;
   issuedOn: string | null;
@@ -467,6 +476,10 @@ export interface HouseholdMonthVM {
   /** not_current_month · null */
   landingReason: string | null;
   track: HouseholdTrackVM | null;
+  /** 쌓인 착지 적중 — 예측 채점(최근 windowMonths개월 · 사람 전체, 서버 `SRV-REQ-046` FR-8). 없으면 null 이고 coverageReason */
+  coverage: HouseholdCoverageVM | null;
+  /** history_short · unavailable · not_current_month */
+  coverageReason: string | null;
   expenses: HouseholdExpenseVM[];
   recurring: { items: HouseholdOccurrenceVM[]; scheduledTotal: number };
   installments: HouseholdInstallmentsVM;

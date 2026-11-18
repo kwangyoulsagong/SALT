@@ -1,6 +1,14 @@
 import { formatPrice } from "@repo/web-shared/lib";
 
-import type { CalculationState, GoalTemplateKey, MilestoneState, ProjectionReason } from "./types";
+import type {
+  CalculationState,
+  GoalTemplateKey,
+  MilestoneState,
+  ProjectionReason,
+  SavingsTrack,
+  TodayMoneyReason,
+  TrackReason,
+} from "./types";
 
 /**
  * 저축 문구 — **사실만 말한다.** 칭찬 · 재촉 · 명령형 0(`FE-REQ-056` 수용 기준 2 · FEATURE-012 정책). 상태 키 → 문장은 여기 한 곳.
@@ -52,7 +60,26 @@ export const GOAL_MESSAGES = {
     openLate: (early: string) => `빠르면 ${formatMonth(early)}, 늦은 쪽은 정할 수 없어요`,
     plan: (month: string) => `계획대로면 ${formatMonth(month)}`,
     basis: (months: number) => `지난 ${months}개월 적립 기록의 10 · 90% 구간`,
-    trackPending: "이 구간이 맞았는지는 3개월 뒤부터 쌓여요",
+    /** 서버 숫자 그대로 — 판정 수 · 맞은 수 · 사람 수를 같이(적중률만 말하지 않는다) */
+    track: (t: SavingsTrack) =>
+      `이 계산기의 ${t.nominalPercent}% 구간은 지난 ${t.windowMonths}개월 판정 ${t.intervals}번 중 ${t.hits}번 맞았어요(${t.people}명)`,
+  },
+  trackReason: {
+    history_short: "이 구간이 맞았는지는 판정이 10번 쌓이면 보여 드려요",
+    unavailable: "지금은 맞았는지 기록을 불러오지 못했어요",
+  } satisfies Record<TrackReason, string>,
+  todayMoney: {
+    title: "오늘 돈으로 다시 보기",
+    worth: (baseMonth: string, target: string, latestMonth: string, worth: string) =>
+      `${formatMonth(baseMonth)} 물가로 정한 ${target}은 ${formatMonth(latestMonth)} 물가로 ${worth}어치예요`,
+    same: (amount: string, change: string) => `같은 값어치를 지키려면 ${amount}(물가 ${change})`,
+    choice: "목표 금액을 고칠지는 직접 정해요",
+    source: (base: string | null) => `출처: 한국은행 ECOS 소비자물가지수${base ? `(${base})` : ""}`,
+    reason: {
+      too_recent: "목표를 만든 지 6개월이 지나면 오늘 돈으로 다시 보여 드려요",
+      no_new_index: "목표를 정한 뒤 새 물가가 아직 발표되지 않았어요",
+      unavailable: "지금은 물가를 불러오지 못했어요",
+    } satisfies Record<TodayMoneyReason, string>,
   },
   projectionReason: {
     history_short: "다 찬 달 기록이 3개월이 안 돼 구간 대신 계획만 보여 줘요",

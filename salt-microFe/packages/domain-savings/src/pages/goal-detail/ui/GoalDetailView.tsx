@@ -14,6 +14,7 @@ import {
   GoalScene,
   MilestoneBox,
   MissedMonthsBox,
+  TodayMoneyBox,
   ProjectionLine,
   StampBoard,
   TEMPLATE_LABEL,
@@ -39,7 +40,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
   if (query.isError) return <EmptyState title={hasApiStatus(query.error, 404) ? M.notFound : GOAL_MESSAGES.loadFailed} tone="error" />;
   if (!query.data) return <Skeleton height={320} />;
 
-  const { goal, plan, deposits, missedMonths, units, unitLimit } = query.data;
+  const { goal, plan, deposits, missedMonths, units, unitLimit, todayMoney } = query.data;
   const lead =
     goal.frame === "saved"
       ? { label: GOAL_MESSAGES.saved, value: formatWon(goal.saved), sub: `${GOAL_MESSAGES.remaining} ${formatWon(goal.remaining)}` }
@@ -86,6 +87,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           <MilestoneBox milestone={goal.milestone} />
           <ProjectionLine projection={goal.projection} />
           <MissedMonthsBox missed={missedMonths} />
+          <TodayMoneyBox money={todayMoney} targetAmount={goal.targetAmount} />
         </section>
 
         <section className={panel} aria-label={ITEM_UNIT_MESSAGES.title}>
