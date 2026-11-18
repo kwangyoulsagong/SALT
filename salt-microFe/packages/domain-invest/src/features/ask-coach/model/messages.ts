@@ -24,6 +24,15 @@ export const ASK_COACH_MESSAGES = {
   signedOut: "로그인하면 코치에게 물어볼 수 있어요.",
   disclaimer: "숫자는 기록과 정해 둔 기준으로 계산한 과거 · 현재 사실이에요. 앞으로의 가격을 말하지 않아요.",
   links: "더 보기",
+  briefingTitle: "오늘의 브리핑",
+  briefingLoading: "브리핑을 모으는 중",
+  briefingFailed: "오늘의 브리핑을 불러오지 못했어요. 아래 질문으로 바로 물어볼 수 있어요.",
+  loadOlder: "이전 대화 더 보기",
+  loadingOlder: "이전 대화를 불러오는 중",
+  newMessage: "새 답 보기",
+  /** 생성 시각(FEATURE-006 FR-27) — 서울 시각 */
+  generatedAt: (time: string) => `${time} 계산`,
+  cardJudgedAt: (time: string) => `이 판단을 만든 때 ${time}`,
 } as const;
 
 export const COACH_CHIP_LABEL: Record<CoachQuestionChip, string> = {

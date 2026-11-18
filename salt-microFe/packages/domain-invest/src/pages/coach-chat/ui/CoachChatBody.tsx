@@ -1,16 +1,17 @@
 "use client";
 
-import { useCoachConversationHistory } from "@/entities/coach";
+import { useCoachBriefing, useCoachConversationHistory } from "@/entities/coach";
 import { ASK_COACH_MESSAGES, CoachConversation } from "@/features/ask-coach";
 
 import * as styles from "./CoachChatBody.css";
 
 /**
- * 코치 대화 본문 — 지난 대화를 읽은 뒤 대화 면을 놓는다(F006 C절 · `FE-REQ-030`). 읽는 동안은 같은 높이 자리만.
+ * 코치 대화 본문 — 지난 대화를 읽은 뒤 대화 면을 놓는다. 오늘의 브리핑은 따로 와서 지난 대화 다음에 붙는다(F006 C절 · `FE-REQ-030`). 읽는 동안은 같은 높이 자리만.
  * 지난 대화를 못 읽어도 새로 묻는 것은 막지 않는다(FR-14 와 같은 태도 — 부분 실패).
  */
 export const CoachChatBody = () => {
   const history = useCoachConversationHistory();
+  const briefing = useCoachBriefing();
   if (history.isSignedOut) return <p className={styles.note}>{ASK_COACH_MESSAGES.signedOut}</p>;
   if (history.isLoading) return <div className={styles.placeholder} aria-busy="true" />;
   return (
@@ -19,6 +20,11 @@ export const CoachChatBody = () => {
       history={history.messages}
       conversationId={history.conversationId}
       historyFailed={history.isError}
+      hasOlder={history.hasOlder}
+      isLoadingOlder={history.isLoadingOlder}
+      onLoadOlder={history.loadOlder}
+      // 브리핑을 못 읽어도 대화는 막지 않는다 — 그 자리만 한 줄(FR-14 와 같은 태도)
+      briefing={briefing.isError ? null : briefing.data}
     />
   );
 };
