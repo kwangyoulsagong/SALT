@@ -140,7 +140,7 @@ created: 2026-09-09
 |---|---|---|
 | FR-100 | 행을 누르면 **읽음을 즉시 반영(낙관적)** 하고 `target`으로 이동한다. 실패하면 되돌린다 — 금액이 아니라 표시 상태라서 예외로 허용한다 | Must |
 | FR-101 | 모두 읽음도 낙관적 반영 + 실패 시 되돌림. 성공 후 벨 배지 0 | Must |
-| FR-102 | `target` → 경로 매핑은 `shared/config` 한 곳이다: `coach` → `/coach`, `home.weekly-plan` → `/#weekly-plan` | Must |
+| FR-102 | `target` → 경로 매핑은 `shared/config` 한 곳이다: ~~`coach` → `/coach`, `home.weekly-plan` → `/#weekly-plan`~~ **정정 2026-11-18**(종류 셋 — 서버 S2c): `invest.symbol` → 종목 상세(종목 없으면 코치 리포트) · `invest.coach` → `/coach/report` · `savings.goals` → `/goals` · `household.board` → `/household`. 자리 `@repo/web-shared/config` `alertTargetHref` | Must |
 | FR-103 | 알림 생성 UI 0건 (B19) | Must |
 
 ### 설정 (D9 · B16)
@@ -233,3 +233,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 카드 한 번에 · FR-20 역순 커서 위로 · FR-21 맨 아래를 보던 사람만 따라감 + "새 답 보기"(문턱 80px). 내가 보낸 질문은 늘 따라간다. FR-4(토큰 버퍼)는 문장 단위라 해당 없음. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-90 섹션 독립(흐름 실패가 Hero · 레이더를 가리지 않음) · FR-91 기간 버튼은 흐름만 다시 부름(실측 1회) · FR-92 null 을 0 으로 그리지 않음("데이터 부족" · "30일 미만 보유") · FR-93 축 키 · 사유 코드 → 문구(`entities/portfolio/model/position.ts`). 남은 것 FR-80~83 거래 시트. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 시트 상태는 `features/record-transaction`(필드 순서 그대로) · FR-81 세 칸 유효할 때만 미리보기 · 300ms · 키가 입력이라 앞 요청 끊음 · FR-82 계산 0 · 미리보기 실패면 문구 + 저장 가능(실화면 route 500) · FR-83 재시도 0 · 낙관적 0 · 무효화 `positionAll`(개요 · 흐름 · 레이더 · 목록 · 미리보기) + 홈 요약 + 코치 보유 칸. **같은 원인**: 상세 화면 기록 폼(`useRecordTrade`)이 포지션을 무효화하지 않던 것 고침 |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-72 배지 다시 부르기(문서 이동 · 읽음 무효화, 폴링 0 · 포커스 재요청 끔) · FR-100 · 101 낙관적 읽음 + 실패 되돌림 · FR-102 갈 곳 매핑 한 곳(코드 넷으로 정정) · FR-103 만드는 칸 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

@@ -80,3 +80,14 @@
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
 - 확인 2회차: 시트 숫자 · 날짜 칸 Enter 저장 되살림(`<form>` 을 걷으며 빠진 동작) — 타입 · lint pass
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- FR-80 · 81 — `packages/web-shared/src/layout/AlertBell.tsx` · `AppShell.tsx` — 실화면 셸 · 투자 · 저축 · 가계부 · 홈 다섯 곳 "알림 15건 안 읽음"
+- FR-110 — `apps/web/src/entities/notification/ui/AlertRow.tsx`(아이콘 · 제목 · 확인할 곳 · 시각 · 안 읽음 굵게 + 점) · 실화면 24줄(25 − 모르는 코드 1)
+- FR-111 — `widgets/alert-list` `open` — 누름 → PATCH `/read` + `/household` 로 문서 이동 실측
+- FR-112 — `features/mark-alert-read` `MarkAllReadButton`(안 읽은 것 없으면 비활성) — 실측 배지 사라짐 · 비활성
+- FR-113 — 만드는 칸 · 조건 알림 · 피드 0(코드 grep)
+- 빈 상태 — 도메인 다 끔 → "새 알림이 없어요" · 배지 없음 · 모두 읽음 없음
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

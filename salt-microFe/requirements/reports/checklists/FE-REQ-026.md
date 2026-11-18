@@ -425,3 +425,9 @@
 - `run-preflight` `PreflightCard.tsx` — 좁은 화면 훅 `useNarrowViewport` 를 `@repo/web-shared/lib` 로 내림(거래 시트가 두 번째 소비처). 동작 무변경 — 390 상세에서 시트 열림 실측
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- `satisfies Record<CoachMode, string>` 유지 · 투자 zone 빌드 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

@@ -188,6 +188,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | 2026-10-28 | **C절을 구현했다**(FR-20~24, `ed1615f`, 루트 `F000-notification-kind-gate`). `alerts.viewmodel.ts`(순수 함수) — 1종 필터 · 금액 제거 · 코드만 · `createdAt` 내림차순 · 20건. `/api/app/alerts` 반환이 서버 envelope 두 개에서 `{ alerts, unreadCount }` 로 — 프론트 소비처 0건이라 영향 없음(F006 `FE-REQ-030` 알림 화면이 첫 소비처). 서버 경로 변경과 같은 PR(`SRV-REQ-009` FR-12 · 13) |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 알림 뷰모델 — 종류 `signal_update` 하나 → 도메인 종류 셋(goal_reached · fixed_cost_increased). 금액 거르기 그대로 |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 알림 인자 `symbol` 코드 형식 검사(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — C절 뷰모델 — `AlertVM.target`(갈 곳 코드) · `AlertsVM.nextPage` · `AlertUnreadVM`. 거르기(종류 · 금액 · 코드 없음)는 그대로. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

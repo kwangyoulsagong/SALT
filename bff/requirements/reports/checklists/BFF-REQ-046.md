@@ -102,3 +102,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- `getPrefs` · `setPref` 무변경 — `app-alerts.test.ts` 설정 시험 둘 그대로 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

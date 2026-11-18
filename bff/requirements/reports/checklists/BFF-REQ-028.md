@@ -25,3 +25,11 @@
 - 거래 계약 8종을 CONTRACT 블록에 — `position-contract.test.ts` 글자 대조 통과 · FE `check-types` 13/13 — pass
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 엔드포인트 — `GET /api/app/alerts?page=` · `GET /unread-count` · `PATCH /:id/read` · `PATCH /read-all` 실호출 확인
+- FR-26 · 45 — `AlertViewModel.target` = `invest.symbol` · `invest.coach` · `savings.goals` · `household.board`(코드) — 계약 블록 `CONTRACT:BEGIN AlertsView`
+- FR-48 — `bff/src/services/__tests__/alerts-contract.test.ts` 가 BFF · `salt-microFe/packages/core/src/notification/alerts.ts` 블록을 글자 대조
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

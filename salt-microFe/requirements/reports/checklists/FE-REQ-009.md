@@ -348,3 +348,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 페이지 레지스트리(`layer-rules.cjs` `pages`)에 `portfolio-transactions` 한 줄 — `/portfolio/transactions`. 레이어 검사 시험(차단 16 · 통과 10) 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 레이어 검사 시험(차단 16 · 통과 10) 통과 · 새 파일 전부 훅 사후 실행 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

@@ -40,6 +40,7 @@ widgets/{slice}/
 | `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠(위험 · 판정 성적 — 목표 비중 칸은 2026-11-17 뺐다) — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
 | `market-board` | market + news + indicator | 자산군(코인 · 국내 주식 — ~~본문 탭~~ 2026-11-10 머리 메뉴 코인 · 주식이 주소 `?asset=` 로 고른다, `FE-REQ-069`) + 실시간 테이블 + 우측 프리뷰. 자산군은 데이터 소스만 바꾼다 — 같은 표 · 같은 인터랙션 · 같은 요약 띠(머리 띠 포함, 자산군 문자열을 넘긴다) (F011 `FE-REQ-041` · `FE-REQ-050`) |
 | `asset-search` | market + `search-asset` + `toggle-watchlist` | 종목 검색 ~~`/search`~~ **모달 `AssetSearchDialog`**(2026-11-09 `FE-REQ-066` — 머리 칸 · `/` · `/search` 는 연 채로) — 코인 + 국내 한 검색 · 추적 카운터 · 상한 안내 · 최근 검색 (F000 FR-40 · 41, 2026-10-30) |
+| `alert-list` | notification + `mark-alert-read` | 셸 `/alerts` — 알림 목록 · 누르면 읽음 + 갈 곳 · 모두 읽음 · 더 보기(F006 `FE-REQ-030` FR-110~113, 2026-11-18). 벨은 위젯이 아니라 공용 레이아웃(`AlertBell`) |
 | `settings-panel` | coach + `edit-coach-profile` + `toggle-purchase-price` | 투자 코치 설정 `/coach/settings` — 코치 설정 · 보기 · 내 기준 링크 (F004 FR-12, 2026-11-02 셸에서 옮김) |
 | `onboarding-flow` | auth + `choose-domains` + `accept-invite` | 초대 → 쓸 것 고르기 → 첫 기록 → 끝(~~초대→첫 보유 기록→적립 3스텝~~ 2026-11-06 S3a `FE-REQ-055` FR-4 — 다음 단계는 서버 값) |
 | `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |

@@ -67,3 +67,9 @@
 - 새 페이지 본문 `PortfolioTransactionsBody` 도 유리막(`SignInRequired`) 뒤 — 거래는 사람 칸
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 로그아웃 실화면 — 벨 0 · "로그인하면 알림을 볼 수 있어요"
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
