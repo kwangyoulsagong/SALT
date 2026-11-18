@@ -42,6 +42,7 @@ const toMessageView = (message: CoachMessageRecord) => ({
   links: message.links,
   gaps: message.gaps,
   errorCode: message.errorCode,
+  card: message.card,
   createdAt: message.createdAt.toISOString(),
 });
 
@@ -114,6 +115,9 @@ export class CoachConversationController {
       result.answer.sentences.forEach((text, index) => {
         if (index >= from) send("message.delta", { text }, index);
       });
+      // 카드는 완성 객체 한 번(`SRV-REQ-029` FR-5) — 문장 다음 번호를 id 로 두어 문장까지만 받고 끊긴 재연결도 카드를 받는다
+      const cardId = result.answer.sentences.length;
+      if (result.card && from <= cardId) send("message.card", result.card, cardId);
       send("message.done", {
         messageId,
         intent: result.answer.intent,
@@ -127,6 +131,23 @@ export class CoachConversationController {
       send("message.error", { code: "LLM_ERROR", fallbackText: FALLBACK_TEXT });
     } finally {
       if (!res.writableEnded) res.end();
+    }
+  };
+
+  /** 오늘의 브리핑 — 저장하지 않는 첫 메시지(FEATURE-006 FR-21) */
+  briefing = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.useCases.getCoachBriefing.execute(req.user!.userId);
+      return ResponseUtil.success(res, {
+        generatedAt: result.generatedAt.toISOString(),
+        sentences: result.sentences,
+        links: result.links,
+        gaps: result.gaps,
+        card: result.card,
+        explanationSource: "rule",
+      });
+    } catch (error) {
+      next(error);
     }
   };
 

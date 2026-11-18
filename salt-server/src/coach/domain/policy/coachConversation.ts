@@ -66,7 +66,7 @@ export const routeCoachQuestion = (content: string, chip: CoachQuestionChip | nu
 export type CoachAnswerLink = "risk_budget" | "profit_plan" | "behavior_mirror" | "size_check" | "symbol";
 
 /** 답이 읽은 재료 중 못 읽은 것 — 그 문장 대신 "불러올 수 없어요"가 나가고 0 을 쓰지 않는다(FEATURE-006 FR-15) */
-export type CoachAnswerGap = "risk" | "plans" | "behavior";
+export type CoachAnswerGap = "risk" | "plans" | "behavior" | "recommendation";
 
 export interface CoachAnswer {
   intent: CoachQuestionIntent;
@@ -123,7 +123,20 @@ export interface BehaviorAnswerFacts {
   warnings: Array<{ title: string; message: string }>;
 }
 
+/**
+ * 저장 추천 카드 요약(F006 2단계 · `SRV-REQ-028` FR-50~54) — 문장을 고르는 데만 쓴다. 카드 본문은 응용층이 게이트(`recommendationGate`)를
+ * 지난 그대로 복사해 저장한다. 막힌 카드는 종목을 모른다(행동 · 종목 · 근거를 싣지 않는다 — `DB-REQ-022` FR-12)
+ */
+export interface RecommendationCardFacts {
+  renderable: boolean;
+  symbol: string | null;
+  /** 판단을 만든 뒤 지난 시간 */
+  staleHours: number;
+}
+
 export interface CoachAnswerFacts {
+  /** `null` = 저장 추천이 아직 없다 · `undefined` = 읽지 않았다 */
+  recommendation?: RecommendationCardFacts | null | "unavailable";
   risk: RiskAnswerFacts | null | undefined;
   plans: SellPlanFacts[] | null | undefined;
   behavior: BehaviorAnswerFacts | null | undefined;
@@ -132,11 +145,14 @@ export interface CoachAnswerFacts {
 }
 
 /** 어떤 질문이 어떤 재료를 읽는가(FR-20 — 필요한 것만). 응용층이 이 표대로만 부른다 */
-export type CoachAnswerMaterial = "risk" | "plans" | "behavior";
-/** 한 번 거래 손실 한도는 위험 예산 설정에서 오므로 `weekly_amount` 도 `risk` 하나만 읽는다 */
+export type CoachAnswerMaterial = "risk" | "plans" | "behavior" | "recommendation";
+/**
+ * 한 번 거래 손실 한도는 위험 예산 설정에서 오므로 `weekly_amount` 도 `risk` 를 읽는다.
+ * 저장 추천 카드는 사고팔기를 묻는 둘에만 붙는다 — 위험 · 복기 답에 추천을 끼우면 묻지 않은 매매 얘기가 된다
+ */
 export const ANSWER_MATERIALS: Record<CoachQuestionIntent, readonly CoachAnswerMaterial[]> = {
-  sell_check: ["plans"],
-  weekly_amount: ["risk"],
+  sell_check: ["plans", "recommendation"],
+  weekly_amount: ["risk", "recommendation"],
   risk_check: ["risk"],
   mistake_review: ["behavior"],
   order_request: [],
@@ -309,6 +325,19 @@ const OTHER_ANSWER: Omit<CoachAnswer, "intent" | "dropped"> = {
   gaps: [],
 };
 
+/** 판단이 이만큼 오래되면 문장에 나이를 적는다 — 저장 추천의 만료(24시간)와 같다 */
+export const CARD_STALE_NOTE_HOURS = 24;
+
+/** 카드에 붙는 문장 한 줄 — 카드가 없으면(`null`) 문장도 없다. 못 읽었으면 그 사실만 */
+export const cardSentence = (card: CoachAnswerFacts["recommendation"]): string | null => {
+  if (card === undefined || card === null) return null;
+  if (card === "unavailable") return "가장 최근 코치 판단은 지금 불러올 수 없어 카드 없이 답했어요.";
+  const age = card.staleHours >= CARD_STALE_NOTE_HOURS ? ` 그 판단은 ${Math.floor(card.staleHours)}시간 전에 만든 거예요.` : "";
+  return card.renderable && card.symbol
+    ? `가장 최근 코치 판단(${card.symbol})을 아래 카드로 붙였어요 — 근거 · 과거 성적 · 틀렸던 때가 함께 있어요.${age}`
+    : `가장 최근 코치 판단은 근거 · 과거 성적 · 틀렸던 때 중 빈 것이 있어 내용 대신 사유만 보여 드려요.${age}`;
+};
+
 /**
  * 규칙 답 — 재료를 받아 문장을 만든다. 숫자를 새로 계산하지 않는다(반올림 · 백분율 표기만).
  * 어느 문장이든 검사기에 걸리면 빼고 센다 — 남는 문장이 없으면 "불러올 수 없어요" 한 줄.
@@ -326,14 +355,91 @@ export const composeCoachAnswer = (intent: CoachQuestionIntent, facts: CoachAnsw
             : intent === "order_request"
               ? ORDER_ANSWER
               : OTHER_ANSWER;
-  const kept = draft.sentences.filter((sentence) => languageViolations(sentence).length === 0);
+  const card = ANSWER_MATERIALS[intent].includes("recommendation") ? cardSentence(facts.recommendation) : null;
+  const all = card ? [...draft.sentences, card] : draft.sentences;
+  const gaps: CoachAnswerGap[] = facts.recommendation === "unavailable" && card ? [...draft.gaps, "recommendation"] : draft.gaps;
+  const kept = all.filter((sentence) => languageViolations(sentence).length === 0);
   return {
     intent,
     sentences: kept.length ? kept : [UNAVAILABLE],
     links: draft.links,
-    gaps: draft.gaps,
-    dropped: draft.sentences.length - kept.length,
+    gaps,
+    dropped: all.length - kept.length,
   };
+};
+
+// ─── 오늘의 브리핑 — 대화 첫 메시지(FEATURE-006 FR-21 · `FE-REQ-030` FR-31) ───
+
+export interface CoachBriefingFacts {
+  plans: SellPlanFacts[] | null;
+  risk: RiskAnswerFacts | null;
+  recommendation: RecommendationCardFacts | null | "unavailable";
+}
+
+export interface CoachBriefing {
+  sentences: string[];
+  links: CoachAnswer["links"];
+  gaps: CoachAnswerGap[];
+  dropped: number;
+}
+
+const BRIEFING_HEAD = "오늘의 브리핑이에요 — 보유 · 위험 · 코치 판단을 답과 같은 계산으로 모았어요.";
+const BRIEFING_TAIL = "아래 질문 중 하나로 더 자세히 물어볼 수 있어요.";
+
+/**
+ * 브리핑 — 저장하지 않는 첫 메시지. 숫자는 답과 같은 재료에서 옮기고(새 계산 0), 빈 화면 대신 무엇을 물을지 보여 준다.
+ * 재료 하나 실패 = 그 줄만 "불러올 수 없어요"(0 을 쓰지 않는다)
+ */
+export const composeCoachBriefing = (facts: CoachBriefingFacts): CoachBriefing => {
+  const sentences = [BRIEFING_HEAD];
+  const links: CoachAnswer["links"] = [];
+  const gaps: CoachAnswerGap[] = [];
+
+  if (facts.plans === null) {
+    gaps.push("plans");
+    sentences.push("코인 보유 점검은 지금 불러올 수 없어요.");
+  } else if (facts.plans.length === 0) {
+    sentences.push("기록된 코인 보유가 없어 점검 가격을 볼 대상이 없어요.");
+  } else {
+    const count = (status: SellPlanFacts["status"]) => facts.plans!.filter((plan) => plan.status === status).length;
+    const parts = [
+      ["손실 제한 검토", count("stop_loss_review")],
+      ["익절 검토", count("take_profit_review")],
+      ["손실 제한선 올리기", count("raise_stop_review")],
+    ].filter(([, n]) => (n as number) > 0) as Array<[string, number]>;
+    const review = parts.reduce((sum, [, n]) => sum + n, 0);
+    if (review === 0) {
+      sentences.push(`코인 보유 ${facts.plans.length}개 모두 아직 계획 유지 구간이에요.`);
+    } else {
+      sentences.push(
+        `코인 보유 ${facts.plans.length}개 중 점검 지점에 온 것이 ${review}개예요(${parts.map(([label, n]) => `${label} ${n}`).join(" · ")}).`
+      );
+      links.push({ kind: "profit_plan" });
+    }
+  }
+
+  if (facts.risk === null) {
+    gaps.push("risk");
+    sentences.push("위험 기준 점검은 지금 불러올 수 없어요.");
+  } else if (facts.risk.totalValueKrw.gt(0)) {
+    const exceeded = [facts.risk.concentration.status, facts.risk.drawdown.status].filter((status) => status === "exceeded").length;
+    if (exceeded > 0) {
+      sentences.push(`정해 둔 위험 기준을 넘은 항목이 ${exceeded}개 있어요.`);
+      links.push({ kind: "risk_budget" });
+    } else if (facts.risk.drawdown.status === "budget_not_set") {
+      sentences.push("이번 달 손실 한도를 아직 정하지 않으셔서 한도 대비로는 잴 수 없어요.");
+    } else {
+      sentences.push("정해 둔 위험 기준을 넘은 항목은 없어요.");
+    }
+  }
+
+  if (facts.recommendation === "unavailable") gaps.push("recommendation");
+  const card = cardSentence(facts.recommendation);
+  sentences.push(card ?? "아직 만든 코치 판단이 없어요 — 판단이 생기면 여기에 카드로 붙어요.");
+  sentences.push(BRIEFING_TAIL);
+
+  const kept = sentences.filter((sentence) => languageViolations(sentence).length === 0);
+  return { sentences: kept, links, gaps, dropped: sentences.length - kept.length };
 };
 
 /** 대화 제목 — 첫 질문 앞 40자(FR-10). LLM 을 부르지 않는다 */

@@ -3,31 +3,24 @@ import {
   KR_STOCK_JUDGMENT_SIGNAL_TYPES,
   type CoachExclusion,
   type SymbolJudgmentStore,
-  coachSignalType,
-  JUDGMENT_CASE_LIMIT,
   readStoredRecommendation,
-  recommendationGate,
   staleHours,
-  summarizeRecommendationTrack,
   toBehaviorFact,
-  toDetailAssetType,
   toExitPlan,
   type BehaviorAnalyzer,
   type BehaviorFact,
   type BehaviorFinding,
   type Clock,
-  type CoachInsight,
   type CoachInsightStore,
   type ExitPlanView,
   type ForecastReader,
   type MarketProbe,
   type PortfolioProbe,
-  type RecommendationBlockedReason,
   type RecommendationSnapshotStore,
-  type RecommendationTrackRecord,
   type StoredRecommendation,
 } from "../domain";
-import { JUDGMENT_DISCLAIMER, SCORE_NOTE } from "./lib/judgmentTrack";
+import { JUDGMENT_DISCLAIMER } from "./lib/judgmentTrack";
+import { assembleRecommendationCard, type RecommendationCardView } from "./lib/recommendationCard";
 /** 행동 기록 수 — 행동 코치 화면과 같은 10. */
 const BEHAVIOR_LIMIT = 10;
 /** 익절 계획이 보는 자산군 — `ListProfitPlans` 와 같다. 손절 · 익절 비율이 자산군마다 다르다. */
@@ -37,21 +30,7 @@ export interface CoachDetailView {
   generatedAt: string | null;
   staleHours: number | null;
   regime: string | null;
-  recommendation: {
-    action: StoredRecommendation["action"];
-    symbol: string;
-    assetType: "crypto" | "us_stock" | "kr_stock";
-    score: number;
-    scoreNote: string;
-    renderable: boolean;
-    blockedReason: RecommendationBlockedReason | null;
-    reasons: StoredRecommendation["reasons"];
-    topFactors: StoredRecommendation["topFactors"];
-    signalTrackRecord: RecommendationTrackRecord | null;
-    /** 같은 행동의 저장 추천 중 30일 뒤 **빗나간** 것 — 최근 3건(F010 슬라이스 0). */
-    failureCases: Array<{ date: string; event: string; outcome: string; symbol: string; returnRate: number }>;
-    explanation: { text: string; source: "llm" | "rule" };
-  } | null;
+  recommendation: RecommendationCardView | null;
   risks: StoredRecommendation["risks"];
   candidates: Array<{
     action: string;
@@ -135,7 +114,12 @@ export class GetCoachDetail {
         : null;
 
     const recommendation = stored
-      ? await this.assembleRecommendation(userId, latest!, stored)
+      ? await assembleRecommendationCard(
+          { market: this.market, recommendations: this.recommendations },
+          userId,
+          latest!,
+          stored
+        )
       : null;
 
     return {
@@ -164,54 +148,6 @@ export class GetCoachDetail {
         .filter((fact): fact is BehaviorFact => fact !== null),
       excluded: coachExclusions(krSamples),
       disclaimer: JUDGMENT_DISCLAIMER,
-    };
-  }
-
-  private async assembleRecommendation(
-    userId: string,
-    insight: CoachInsight,
-    stored: StoredRecommendation
-  ): Promise<NonNullable<CoachDetailView["recommendation"]>> {
-    const signalType = coachSignalType(stored.action);
-    const filter = { signalType };
-
-    const [stats, misses, quotes] = await Promise.all([
-      this.recommendations.summarize(userId, filter),
-      this.recommendations.recentCases(userId, filter, "miss", JUDGMENT_CASE_LIMIT),
-      this.market.quotes([stored.symbol]),
-    ]);
-    const trackRecord: RecommendationTrackRecord = summarizeRecommendationTrack(signalType, stats);
-    const failureCases = misses.map((item) => ({
-      date: item.judgedAt.toISOString().slice(0, 10),
-      event: signalType,
-      outcome: item.outcome,
-      symbol: item.symbol,
-      returnRate: item.returnRate,
-    }));
-
-    const gate = recommendationGate({
-      reasons: stored.reasons,
-      topFactors: stored.topFactors,
-      trackRecord,
-      failureCases,
-    });
-
-    return {
-      action: stored.action,
-      symbol: stored.symbol,
-      assetType: toDetailAssetType(
-        quotes.get(stored.symbol)?.assetType ?? "crypto"
-      ),
-      score: stored.score,
-      scoreNote: SCORE_NOTE,
-      renderable: gate.renderable,
-      blockedReason: gate.blockedReason,
-      reasons: stored.reasons,
-      topFactors: stored.topFactors,
-      signalTrackRecord: trackRecord,
-      failureCases,
-      // 저장 추천의 요약은 규칙 문장이다 — `generate` 가 LLM 을 부르지 않는다
-      explanation: { text: insight.summary, source: "rule" },
     };
   }
 }

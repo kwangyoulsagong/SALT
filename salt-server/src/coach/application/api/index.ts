@@ -65,6 +65,7 @@ import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
 import { GetKrBehaviorMirror } from "../GetKrBehaviorMirror";
 import { GetCoachDetail } from "../GetCoachDetail";
+import { ReadConversationCard } from "../lib/recommendationCard";
 import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
@@ -98,8 +99,10 @@ import { RequestCoachGeneration } from "../RequestCoachGeneration";
 import {
   AnswerCoachMessage,
   AskCoach,
+  type CoachAnswerSources,
   DeleteCoachConversation,
   FailStaleCoachAnswers,
+  GetCoachBriefing,
   ListCoachConversations,
   ListCoachMessages,
 } from "../CoachConversation";
@@ -278,6 +281,7 @@ export interface CoachUseCases {
   getMonthlyReview: GetMonthlyReview;
   /** 코치 대화(F006 C절 · `SRV-REQ-028`) — 질문 저장 · 규칙 답 · 목록 · 지우기 · 멈춘 답 정리 */
   askCoach: AskCoach;
+  getCoachBriefing: GetCoachBriefing;
   answerCoachMessage: AnswerCoachMessage;
   listCoachConversations: ListCoachConversations;
   listCoachMessages: ListCoachMessages;
@@ -323,6 +327,13 @@ export const createCoachApplication = (deps: CoachDependencies) => {
   const getBehaviorCoach = new GetBehaviorCoach(deps.portfolio, analyzeTradingBehavior);
   const listProfitPlans = new ListProfitPlans(deps.portfolio, deps.forecasts);
   const failStaleCoachAnswers = new FailStaleCoachAnswers(deps.conversations);
+  // 대화 답 · 브리핑 재료 — 같은 컨텍스트의 기존 계산(숫자를 새로 만들지 않는다). 카드는 코치 상세와 같은 조립 · 같은 게이트
+  const coachAnswerSources: CoachAnswerSources = {
+    riskBudget: getRiskBudget,
+    profitPlans: listProfitPlans,
+    behavior: getBehaviorCoach,
+    card: new ReadConversationCard(deps.insights, { market: deps.market, recommendations: deps.recommendations }),
+  };
   const buildMonthlyReview = new BuildMonthlyReview(
     deps.monthlyReviews,
     deps.profiles,
@@ -556,9 +567,10 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     // 답 재료는 같은 컨텍스트의 기존 계산 — 위험 예산 · 익절/손절 계획 · 행동 코치(숫자를 새로 만들지 않는다)
     answerCoachMessage: new AnswerCoachMessage(
       deps.conversations,
-      { riskBudget: getRiskBudget, profitPlans: listProfitPlans, behavior: getBehaviorCoach },
+      coachAnswerSources,
       (message) => logger.warn(message)
     ),
+    getCoachBriefing: new GetCoachBriefing(coachAnswerSources, (message) => logger.warn(message)),
     listCoachConversations: new ListCoachConversations(deps.conversations),
     listCoachMessages: new ListCoachMessages(deps.conversations, failStaleCoachAnswers),
     deleteCoachConversation: new DeleteCoachConversation(deps.conversations),

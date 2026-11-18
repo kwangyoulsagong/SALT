@@ -68,6 +68,9 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
    *
    *       - `message.start` `{ messageId }`
    *       - `message.delta` `{ text }` — 문장 하나. 이벤트 `id` = 문장 번호(0부터). `Last-Event-ID` 를 주면 그 다음 문장부터
+   *       - `message.card` — 저장 추천 카드 완성 객체 한 번(팔기 · 이번 주 금액 질문만, 저장 추천이 있을 때). 이벤트 `id` = 문장 수.
+   *         `renderable: true` 면 코치 상세 `recommendation` 과 같은 모양 + `generatedAt`, `false` 면 `blockedReason` · `signalTrackRecord` ·
+   *         빈 `failureCases` · `generatedAt` 만(행동 · 종목 · 근거 없음 — 3종 게이트)
    *       - `message.done` `{ messageId, intent, explanationSource, links[], gaps[], replayed }` — `links` 는 화면 이동 코드(`risk_budget` ·
    *         `profit_plan` · `behavior_mirror` · `size_check` · `symbol`+`symbol`), `gaps` 는 못 읽은 재료(그 문장은 "불러올 수 없어요")
    *       - `message.error` `{ code, fallbackText }` — `LLM_TIMEOUT`(60초 넘게 멈춘 답) · `LLM_ERROR`
@@ -123,6 +126,24 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
 
   /**
    * @swagger
+   * /api/coach/briefing:
+   *   get:
+   *     summary: 오늘의 브리핑 — 대화 첫 메시지(F006 FR-21 · 2단계). 저장하지 않는다
+   *     description: |
+   *       답과 같은 재료(코인 보유 점검 · 위험 예산 · 저장 추천 카드)로 만든 서버 규칙 문장. 재료 하나를 못 읽으면 그 줄만
+   *       "불러올 수 없어요" + `gaps`. `card` 는 `message.card` 와 같은 모양(없으면 `null`).
+   *     tags: [Coach Conversation]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: "`{ generatedAt, sentences[], links[], gaps[], card, explanationSource: rule }`"
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/briefing", controller.briefing);
+
+  /**
+   * @swagger
    * /api/coach/conversations/{id}/messages:
    *   get:
    *     summary: 대화의 메시지 — 최신이 앞(역순 커서, `SRV-REQ-029` FR-28)
@@ -142,7 +163,7 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
    *         schema: { type: string, format: uuid }
    *     responses:
    *       200:
-   *         description: "`{ items: [{ id, role, content, intent, status, explanationSource, links, gaps, errorCode, createdAt }], nextCursor }`"
+   *         description: "`{ items: [{ id, role, content, intent, status, explanationSource, links, gaps, errorCode, card, createdAt }], nextCursor }`"
    *       401: { description: 인증 실패 }
    *       404: { description: 없는 · 남의 대화 }
    */

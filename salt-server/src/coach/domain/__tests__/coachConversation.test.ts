@@ -6,7 +6,10 @@ import Decimal from "decimal.js";
 import {
   COACH_CHIP_QUESTION,
   COACH_QUESTION_CHIPS,
+  ANSWER_MATERIALS,
+  cardSentence,
   composeCoachAnswer,
+  composeCoachBriefing,
   conversationTitle,
   languageViolations,
   nearestPlanStage,
@@ -182,5 +185,66 @@ describe("conversationTitle", () => {
   it("40자 넘으면 자른다", () => {
     assert.equal(conversationTitle("가".repeat(50)).length, 40);
     assert.equal(conversationTitle("  지금   팔아야 하나? "), "지금 팔아야 하나?");
+  });
+});
+
+describe("추천 카드 문장 · 오늘의 브리핑(2단계)", () => {
+  const cards: CoachAnswerFacts["recommendation"][] = [
+    undefined,
+    null,
+    "unavailable",
+    { renderable: true, symbol: "BTC", staleHours: 2 },
+    { renderable: true, symbol: "005930", staleHours: 49.7 },
+    { renderable: false, symbol: null, staleHours: 0 },
+    { renderable: false, symbol: null, staleHours: 24 },
+  ];
+  const planSets: Array<SellPlanFacts[] | null> = [
+    null,
+    [],
+    [plan("BTC", "hold_plan")],
+    [plan("BTC", "stop_loss_review", -12), plan("ETH", "take_profit_review", 30), plan("XRP", "raise_stop_review", 15)],
+  ];
+  const risks: Array<RiskAnswerFacts | null> = [
+    null,
+    risk({ totalValueKrw: new Decimal(0) }),
+    risk(),
+    risk({ concentration: { status: "exceeded", topSymbol: "BTC", topWeight: new Decimal("0.8"), limit: new Decimal("0.6") } }),
+    risk({ drawdown: { status: "budget_not_set", budgetKrw: null, usedKrw: null } }),
+  ];
+
+  it("카드 문장 — 모든 갈래가 검사기를 지나고 · 없음 = 문장 없음 · 24시간부터 나이", () => {
+    for (const card of cards) {
+      const line = cardSentence(card);
+      if (card === undefined || card === null) assert.equal(line, null);
+      else assert.deepEqual(languageViolations(line!), [], line!);
+    }
+    assert.match(cardSentence({ renderable: true, symbol: "005930", staleHours: 49.7 })!, /49시간 전/);
+    assert.doesNotMatch(cardSentence({ renderable: true, symbol: "BTC", staleHours: 23.9 })!, /시간 전/);
+  });
+
+  it("카드는 팔기 · 이번 주 금액 질문에만 — 다른 질문은 카드가 있어도 문장이 없다", () => {
+    const facts = { risk: risk(), plans: [plan("BTC", "hold_plan")], behavior: null, perTradeMaxLossKrw: null, recommendation: cards[3] };
+    for (const intent of ["sell_check", "weekly_amount", "risk_check", "mistake_review", "order_request", "other"] as CoachQuestionIntent[]) {
+      const has = composeCoachAnswer(intent, facts).sentences.some((s) => /코치 판단/.test(s));
+      assert.equal(has, ANSWER_MATERIALS[intent].includes("recommendation"), intent);
+    }
+  });
+
+  it("브리핑 — 재료 조합 전부(4 × 5 × 7)에서 검사기 통과 · 0 을 쓰지 않음 · 머리와 꼬리", () => {
+    let n = 0;
+    for (const plans of planSets)
+      for (const r of risks)
+        for (const recommendation of cards) {
+          const briefing = composeCoachBriefing({ plans, risk: r, recommendation: recommendation ?? null });
+          n += 1;
+          assert.equal(briefing.dropped, 0, briefing.sentences.join(" | "));
+          assert.match(briefing.sentences[0], /오늘의 브리핑/);
+          assert.match(briefing.sentences.at(-1)!, /아래 질문/);
+          assert.ok(!/ 0개/.test(briefing.sentences.join(" ")));
+          assert.equal(briefing.gaps.includes("plans"), plans === null);
+          assert.equal(briefing.gaps.includes("risk"), r === null);
+          assert.equal(briefing.gaps.includes("recommendation"), recommendation === "unavailable");
+        }
+    assert.equal(n, 140);
   });
 });
