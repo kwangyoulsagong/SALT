@@ -5,7 +5,7 @@
 #   ops/salt.sh up --replace    포트를 잡고 있는 수동 SALT 프로세스(예: `npm run dev` 로 띄운 BFF)를 내리고 launchd 로 바꾼다
 #   ops/salt.sh status          무엇이 떠 있고 무엇이 빠졌나 · 헬스 · 마지막 뉴스 · 시세 갱신 시각
 #   ops/salt.sh down [이름]      내린다(이름 없으면 전부 — 상시 서버 포함)
-#   ops/salt.sh restart <이름>   코드를 바꾼 뒤 재시작(launchd 는 watch 없이 뜬다)
+#   ops/salt.sh restart <이름>…  코드를 바꾼 뒤 재시작(이름 여럿 — 차례로. launchd 는 watch 없이 뜬다)
 #   ops/salt.sh logs <이름>      로그 꼬리
 #   ops/salt.sh plist <이름>     up 이 등록할 launchd plist 를 등록 없이 출력(검토용)
 #   ops/salt.sh sync            예측 실행 트리(~/.salt-run)를 지금 머지된 main 으로 맞춘다(평소엔 매시 live 가 한다)
@@ -385,20 +385,24 @@ case "${1:-status}" in
   down)
     if [[ -n "${2:-}" ]]; then valid "$2"; down_one "$2"; else for name in ${(Oa)ORDER}; do down_one "$name"; done; fi ;;
   restart)
+    # 이름을 여러 개 받는다(`restart server bff-rest`) — 전엔 첫 이름만 재기동하고 나머지를 조용히 버렸다(2026-11-18 F006 머지 뒤 bff-rest 가 옛 코드로 남음)
     valid "${2:-}"
-    if is_dev "$2"; then down_one "$2"; sleep 1; start_dev "$2"
-    elif loaded "$2"; then
-      # kickstart -k 를 쓰지 않는다 — 옛 node 가 종료(DB 연결 닫기) 중일 때 새 프로세스가 떠 EADDRINUSE 로 죽고,
-      # launchd 가 재시도를 미뤄 1~2분 꺼져 있었다(2026-11-02 실측). 내리고 · 비기를 확인하고 · 올린다
-      down_one "$2" >/dev/null
-      for _ in {1..40}; do
-        [[ -z "$(manual_pid "$2")" ]] && break
-        sleep 0.5
-      done
-      [[ -n "$(manual_pid "$2")" ]] && say "  ! $2 — 20초 뒤에도 옛 프로세스가 남아 있다(PID $(manual_pid "$2")). 시작 스크립트가 정리한다"
-      # 교체 모드(1) — 옛 프로세스가 남았으면 내리고 올린다. 0 이면 "수동으로 떠 있다"로 보고 등록을 건너뛰어 launchd 에서 빠졌다(2026-11-02)
-      start_service "$2" 1 >/dev/null && say "  ↻ $2"
-    else say "  $2 — launchd 에 없다. 'ops/salt.sh up' 먼저"; fi ;;
+    for name in "${@:2}"; do valid "$name"; done
+    for name in "${@:2}"; do
+      if is_dev "$name"; then down_one "$name"; sleep 1; start_dev "$name"
+      elif loaded "$name"; then
+        # kickstart -k 를 쓰지 않는다 — 옛 node 가 종료(DB 연결 닫기) 중일 때 새 프로세스가 떠 EADDRINUSE 로 죽고,
+        # launchd 가 재시도를 미뤄 1~2분 꺼져 있었다(2026-11-02 실측). 내리고 · 비기를 확인하고 · 올린다
+        down_one "$name" >/dev/null
+        for _ in {1..40}; do
+          [[ -z "$(manual_pid "$name")" ]] && break
+          sleep 0.5
+        done
+        [[ -n "$(manual_pid "$name")" ]] && say "  ! $name — 20초 뒤에도 옛 프로세스가 남아 있다(PID $(manual_pid "$name")). 시작 스크립트가 정리한다"
+        # 교체 모드(1) — 옛 프로세스가 남았으면 내리고 올린다. 0 이면 "수동으로 떠 있다"로 보고 등록을 건너뛰어 launchd 에서 빠졌다(2026-11-02)
+        start_service "$name" 1 >/dev/null && say "  ↻ $name"
+      else say "  $name — launchd 에 없다. 'ops/salt.sh up' 먼저"; fi
+    done ;;
   logs)
     valid "${2:-}"; tail -n 50 -f "${LOG[$2]}" ;;
   plist)
