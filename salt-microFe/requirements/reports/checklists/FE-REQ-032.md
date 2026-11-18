@@ -24,3 +24,4 @@
 - FR-68 — `entities/notification/model/alerts.ts` 재수출만
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+- 확인 2회차 — 서버 첫 쪽이 없을 때 빈칸 → 자리표시(`aria-busy`) · 셸 안 복귀 시 캐시 대신 서버 첫 쪽
