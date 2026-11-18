@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { explanationFixtures } from "../../domain/__tests__/fixtures/explanationFixtures";
 import { buildAgentPlanPrompt } from "../LlmAgentPlanner";
-import { buildLineExplanationPrompt } from "../explanationPrompt";
+import { buildLineExplanationPrompt, REASON_LINE } from "../explanationPrompt";
 
 /**
  * 에이전트가 해설 프롬프트에 남기는 것(O3 · `SRV-REQ-059`) — 운영 해설(도구 칸 없음)의 프롬프트는 바이트까지 그대로여야 한다.
@@ -47,5 +47,15 @@ describe("에이전트 프롬프트 경계", () => {
     assert.match(p, /- asset:kr:005930 \(삼성전자\)/);
     assert.match(p, /- \(없음\)/);
     assert.match(p, /최대 4개/);
+  });
+});
+
+describe("근거 줄 지시(SRV-REQ-060)", () => {
+  it("켜면 그 한 줄만 더해진다 — 나머지 프롬프트는 같다", () => {
+    const off = buildLineExplanationPrompt(base);
+    const on = buildLineExplanationPrompt(base, { reasonLine: true });
+    assert.ok(!off.includes(REASON_LINE));
+    assert.ok(on.includes(REASON_LINE));
+    assert.equal(on.replace(`${REASON_LINE}\n`, ""), off);
   });
 });

@@ -61,6 +61,8 @@ export interface LocalCliOptions {
   model?: string;
   /** 테스트가 가짜 실행기를 꽂는다 */
   run?: typeof runCli;
+  /** 근거 줄 지시(`REASON_LINE`, `SRV-REQ-060`) — 블라인드 A/B 스크립트가 켠 쪽 · 끈 쪽을 같이 만든다 */
+  reasonLine?: boolean;
 }
 
 /** Claude `stream-json` 한 줄 — 쓰는 칸만 */
@@ -153,7 +155,7 @@ export class LocalCliCoachExplainer implements CoachExplainer {
         bin: this.bin,
         args: this.args(dir),
         stdin:
-          (this.provider === "local_codex" ? `${LOCAL_SYSTEM_INSTRUCTION}\n\n` : "") + buildLineExplanationPrompt(input),
+          (this.provider === "local_codex" ? `${LOCAL_SYSTEM_INSTRUCTION}\n\n` : "") + buildLineExplanationPrompt(input, { reasonLine: this.options.reasonLine }),
         cwd: dir,
         timeoutMs: this.options.timeoutMs ?? LOCAL_CLI_TIMEOUT_MS,
         signal,

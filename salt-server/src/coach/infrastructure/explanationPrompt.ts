@@ -239,7 +239,14 @@ export const lineFactsText = (input: CoachExplanationInput): string[] => [
   `관찰 기간: ${COACH_HORIZON[input.mode].phrase}`,
 ];
 
-export const buildLineExplanationPrompt = (input: CoachExplanationInput): string => {
+/**
+ * 근거 줄 한 줄 지시(`SRV-REQ-060`) — 판단이 왜 나왔는지를 받치는 사실만, 판단 근거 · 원인 칸을 빼고 다른 사실로 채우지 않기.
+ * O3 원인 분리(2026-11-18 `SRV-REQ-059`)에서 이 한 줄이 해설을 낫게 한 것으로 보였다 — 운영 해설 대비 블라인드 A/B 로 켤지 정한다
+ */
+export const REASON_LINE =
+  "근거 줄은 이 판단이 왜 나왔는지를 직접 받치는 사실만 — 판단 근거 · 원인 칸을 빼고 다른 사실(소식 · 회사 사정 · 통계)로 채우지 않기";
+
+export const buildLineExplanationPrompt = (input: CoachExplanationInput, options: { reasonLine?: boolean } = {}): string => {
   const newsCount = Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length);
   const modeLabel = input.mode === "scalp" ? "단타" : "장기";
   return [
@@ -255,6 +262,7 @@ export const buildLineExplanationPrompt = (input: CoachExplanationInput): string
       : "주의: (1줄) 이 판단이 약해지는 조건 — 가격 수준 · 새 숫자 금지",
     // 칸이 있으면(사실 0 이어도) 같은 줄 — 원인 분리 실험의 대조군이 "이 줄만 있고 도구 사실 0"이다(SRV-REQ-059 FR-7 3회차).
     // 운영 경로는 사실 0 이면 칸을 붙이지 않는다(`gatherAgentFacts`) — 지금 해설 프롬프트 그대로
+    ...(options.reasonLine ? [REASON_LINE] : []),
     ...(input.tools
       ? ["도구로 찾은 사실은 이 판단이 왜 나왔는지를 직접 받칠 때만 근거 줄에 — 관련 없으면 쓰지 않기(판단 근거 · 원인을 빼고 도구 사실로 채우지 않기). 쓰면 숫자 · 기간 · 표본은 주어진 표기 그대로, 확률은 '오를 확률' 그대로(단정 금지)"]
       : []),
