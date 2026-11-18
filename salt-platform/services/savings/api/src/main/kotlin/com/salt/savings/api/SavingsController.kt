@@ -25,7 +25,6 @@ import com.salt.savings.domain.meetsDeadline
 import com.salt.savings.domain.GoalTemplate
 import com.salt.savings.domain.InterestPlan
 import com.salt.savings.domain.InvalidGoal
-import com.salt.savings.domain.ProjectionReason
 import com.salt.savings.domain.SavingsMath
 import com.salt.support.web.ApiResponse
 import com.salt.support.web.AuthenticatedUser
@@ -160,9 +159,29 @@ class SavingsController(
         val planMonth: String?,
         val reason: String?,
         val monthsOfHistory: Int,
-        /** 적중 이력 — 채점(FC-REQ-024)이 생기기 전엔 null 이고 [trackReason] 이 이유(FR-6: 둘 중 하나는 늘 있다) */
-        val track: Any?,
+        /** 적중 이력(FR-6) — 예측 채점 집계(계산기 전체 · 최근 [TrackView.windowMonths]개월). 없으면 null 이고 [trackReason] 이 이유(둘 중 하나는 늘 있다) */
+        val track: TrackView?,
+        /** history_short(판정 모자람) · unavailable(채점 숫자를 못 읽음) */
         val trackReason: String?,
+    )
+
+    /** 판정 수 · 맞은 수 · 사람 수 · 명목(%)이 한 덩어리 — 적중률만 따로 내보내지 않는다. 문장은 프론트 */
+    data class TrackView(val windowMonths: Int, val intervals: Int, val hits: Int, val people: Int, val nominalPercent: Int)
+
+    /**
+     * 오늘 돈(FR-10) — 목표 금액을 정한 때(그때 알던 최신 물가 달) ↔ 지금 아는 최신 물가 달. 숫자가 없으면 [reason]
+     * (too_recent · no_new_index · unavailable). 금액은 원 단위 내림 · 변화율은 소수 한 자리(%). 출처 = 한국은행 ECOS 소비자물가지수
+     */
+    data class TodayMoneyView(
+        val baseMonth: String?,
+        val latestMonth: String?,
+        val worthToday: Long?,
+        val sameValue: Long?,
+        val changePercent: BigDecimal?,
+        /** "2020=100" — 지수 기준 */
+        val indexBase: String?,
+        val source: String,
+        val reason: String?,
     )
 
     /** 모이는 장면 — kind 로 그림을, step/steps 로 칸을 고른다(FE 계산 0) */
@@ -226,6 +245,7 @@ class SavingsController(
         val units: List<UnitView>,
         /** 목표 하나에 둘 수 있는 단위 수 — 화면이 상수를 복사하지 않게 */
         val unitLimit: Int,
+        val todayMoney: TodayMoneyView,
     )
 
     data class SimProjectionView(val method: String, val earlyMonth: String?, val lateMonth: String?, val planMonth: String?, val reason: String?)
@@ -523,8 +543,10 @@ class SavingsController(
                 planMonth = p.plan?.toString(),
                 reason = p.reason,
                 monthsOfHistory = p.monthsOfHistory,
-                track = null,
-                trackReason = ProjectionReason.HISTORY_SHORT,
+                track = s.track.coverage?.let {
+                    TrackView(it.windowMonths, it.intervals, it.hits, it.people, it.nominal.multiply(BigDecimal(100)).toInt())
+                },
+                trackReason = s.track.reason,
             ),
             degraded = s.degraded,
             degradedReasons = s.degradedReasons,
@@ -549,6 +571,18 @@ class SavingsController(
             missedMonths = d.missedMonths.let { MissedMonthsView(it.observedMonths, it.skippedMonths, it.shiftMonths, it.reason) },
             units = d.summary.units.map { unitView(it, d.summary.saved) },
             unitLimit = ItemUnit.PER_GOAL_MAX,
+            todayMoney = d.todayMoney.let {
+                TodayMoneyView(
+                    baseMonth = it.baseMonth?.toString(),
+                    latestMonth = it.latestMonth?.toString(),
+                    worthToday = it.worthToday?.toKrwInteger(RoundingMode.FLOOR),
+                    sameValue = it.sameValue?.toKrwInteger(RoundingMode.FLOOR),
+                    changePercent = it.change?.multiply(BigDecimal(100))?.setScale(1, RoundingMode.HALF_UP),
+                    indexBase = it.base,
+                    source = "ecos_cpi",
+                    reason = it.reason,
+                )
+            },
         )
     }
 }
