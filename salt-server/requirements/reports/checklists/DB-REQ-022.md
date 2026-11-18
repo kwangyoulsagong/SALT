@@ -7,3 +7,11 @@
 | 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 이 REQ 의 나머지 FR | F006 본편 | F006 슬라이스 |
+
+## 2026-11-18 F006 코치 대화 1단계(`feat/f006-coach-conversation`)
+
+- FR-20 · 21 · 23 · 24 — 60초 넘은 답 failed · 실패도 대화에 · `LLM_TIMEOUT` — pass
+- FR-30 · 31 — 질문 + 답 자리 + 메시지 수 + 마지막 시각을 Prisma 중첩 쓰기 한 문장 — pass
+- FR-60 — 주문 Port 0 — pass
+- 미충족: FR-11 · 14(카드) · FR-22(LLM 취소 — LLM 없음) · FR-32(정합성 검증 쿼리) — F006 2단계
+- 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`

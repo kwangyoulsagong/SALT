@@ -52,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-14 | `schema.prisma` 끝에 `news_*` 표 다섯 모델을 더함(`SRV-REQ-058` 2a) — 이 REQ 의 identity 모델 무변경 |
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `schema.prisma`(머리 주인)에 `CauseSnapshot`(`cause_snapshot` — 시장 층 · 사용자 열 0 · 불변) · 마이그레이션 `20261116200000_cause_snapshot` · `20261116200100_forecast_ontology_cause`(forecast 스키마) — identity 모델 무변경 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝(공유 파일 `schema.prisma`) — 새 표 `dart_earnings_filing` · `dart_earnings_sync`(사람 행 아님 · `user_id` 없음) · `news_ai_body.refetched_at` |
+| 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |

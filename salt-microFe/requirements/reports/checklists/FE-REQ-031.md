@@ -3,3 +3,12 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: 온보딩 3단계는 지금 "첫 목표" · `ONBOARDING_STEP_BODY.pending` 키는 코드에 없다 / 거래 기록 추가는 이미 있다 — `features/record-transaction`(FE-REQ-039 FR-1, F009)이 `/api/app/coach/tr / FR-102 `home.weekly-plan` 목적지는 `/home#weekly-plan`(`/` 는 로그인) / FR-35 "블록 대신 온보딩 카드"와 지금 동작(카드 + 블록 공존, FE-REQ-010 FR-25)이 다르다 — 착수 때 결정 / FR-10~13 `EventSource` 재연결 · `Last-Event-ID` 전제 재검토: 레포 선례 `shared/api/streamSse.ts` · `@r
+
+## 2026-11-18 F006 코치 대화 1단계(`feat/f006-coach-conversation`)
+
+- FR-2 · 3 · 10 · 13 — `features/ask-coach/api/useAskCoach.ts` — 실화면 pass
+- FR-14 · 15 — Playwright route 로 끊김 4회 → 다시 받기 · 같은 답 id(POST 늘지 않음) — pass
+- FR-26 — 칩 누르면 바로 전송 — pass
+- FR-60 — 주문 버튼 · 거래소 링크 0 — pass
+- 미충족: FR-20 · 21 위로 더 읽기 · 자동 스크롤 — F006 2단계
+- 근거: 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` · 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md`
