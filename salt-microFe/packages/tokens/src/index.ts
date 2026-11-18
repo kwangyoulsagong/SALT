@@ -92,7 +92,8 @@ export const tokens = {
     text: {
       primary: "#191F28",
       secondary: "#2A282F",
-      tertiary: "#8B95A1",
+      /** 부가 정보 글자 — 2026-11-18 #8B95A1 → #656D76(흰 3.03 → 5.25 · 회색 바탕 2.75 → 4.76:1, `FE-REQ-047` FR-13 · 사용자 결정). 글자가 아닌 자리(차트 면 · 선 · 화살표)는 `neutral[500]` */
+      tertiary: "#656D76",
       disabled: "#B0B8C1",
       white: "#FFFFFF",
       inverse: "#FFFFFF", // 다크 배경 위의 텍스트

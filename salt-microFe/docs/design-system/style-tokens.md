@@ -102,7 +102,7 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | --- | --- | --- |
 | `vars.colors.text.primary` | `#191F28` | 기본 본문 |
 | `vars.colors.text.secondary` | `#2A282F` | 보조 본문 |
-| `vars.colors.text.tertiary` | `#8B95A1` | 부가 정보 |
+| `vars.colors.text.tertiary` | `#656D76` | 부가 정보 글자(2026-11-18 `#8B95A1` 에서 — 흰 5.25 · 회색 바탕 4.76:1). 글자가 아닌 면 · 선은 `neutral.500` |
 | `vars.colors.text.disabled` | `#B0B8C1` | 비활성 |
 | `vars.colors.text.white` | `#FFFFFF` | 흰색 텍스트 |
 | `vars.colors.text.inverse` | `#FFFFFF` | 어두운 배경 위 텍스트 |
