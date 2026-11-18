@@ -1,0 +1,71 @@
+{
+ "StatisticSearch": {
+  "list_total_count": 4,
+  "row": [
+   {
+    "STAT_CODE": "901Y009",
+    "STAT_NAME": "4.2.1. 소비자물가지수",
+    "ITEM_CODE1": "0",
+    "ITEM_NAME1": "총지수",
+    "ITEM_CODE2": null,
+    "ITEM_NAME2": null,
+    "ITEM_CODE3": null,
+    "ITEM_NAME3": null,
+    "ITEM_CODE4": null,
+    "ITEM_NAME4": null,
+    "UNIT_NAME": "2020=100",
+    "WGT": "1000",
+    "TIME": "202501",
+    "DATA_VALUE": "115.71"
+   },
+   {
+    "STAT_CODE": "901Y009",
+    "STAT_NAME": "4.2.1. 소비자물가지수",
+    "ITEM_CODE1": "0",
+    "ITEM_NAME1": "총지수",
+    "ITEM_CODE2": null,
+    "ITEM_NAME2": null,
+    "ITEM_CODE3": null,
+    "ITEM_NAME3": null,
+    "ITEM_CODE4": null,
+    "ITEM_NAME4": null,
+    "UNIT_NAME": "2020=100",
+    "WGT": "1000",
+    "TIME": "202502",
+    "DATA_VALUE": "116.08"
+   },
+   {
+    "STAT_CODE": "901Y009",
+    "STAT_NAME": "4.2.1. 소비자물가지수",
+    "ITEM_CODE1": "0",
+    "ITEM_NAME1": "총지수",
+    "ITEM_CODE2": null,
+    "ITEM_NAME2": null,
+    "ITEM_CODE3": null,
+    "ITEM_NAME3": null,
+    "ITEM_CODE4": null,
+    "ITEM_NAME4": null,
+    "UNIT_NAME": "2020=100",
+    "WGT": "1000",
+    "TIME": "202503",
+    "DATA_VALUE": "116.29"
+   },
+   {
+    "STAT_CODE": "901Y009",
+    "STAT_NAME": "4.2.1. 소비자물가지수",
+    "ITEM_CODE1": "0",
+    "ITEM_NAME1": "총지수",
+    "ITEM_CODE2": null,
+    "ITEM_NAME2": null,
+    "ITEM_CODE3": null,
+    "ITEM_NAME3": null,
+    "ITEM_CODE4": null,
+    "ITEM_NAME4": null,
+    "UNIT_NAME": "2020=100",
+    "WGT": "1000",
+    "TIME": "202504",
+    "DATA_VALUE": "116.38"
+   }
+  ]
+ }
+}

@@ -3,7 +3,7 @@ import type { HouseholdMonth } from "../model/types";
 import * as s from "./expense.css";
 
 /**
- * 월말 착지 구간 + 지난달 같은 날 적중(FR-7). 한 점으로 단정하지 않는다 — 구간이 없으면 이유를 말한다(수용 기준 "적중 또는 기록 부족 이유").
+ * 월말 착지 구간 + 지난달 같은 날 적중 + 쌓인 적중 기록(FR-7 — 예측 채점 집계). 한 점으로 단정하지 않는다 — 구간이 없으면 이유를 말한다(수용 기준 "적중 또는 기록 부족 이유").
  */
 export const LandingBox = ({ month }: { month: HouseholdMonth }) => {
   const l = month.landing;
@@ -28,6 +28,14 @@ export const LandingBox = ({ month }: { month: HouseholdMonth }) => {
           <span className={s.label}>{L.trackTitle}</span>
           <p className={s.note}>{trackLine(month.track)}</p>
         </>
+      ) : null}
+      {month.coverage ? (
+        <>
+          <span className={s.label}>{L.coverageTitle}</span>
+          <p className={s.note}>{L.coverage(month.coverage)}</p>
+        </>
+      ) : month.coverageReason && L.coverageReason[month.coverageReason] ? (
+        <p className={s.note}>{L.coverageReason[month.coverageReason]}</p>
       ) : null}
     </section>
   );

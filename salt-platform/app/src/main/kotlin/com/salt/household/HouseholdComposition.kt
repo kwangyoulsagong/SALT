@@ -1,5 +1,6 @@
 package com.salt.household
 
+import com.salt.household.infrastructure.JooqCoverageReads
 import com.salt.household.infrastructure.HouseholdUserRows
 import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
@@ -158,6 +159,7 @@ class HouseholdComposition {
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
             JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl),
             fixedCostReader(database), JooqSpendingPatterns(database.dsl), JooqCustomCategories(database.dsl), JooqRevolvingPlans(database.dsl), clock,
+            JooqCoverageReads(database.dsl),
         )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------

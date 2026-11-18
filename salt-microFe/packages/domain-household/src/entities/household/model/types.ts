@@ -196,6 +196,15 @@ export interface HouseholdLanding {
   daysOfHistory: number;
 }
 
+/** 쌓인 착지 적중 — 예측 채점 집계(사람 전체 · 최근 windowMonths개월). 판정 수 · 맞은 수 · 사람 수와 한 덩어리 — 서버 값 그대로 */
+export interface HouseholdCoverage {
+  windowMonths: number;
+  intervals: number;
+  hits: number;
+  people: number;
+  nominalPercent: number;
+}
+
 export interface HouseholdTrack {
   month: string;
   issuedOn: string | null;
@@ -358,6 +367,9 @@ export interface HouseholdMonth {
   landing: HouseholdLanding | null;
   landingReason: string | null;
   track: HouseholdTrack | null;
+  /** 쌓인 착지 적중(`FE-REQ-057` FR-7) — 없으면 null 이고 coverageReason(history_short · unavailable · not_current_month) */
+  coverage: HouseholdCoverage | null;
+  coverageReason: string | null;
   expenses: HouseholdExpense[];
   recurring: { items: HouseholdOccurrence[]; scheduledTotal: number };
   installments: HouseholdInstallments;

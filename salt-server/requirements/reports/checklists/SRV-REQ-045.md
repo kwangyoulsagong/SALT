@@ -174,3 +174,24 @@
 
 - 몫: `run-platform.sh` 네이티브 RabbitMQ 우선
 - 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-6 적중 이력 | domain `Track.of` · infra `JooqForecastReads.savingsCoverage` · `GoalSummary.track` | `ForecastReadsSpec` · `SavingsEndToEndTest` 예측 뷰(12 · 9 · 3 · 80) · 목록 쿼리 4 |
+| FR-10 오늘 돈 | domain `TodayMoney.of`(as-of 기준 달) · `GoalDetailView.todayMoney` | 경계(6개월 · 같은 달 · 기준 섞임 · 못 읽음) · E2E 28,489,190 · 31,590,928 · 5.3 |
+| 실패 격리 | 세이브포인트(트랜잭션 안) · 자동 커밋이면 그대로 | E2E — 권한 회수 뒤 상세 200 + unavailable · 적립 201 저장 |
+
+- `./gradlew check` 전체 통과(Modulith · ArchUnit · Testcontainers) · 실행 jar 로 로컬 운영 재기동(Flyway savings 6)
+- 실화면(임시 계정 · 1440 · 앱 웹뷰 390): 숫자 · 못 읽음 · 6개월 전 · 기록 부족 네 상태
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실채점으로 숫자가 뜨는 화면 | 발행 0 · 판정이 닫혀야 한다 | 6개월 판정 10건 |
+
+## 2026-11-18 확인 2회차
+
+- 변이 5(as-of · 6개월 · 판정 10 · 기준 섞임 · 세이브포인트) 잡힘 — 루트 체크리스트 §5

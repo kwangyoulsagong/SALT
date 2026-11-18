@@ -353,6 +353,8 @@ data class MonthView(
     val landing: Landing?,
     val landingReason: String?,
     val track: LandingTrack?,
+    /** 쌓인 착지 적중(예측 채점, `SRV-REQ-046` FR-8) — 이번 달만 읽는다. 다른 달이면 not_current_month */
+    val coverage: com.salt.household.domain.CoverageTrack,
     val expenses: List<Expense>,
     /** 이 달 반복 예정 행(상태 무관) — 화면이 확인 카드 · 지난 달 기록을 그린다 */
     val occurrences: List<RecurringOccurrence>,
@@ -399,6 +401,8 @@ open class GetMonth(
     private val categories: CustomCategories,
     private val revolvingPlans: com.salt.household.domain.RevolvingPlans,
     private val clock: Clock,
+    /** 예측 뷰 — 이번 달이면 쿼리 +1. 못 읽으면 그 칸만 unavailable */
+    private val coverageReads: com.salt.household.domain.CoverageReads,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
     open fun execute(userId: String, month: YearMonth): MonthView {
@@ -438,6 +442,11 @@ open class GetMonth(
             landing = if (current) landingReader.landing(userId, today, summary.totals.total, monthOccurrences) else null,
             landingReason = if (current) null else LandingReason.NOT_CURRENT_MONTH,
             track = if (current) landingReader.track(userId, today) else null,
+            coverage = if (current) {
+                com.salt.household.domain.CoverageTrack.of(coverageReads.landingCoverage())
+            } else {
+                com.salt.household.domain.CoverageTrack(null, com.salt.household.domain.CoverageReason.NOT_CURRENT_MONTH)
+            },
             expenses = list,
             occurrences = monthOccurrences,
             scheduledTotal = RecurringRules.scheduledTotal(monthOccurrences),

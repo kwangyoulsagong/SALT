@@ -114,3 +114,8 @@
 ## 2026-11-16 — 새 맥 이전 걸침
 
 - 회고 본문은 루트 `requirements/reports/retrospects/OPS-002-new-mac-setup.md`
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 서비스 계정에 forecast 뷰 SELECT 만 준 "남의 스키마 읽기"는 `msa-services.md` §5 표의 "예측이 읽는다" 반대 방향이다 — 사본 표(DB-REQ-037 FR-4)를 만들지 않은 이유는 집계 뷰 자체가 몇 행짜리 사본이라서. 실패 격리는 세이브포인트로(같은 트랜잭션 안 오류 하나가 나머지를 거절한다 — 처음엔 놓칠 뻔했다)
+- 쿼리 계측이 새 읽기를 놓치지 않게 DSL 설정을 물려받았다 — 새 DSL 을 만들면 쿼리 수 시험이 실제 쿼리를 숨긴다

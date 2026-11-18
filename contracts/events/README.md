@@ -17,9 +17,9 @@
 | `ping.PingRecorded` | `ping`(플랫폼 점검) | `ping` | S0 |
 | `savings.GoalCreated` | `savings` | `content` 때맞춘 팁 — 결혼 · 주거 템플릿만 신호(금융 팁 S2a 2026-11-05) | S1 |
 | `savings.GoalReached` | `savings` | `content` 때맞춘 팁(금융 팁 S2a 2026-11-05) | S1 |
-| `savings.ProjectionIssued` | `savings` | (`FC-REQ-024` 채점) | S1 |
+| `savings.ProjectionIssued` | `savings` | (구독자 0) — 채점(`FC-REQ-024`)은 이벤트가 아니라 export 뷰 `savings.v_projection_outcome_export` 로 읽는다(2026-11-18 O4 — 예측은 배치 · 해시는 뷰) | S1 |
 | `household.ExpenseRecorded` | `household` | (savings 지연 재계산 — ~~가계부 S1b~~ **정정 2026-11-04** 저축 S2: 목표 시계는 조회 API 로 충분) | S1 |
-| `household.LandingIssued` | `household` | (`FC-REQ-024` 채점) | S1 |
+| `household.LandingIssued` | `household` | (구독자 0) — 채점은 export 뷰 `household.v_landing_outcome_export`(본문의 `userId` · 금액을 예측이 받지 않는다, 2026-11-18 O4) | S1 |
 | `household.MonthClosed` | `household` | (savings 속도 — 저축 S2) | 가계부 S1b |
 | `household.ExpenseRecorded` `category` | `household` | (구독자 0) — 기본 12 또는 사용자 분류 키(이름 0) | 가계부 S1f 개정 |
 | `household.FixedCostIncreased` | `household` | `content` 때맞춘 팁 — 주거 분류만 신호 · 월세 세액공제 글(금융 팁 S2d 2026-11-05) — 가맹점 · 달마다 한 번 · 가맹점 이름 0 | 가계부 S1e |

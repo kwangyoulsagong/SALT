@@ -4,4 +4,5 @@ export * from "./ProjectionLine";
 export * from "./GoalScene";
 export * from "./StampBoard";
 export * from "./MissedMonthsBox";
+export * from "./TodayMoneyBox";
 export * from "./PostcardList";

@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="FORECAST_", env_file=".env", extra="ignore")
 
     database_url: SecretStr
-    extra_symbols: str = ""
     upbit_base_url: str = "https://api.upbit.com/v1"
     # 업비트 시세 조회 한도(초당 10) 의 80% — data-pipeline.md §3
     upbit_requests_per_second: float = Field(default=8.0, gt=0)
@@ -42,6 +41,9 @@ class Settings(BaseSettings):
     naver_client_id: SecretStr | None = None
     naver_client_secret: SecretStr | None = None
     fred_api_key: SecretStr | None = None
+    # 한국은행 ECOS — 소비자물가지수(FC-REQ-024 FR-6). 무료 인증키 · 일 한도. 없으면 물가 수집만 건너뛴다
+    ecos_url: str = "https://ecos.bok.or.kr/api"
+    ecos_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005). 비우면 업비트 일봉이 있는 코인 전부 — 처음엔 BTC 하나라
     # 미국 거시 일정이 나머지 코인 99/100 에서 비었다(2026-11-10 실측, `SRV-REQ-053` FR-2)
     event_symbols: str = ""
@@ -55,7 +57,7 @@ class Settings(BaseSettings):
     move_sigma_window: int = Field(default=60, gt=0)
     move_sigma_min_sample: int = Field(default=40, gt=0)
 
-    @field_validator("fred_api_key", "naver_client_id", "naver_client_secret", mode="before")
+    @field_validator("fred_api_key", "ecos_api_key", "naver_client_id", "naver_client_secret", mode="before")
     @classmethod
     def _blank_is_none(cls, v: object) -> object:
         """.env 의 `FORECAST_FRED_API_KEY=` (빈 값)은 키 없음이다."""
@@ -75,9 +77,6 @@ class Settings(BaseSettings):
 
     def kr_event_symbol_list(self) -> list[str]:
         return [s.strip() for s in self.kr_event_symbols.split(",") if s.strip()]
-
-    def extra_symbol_list(self) -> list[str]:
-        return [s.strip() for s in self.extra_symbols.split(",") if s.strip()]
 
 
 @lru_cache(maxsize=1)

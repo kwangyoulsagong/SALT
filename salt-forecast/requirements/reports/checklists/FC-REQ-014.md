@@ -36,3 +36,7 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 리포트 파일 날짜 = KST 날짜 | 충족 | `report_day` 경계 표 4 + naive 거절 · 작업 17곳 치환 · ruff · pyright · lint-imports · pytest 전체 통과 · 결과 숫자 변화 0(이름만) |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 이 REQ 몫 기능 변경 0 — `jobs/ingest_market.py` 에 소스 `ecos`(소비자물가 — 통째 교체). 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)

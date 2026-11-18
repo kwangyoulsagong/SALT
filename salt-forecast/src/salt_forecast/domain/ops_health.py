@@ -15,7 +15,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
 Cadence = Literal["hourly", "daily", "weekly"]
-Status = Literal["ok", "overdue", "failed", "never", "late", "missing", "due"]
+Status = Literal["ok", "overdue", "failed", "never", "late", "missing", "due", "under_nominal"]
 
 HOUR = timedelta(hours=1)
 DAY = timedelta(days=1)

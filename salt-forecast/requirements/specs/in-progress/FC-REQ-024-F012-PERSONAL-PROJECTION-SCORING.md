@@ -28,9 +28,10 @@ source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 
 ## Acceptance Criteria
 
-- [ ] forecast 스키마에 원 사용자 ID · 금액 원본 0
-- [ ] 채점 경계 테스트(구간 끝 값 포함 · 기록 없음)
-- [ ] CPI 누수 테스트 — 공표일 전 값 사용 0
+- [x] forecast 스키마에 원 사용자 ID · 금액 원본 0 — `test_no_raw_user_or_amount_columns`
+- [x] 채점 경계 테스트(구간 끝 값 포함 · 기록 없음) — `test_personal_projection.py` · Kotlin 뷰 경계
+- [x] CPI 누수 테스트 — 공표일 전 값 사용 0 — `tests/leakage/test_personal_projection_asof.py`(무작위 as_of 1,000)
+- [ ] 첫 실판정 — 발행이 쌓인 뒤(실 DB 발행 0, 2026-11-18)
 
 ## 계약 영향
 
@@ -44,3 +45,4 @@ source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 | 2026-11-03 | MONEY-S1a — `e83f7f80` — 이벤트 계약 `savings.ProjectionIssued` 가 이 REQ(채점)를 구독 예정으로 적는다. 예측 쪽 변경 0 — 채점은 S1b 이후(발행 3개월 뒤부터 의미) |
 | 2026-11-03 | MONEY-S1b — `531fdf35` 이벤트 계약 `savings.ProjectionIssued` reason 에 `not_reachable`(100년 안에 못 닿음) 추가. 예측 쪽 변경 0(아직 구독 전) — 구현할 때 이 값은 "구간 없음"으로 채점에서 뺀다 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — 채점 원천 `household.LandingIssued` 계약 · `landing_issued` 불변 표가 생겼다(구독 · 채점은 발행 3개월 뒤) |
+| 2026-11-18 | 구현(in-progress) — FR-1~7 전부. **FR-1 정정**: 이벤트 구독 대신 서비스 export 뷰(`savings.v_projection_outcome_export` · `household.v_landing_outcome_export`) — 예측은 상시 소비자가 없는 배치이고 이벤트 본문에 금액 · 원 사용자 id 가 있어 받는 순간 FR-5 를 어긴다(`msa-services.md` §5). **FR-5 정정**: 해시는 뷰 SQL 의 `sha256(user_id)`(identity 계측과 같은 식 — 같은 DB 에 사용자 표가 있어 비밀 값이 막는 것이 없다). FR-2: 가계부는 뷰가 below · inside · above 만(금액 0), 저축은 도달 달. FR-3 판정 · 목표 · 달마다 마지막 발행만 셈 · 원천에서 사라진 사본 지움. FR-4 `v_personal_coverage`(3 · 6개월). FR-6 ECOS 901Y009(FRED 한국 CPI 는 2023-11 에서 멈춤) · available_at = 국가데이터처 보도 시각 · 기준 개편은 통째로 교체. FR-7 운영 점검 `personal_coverage:*`(6개월 20건 이상 · 70% 미만). 매일 `personal_scoring`. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |

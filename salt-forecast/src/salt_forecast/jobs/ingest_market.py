@@ -15,19 +15,31 @@ from datetime import UTC, date, datetime, timedelta
 import httpx
 
 from salt_forecast.config import settings
-from salt_forecast.ingest import binance, coingecko, coinmetrics, defillama, deribit, ecb, fear_greed, fred
+from salt_forecast.ingest import binance, coingecko, coinmetrics, defillama, deribit, ecb, ecos, fear_greed, fred
 from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.ingest.upbit import Pacer as UpbitPacer
 from salt_forecast.ingest.upbit import UpbitDaily
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, symbols_arg
 from salt_forecast.store.db import engine
 from salt_forecast.store.market_warning import insert_snapshot
+from salt_forecast.store.personal_projection import kr_cpi_releases
 from salt_forecast.store.prices import Bar, latest_open, symbols, upsert_bars
 from salt_forecast.store.runs import mark_source
-from salt_forecast.store.series import SeriesPoint, latest_observed, upsert_points
+from salt_forecast.store.series import SeriesPoint, latest_observed, replace_series, upsert_points
 
 JOB = "ingest_market"
-SOURCES = ("binance", "defillama", "ecb", "fred", "fear_greed", "deribit", "upbit_warning", "coinmetrics", "coingecko")
+SOURCES = (
+    "binance",
+    "defillama",
+    "ecb",
+    "ecos",
+    "fred",
+    "fear_greed",
+    "deribit",
+    "upbit_warning",
+    "coinmetrics",
+    "coingecko",
+)
 HISTORY_START = date(2022, 9, 1)
 
 
@@ -161,6 +173,22 @@ def main(argv: list[str] | None = None) -> int:
                     ecb.SERIES,
                     lambda: save_points(ecb.usd_krw(client, cfg.ecb_rates_url, Pacer(1.0), ecb_since, now)),
                 )
+            if "ecos" in only:
+                # 소비자물가(FC-REQ-024 FR-6) — 기준 연도가 바뀌면 과거 전체가 바뀌어 통째로 바꾼다(replace_series)
+                if cfg.ecos_api_key is None:
+                    failed["ecos"] = ["FORECAST_ECOS_API_KEY 없음"]
+                    log.warning("ECOS 키 없음 — 건너뜀", extra={"fields": {"job": JOB}})
+                else:
+                    ecos_key = cfg.ecos_api_key.get_secret_value()
+
+                    def save_cpi() -> int:
+                        months = ecos.cpi_months(client, cfg.ecos_url, ecos_key, Pacer(1.0), now.date())
+                        pts = ecos.to_points(months, kr_cpi_releases(eng), now)
+                        if args.dry_run:
+                            return len(pts)
+                        return replace_series(eng, ecos.SOURCE, ecos.SERIES, pts, datetime.now(UTC))
+
+                    total += guarded("ecos", ecos.SERIES, save_cpi)
             if "fred" in only:
                 if cfg.fred_api_key is None:
                     failed["fred"] = ["FORECAST_FRED_API_KEY 없음"]

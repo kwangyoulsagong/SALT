@@ -7,6 +7,7 @@ import com.salt.savings.domain.Deposit
 import com.salt.savings.domain.DepositSourceUsed
 import com.salt.savings.domain.DepositTotals
 import com.salt.savings.domain.Deposits
+import com.salt.savings.domain.ForecastReads
 import com.salt.savings.domain.Frame
 import com.salt.savings.domain.Goal
 import com.salt.savings.domain.GoalClock
@@ -27,6 +28,8 @@ import com.salt.savings.domain.ItemUnitLimit
 import com.salt.savings.domain.ItemUnitNotFound
 import com.salt.savings.domain.Scene
 import com.salt.savings.domain.Simulation
+import com.salt.savings.domain.TodayMoney
+import com.salt.savings.domain.Track
 import com.salt.savings.domain.SimulationRow
 import com.salt.savings.domain.stampCount
 import com.salt.savings.domain.IssuedProjection
@@ -79,6 +82,8 @@ data class GoalSummary(
     val postcard: Postcard?,
     /** 이 목표의 실물 단위(FR-16) — 만든 순서. 목록은 첫 단위로 한 줄 환산 */
     val units: List<ItemUnit>,
+    /** 도달 구간 적중 이력(FR-6) — 예측 채점 집계. 목표마다가 아니라 계산기 전체 성적이라 요청마다 한 번 읽어 같이 싣는다 */
+    val track: Track = Track(null, com.salt.savings.domain.TrackReason.HISTORY_SHORT),
 ) {
     /** 구간 계산이 실패해 계획값만 있다 — 응답 `degraded` · `degradedReasons` */
     val degraded: Boolean get() = projection.reason == ProjectionReason.DEGRADED
@@ -94,6 +99,8 @@ data class GoalDetail(
     val plan: Calculation,
     /** 놓친 달 회고(FR-11) */
     val missedMonths: MissedMonths,
+    /** 오늘 돈(FR-10) — 상세에만 */
+    val todayMoney: TodayMoney,
 ) {
     /**
      * 이 상세 어디든 계산이 불완전하면 그 칸 이름 — 구간(`projection`) · 놓친 달(`missed_months`). 응답 최상위 `degraded` 의 근거(리뷰 9 · 10차).
@@ -145,16 +152,22 @@ open class GoalReader(
     private val deposits: Deposits,
     private val units: ItemUnits,
     private val clock: Clock,
+    /** 예측 뷰(적중 이력 · 물가) — 못 읽으면 그 칸만 이유. 쿼리 +1(목록 · 쓰기) · +2(상세) */
+    private val forecasts: ForecastReads,
     private val missedMonthsOf: MissedMonthsCalculator = MissedMonthsCalculator(MissedMonths::of),
 ) {
-    /** @param withUnits 실물 단위까지 — 홈 카드는 쓰지 않아 쿼리 하나를 아낀다(코드 리뷰 2026-11-03) */
-    fun summaries(userId: String, withUnits: Boolean = true): List<GoalSummary> {
+    /**
+     * @param withUnits 실물 단위까지 — 홈 카드는 쓰지 않아 쿼리 하나를 아낀다(코드 리뷰 2026-11-03)
+     * @param withTrack 적중 이력까지 — 홈 카드 · 목표 시계는 쓰지 않는다(예측 뷰 읽기 0)
+     */
+    fun summaries(userId: String, withUnits: Boolean = true, withTrack: Boolean = withUnits): List<GoalSummary> {
         val today = clock.todayKst()
         val list = goals.listOwned(userId)
         if (list.isEmpty()) return emptyList()
         val overview = deposits.overviewByGoal(userId, YearMonth.from(today))
         val unitsByGoal = if (withUnits) units.byGoal(userId) else emptyMap()
-        return list.map { goal -> summarize(goal, overview.totals[goal.id], overview.monthly[goal.id].orEmpty(), unitsByGoal[goal.id].orEmpty(), today) }
+        val track = if (withTrack) Track.of(forecasts.savingsCoverage()) else Track(null, com.salt.savings.domain.TrackReason.HISTORY_SHORT)
+        return list.map { goal -> summarize(goal, overview.totals[goal.id], overview.monthly[goal.id].orEmpty(), unitsByGoal[goal.id].orEmpty(), today, track) }
     }
 
     fun detail(userId: String, rawId: String): GoalDetail {
@@ -163,7 +176,7 @@ open class GoalReader(
         val today = clock.todayKst()
         val totals = deposits.totalsFor(goal.id, YearMonth.from(today))
         val history = deposits.monthly(goal.id)
-        val summary = summarize(goal, totals, history, units.forGoal(goal.id, userId), today)
+        val summary = summarize(goal, totals, history, units.forGoal(goal.id, userId), today, Track.of(forecasts.savingsCoverage()))
         val plan = when {
             goal.targetDate != null -> SavingsMath.byDeadline(goal.targetAmount, summary.saved, goal.targetDate!!, goal.interest, today)
             else -> SavingsMath.byMonthly(goal.targetAmount, summary.saved, goal.monthlyPlan!!, goal.interest, today)
@@ -181,7 +194,8 @@ open class GoalReader(
             log.log(System.Logger.Level.ERROR, "missed months failed goal=${goal.id}", e)
             MissedMonths.degraded()
         }
-        return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed)
+        val todayMoney = TodayMoney.of(goal.targetAmount, goal.createdAt, clock.instant(), forecasts.priceIndex())
+        return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed, todayMoney)
     }
 
     /** 저울용 — 사용자 목표 전부와 집계 · 월별 적립(쿼리 2) */
@@ -193,7 +207,7 @@ open class GoalReader(
         return Triple(list, overview.totals, overview.monthly)
     }
 
-    private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<MonthlyDeposit>, goalUnits: List<ItemUnit>, today: LocalDate): GoalSummary {
+    private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<MonthlyDeposit>, goalUnits: List<ItemUnit>, today: LocalDate, track: Track): GoalSummary {
         val zero = Money.zero(goal.targetAmount.currency)
         val saved = totals?.saved ?: zero
         val remainingRaw = goal.targetAmount - saved
@@ -215,6 +229,7 @@ open class GoalReader(
                 Postcard.of(LocalDate.ofInstant(goal.createdAt, KST), LocalDate.ofInstant(it, KST), totals?.actions ?: 0)
             },
             units = goalUnits,
+            track = track,
         )
     }
 

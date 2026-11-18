@@ -22,7 +22,7 @@ from sqlalchemy import (
     Table,
     Text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 
 metadata = MetaData(schema="forecast")
 
@@ -975,4 +975,36 @@ entity_alias = Table(
     Column("source_kind", Text, nullable=False),
     Column("available_at", DateTime(timezone=True), nullable=False),
     Column("ingested_at", DateTime(timezone=True), nullable=False),
+)
+
+# 개인 재무 구간 채점 O4 — 20261118100000_forecast_personal_projection (FC-REQ-024 FR-1 · 3). 사람은 해시뿐 · 금액 0.
+# 서비스는 v_personal_coverage · v_price_index 만 읽는다
+personal_projection = Table(
+    "personal_projection",
+    metadata,
+    Column("issuance_id", UUID(as_uuid=False), primary_key=True),
+    Column("kind", Text, nullable=False),
+    Column("subject_hash", Text, nullable=False),
+    Column("series_key", Text, nullable=False),
+    Column("issued_at", DateTime(timezone=True), nullable=False),
+    Column("method", Text, nullable=False),
+    Column("reason", Text),
+    Column("history_n", Integer, nullable=False),
+    Column("has_interval", Boolean, nullable=False),
+    Column("early_month", Date),
+    Column("late_month", Date),
+    Column("include_interest", Boolean),
+    Column("target_month", Date),
+    Column("days_left", Integer),
+    Column("first_seen_at", DateTime(timezone=True), nullable=False),
+)
+
+personal_projection_score = Table(
+    "personal_projection_score",
+    metadata,
+    Column("issuance_id", UUID(as_uuid=False), primary_key=True),
+    Column("outcome", Text, nullable=False),
+    Column("decided_on", Date, nullable=False),
+    Column("counted", Boolean, nullable=False),
+    Column("scored_at", DateTime(timezone=True), nullable=False),
 )

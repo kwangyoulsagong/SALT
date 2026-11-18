@@ -54,3 +54,15 @@
 | `config.py` 에 등락 분해 창 설정 넷(F016 단계 C `FC-REQ-027`) — 쏠림 설정 무변경 | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 이 REQ 몫 기능 변경 0 — `config.py` 에 ECOS 주소 · 키(빈 값 = 없음). 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)
+## 2026-11-18 — 죽은 설정 정리(`feat/fc-req-024-personal-projection-scoring`)
+
+- grep 으로 읽는 곳 0 확인(코드 · 운영 스크립트 · 문서 — `.env.example` 한 줄뿐) → 삭제
+- `ruff` · `pyright` 0 · `pytest -q` 통과 · `events --dry-run` 418행(국내 종목 기본 선택 그대로)
+
+### 미검증 · 범위 밖
+
+없음

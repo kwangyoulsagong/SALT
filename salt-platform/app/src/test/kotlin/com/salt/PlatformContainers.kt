@@ -48,7 +48,23 @@ object PlatformContainers {
         // 권한 검사용 — 남의 스키마(portfolio — 아직 플랫폼에 없는 서비스, S4)에 표 하나. 플랫폼 서비스 스키마는 Flyway 가 쓰니 비워 둔다
         // (content.probe → identity.probe(금융 팁 S2a 2026-11-05) → portfolio.probe(identity S3a 2026-11-06))
         DriverManager.getConnection(jdbcUrl, username, password).use { it.createStatement().execute("CREATE TABLE portfolio.probe (id int)") }
+        // 예측이 주인인 뷰(적중 이력 · 물가 — `SRV-REQ-045` FR-6 · 10) — 운영과 같은 **Prisma 마이그레이션 파일**로 만든다(GRANT 까지).
+        // 그 마이그레이션이 기대는 앞선 표(series_point)만 같은 모양으로 먼저. 데이터는 시험이 관리자 연결로 넣는다
+        DriverManager.getConnection(jdbcUrl, username, password).use { c ->
+            c.createStatement().execute(
+                "CREATE TABLE forecast.series_point (source text, series_id text, observed_at timestamptz, available_at timestamptz, " +
+                    "value double precision NOT NULL, unit text NOT NULL, ingested_at timestamptz NOT NULL DEFAULT now(), " +
+                    "PRIMARY KEY (source, series_id, observed_at, available_at))",
+            )
+            c.createStatement().execute(java.io.File(FORECAST_MIGRATION).readText())
+        }
     }
+
+    /** forecast DDL 주인(Prisma, `db-contract.md` §2) — 경로가 바뀌면 시험이 깬다 */
+    const val FORECAST_MIGRATION = "../../salt-server/prisma/migrations/20261118100000_forecast_personal_projection/migration.sql"
+
+    /** 시험이 forecast 표에 값을 넣는 관리자 연결(서비스 계정은 뷰 SELECT 만) */
+    fun admin(): java.sql.Connection = DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password)
 
     val rabbit: RabbitMQContainer = RabbitMQContainer("rabbitmq:4-management-alpine").apply { start() }
 

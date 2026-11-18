@@ -195,7 +195,8 @@ class SavingsEndToEndTest {
 
         val before = statements()
         call("GET", "/api/savings/goals", user, null, countQueries = true).statusCode() shouldBe 200
-        (statements() - before) shouldBe 3L
+        // 목표 · 집계+월별 · 실물 단위 + 적중 이력(예측 뷰 한 번 — FR-6, 2026-11-18)
+        (statements() - before) shouldBe 4L
     }
 
     @Test
@@ -363,6 +364,64 @@ class SavingsEndToEndTest {
         data(call("POST", "/api/savings/goals", user, """{"title":"목표","template":"other","targetAmount":$target,"monthlyPlan":100000}""")).path("goal").path("id").asString()
 
     /** 그 목표의 아웃박스 이벤트 종류(쓴 순서) */
+    @Test
+    fun `예측 뷰 — 적중 이력 · 오늘 돈이 상세에 실리고, 권한을 잃어도 읽기 · 쓰기는 그 칸만 unavailable`() {
+        val user = "forecast-${UUID.randomUUID()}"
+        val id = data(call("POST", "/api/savings/goals", user, """{"title":"결혼","template":"wedding","targetAmount":30000000,"monthlyPlan":500000}""")).path("goal").path("id").asString()
+        PlatformContainers.admin().use { c ->
+            // 만든 때를 2024-11-01 로 — 그때 알던 물가 달은 9월분(10월분은 11-05 발표)
+            c.createStatement().execute("UPDATE savings.goal SET created_at = '2024-11-01T00:00:00Z' WHERE id = '$id'")
+            c.createStatement().execute(
+                "INSERT INTO forecast.series_point (source, series_id, observed_at, available_at, value, unit) VALUES " +
+                    "('ecos','kr_cpi_total','2024-09-01 00:00+09','2024-10-02 08:00+09',114.65,'2020=100')," +
+                    "('ecos','kr_cpi_total','2024-10-01 00:00+09','2024-11-05 08:00+09',114.90,'2020=100')," +
+                    "('ecos','kr_cpi_total','2026-10-01 00:00+09','2026-11-03 08:00+09',120.73,'2020=100')",
+            )
+            // 판정 12개(9개 맞음) · 사람 3 — 최근 6개월 안
+            (0 until 12).forEach { n ->
+                val pid = UUID.randomUUID()
+                c.createStatement().execute(
+                    "INSERT INTO forecast.personal_projection (issuance_id, kind, subject_hash, series_key, issued_at, method, history_n, has_interval, first_seen_at) " +
+                        "VALUES ('$pid','savings_reach','h${n % 3}','g$n', now() - interval '200 days','empirical_quantile',4,true, now())",
+                )
+                c.createStatement().execute(
+                    "INSERT INTO forecast.personal_projection_score VALUES ('$pid', '${if (n < 9) "hit" else "miss_late"}', current_date - 10, true, now())",
+                )
+            }
+        }
+        try {
+            val detail = data(call("GET", "/api/savings/goals/$id", user, null))
+            val track = detail.path("goal").path("projection").path("track")
+            listOf(track.path("windowMonths").asInt(), track.path("intervals").asInt(), track.path("hits").asInt(), track.path("people").asInt(), track.path("nominalPercent").asInt()) shouldBe
+                listOf(6, 12, 9, 3, 80)
+            detail.path("goal").path("projection").path("trackReason").isNull shouldBe true
+            val money = detail.path("todayMoney")
+            money.path("baseMonth").asString() shouldBe "2024-09"
+            money.path("latestMonth").asString() shouldBe "2026-10"
+            money.path("worthToday").asLong() shouldBe 28_489_190L
+            money.path("sameValue").asLong() shouldBe 31_590_928L
+            money.path("changePercent").asString() shouldBe "5.3"
+            money.path("reason").isNull shouldBe true
+            // 목록도 같은 이력(계산기 전체 성적)
+            items(data(call("GET", "/api/savings/goals", user, null))).single().path("projection").path("track").path("intervals").asInt() shouldBe 12
+
+            PlatformContainers.admin().use { it.createStatement().execute("REVOKE SELECT ON forecast.v_personal_coverage, forecast.v_price_index FROM svc_savings") }
+            val cut = data(call("GET", "/api/savings/goals/$id", user, null))
+            cut.path("goal").path("projection").path("trackReason").asString() shouldBe "unavailable"
+            cut.path("todayMoney").path("reason").asString() shouldBe "unavailable"
+            // 쓰기 트랜잭션 안에서 뷰 읽기가 실패해도 적립은 저장된다(세이브포인트 — 감싸지 않으면 같은 트랜잭션 나머지가 거절된다)
+            val dep = data(call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":500000}"""))
+            dep.path("goal").path("saved").asLong() shouldBe 500_000L
+            dep.path("goal").path("projection").path("trackReason").asString() shouldBe "unavailable"
+        } finally {
+            PlatformContainers.admin().use { c ->
+                c.createStatement().execute("GRANT SELECT ON forecast.v_personal_coverage, forecast.v_price_index TO svc_savings")
+                c.createStatement().execute("DELETE FROM forecast.personal_projection WHERE kind = 'savings_reach'")
+                c.createStatement().execute("DELETE FROM forecast.series_point WHERE source = 'ecos'")
+            }
+        }
+    }
+
     private fun events(goalId: String): List<String> =
         savingsDatabase.dsl.fetch("select event_type from outbox where payload->>'goalId' = ? order by seq", goalId).map { it.get(0, String::class.java) }
 

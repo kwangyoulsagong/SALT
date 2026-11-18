@@ -20,6 +20,7 @@ import com.salt.savings.application.ProjectionIssuer
 import com.salt.savings.application.RecordDeposits
 import com.salt.savings.application.SAVINGS_TX
 import com.salt.savings.infrastructure.JooqDeposits
+import com.salt.savings.infrastructure.JooqForecastReads
 import com.salt.savings.infrastructure.JooqGoals
 import com.salt.savings.infrastructure.JooqItemUnits
 import com.salt.savings.infrastructure.JooqProjections
@@ -62,7 +63,7 @@ class SavingsComposition {
 
     @Bean
     fun savingsGoalReader(@Qualifier("savingsDatabase") database: ServiceDatabase, clock: Clock): GoalReader =
-        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), JooqItemUnits(database.dsl), clock)
+        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), JooqItemUnits(database.dsl), clock, JooqForecastReads(database.dsl))
 
     @Bean
     fun savingsProjectionIssuer(

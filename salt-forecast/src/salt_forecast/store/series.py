@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 
 import numpy as np
-from sqlalchemy import Engine, func, select
+from sqlalchemy import Engine, delete, func, insert, select
 
 from salt_forecast.domain.asof_series import VintagedSeries
 from salt_forecast.store.bulk import bulk_upsert
@@ -91,3 +91,29 @@ def points_by_series(engine: Engine, source: str) -> dict[str, dict[datetime, fl
         for sid, obs, value in conn.execute(stmt):
             out.setdefault(str(sid), {})[obs] = float(value)
     return out
+
+
+def replace_series(
+    engine: Engine, source: str, series_id: str, points: Sequence[SeriesPoint], ingested_at: datetime
+) -> int:
+    """시리즈를 통째로 바꾼다 — 기준 연도가 바뀌면 원천이 과거 전체를 새 기준으로 다시 주는 지수.
+
+    첫 쓰임은 소비자물가(FC-REQ-024 FR-6).
+
+    수정주가와 같은 예외(time-and-leakage.md §3): 비율은 기준과 무관하고, 옛 기준 과거 + 새 기준 최근이 섞이면 안 된다.
+    `ingested_at` 은 부르는 작업이 준다(다건 바인딩에 SQL 함수를 실을 수 없다 — 2026-11-18 실저장에서 깼다).
+    지우기와 넣기가 한 트랜잭션 — 중간에 실패하면 옛 시리즈가 그대로 남는다. 빈 목록이면 아무것도 지우지 않는다.
+    """
+    if not points:
+        return 0
+    if any(p.source != source or p.series_id != series_id for p in points):
+        raise ValueError("다른 시리즈 점이 섞였다")
+    rows = [
+        {"source": p.source, "series_id": p.series_id, "observed_at": p.observed_at, "available_at": p.available_at,
+         "value": p.value, "unit": p.unit, "ingested_at": ingested_at}
+        for p in points
+    ]  # fmt: skip
+    with engine.begin() as conn:
+        conn.execute(delete(series_point).where(series_point.c.source == source, series_point.c.series_id == series_id))
+        conn.execute(insert(series_point), rows)
+    return len(rows)

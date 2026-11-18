@@ -265,7 +265,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 23 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 24 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -288,7 +288,8 @@ class HouseholdEndToEndTest {
         // + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준(이상치) = 21
         // + S1f: 분류 표(내 분류 이름 · 묶음) = 22
         // + S1h: 리볼빙 명세서 = 23
-        month shouldBe 23L
+        // + 쌓인 착지 적중(예측 뷰 — `SRV-REQ-046` FR-8 · `FC-REQ-024`, 이번 달만) = 24
+        month shouldBe 24L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
         // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
@@ -750,6 +751,73 @@ class HouseholdEndToEndTest {
     // ---------- 도움 ----------
 
     /** household DSL 이 실행한 SQL 문장 수(저축 종단 테스트와 같은 장치 — BEGIN/COMMIT 은 세지 않는다) */
+    @Test
+    fun `착지 채점 export 뷰 — 판정은 LandingEngine track 과 같다(양끝 포함) · 말일 + 7일 전엔 없다 · 금액 0`() {
+        val user = "export-${UUID.randomUUID()}"
+        val dsl = householdDatabase.dsl
+        val past = YearMonth.of(2025, 1)
+        // 1월 합 100,000
+        dsl.execute("INSERT INTO expense (id, user_id, amount, spent_on, category, payment_method, precision, input_kind, created_at) " +
+            "SELECT gen_random_uuid(), ?, 50000, ?, 'food', 'card', 'exact', 'quick', now() FROM generate_series(1, 2)", user, past.atDay(10))
+        // 구간 넷(양끝 · 아래 · 위)과 구간 없음 하나 — 발행일을 하루씩 달리 둔다(하루 한 번 제약)
+        val cases = listOf(100_000 to 120_000, 80_000 to 100_000, 100_001 to 130_000, 50_000 to 99_999)
+        cases.forEachIndexed { n, (low, high) ->
+            dsl.execute("INSERT INTO landing_issued (id, user_id, month, issued_on, issued_at, method, p_low, p_high, spent_so_far, reason, days_of_history) " +
+                "VALUES (gen_random_uuid(), ?, ?, ?, now(), 'empirical_window', ?, ?, 0, null, 30)", user, past.atDay(1), past.atDay(n + 1), low, high)
+        }
+        dsl.execute("INSERT INTO landing_issued (id, user_id, month, issued_on, issued_at, method, p_low, p_high, spent_so_far, reason, days_of_history) " +
+            "VALUES (gen_random_uuid(), ?, ?, ?, now(), 'empirical_window', null, null, 0, 'history_short', 3)", user, past.atDay(1), past.atDay(20))
+        // 이번 달 발행 — 아직 판정 전(말일 + 7일 전)
+        dsl.execute("INSERT INTO landing_issued (id, user_id, month, issued_on, issued_at, method, p_low, p_high, spent_so_far, reason, days_of_history) " +
+            "VALUES (gen_random_uuid(), ?, ?, ?, now(), 'empirical_window', 1, 2, 0, null, 30)", user, YearMonth.from(today).atDay(1), today)
+
+        val hash = dsl.fetchValue("SELECT encode(sha256(convert_to(?, 'UTF8')), 'hex')", user) as String
+        val rows = dsl.fetch("SELECT issued_on, outcome, days_left, final_on FROM v_landing_outcome_export WHERE subject_hash = ? ORDER BY issued_on", hash)
+        rows.map { it.get(1, String::class.java) } shouldBe listOf("inside", "inside", "below", "above", null, null)
+        rows.first().get(2, Int::class.java) shouldBe 31 // 1월 1일 발행 — 그날 포함 남은 날
+        rows.first().get(3, java.time.LocalDate::class.java) shouldBe java.time.LocalDate.of(2025, 2, 8)
+        // 같은 발행에 서버 판정(지난달 같은 날 적중 — `LandingEngine.track`)이 같은 답
+        val landings = com.salt.household.infrastructure.JooqLandings(dsl)
+        val total = com.salt.household.infrastructure.JooqExpenses(dsl).monthSummary(user, past).totals.total
+        cases.indices.forEach { n ->
+            val issued = landings.lastIssued(user, past, past.atDay(n + 1))!!
+            val track = com.salt.household.domain.LandingEngine.track(past, past.plusMonths(1).atDay(n + 1), issued, total)
+            track.hit shouldBe (rows[n].get(1, String::class.java) == "inside")
+        }
+        // 금액 · 원 사용자 id 가 나가지 않는다 — 뷰 열 이름이 계약
+        dsl.fetch("SELECT * FROM v_landing_outcome_export LIMIT 0").fields().map { it.name }.toSet() shouldBe
+            setOf("landing_id", "subject_hash", "target_month", "issued_on", "issued_at", "method", "reason", "days_of_history", "days_left", "final_on", "outcome")
+    }
+
+    @Test
+    fun `월 화면 쌓인 착지 적중 — 예측 집계가 있으면 숫자, 지난 달은 not_current_month`() {
+        val user = "cov-${UUID.randomUUID()}"
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"food"}""").statusCode() shouldBe 201
+        PlatformContainers.admin().use { c ->
+            (0 until 10).forEach { n ->
+                val pid = UUID.randomUUID()
+                c.createStatement().execute(
+                    "INSERT INTO forecast.personal_projection (issuance_id, kind, subject_hash, series_key, issued_at, method, history_n, has_interval, first_seen_at) " +
+                        "VALUES ('$pid','household_landing','h${n % 2}','k$n', now() - interval '40 days','empirical_window',30,true, now())",
+                )
+                c.createStatement().execute("INSERT INTO forecast.personal_projection_score VALUES ('$pid', '${if (n < 8) "hit" else "miss_above"}', current_date - 3, true, now())")
+            }
+        }
+        try {
+            val now = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+            listOf(now.path("coverage").path("intervals").asInt(), now.path("coverage").path("hits").asInt(), now.path("coverage").path("people").asInt(), now.path("coverage").path("nominalPercent").asInt()) shouldBe
+                listOf(10, 8, 2, 80)
+            now.path("coverageReason").isNull shouldBe true
+            val last = data(call("GET", "/api/household/month/${YearMonth.from(today).minusMonths(1)}", user, null))
+            last.path("coverage").isNull shouldBe true
+            last.path("coverageReason").asString() shouldBe "not_current_month"
+        } finally {
+            PlatformContainers.admin().use { it.createStatement().execute("DELETE FROM forecast.personal_projection WHERE kind = 'household_landing'") }
+        }
+        // 집계가 모자라면 이유만
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("coverageReason").asString() shouldBe "history_short"
+    }
+
     private fun statements(): Long {
         QueryCounter.install(householdDatabase.dsl)
         return QueryCounter.count.get()

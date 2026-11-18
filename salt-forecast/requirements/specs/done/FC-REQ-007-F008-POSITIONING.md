@@ -53,3 +53,5 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 |---|---|
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `config.py` 에 `kr_event_symbols` · `kr_event_top`(`FC-REQ-021` FR-6). 쏠림 신호 설정 무변경 |
 | 2026-11-09 | `config.py` 에 등락 분해 창 설정 넷(F016 단계 C `FC-REQ-027`) — 쏠림 설정 무변경 |
+| 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 파일에 O4 몫: `config.py` 에 ECOS 주소 · 키(빈 값 = 없음). 주인 `FC-REQ-024`. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
+| 2026-11-18 | 정리 — 읽는 곳 0 이던 설정 `FORECAST_EXTRA_SYMBOLS`(`extra_symbols` · `extra_symbol_list`) 삭제 · `.env.example` 줄 삭제. 대상 종목은 업비트 원화 마켓 전체 그대로(동작 변경 0). 브랜치 `feat/fc-req-024-personal-projection-scoring` |

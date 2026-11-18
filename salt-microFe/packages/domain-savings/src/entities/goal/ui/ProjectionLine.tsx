@@ -10,7 +10,7 @@ export interface ProjectionLineProps {
 
 /**
  * 도달 시점(`FE-REQ-056` FR-5) — **한 점 날짜를 단정하지 않는다.** 구간이 있으면 "A ~ B", 없으면 "계획대로면 X" + 이유.
- * 적중 이력(채점)이 아직 없으면 그 이유를 늘 같이 적는다(FR-6: 둘 중 하나는 늘 있다).
+ * 적중 이력(예측 채점 — 판정 수 · 맞은 수 · 사람 수)이 있으면 그 한 줄, 없으면 그 이유를 늘 같이 적는다(FR-5 · 서버 FR-6: 둘 중 하나는 늘 있다).
  */
 export const ProjectionLine = ({ projection: p }: ProjectionLineProps) => {
   const main =
@@ -28,7 +28,11 @@ export const ProjectionLine = ({ projection: p }: ProjectionLineProps) => {
       {p.method === "empirical_quantile" ? <span className={s.label}>{GOAL_MESSAGES.projection.basis(p.monthsOfHistory)}</span> : null}
       {p.method === "empirical_quantile" && p.planMonth ? <span className={s.label}>{GOAL_MESSAGES.projection.plan(p.planMonth)}</span> : null}
       {p.reason ? <span className={s.label}>{labelOr(GOAL_MESSAGES.projectionReason, p.reason, "")}</span> : null}
-      {p.track === null ? <span className={s.label}>{GOAL_MESSAGES.projection.trackPending}</span> : null}
+      {p.track ? (
+        <span className={s.label}>{GOAL_MESSAGES.projection.track(p.track)}</span>
+      ) : p.trackReason ? (
+        <span className={s.label}>{labelOr(GOAL_MESSAGES.trackReason, p.trackReason, "")}</span>
+      ) : null}
     </section>
   );
 };

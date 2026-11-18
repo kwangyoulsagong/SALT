@@ -118,3 +118,12 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- `V11__forecast_export.sql` 로컬 운영 · Testcontainers 적용
+- EXPLAIN 0.08ms — 지출 합은 `(user_id, spent_on)` 인덱스 · 판정 경계 E2E
+
+### 미검증 · 범위 밖
+
+없음

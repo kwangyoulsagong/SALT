@@ -280,6 +280,9 @@ class HouseholdController(
 
     data class TrackView(val month: String, val issuedOn: String?, val low: Long?, val high: Long?, val actual: Long?, val hit: Boolean?, val reason: String?)
 
+    /** 판정 수 · 맞은 수 · 사람 수 · 명목(%)이 한 덩어리 — 적중률만 따로 내보내지 않는다. 문장은 프론트 */
+    data class CoverageView(val windowMonths: Int, val intervals: Int, val hits: Int, val people: Int, val nominalPercent: Int)
+
     data class MonthPageView(
         val month: String,
         val current: Boolean,
@@ -299,6 +302,10 @@ class HouseholdController(
         val landing: LandingView?,
         val landingReason: String?,
         val track: TrackView?,
+        /** 쌓인 착지 적중 — 예측 채점(최근 [CoverageView.windowMonths]개월 · 사람 전체). 없으면 null 이고 [coverageReason] */
+        val coverage: CoverageView?,
+        /** history_short · unavailable · not_current_month */
+        val coverageReason: String?,
         val expenses: List<ExpenseView>,
         val recurring: RecurringMonthView,
         val installments: InstallmentBandView,
@@ -774,6 +781,8 @@ class HouseholdController(
         landing = m.landing?.let(::landingView),
         landingReason = m.landingReason,
         track = m.track?.let(::trackView),
+        coverage = m.coverage.coverage?.let { CoverageView(it.windowMonths, it.intervals, it.hits, it.people, it.nominal.multiply(java.math.BigDecimal(100)).toInt()) },
+        coverageReason = m.coverage.reason,
         expenses = m.expenses.map { expenseView(it, m.feelings[it.id], m.workHours).copy(typicalAmount = m.unusual[it.id]?.toKrwInteger()) },
         recurring = clock.todayKst().let { today -> RecurringMonthView(m.occurrences.map { occurrenceView(it, today) }, m.scheduledTotal.toKrwInteger()) },
         installments = installmentView(m.installments),

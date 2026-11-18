@@ -44,3 +44,7 @@
 
 - 이 REQ 몫 기능 변경 0 — Flyway V4 — 발행 원장 `projection_issued` 트리거에 계정 삭제 예외 하나(`salt.erase` 켠 DELETE 만, UPDATE 는 그대로 막음)
 - 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터
+
+## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
+
+- 뷰는 jOOQ 생성기가 못 읽어 무시 구간으로 감쌌다(기존 관례)
