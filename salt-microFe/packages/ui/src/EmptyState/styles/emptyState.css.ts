@@ -66,10 +66,15 @@ export const titleStyles = style({
   wordBreak: "keep-all",
 });
 
+/**
+ * 설명 글자색 — 2단 `rgba(22,31,46,.64)`(`screen-desktop.md` §2 · `FE-REQ-047` FR-13: 흰 4.99 · 회색 바탕 4.81:1).
+ * 전의 `text.tertiary`(#8B95A1)는 흰 위 3.03 · 회색 위 2.75:1 로 13px 기준(4.5) 미달이었다(2026-11-18 axe — 알림 빈 상태, 사용자 결정으로 공용 값 변경).
+ * `text.tertiary` 토큰 자체(31 파일)는 FR-13 몫으로 남긴다
+ */
 export const descriptionStyles = style({
   margin: 0,
   maxWidth: "320px",
-  color: vars.colors.text.tertiary,
+  color: "rgba(22, 31, 46, 0.64)",
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,
   wordBreak: "keep-all",

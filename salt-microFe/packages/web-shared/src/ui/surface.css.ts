@@ -55,10 +55,13 @@ export const panelTitle = style({
   fontWeight: vars.fontWeights.bold,
 });
 
-/** 제목 아래 한 줄 설명 */
+/**
+ * 제목 아래 한 줄 설명 — 글자색 2단(`screen-desktop.md` §2). 전의 neutral 500(참고 화면 실측, 8f3a2d99)은 흰 패널 위 3.03:1 로
+ * 13px 글자 기준(4.5:1) 미달이었다 — 2026-11-18 사용자 결정으로 공용 값을 바꿨다(F006 알림 axe). 흰 4.99 · 회색 바탕 4.81:1
+ */
 export const panelDescription = style({
   margin: "-8px 0 0",
-  color: vars.colors.neutral[500],
+  color: "rgba(22, 31, 46, 0.64)",
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
