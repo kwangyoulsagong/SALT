@@ -90,3 +90,9 @@
 ## 2026-11-16 — F017 v4 순서 5 짝
 
 - 공유 파일에 한 자리 — 이 REQ 기능 변경 없음. 검증 표는 루트 `requirements/reports/checklists/F017-v4-stage5-ontology.md`
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/portfolio/application/api/index.ts` — 포지션 유스케이스 둘 · 의존 셋(일봉 · 뉴스 감성 · 설정)을 조립에 더했다 — 다른 스키마 조인 0(공개 API 로만). 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

@@ -375,3 +375,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 시장 미리보기의 심리 · 스마트 머니 조회 경로(`intelligencePreview`)를 지움 — 온도계 · 스마트 머니 화면 삭제(F017 v4 순서 6 · `FE-REQ-064` FR-12)
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- 390 앱 웹뷰 실화면에서 이름 한 줄 · 금액 아랫줄 — pass
+- 미충족: 없음(이 REQ 몫)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

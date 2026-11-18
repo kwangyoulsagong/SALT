@@ -172,3 +172,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/market/domain/ports.ts` — Port `dailyClosesSince` 선언을 더했다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`

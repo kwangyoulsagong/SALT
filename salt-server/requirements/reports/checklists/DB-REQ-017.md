@@ -366,3 +366,9 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-18 F006 포지션 1단계(`feat/f006-position-overview`)
+
+- `salt-server/src/market/infrastructure/PrismaPriceHistoryRepository.ts` — 일봉 종가 읽기 `dailyClosesSince` 를 더했다(주기 `1d` · 종목 × 자산군 — 유니크 인덱스 비트맵 2.1ms, 봉 표 전체 스캔 0). 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
