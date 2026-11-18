@@ -1008,3 +1008,17 @@ personal_projection_score = Table(
     Column("counted", Boolean, nullable=False),
     Column("scored_at", DateTime(timezone=True), nullable=False),
 )
+
+# O2 관문(FC-REQ-022 FR-11 · FC-REQ-023 FR-6) — 20261118200000_forecast_agent_tools.
+# ontology_quality 회차마다 시장별 한 행.
+# 서버 에이전트 도구는 f_agent_mentions_ok(market, as_of) 로 읽는다(마지막 관문이 미달이면 mentions 간선을 쓰지 않는다)
+ontology_quality_gate = Table(
+    "ontology_quality_gate",
+    metadata,
+    Column("checked_at", DateTime(timezone=True), primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("precision", Float, nullable=False),
+    Column("recall", Float, nullable=False),
+    Column("ok", Boolean, nullable=False),
+    Column("labels", Text, nullable=False),
+)

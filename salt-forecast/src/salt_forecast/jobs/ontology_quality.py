@@ -1,5 +1,5 @@
 """온톨로지 식별자 해소 품질 — 제목 → 종목 정밀도 · 재현율 · 이름 충돌(FC-REQ-022 FR-10~12). 주 1회 ·
-해소 규칙을 바꿀 때.
+해소 규칙을 바꿀 때. 관문은 `forecast.ontology_quality_gate` 에도 쓴다(FC-REQ-023 FR-6 — 에이전트 도구가 읽는다).
 
 라벨 `reports/o2-labels-2026-11-16.tsv`(문서 id · 정답 — 제목 원문 0 ·
 라벨러 Claude, 사람 검수 전)를 지금 해소 규칙으로 다시 채점한다.
@@ -9,6 +9,7 @@ tune = 규칙을 고른 표본 · holdout = 규칙을 고른 뒤 처음 본 표�
 from __future__ import annotations
 
 import math
+from datetime import UTC, datetime
 from pathlib import Path
 
 from salt_forecast.domain.calendar import report_day
@@ -28,7 +29,13 @@ from salt_forecast.domain.ontology_sources import (
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT
 from salt_forecast.store.db import engine
-from salt_forecast.store.ontology import load_crypto_names, load_label_titles, load_master, load_titles
+from salt_forecast.store.ontology import (
+    load_crypto_names,
+    load_label_titles,
+    load_master,
+    load_titles,
+    save_quality_gate,
+)
 
 JOB = "ontology_quality"
 LABELS = ROOT / "reports" / "o2-labels-2026-11-16.tsv"
@@ -89,6 +96,15 @@ def main(argv: list[str] | None = None) -> int:
             "관문",
             extra={"fields": {"job": JOB, **{f"mentions_ok_{m}": ok for m, ok in gate.items()}, "missing": missing}},
         )
+        # 관문을 DB 계약으로 — 에이전트 도구가 mentions 간선을 쓸지 이 행으로 정한다(FC-REQ-023 FR-6).
+        # 시각은 지금(관문을 알게 된 때) — as_of 를 과거로 돌려도 그때 알았던 것이 아니다
+        if not args.dry_run and held:
+            save_quality_gate(
+                eng,
+                datetime.now(UTC),
+                [(m, s.precision, s.recall, gate[m]) for m, s in held.items() if not math.isnan(s.precision)],
+                Path(args.labels).name,
+            )
         if not args.no_report:
             lines = [
                 f"# 온톨로지 식별자 해소 품질(O2) — {as_of.date().isoformat()}",
