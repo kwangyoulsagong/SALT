@@ -41,3 +41,7 @@
 ## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
 
 - 이 REQ 몫 변경 0 — 같은 파일(`store/tables.py`) 끝에 O4 표 선언. `test_schema_contract.py` 통과
+
+## 2026-11-18 — F008 O3 해설 에이전트 도구(`feat/fc-req-023-agent-tools`)
+
+- 이 REQ 몫 변경 0 — 같은 파일 끝에 `ontology_quality_gate` 선언. `test_schema_contract.py` 통과

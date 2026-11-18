@@ -48,6 +48,7 @@
 | `news_kind_dict` · `news_reaction_stat` · `news_pre_move` | prereg_key · (prereg_key, market, origin, kind, horizon, as_of) · (market, symbol, bar_at) | 소식 측정 태그 — 사전(서버가 새 제목을 같은 사전으로 분류) · 같은 종류 초과 반응 서술 · 종목 봉마다 선반영(`FC-REQ-028` FR-3, `DB-REQ-043` FR-4). 서버는 `v_news_kind_dict` · `v_news_reaction` · `v_news_pre_move` · 원천은 export 뷰 `public.v_kr_news_title_export` · `v_news_article_export` |
 | `entity` · `relation` · `fact` · `cause_candidate` · `evidence` · `outcome` · `cause_explain_test` | id · (subject, predicate, object, valid_from) · (entity, attribute, valid_from, available_at) · (entity, trade_date, fingerprint, rank[, ord]) · (entity, trade_date, horizon) · (prereg_key, market, horizon, run_as_of) | 온톨로지 네 층 · 원인 설명 채점(`FC-REQ-022`, `DB-REQ-043` FR-15). 원천 `public.v_cause_snapshot_export`(서버 coach 원인 스냅샷). 서버 읽기 0 — as-of 함수 셋 |
 | `personal_projection` · `personal_projection_score` | issuance_id · issuance_id | 개인 재무 구간 채점(`FC-REQ-024`) — 해시 · 날짜 · 판정만(금액 0), 원천 뷰에서 사라지면 지움. 서비스(savings · household)는 `v_personal_coverage` · `v_price_index`(ECOS 소비자물가)만 |
+| `ontology_quality_gate` | (checked_at, market) | O2 관문 — `ontology_quality` 회차마다 시장별 정밀도 · 재현율 · 통과(`FC-REQ-022` FR-11). 서버 에이전트 도구가 `f_agent_mentions_ok` 로 읽는다 — 계약 함수 · 뷰 `f_agent_neighbors` · `f_agent_documents` · `f_agent_recent_events` · `v_agent_event_reactions`(`FC-REQ-023` · `DB-REQ-045`) |
 | (읽기만) `public.v_move_explanation_export` | — | 오늘 등락 한 줄(③) 시도 — 주인 서버 coach(`DB-REQ-041` FR-8). 주간 운영 리포트 `move-explain-*.md` 만 읽는다(`FC-REQ-027` FR-4~6, F016 단계 D) |
 | ~~`v_entity_asof` · `v_neighbors`~~ → 함수 `f_fact_asof` · `f_relation_asof` · `f_neighbors`(2026-11-16 — 서버는 아직 안 읽음, `FC-REQ-022` FR-4 정정) · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` · `v_event_card`(사건 종목 `event_symbol` — `DB-REQ-034`) · `v_upcoming_event` · `v_move_beta_export`(F016) | 뷰 | **서버가 읽는 계약** |
 
@@ -57,7 +58,7 @@
 
 ## 4. 서버가 읽는 계약
 
-`v_forecast_card` 는 **지금 서버가 읽지 않는다** — 유일한 소비처(`GET /api/coach/forecast`, 주간 변동 범위 카드)를 2026-11-12 삭제했다(화면이 시나리오 카드로 바뀜, F017 단계 5). 아래 모양은 다시 읽을 때(에이전트 도구 `get_forecast_card`, `ontology.md` §6)의 계약이다.
+`v_forecast_card` 는 화면 경로가 읽지 않는다 — 소비처(`GET /api/coach/forecast`)를 2026-11-12 삭제했다. **2026-11-18 에이전트 도구 `get_forecast_card` 가 측정 경로에서 다시 읽는다**(`SRV-REQ-059` — `renderable` 행만 · `horizon_weeks` · `p_up` · `q05` · `q95` · `direction_calls` · `direction_hits` · `always_up_rate` · `miss_count` · `model_version` · `as_of`). 아래는 옛 초안 모양이다.
 
 ```
 symbol, horizon_weeks, as_of, model_version,

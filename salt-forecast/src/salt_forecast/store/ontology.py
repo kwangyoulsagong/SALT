@@ -45,7 +45,16 @@ from salt_forecast.domain.ontology_sources import (
 )
 from salt_forecast.store.bulk import bulk_upsert
 from salt_forecast.store.jsonb import dumps
-from salt_forecast.store.tables import cause_candidate, entity, entity_alias, evidence, fact, outcome, relation
+from salt_forecast.store.tables import (
+    cause_candidate,
+    entity,
+    entity_alias,
+    evidence,
+    fact,
+    ontology_quality_gate,
+    outcome,
+    relation,
+)
 
 
 def _utc(t: datetime) -> datetime:
@@ -228,6 +237,18 @@ def save_outcomes(engine: Engine, rows: Sequence[OutcomeRow]) -> int:
     ]
     cols = ("entity", "trade_date", "horizon", "r", "r_market", "excess", "available_at")
     return bulk_upsert(engine, outcome, cols, values, ("entity", "trade_date", "horizon"))
+
+
+def save_quality_gate(
+    engine: Engine, checked_at: datetime, rows: Sequence[tuple[str, float, float, bool]], labels: str
+) -> int:
+    """O2 관문 — 시장별 (정밀도 · 재현율 · 통과) 한 행(FC-REQ-023 FR-6).
+
+    도구가 마지막 관문을 읽는다. 같은 회차 다시 쓰면 그 값으로.
+    """
+    values: list[Sequence[Any]] = [(checked_at, m, p, r, ok, labels) for m, p, r, ok in rows]
+    cols = ("checked_at", "market", "precision", "recall", "ok", "labels")
+    return bulk_upsert(engine, ontology_quality_gate, cols, values, ("checked_at", "market"))
 
 
 def counts(engine: Engine) -> dict[str, int]:

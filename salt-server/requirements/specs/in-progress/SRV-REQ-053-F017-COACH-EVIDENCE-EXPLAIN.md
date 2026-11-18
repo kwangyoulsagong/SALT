@@ -128,3 +128,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-16 | 단타 키 `@4` → `@5`(예측 쪽 재생 코드 가드 정정 — FC-REQ-028). 응답 모양 무변경 |
 | 2026-11-16 | **FR-18 신규 · done**(F017 v4 순서 5a · 루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — 원인 스냅샷 기록. 화면 · BFF 응답 무변경 |
 | 2026-11-17 | F008 슬라이스 24 2단계 확인 3회차 — 기존 현상 둘 고침(장중 · 재기동 뒤 504, DART 014 재시도)(`feat/f008-slice24-s2-earnings-window`) — 짝 — 코치 워커 회차 배치 풀 · 패널 칸별 시간(`DB-REQ-017` 같은 날) |
+| 2026-11-18 | **인용 순서 정정** — 문장 인용 상한 3 을 사실표 순서로 잘라, 글로 옮긴 뒤쪽 사실(도구 · 회사 사정)이 숫자만 우연히 맞은 앞쪽 사실(시세 · 원인)에 밀려 빠졌다. 글이 맞은 사실(①③③')을 먼저 싣는다(O3 실측 2026-11-18). 해설 입력에 `tools`(도구 사실 — 허용 숫자 · 인용 사실표) 칸. 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |

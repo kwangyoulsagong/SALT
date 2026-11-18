@@ -20,7 +20,8 @@
     "judgments:seed:clear": "tsx scripts/seed-judgment-snapshots.ts --clear",
     "judgments:kr-backtest": "tsx scripts/backtest-kr-judgments.ts",
     "judgments:signal-skill": "tsx scripts/backtest-signal-skill.ts",
-    "explain:ab": "tsx scripts/explain-ab-sheet.ts"
+    "explain:ab": "tsx scripts/explain-ab-sheet.ts",
+    "explain:agent-ab": "tsx scripts/explain-agent-ab.ts"
   },
   "keywords": [],
   "author": "",

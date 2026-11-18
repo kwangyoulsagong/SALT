@@ -200,6 +200,18 @@ export const explanationFactCatalog = (input: CoachExplanationInput, asOf: Date)
   (input.company?.lines ?? []).forEach((l, i) =>
     add({ id: `company-${i + 1}`, label: l.source, at, url: null, news: false, texts: [l.text], numbers: numericTokens(l.text) })
   );
+  // 에이전트 도구 사실(O3 · `SRV-REQ-059`) — 출처 이름 · 원문 주소 · 시각 그대로. 제목 줄은 뉴스 칸에서만
+  (input.tools?.facts ?? []).forEach((f) =>
+    add({
+      id: f.id,
+      label: f.source.name,
+      at: f.source.at,
+      url: f.source.url,
+      news: f.news,
+      texts: [f.text],
+      numbers: numericTokens(f.text),
+    })
+  );
   (input.news ?? []).forEach((n, i) =>
     add({
       id: `news-${i + 1}`,
@@ -246,6 +258,9 @@ export const citeSentence = (
 ): ExplanationCitation[] => {
   const usable = catalog.filter((f) => !f.news || section === "newsSummary");
   const hits = new Set<string>();
+  /** 글이 맞아 잡힌 사실(①③③') — 숫자만 맞은 사실보다 먼저 싣는다. 상한 3 을 사실표 순서로 자르면 뒤쪽 사실(도구 · 회사 사정)이
+   *  글로 옮겨졌어도 숫자 우연에 밀려 빠졌다(2026-11-18 O3 실측 — 도구 줄 "5거래일 45%(표본 20건)" 문장이 시세 · 원인 칩만) */
+  const strong = new Set<string>();
   const plain = text.trim();
   // ① 사실 글을 그대로 옮긴 부분 — 그 사실. 옮긴 글 안의 숫자는 ②에서 다른 사실에 다시 맞추지 않는다
   //   ("판단 뒤 24시간"의 24시간은 판단 기간이지 시세 창이 아니다 — 2026-11-11 실데이터)
@@ -255,8 +270,12 @@ export const citeSentence = (
       if (t.length < 6) continue;
       if (plain.includes(t)) {
         hits.add(f.id);
+        strong.add(f.id);
         rest = rest.split(t).join(" ");
-      } else if (t.includes(plain)) hits.add(f.id);
+      } else if (t.includes(plain)) {
+        hits.add(f.id);
+        strong.add(f.id);
+      }
     }
   }
   // ② 숫자가 맞는 사실(검증기와 같은 대조) — 같은 숫자는 사실표 첫 사실 하나
@@ -270,21 +289,28 @@ export const citeSentence = (
       .filter((f) => f.news)
       .map((f) => ({ f, score: Math.max(...f.texts.map((t) => bigramOverlap(plain, t))) }))
       .sort((a, b) => b.score - a.score)[0];
-    if (best && best.score >= NEWS_MATCH_MIN) hits.add(best.f.id);
+    if (best && best.score >= NEWS_MATCH_MIN) {
+      hits.add(best.f.id);
+      strong.add(best.f.id);
+    }
   }
   // ③' 회사 사정(F017 v4 2b+) — 숫자 없이 말을 바꿔 옮겨도 그 사실(공시 · 기사 이름)로. 뉴스와 같은 겹침 문턱 · 칸 무관
   //   (실측 2026-11-14: "기업설명회(IR) 개최 안내공시처럼…" 문장이 '규칙 판단'으로 인용됐다)
   const company = usable
-    .filter((f) => f.id.startsWith("company-"))
+    // 도구 사실(O3)도 같다 — 이웃 · 반응 줄을 말만 바꿔 옮긴 문장이 그 출처로
+    .filter((f) => f.id.startsWith("company-") || f.id.startsWith("tool-"))
     .map((f) => ({ f, score: Math.max(...f.texts.map((t) => bigramOverlap(plain, t))) }))
     .sort((a, b) => b.score - a.score)[0];
-  if (company && company.score >= NEWS_MATCH_MIN) hits.add(company.f.id);
+  if (company && company.score >= NEWS_MATCH_MIN) {
+    hits.add(company.f.id);
+    strong.add(company.f.id);
+  }
   if (hits.size === 0) {
     const fallback = catalog.find((f) => f.id === "judgment") ?? catalog[0];
     if (fallback) hits.add(fallback.id);
   }
-  return catalog
-    .filter((f) => hits.has(f.id))
+  const picked = catalog.filter((f) => hits.has(f.id));
+  return [...picked.filter((f) => strong.has(f.id)), ...picked.filter((f) => !strong.has(f.id))]
     .slice(0, CITATIONS_MAX)
     .map(({ id, label, at, url }) => ({ id, label, at, url }));
 };
