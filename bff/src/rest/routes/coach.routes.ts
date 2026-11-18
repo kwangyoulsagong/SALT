@@ -5,6 +5,7 @@ import { appTradeRiskController } from "../controllers/trade-risk.controller";
 import { appBehaviorMirrorController } from "../controllers/behavior-mirror.controller";
 import { appJudgmentScoreboardController } from "../controllers/judgment-scoreboard.controller";
 import { appTargetWeightController } from "../controllers/target-weight.controller";
+import { appCoachConversationController } from "../controllers/coach-conversation.controller";
 
 /**
  * 코치 리포트 — `/api/app/coach/*` (`BFF-REQ-023` "조립 — 코치 리포트").
@@ -14,6 +15,13 @@ const router = Router();
 
 router.use(authMiddleware);
 router.get("/report", appCoachController.report);
+
+// 코치 대화(F006 C절 · `BFF-REQ-027` · `028`) — 서버 `/api/coach/messages` · `/conversations`. 묻기(201) → 답 스트림(SSE)
+router.post("/messages", appCoachConversationController.ask);
+router.get("/messages/:id/stream", appCoachConversationController.stream);
+router.get("/conversations", appCoachConversationController.listConversations);
+router.get("/conversations/:id/messages", appCoachConversationController.listMessages);
+router.delete("/conversations/:id", appCoachConversationController.deleteConversation);
 router.get("/generation-status", appCoachController.generationStatus);
 router.get("/events", appCoachController.events);
 router.get("/positioning", appCoachController.positioning);
