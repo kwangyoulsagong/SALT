@@ -327,6 +327,29 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     return starts;
   }
 
+  /** 종목 수 × 일수 행(10종목 · 1년 ≈ 3,700행). 자산군까지 맞춰 코인 심볼 · 국내 코드가 섞여도 남의 봉을 읽지 않는다 */
+  async dailyClosesSince(
+    items: Array<{ symbol: string; assetType: MarketAssetType }>,
+    since: Date
+  ): Promise<Array<ClosePoint & { assetType: MarketAssetType }>> {
+    if (items.length === 0) return [];
+    const rows = await prisma.priceHistory.findMany({
+      where: {
+        timeframe: "1d",
+        timestamp: { gte: since },
+        OR: items.map((item) => ({ symbol: item.symbol, assetType: item.assetType })),
+      },
+      orderBy: { timestamp: "asc" },
+      select: { symbol: true, assetType: true, close: true, timestamp: true },
+    });
+    return rows.map((row) => ({
+      symbol: row.symbol,
+      assetType: row.assetType as MarketAssetType,
+      close: Number(row.close),
+      timestamp: row.timestamp,
+    }));
+  }
+
   async closesSince(symbols: string[], since: Date): Promise<ClosePoint[]> {
     if (symbols.length === 0) return [];
 

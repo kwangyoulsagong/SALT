@@ -33,6 +33,11 @@ export const queryHoldingsSchema = z.object({
   symbol: z.string().optional(),
 });
 
+/** 평가금 흐름 기간(F006 G절 FR-71) — 1주 · 1개월 · 3개월 · 1년. 주지 않으면 1개월 */
+export const positionFlowQuerySchema = z.object({
+  range: z.enum(['1w', '1m', '3m', '1y']).optional().default('1m'),
+});
+
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;
 export type UpdateTransactionDto = z.infer<typeof updateTransactionSchema>;
 export type QueryTransactionsDto = z.infer<typeof queryTransactionsSchema>;

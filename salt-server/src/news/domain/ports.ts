@@ -53,6 +53,8 @@ export interface ArticleRepository {
   searchTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]>;
   /** 한 종목이 붙은 기사들의 태그 목록(`since` 뒤 · 최신순 · `limit` 건) — 함께 태그된 종목 세기(`SRV-REQ-055`) */
   symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
+  /** 종목마다 `since` 이후 감성이 붙은 기사 수 · 그중 부정 수(포트폴리오 레이더 뉴스 축 — F006 G절). 기사가 없는 종목은 빠진다 */
+  sentimentCounts(symbols: string[], since: Date): Promise<Array<{ symbol: string; labeled: number; negative: number }>>;
   /**
    * 감성 분석용 조회. 종목 태그(`symbols`)나 **검색어**로 찾고 본문까지 준다.
    *

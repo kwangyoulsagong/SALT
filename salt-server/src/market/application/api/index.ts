@@ -21,6 +21,7 @@ import type {
   AssetQuote,
   ClosePercentiles,
   ClosePoint,
+  MarketAssetType,
   DailyReturnProfile,
   ExchangeQuotePort,
   HoldingProbe,
@@ -149,6 +150,11 @@ export interface MarketApi {
   ): Promise<StoredWhaleTransaction[]>;
   /** 여러 심볼의 종가를 한 번에. 심볼당 조회를 부르지 않게 하는 자리다. */
   closesSince(symbols: string[], since: Date): Promise<ClosePoint[]>;
+  /** 일봉 종가만(종목 · 자산군 쌍) — 포트폴리오 평가금 흐름 · 리스크 레이더(F006 G절) */
+  dailyClosesSince(
+    items: Array<{ symbol: string; assetType: MarketAssetType }>,
+    since: Date
+  ): Promise<Array<ClosePoint & { assetType: MarketAssetType }>>;
 
   /**
    * ## 아래 여섯은 `coach` 통합(FR-32)이 요구한 것이다
@@ -677,6 +683,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     recentWhaleTransactions: (symbol, limit = 20) =>
       deps.whales.findRecent(symbol, limit),
     closesSince: (symbols, since) => deps.prices.closesSince(symbols, since),
+    dailyClosesSince: (items, since) => deps.prices.dailyClosesSince(items, since),
     latestIndicators: (symbols, timeframe) =>
       deps.indicators.findLatestMany(symbols, timeframe),
     latestSentiments: (symbols) => deps.sentiments.findLatestMany(symbols),

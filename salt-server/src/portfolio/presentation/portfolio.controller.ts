@@ -4,6 +4,7 @@ import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { PortfolioUseCases } from "../application/api";
 import {
   createTransactionSchema,
+  positionFlowQuerySchema,
   queryHoldingsSchema,
   queryTransactionsSchema,
   updateTransactionSchema,
@@ -188,6 +189,36 @@ export class PortfolioController {
         (req.query.range as string) ?? "7d"
       );
       return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 포지션 개요(F006 G절) — 금액은 여기서 원 단위로 한 번 반올림한다(`ddd-presentation.md` §2) */
+  getPositionOverview = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.useCases.getPositionOverview.execute(req.user!.userId);
+      if (result.empty) return ResponseUtil.success(res, result);
+      const hero = result.hero;
+      return ResponseUtil.success(res, {
+        ...result,
+        hero: {
+          ...hero,
+          totalValueKrw: Math.round(hero.totalValueKrw),
+          unrealizedProfitKrw: Math.round(hero.unrealizedProfitKrw),
+          investedKrw: Math.round(hero.investedKrw),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 평가금 흐름(기간 버튼) — 점의 금액은 계산에서 이미 원 단위 */
+  getPositionFlow = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { range } = positionFlowQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.useCases.getPositionFlow.execute(req.user!.userId, range));
     } catch (error) {
       next(error);
     }

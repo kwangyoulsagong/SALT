@@ -89,6 +89,8 @@ import { PrismaAiBodyStore, PrismaAiSourceStore } from "./news/infrastructure/Pr
 import { createPortfolioApplication } from "./portfolio/application/api";
 import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdapter";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
+import { DailyCloseAdapter } from "./portfolio/infrastructure/DailyCloseAdapter";
+import { NewsSentimentAdapter } from "./portfolio/infrastructure/NewsSentimentAdapter";
 import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
 import { PrismaTransactionRepository } from "./portfolio/infrastructure/PrismaTransactionRepository";
 import { ArticlePageFetcher } from "./news/infrastructure/ArticlePageFetcher";
@@ -259,6 +261,28 @@ const portfolio = createPortfolioApplication({
   holdings: new PrismaHoldingRepository(),
   prices: new PriceHistoryAdapter(market.api),
   krStock: new KrStockQuoteAdapter(market.api),
+  dailyCloses: new DailyCloseAdapter(market.api),
+  newsSentiment: new NewsSentimentAdapter(news.api),
+  position: {
+    radar: {
+      concentrationLimit: env.PORTFOLIO_RADAR_CONCENTRATION_LIMIT,
+      volatilityFullScalePct: env.PORTFOLIO_RADAR_VOLATILITY_FULL_SCALE_PCT,
+      volatilityLimit: env.PORTFOLIO_RADAR_VOLATILITY_LIMIT,
+      drawdownFullScalePct: env.PORTFOLIO_RADAR_DRAWDOWN_FULL_SCALE_PCT,
+      drawdownLimit: env.PORTFOLIO_RADAR_DRAWDOWN_LIMIT,
+      newsLimit: env.PORTFOLIO_RADAR_NEWS_LIMIT,
+      newsMinArticles: env.PORTFOLIO_RADAR_NEWS_MIN_ARTICLES,
+      newsMinCoveragePct: env.PORTFOLIO_RADAR_NEWS_MIN_COVERAGE_PCT,
+    },
+    windows: {
+      returnDays: env.PORTFOLIO_RETURN_DAYS,
+      volatilityDays: env.PORTFOLIO_VOLATILITY_DAYS,
+      volatilityMinDays: env.PORTFOLIO_VOLATILITY_MIN_DAYS,
+      drawdownDays: env.PORTFOLIO_DRAWDOWN_DAYS,
+      newsDays: env.PORTFOLIO_NEWS_DAYS,
+      timelineLimit: env.PORTFOLIO_TIMELINE_LIMIT,
+    },
+  },
 });
 
 /**

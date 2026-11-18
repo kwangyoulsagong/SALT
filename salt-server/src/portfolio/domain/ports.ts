@@ -1,5 +1,6 @@
 import type { HoldingSnapshot, TransactionFact } from "./HoldingRecalculation";
 import type { ClosePriceFact } from "./PerformanceSeries";
+import type { DailyClose, TimelineTrade } from "./PositionFlow";
 
 /**
  * `portfolio` 가 밖에 요구하는 것.
@@ -84,6 +85,11 @@ export interface TransactionRepository {
   ): Promise<TransactionFact[]>;
   /** `assetType` 을 주면 그 자산군만 센다. 행을 옮겨 와서 세지 않는다. */
   countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number>;
+  /**
+   * 한 사람의 거래 전부를 수량 복원에 필요한 칸만(평가금 흐름 — F006 G절). 수기 입력이라 수백 건 이하(`DB-REQ-022` 위험 메모) —
+   * 그래도 상한을 둔다: 넘으면 앞쪽(오래된 것)이 잘리지 않게 `truncated` 로 알린다
+   */
+  findTimeline(userId: string, limit: number): Promise<{ trades: TimelineTrade[]; truncated: boolean }>;
   /** 거래가 하나라도 있는 사용자 id(정렬) — 사람마다 도는 배치의 대상. 서버 S3b 에 사용자 표가 identity 로 가서 그 표를 읽지 않는다 */
   distinctUserIds(): Promise<string[]>;
 }
@@ -155,4 +161,17 @@ export interface KrStockQuoteSource {
   assertTradable(code: string): Promise<void>;
   /** 저장된 현재가. 시세가 없는 코드는 빠진다 — 그 보유는 평가를 건드리지 않는다 */
   prices(codes: string[]): Promise<Array<{ symbol: string; currentPrice: number }>>;
+}
+
+/**
+ * 일봉 종가(F006 G절) — `market` 을 우리 언어로 번역하는 ACL 의 Port. **주기 `1d` 만** 읽는다 — `closesSince` 는 주기를 거르지 않아
+ * 분봉까지 읽는다(1년이면 봉 표를 훑는다). 자산군을 같이 받는다 — 코인 심볼과 국내 코드가 섞여도 다른 종목 봉을 읽지 않게
+ */
+export interface DailyCloseSource {
+  dailyClosesSince(items: Array<{ symbol: string; assetType: PortfolioAssetType }>, since: Date): Promise<DailyClose[]>;
+}
+
+/** 종목마다 감성이 붙은 기사 수 · 그중 부정 수(F006 G절 레이더 뉴스 축) — `news` 를 번역하는 ACL 의 Port */
+export interface NewsSentimentSource {
+  sentimentCounts(symbols: string[], since: Date): Promise<Array<{ symbol: string; labeled: number; negative: number }>>;
 }

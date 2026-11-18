@@ -220,6 +220,20 @@ export class PrismaArticleRepository implements ArticleRepository, NewsGapLedger
     return rows.map((row) => row.symbols);
   }
 
+  /**
+   * `published_at` 인덱스로 창(7일 ≈ 1,400행)을 자르고 `symbols && 목록` 으로 거른 뒤 종목별로 센다 — 결과는 보유 종목 수 행.
+   * 감성이 없는 기사(null)는 세지 않는다(분모가 "감성이 붙은 기사")
+   */
+  async sentimentCounts(symbols: string[], since: Date) {
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; labeled: number; negative: number }>>`
+      SELECT s.symbol, count(*)::int AS labeled, count(*) FILTER (WHERE a.sentiment = 'negative')::int AS negative
+      FROM news_articles a CROSS JOIN LATERAL unnest(a.symbols) AS s(symbol)
+      WHERE a.published_at >= ${since} AND a.sentiment IS NOT NULL AND a.symbols && ${symbols}::text[]
+        AND s.symbol = ANY(${symbols}::text[])
+      GROUP BY s.symbol`;
+    return rows;
+  }
+
   findTrending(limit: number, language?: NewsLanguage) {
     const where: Prisma.NewsArticleWhereInput = {
       publishedAt: { gte: new Date(Date.now() - TRENDING_WINDOW_MS) },
