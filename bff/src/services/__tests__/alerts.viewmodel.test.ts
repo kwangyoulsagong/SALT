@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { toAlertViewModels, type ServerNotificationItem } from "../alerts.viewmodel";
+import { toAlertViewModels, toNextPage, type ServerNotificationItem } from "../alerts.viewmodel";
 
 const item = (overrides: Partial<ServerNotificationItem> = {}): ServerNotificationItem => ({
   id: "n1",
@@ -67,6 +67,7 @@ describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
       "messageCode",
       "params",
       "symbol",
+      "target",
     ]);
   });
 
@@ -78,5 +79,31 @@ describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
     assert.equal(vms.length, 20);
     assert.equal(vms[0].id, "n24");
     assert.equal(vms[19].id, "n5");
+  });
+
+  it("갈 곳은 코드 — 종류마다 한 군데 · 종목 없는 판단 변화는 코치 리포트 · 경로 문자열 0 (BFF-REQ-028 FR-45)", () => {
+    const vms = toAlertViewModels([
+      item({ id: "s" }),
+      item({ id: "s0", symbol: null, createdAt: "2026-10-28T00:59:00.000Z" }),
+      item({ id: "g", kind: "goal_reached", symbol: null, messageCode: "savings.goal_reached", createdAt: "2026-10-28T00:58:00.000Z" }),
+      item({ id: "f", kind: "fixed_cost_increased", symbol: null, messageCode: "household.fixed_cost_increased", createdAt: "2026-10-28T00:57:00.000Z" }),
+    ]);
+    assert.deepEqual(
+      vms.map((vm) => [vm.id, vm.target]),
+      [["s", "invest.symbol"], ["s0", "invest.coach"], ["g", "savings.goals"], ["f", "household.board"]],
+    );
+    assert.ok(vms.every((vm) => !vm.target.includes("/")));
+  });
+});
+
+describe("toNextPage (BFF-REQ-027 FR-90)", () => {
+  it("남은 행이 있을 때만 다음 쪽 · 모양이 틀리면 없음(끝없이 부르지 않는다)", () => {
+    assert.equal(toNextPage(1, 20, 41), 2);
+    assert.equal(toNextPage(2, 20, 41), 3);
+    assert.equal(toNextPage(3, 20, 41), null);
+    assert.equal(toNextPage(1, 20, 20), null);
+    assert.equal(toNextPage(1, 0, 5), null);
+    assert.equal(toNextPage(undefined, 20, 41), null);
+    assert.equal(toNextPage("1", 20, 41), null);
   });
 });

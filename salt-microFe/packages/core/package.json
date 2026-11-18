@@ -19,6 +19,8 @@
     "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",
     "./position": "./src/portfolio/position.ts",
+    "./alerts": "./src/notification/alerts.ts",
+    "./labels": "./src/labels/index.ts",
     "./navigation": "./src/navigation/index.ts",
     "./input": "./src/input/numberText.ts",
     "./search": "./src/search/searchList.ts",
