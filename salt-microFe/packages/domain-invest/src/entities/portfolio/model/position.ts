@@ -1,6 +1,22 @@
-import type { FlowRange, RadarAxisKey } from "@repo/core/position";
+import type { FlowRange, LedgerAssetType, LedgerSide, RadarAxisKey } from "@repo/core/position";
 
-export type { FlowRange, PositionFlowVM, PositionOverviewVM, PositionRadarAxis, RadarAxisKey } from "@repo/core/position";
+export type {
+  FlowRange,
+  LedgerAssetType,
+  LedgerFigures,
+  LedgerSide,
+  PositionFlowVM,
+  PositionOverviewVM,
+  PositionRadarAxis,
+  PositionTransactionPageVM,
+  PositionTransactionVM,
+  RadarAxisKey,
+  TransactionCreateInput,
+  TransactionPatchInput,
+  TransactionPreviewInput,
+  TransactionPreviewVM,
+} from "@repo/core/position";
+export { INSUFFICIENT_QUANTITY_CODE } from "@repo/core/position";
 
 /** 기간 버튼 순서(FR-71) — 기본은 1개월 */
 export const FLOW_RANGES: ReadonlyArray<{ value: FlowRange; label: string }> = [
@@ -31,8 +47,10 @@ export const POSITION_MESSAGES = {
   signInRequired: "로그인하면 포지션을 볼 수 있어요.",
   /** 보유 0(FR-78) — 차트 · 레이더를 0 으로 그리지 않는다 */
   emptyTitle: "첫 보유 기록을 입력하세요",
-  emptyBody: "종목을 찾아 상세 화면에서 산 기록을 적으면 평가금 · 흐름 · 리스크가 여기 모여요. 주문은 나가지 않아요.",
-  emptyCta: "종목 찾기",
+  emptyBody: "이미 산 거래를 적으면 평가금 · 흐름 · 리스크가 여기 모여요. 주문은 나가지 않아요.",
+  /** 하단 링크(FR-109) */
+  manageLink: "보유 기록 관리",
+  settingsLink: "설정",
   hero: {
     totalValue: "총 평가금",
     profit: "평가 손익",
@@ -84,4 +102,26 @@ export const POSITION_MESSAGES = {
     flow_unavailable: "가격 기록을 불러오지 못해 30일 수익률 · 변동성 · 낙폭을 비웠어요.",
     news_unavailable: "뉴스를 불러오지 못해 뉴스 리스크 축을 비웠어요.",
   } as Record<string, string>,
+} as const;
+
+/** 거래 기록 표시 이름(F006 G절 2단계) — 시트 · 목록이 같이 쓴다 */
+export const LEDGER_SIDE_LABEL: Record<LedgerSide, string> = { buy: "매수", sell: "매도" };
+export const LEDGER_ASSET_LABEL: Record<LedgerAssetType, string> = { crypto: "코인", kr_stock: "국내 주식" };
+
+/** 거래일 표시 — 한국 날짜(목록 · 시트 거래일 칸 기본값). 시각은 적지 않는다(손으로 적은 날짜다) */
+export const toKoreanDate = (iso: string): string =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date(iso));
+
+export const TRANSACTION_LIST_MESSAGES = {
+  /** 패널 제목 — 페이지 제목("보유 기록 관리")과 겹치지 않게 */
+  heading: "거래 기록",
+  description: "적어 둔 매수 · 매도 기록이에요. 고르면 고치거나 지울 수 있어요. 주문은 나가지 않아요.",
+  loading: "거래 기록을 불러오는 중이에요",
+  loadFailed: "거래 기록을 불러오지 못했어요.",
+  empty: "아직 적은 거래가 없어요.",
+  more: "더 보기",
+  namesDegraded: "종목 이름을 불러오지 못해 코드로 보여요.",
+  rowLabel: (name: string, side: string, date: string) => `${date} ${name} ${side} 기록 고치기`,
+  quantityAt: (quantity: string, price: string) => `${quantity} × ${price}원`,
+  backToPortfolio: "포트폴리오",
 } as const;

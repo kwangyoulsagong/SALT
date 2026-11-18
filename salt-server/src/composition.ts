@@ -93,6 +93,7 @@ import { DailyCloseAdapter } from "./portfolio/infrastructure/DailyCloseAdapter"
 import { NewsSentimentAdapter } from "./portfolio/infrastructure/NewsSentimentAdapter";
 import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
 import { PrismaTransactionRepository } from "./portfolio/infrastructure/PrismaTransactionRepository";
+import { runInTransaction } from "./shared/infrastructure/prisma";
 import { ArticlePageFetcher } from "./news/infrastructure/ArticlePageFetcher";
 import { NaverNewsSearch } from "./news/infrastructure/NaverNewsSearch";
 import { PrismaArticleBodyStore } from "./news/infrastructure/PrismaArticleBodyStore";
@@ -263,6 +264,7 @@ const portfolio = createPortfolioApplication({
   krStock: new KrStockQuoteAdapter(market.api),
   dailyCloses: new DailyCloseAdapter(market.api),
   newsSentiment: new NewsSentimentAdapter(news.api),
+  ledger: { run: (fn) => runInTransaction(fn) },
   position: {
     radar: {
       concentrationLimit: env.PORTFOLIO_RADAR_CONCENTRATION_LIMIT,

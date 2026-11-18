@@ -27,6 +27,8 @@ export const useRecordTrade = () => {
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.mirror() }),
       // 홈 보유 요약 — 국내 주식 보유는 기록 직후 서버가 평가한다(F011 슬라이스 3b). 코인도 수량이 바뀐다
       queryClient.invalidateQueries({ queryKey: portfolioQueryKeys.summary }),
+      // 포지션(Hero · 흐름 · 레이더 · 거래 목록) — 상세에서 적은 거래도 같은 원장이다(2026-11-18 F006 G절 2단계에서 빠진 것 발견)
+      queryClient.invalidateQueries({ queryKey: portfolioQueryKeys.positionAll }),
     ]);
 
   const record = useMutation<RecordTradeResult, ApiError, RecordTradeRequest>({

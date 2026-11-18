@@ -2,8 +2,8 @@ import { apiFetch } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { PORTFOLIO_MESSAGES } from "../model/messages";
-import type { FlowRange, PositionFlowVM, PositionOverviewVM } from "../model/position";
-import { POSITION_MESSAGES } from "../model/position";
+import type { FlowRange, PositionFlowVM, PositionOverviewVM, PositionTransactionPageVM } from "../model/position";
+import { POSITION_MESSAGES, TRANSACTION_LIST_MESSAGES } from "../model/position";
 import { PortfolioSummary } from "../model/types";
 
 /**
@@ -36,5 +36,11 @@ export const portfolioApi = {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio/position/flow?range=${range}`, { signal });
     if (!response.ok) throw new Error(POSITION_MESSAGES.flowLoadFailed);
     return (await response.json()) as PositionFlowVM;
+  },
+  /** 거래 목록 한 쪽 — 최신순(F006 G절 2단계). 쓰기는 `features/record-transaction` */
+  transactions: async (page: number, signal?: AbortSignal): Promise<PositionTransactionPageVM> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio/transactions?page=${page}`, { signal });
+    if (!response.ok) throw new Error(TRANSACTION_LIST_MESSAGES.loadFailed);
+    return ((await response.json()) as { data: PositionTransactionPageVM }).data;
   },
 };

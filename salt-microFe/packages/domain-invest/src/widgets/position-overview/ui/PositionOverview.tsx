@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { Button } from "@repo/ui/button";
 import { EmptyState } from "@repo/ui/emptyState";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { StatusLine } from "@repo/ui/statusLine";
@@ -14,6 +15,7 @@ import { NavChevron } from "@repo/web-shared/ui";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { usePurchasePriceVisibility } from "@/entities/coach";
+import { LEDGER_SHEET_MESSAGES, TransactionSheet } from "@/features/record-transaction";
 import {
   DEFAULT_FLOW_RANGE,
   POSITION_MESSAGES,
@@ -25,11 +27,12 @@ import {
   type FlowRange,
 } from "@/entities/portfolio";
 
-import { emptyLink, stack } from "./PositionOverview.css";
+import { emptyLink, footLinks, headAction, stack } from "./PositionOverview.css";
 
 /**
  * 포지션(F006 G절 — `/portfolio` 위쪽) — Hero · 평가금 흐름 · 리스크 레이더(FR-70 · 71 · 73). 보유 0 이면 첫 기록 안내만(FR-78).
  * 개요 · 흐름은 따로 부른다 — 기간 버튼은 흐름만 다시 부르고(FE-REQ-031 FR-91), 흐름 실패가 Hero 를 가리지 않는다(FR-90).
+ * [거래 기록 추가] 시트(2단계 FR-104)는 Hero 머리 · 빈 상태에서 연다. 아래에 보유 기록 관리 · 설정 링크(FR-109).
  * 조합만 한다 — 계산 0(`fsd-widgets.md`)
  */
 export const PositionOverview = () => {
@@ -38,6 +41,8 @@ export const PositionOverview = () => {
   const [range, setRange] = useState<FlowRange>(DEFAULT_FLOW_RANGE);
   const hasHoldings = overview.isSuccess && !overview.data.empty;
   const flow = usePositionFlow(range, hasHoldings);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheet = <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />;
 
   if (overview.isSignedOut) return null; // 페이지가 유리막을 그린다
   if (overview.isPending) {
@@ -64,13 +69,9 @@ export const PositionOverview = () => {
           icon={<StatusGraphic kind="empty" />}
           title={POSITION_MESSAGES.emptyTitle}
           description={POSITION_MESSAGES.emptyBody}
-          action={
-            <Link href={ROUTES.search} className={emptyLink}>
-              {POSITION_MESSAGES.emptyCta}
-              <NavChevron />
-            </Link>
-          }
+          action={<Button onClick={() => setSheetOpen(true)}>{LEDGER_SHEET_MESSAGES.openButton}</Button>}
         />
+        {sheet}
       </section>
     );
   }
@@ -82,6 +83,9 @@ export const PositionOverview = () => {
       <section className={panel} aria-labelledby="position-hero">
         <div className={panelHead}>
           <h2 id="position-hero" className={panelTitle}>{POSITION_MESSAGES.heading}</h2>
+          <Button size="sm" variant="weak" className={headAction} onClick={() => setSheetOpen(true)}>
+            {LEDGER_SHEET_MESSAGES.openButton}
+          </Button>
         </div>
         <PositionHero hero={data.hero} purchasePrice={purchasePrice} />
         {degradedNotes.map((note) => (
@@ -108,6 +112,17 @@ export const PositionOverview = () => {
           <RiskRadarView axes={data.radar} />
         </section>
       ) : null}
+      <nav className={footLinks} aria-label={POSITION_MESSAGES.heading}>
+        <Link href={ROUTES.portfolioTransactions} className={emptyLink}>
+          {POSITION_MESSAGES.manageLink}
+          <NavChevron />
+        </Link>
+        <Link href={ROUTES.coachSettings} className={emptyLink}>
+          {POSITION_MESSAGES.settingsLink}
+          <NavChevron />
+        </Link>
+      </nav>
+      {sheet}
     </div>
   );
 };

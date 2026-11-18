@@ -191,6 +191,8 @@ const REGISTRY = {
     "investment-detail",
     // 투자 포트폴리오 `/portfolio` — 내 보유를 코치 리포트에서 뗐다(`FE-REQ-069`, 2026-11-10)
     "portfolio",
+    // 보유 기록 관리 `/portfolio/transactions` — 거래 목록 · 고치기 · 지우기(F006 G절 2단계, 2026-11-18)
+    "portfolio-transactions",
     "search",
     "settings",
     "onboarding",

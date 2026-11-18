@@ -10,3 +10,4 @@ export * from "./useDebouncedValue";
 export * from "./useNumberFields";
 export * from "./labelOr";
 export * from "./useZoneNavigate";
+export * from "./useNarrowViewport";

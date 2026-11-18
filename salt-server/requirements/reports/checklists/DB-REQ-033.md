@@ -178,3 +178,9 @@
 - `salt-server/src/market/domain/ports.ts` — Port `dailyClosesSince` 선언을 더했다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침)
+
+- `salt-server/src/portfolio/domain/ports.ts` — 원장 Port `findLedger` · `lockLedger` · `findOwned` · `LedgerTransaction`(`findForRecalculation` · `findById` 대체). 이 REQ 몫 동작 무변경(국내 주식 기록 시험 통과)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

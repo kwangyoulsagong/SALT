@@ -28,3 +28,14 @@
 - 읽기 Port `findTimeline` — EXPLAIN 0.07ms · 계정 삭제 뒤 사람 행 0 — pass
 - 미충족: FR-70~74 거래 미리보기 · 음수 거부(2단계)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`)
+
+- FR-70 — 미리보기 · 저장 같은 함수(`LedgerChange.ts` · `recalculateHolding`) — pass
+- FR-71 — 생성 · 수정 · 삭제 · 미리보기 거래일 순서 음수 거부(실API 셋 + 시험) — pass
+- FR-72 — 한 트랜잭션(`runInTransaction`) + `pg_advisory_xact_lock` — 시험 롤백 가짜(과매도면 원장 · 보유 그대로) · 실측 동시 매도 하나만 — pass
+- FR-73 — 정정(FIFO) · 과거 날짜 끼워 넣기 뒤 전체 재계산(실DB 평단 72,000 손 계산 일치) — pass
+- FR-74 — 남의 거래 수정 · 삭제 · 미리보기 404 · 그 행 수량 그대로(둘째 임시 계정) — pass
+- 마이그레이션 0
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`

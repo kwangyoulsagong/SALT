@@ -89,8 +89,8 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 |---|---|---|
 | FR-80 | `GET/POST /api/app/portfolio/transactions` · `PATCH/DELETE /api/app/portfolio/transactions/:id` · `POST /api/app/portfolio/transactions/preview`를 연다 **(기본안 — 감사 문서 B14)** | Must |
 | FR-81 | 미리보기의 평단 · 수량 · 총액을 **그대로** 전달한다. **BFF가 평단을 계산하지 않는다** — 공통 기준 ③ | Must |
-| FR-82 | 서버 422(`INSUFFICIENT_QUANTITY` · 검증 실패)를 **코드 그대로** 전달한다. 문구는 화면이 매핑한다 | Must |
-| FR-83 | 쓰기 성공 후 BFF 캐시가 있다면 **포지션 · 홈 총자산 캐시를 비운다.** 없으면 해당 없음 | Must |
+| FR-82 | 서버 ~~422~~ **4xx**(`PORTFOLIO_INSUFFICIENT_QUANTITY` 400 · 남의 거래 404 · 검증 실패)를 **코드 그대로** 전달한다(정정 2026-11-18 — 서버는 처음부터 400). 문구는 화면이 매핑한다 | Must |
+| FR-83 | 쓰기 성공 후 BFF 캐시가 있다면 **포지션 · 홈 총자산 캐시를 비운다.** 없으면 해당 없음 — **해당 없음**(2026-11-18 확인: 포지션 · 요약 BFF 캐시 0) | Must |
 | FR-84 | 쓰기 경로는 **재시도 0회**. 재시도하면 같은 거래가 두 번 생긴다 | Must |
 | FR-85 | 이 경로가 **주문이 아님**을 경로 이름 · Swagger 설명에 명시한다. 거래소로 나가는 호출 0건 | Must |
 
@@ -194,3 +194,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-18 | **대화 중계 구현** — `/api/app/coach/messages` · `/messages/:id/stream` · `/conversations` · 지우기. FR-9 · 10 · 11 · 12 · 40 · 41 · 65. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-3 카드 한 이벤트 · FR-42 그대로(게이트 칸을 채우지 않는다 — 리포트 추천과 같은 변환 `toReportRecommendation` 으로 좁히기만, 깨진 · 3종 빈 통과 카드는 버림). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-70~72: `GET /api/app/portfolio/position`(개요 — 최대 비중 종목에만 이름 · 로고) · `/position/flow?range=1w|1m|3m|1y`(그대로 전달 · 모르는 기간 400 `INVALID_RANGE`). **정정 FR-70**: 서버 `overview` ∥ `risk` 두 경로 대신 개요 한 경로 — 섹션 격리는 서버가 원천별로 한다(레이더 원천이 실패해도 Hero 는 나온다, 실패 축은 null + degraded). 옛 `GET /api/app/portfolio` 는 그대로. 남은 것 거래 쓰기 중계 FR-80~83. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
+| 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 `GET/POST /api/app/portfolio/transactions` · `PATCH/DELETE …/:id` · `POST …/preview`(`transactionController`) · FR-81 미리보기 서버 값 그대로 · FR-82 정정(4xx 코드 그대로 — error middleware) · FR-83 해당 없음 · FR-84 재시도 0(`backendApi` 재시도 없음 · 쓰기 5초) · FR-85 경로 · 주석 "주문이 아님". 목록은 그 쪽 종목만 이름 · 로고(실패면 심볼 · `namesDegraded`), 모르는 자산군 행은 싣지 않음. 수정에 종목 · 매수/매도 키가 오면 BFF 가 먼저 400(조용히 버리지 않음) |

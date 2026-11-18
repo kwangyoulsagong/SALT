@@ -39,3 +39,14 @@
 - 실데이터: 손 계산 대조(총 평가금 · 원금 · 비중 60.43% · 30일 = 1개월 구간 · 90일 낙폭 = 3개월 MDD) — pass
 - 미충족: FR-85 미리보기 · FR-86 수정 · 삭제 과매도 거부 · FR-87(2단계) · FR-88 소멸
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`)
+
+- FR-85 — `PreviewTransaction`(`RecordTransaction.ts`) · `previewLedgerChange` · `POST /api/portfolio/transactions/preview` · 시험 `ledgerChange.test.ts`(경계 표 12 + 옛 원장 3 + 값 4) · `ledgerWrites.test.ts`(미리보기 = 저장 수량 · 쓰기 0) — pass
+- FR-86 — `writeLedger` 셋 공통(쓰기 → 다시 읽기 → `assertNotOversold` → 롤백) · 실API: 과거 날짜 매도(지금 보유 16 안 · 그날 뒤 음수) 400 · 매수 수량 줄이기 400 · 매수 삭제 400 · 동시 매도 10+10(보유 16) → 하나만 201 — pass
+- FR-87 — PATCH `strict`(종목 키 400) · 거래일 수정 200(실API 11-10 → 11-12) — pass
+- 손 계산 대조: 원장 10@70,000 · −4 · +10@72,000 · −10 → 보유 6 · 평단 72,000 · 원금 432,000(DB 행과 같음) — pass
+- 서버 `npm test` 1928 · `build` · `lint` · `test:layer-check` — pass
+- 미충족: 없음(FR-88 은 온보딩 은퇴로 소멸)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+- 확인 2회차: main(4000) · 브랜치(4020) 나란히 — 같은 쓰기 순서 결과 같음 · 읽기 14경로 같음(거래 목록 같은 시각 순서만 의도한 차이) — pass

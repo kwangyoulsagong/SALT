@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { useHasSession } from "@repo/web-shared/api";
 
@@ -32,3 +32,18 @@ export const usePositionFlow = (range: FlowRange, enabled: boolean) =>
     staleTime: POSITION_STALE_TIME_MS,
     placeholderData: keepPreviousData,
   });
+
+/**
+ * 거래 목록 — 쪽을 이어 붙인다([더 보기]). 저장 · 수정 · 삭제 뒤 `positionAll` 무효화가 붙인 쪽까지 다시 부른다(FE FR-83)
+ */
+export const useTransactionPages = () => {
+  const signedIn = useHasSession();
+  const query = useInfiniteQuery({
+    queryKey: portfolioQueryKeys.transactions,
+    queryFn: ({ pageParam, signal }) => portfolioApi.transactions(pageParam, signal),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
+    enabled: signedIn === true,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};

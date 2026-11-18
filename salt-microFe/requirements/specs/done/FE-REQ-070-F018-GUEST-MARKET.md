@@ -43,3 +43,4 @@ source: "`FEATURE-018` · `ADR-011` · 짝 `BFF-REQ-055` · `SRV-REQ-056`"
 - 2026-11-10: 초안 · 구현 · 실화면 확인 → **done**
 - 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 시나리오 카드도 사람 · AI 칸 가르개(`SignInRequired`) 뒤로 — 로그인 없이 보면 유리막("로그인하고 다음 시나리오 보기"). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8
 - 2026-11-17 **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 목록 미리보기의 유리막은 그대로(시나리오 칸 자리) — 원인 칸은 로그아웃이면 자리 없음(F017 v4 순서 6 · `FE-REQ-064` FR-12)
+- 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침) — 새 페이지 본문 `PortfolioTransactionsBody` 도 유리막(`SignInRequired`) 뒤 — 거래는 사람 칸

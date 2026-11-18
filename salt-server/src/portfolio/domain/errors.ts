@@ -11,29 +11,13 @@ export class InsufficientQuantityError extends DomainError {
   }
 }
 
+/** 없는 거래 · **남의 거래** 둘 다 이것(404) — 남의 거래 id 로 존재를 떠볼 수 없게(`DB-REQ-022` FR-74. 옛 403 은 2026-11-18 걷음) */
 export class TransactionNotFoundError extends DomainError {
   constructor() {
     super(
       "PORTFOLIO_TRANSACTION_NOT_FOUND",
       ErrorKind.NotFound,
       "Transaction not found"
-    );
-  }
-}
-
-/**
- * 남의 거래에 손대려 한 경우 — 원문의 403 · "Access denied" 를 유지한다.
- *
- * `ErrorKind.Forbidden` 을 커널에 넣은 이유는 그 enum 주석에 적었다. 요약하면
- * **응답 코드를 바꾸지 않으면서 `domain` 이 `presentation` 을 모르게** 하는 길이
- * 그것뿐이었다.
- */
-export class TransactionAccessDeniedError extends DomainError {
-  constructor() {
-    super(
-      "PORTFOLIO_TRANSACTION_ACCESS_DENIED",
-      ErrorKind.Forbidden,
-      "Access denied"
     );
   }
 }

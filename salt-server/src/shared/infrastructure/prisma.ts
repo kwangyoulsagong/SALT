@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import { logger } from "../config/logger";
 
 // 쿼리 로그는 기본으로 끈다. 시세 갱신마다 전 쿼리가 찍혀 로그가 하루 수십 GB로 불어난다.
@@ -42,16 +42,37 @@ export const inBatchContext = (): boolean => batchContext.getStore() === true;
  * 맥락에 따라 고르는 클라이언트 — 저장소 코드는 바꾸지 않는다(`prisma.x.findMany` · `$queryRaw` · `$transaction` 그대로).
  * 부를 때마다 고르므로 같은 저장소가 화면에선 화면 풀, 워커에선 배치 풀을 쓴다. 함수는 고른 클라이언트에 묶어 돌려준다
  */
-export const routedClient = <C extends object>(http: C, batch: C, isBatch: () => boolean): C =>
+export const routedClient = <C extends object>(
+  http: C,
+  batch: C,
+  isBatch: () => boolean,
+  activeTransaction: () => object | undefined = () => undefined,
+): C =>
   new Proxy(http, {
     get(_target, prop) {
-      const client = isBatch() ? batch : http;
+      // 열린 트랜잭션 안이면 그 트랜잭션 클라이언트 — 저장소가 몰라도 같은 연결 · 같은 커밋에 든다(`runInTransaction`)
+      const client = (activeTransaction() as C | undefined) ?? (isBatch() ? batch : http);
       const value = Reflect.get(client, prop, client) as unknown;
       return typeof value === "function" ? (value as (...a: unknown[]) => unknown).bind(client) : value;
     },
   });
 
-const prisma = routedClient(httpClient, batchClient, inBatchContext);
+/** 열린 트랜잭션 — `runInTransaction` 안에서 시작한 비동기 일은 전부 이 클라이언트를 쓴다 */
+const transactionContext = new AsyncLocalStorage<Prisma.TransactionClient>();
+
+const prisma = routedClient(httpClient, batchClient, inBatchContext, () => transactionContext.getStore());
+
+/**
+ * 유스케이스 하나를 한 트랜잭션으로(`ddd-application.md` §3 — 경계는 `application` 이 정한다, 열기는 여기 한 곳).
+ * 안에서 부르는 저장소는 그대로 `prisma.x` 를 쓰고 같은 트랜잭션에 든다 — 저장소에 `tx` 를 넘기는 시그니처가 번지지 않게.
+ * 맥락(화면 · 배치)의 풀에서 연다. 겹쳐 열지 않는다(안에서 다시 부르면 그 트랜잭션을 그대로 쓴다).
+ * **외부 I/O 를 넣지 않는다** — 연결을 잡은 채 기다린다(`performance-server.md` §2)
+ */
+export const runInTransaction = <T>(fn: () => Promise<T>, options: { timeoutMs?: number } = {}): Promise<T> => {
+  if (transactionContext.getStore()) return fn();
+  const client = inBatchContext() ? batchClient : httpClient;
+  return client.$transaction((tx) => transactionContext.run(tx, fn), { timeout: options.timeoutMs ?? 5_000 });
+};
 
 /** 기동 때 미리 여는 화면 풀 연결 수 — 화면 한 요청이 나란히 쓰는 쿼리 수(판단 상세 약 15) 근처, 풀 크기 안 */
 const WARM_CONNECTIONS = HTTP_POOL_SIZE;

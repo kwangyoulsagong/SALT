@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * 바텀시트로 여는 폭(FR-155 "모바일 폭"). 웹은 이 폭에서 좁은 화면 안내가 덮고(`NarrowScreenNotice` 와 같은 경계),
+ * 바텀시트로 여는 폭(FR-155 "모바일 폭") — 주문 전 계산 · 거래 기록 시트가 같이 쓴다(2026-11-18 `run-preflight` 에서 내림). 웹은 이 폭에서 좁은 화면 안내가 덮고(`NarrowScreenNotice` 와 같은 경계),
  * 실제로 보는 곳은 앱 웹뷰(UA `SALTApp/`)다.
  */
 const NARROW_QUERY = "(max-width: 767px)";

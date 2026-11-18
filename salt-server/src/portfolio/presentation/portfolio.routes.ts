@@ -73,7 +73,7 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *       201:
    *         description: 거래 내역 추가 성공
    *       400:
-   *         description: 보유 수량 부족 · 입력 형식 오류
+   *         description: 입력 형식 오류 · `PORTFOLIO_INSUFFICIENT_QUANTITY`(지금이 아니라 **그 거래일 시점** 보유보다 많이 팖)
    *       404:
    *         description: 국내 주식 — 비소유자 · 없는 코드(같은 응답)
    *       503:
@@ -83,6 +83,79 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
     "/transactions",
     authMiddleware,
     portfolioController.createTransaction,
+  );
+
+  /**
+   * @swagger
+   * /api/portfolio/transactions/preview:
+   *   post:
+   *     summary: 거래 미리보기 — 쓰지 않고 전후 보유 수량 · 평단 · 총 취득금액
+   *     description: |
+   *       거래 기록 시트(F006 G절)가 저장 전에 부른다. **주문이 아니다** — 거래소로 나가는 호출이 없고 아무것도 쓰지 않는다.
+   *       저장과 같은 원장 순서(거래일 → 같은 시각이면 매수 먼저) · 같은 FIFO 재계산 · 같은 과매도 검사.
+   *       `transactionId` 가 있으면 그 거래를 고친 경우(종목 · 매수/매도는 못 바꾼다), 없으면 새 거래.
+   *     tags: [Portfolio]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             oneOf:
+   *               - type: object
+   *                 required: [symbol, transactionType, quantity, price]
+   *                 properties:
+   *                   assetType: { type: string, enum: [crypto, kr_stock], default: crypto }
+   *                   symbol: { type: string }
+   *                   transactionType: { type: string, enum: [buy, sell] }
+   *                   quantity: { type: number }
+   *                   price: { type: number }
+   *                   fee: { type: number, default: 0 }
+   *                   transactionDate: { type: string, format: date-time, description: 주지 않으면 지금 }
+   *               - type: object
+   *                 required: [transactionId]
+   *                 properties:
+   *                   transactionId: { type: string }
+   *                   quantity: { type: number }
+   *                   price: { type: number }
+   *                   fee: { type: number }
+   *                   transactionDate: { type: string, format: date-time }
+   *     responses:
+   *       200:
+   *         description: 전후 값(보유가 없어지면 0)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     assetType: { type: string, enum: [crypto, kr_stock] }
+   *                     before:
+   *                       type: object
+   *                       properties:
+   *                         quantity: { type: number }
+   *                         averageBuyPrice: { type: number }
+   *                         totalInvested: { type: number }
+   *                     after:
+   *                       type: object
+   *                       properties:
+   *                         quantity: { type: number }
+   *                         averageBuyPrice: { type: number }
+   *                         totalInvested: { type: number }
+   *       400:
+   *         description: 입력 형식 오류 · `PORTFOLIO_INSUFFICIENT_QUANTITY`(그 거래일 시점 보유보다 많이 팖)
+   *       404:
+   *         description: 없는 거래 · 남의 거래(같은 응답)
+   */
+  router.post(
+    "/transactions/preview",
+    authMiddleware,
+    portfolioController.previewTransaction,
   );
 
   /**
@@ -163,9 +236,18 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *                 type: number
    *               note:
    *                 type: string
+   *               transactionDate:
+   *                 type: string
+   *                 format: date-time
+   *             additionalProperties: false
+   *             description: 종목 · 자산군 · 매수/매도는 바꿀 수 없다(지우고 다시 적는다) — 보내면 400
    *     responses:
    *       200:
    *         description: 수정 성공
+   *       400:
+   *         description: 입력 형식 오류 · `PORTFOLIO_INSUFFICIENT_QUANTITY`(고친 뒤 어느 시점이든 보유가 음수)
+   *       404:
+   *         description: 없는 거래 · 남의 거래(같은 응답)
    */
   router.patch(
     "/transactions/:id",
@@ -190,6 +272,10 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *     responses:
    *       200:
    *         description: 삭제 성공
+   *       400:
+   *         description: "`PORTFOLIO_INSUFFICIENT_QUANTITY` — 매수를 지우면 뒤의 매도가 가진 것보다 많아짐"
+   *       404:
+   *         description: 없는 거래 · 남의 거래(같은 응답)
    */
   router.delete(
     "/transactions/:id",

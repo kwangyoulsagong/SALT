@@ -112,7 +112,7 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | FR-70 | 미리보기와 저장이 **같은 재계산 함수**를 쓴다. 미리보기는 쓰지 않고 계산만 한다 **(기본안 — 감사 문서 B14)** | Must |
 | FR-71 | 매도 · 수정 · 삭제 후 어느 시점이든 보유 수량이 음수면 **거부**한다(`INSUFFICIENT_QUANTITY`) | Must |
 | FR-72 | 거래 생성 · 수정 · 삭제와 `PortfolioHolding` 재계산을 **한 트랜잭션**에서 한다 | Must |
-| FR-73 | 과거 날짜 거래를 끼워 넣거나 고치면 **그 이후 전체를 시간순으로 재계산**한다(이동평균 평단) | Must |
+| FR-73 | 과거 날짜 거래를 끼워 넣거나 고치면 **그 이후 전체를 시간순으로 재계산**한다(~~이동평균~~ **FIFO** 평단 — 정정 2026-11-18, 기존 재계산 그대로 · 사용자 결정. 같은 시각이면 매수 먼저) | Must |
 | FR-74 | 다른 사용자의 거래 id로 수정 · 삭제하면 **404**다(존재 여부를 알리지 않는다) | Must |
 
 ### I. 알림 · 설정 · 온보딩 (INV-13 · 14 · 15) — 2026-09-21 추가
@@ -183,3 +183,4 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | 2026-11-18 | **대화 불변식 일부 구현** — FR-20 · 21(목록 읽기 자리) · 23 · 24 · 30 · 31(중첩 쓰기 한 문장) · 60. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-10 · 11 · 13 · 14 done. **정정 FR-12**: 게이트 미충족이면 `cardPayload` 가 `null` 이 아니라 **추천 내용 없는 게이트 칸**(`renderable:false` · `blockedReason` · `signalTrackRecord` · 빈 `failureCases` · 판단 시각) — FEATURE-006 UX 가 사유 표시를 요구한다. 추천 내용을 만들지 않는다는 뜻은 같다. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 거래 타임라인 읽기 Port `findTimeline`(`(user_id, transaction_date)` 인덱스 · 상한 5000 · 넘으면 `timeline_truncated`). 쓰기 불변식 FR-70~74 는 바뀌지 않음 — FR-71(수정 · 삭제 뒤 음수 거부)은 아직 원문 동작(재계산 · 행 삭제)이라 2단계. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
+| 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-70 미리보기 · 저장 같은 원장 함수(`LedgerChange.ts` · `recalculateHolding`) · FR-71 거래일 순서 음수 거부(생성 · 수정 · 삭제 · 미리보기) · FR-72 한 트랜잭션(`shared/infrastructure/prisma.ts` `runInTransaction` — 열린 트랜잭션 맥락이면 저장소의 `prisma.x` 가 그 트랜잭션으로) + `pg_advisory_xact_lock(사람 · 자산군 · 종목)` · FR-73 정정(FIFO) · FR-74 남의 id = 404(`findOwned`). 원장 조회 순서 `transaction_date, transaction_type, id`. 마이그레이션 0 |

@@ -3,6 +3,7 @@ import type {
   Holding,
   HoldingRepository,
   KrStockQuoteSource,
+  LedgerTransaction,
   NewsSentimentSource,
   PortfolioAssetType,
   PriceHistorySource,
@@ -11,6 +12,7 @@ import type {
 } from "../../domain";
 import {
   DeleteTransaction,
+  PreviewTransaction,
   RecordTransaction,
   UpdateTransaction,
 } from "../RecordTransaction";
@@ -101,12 +103,16 @@ export interface PortfolioDependencies {
   dailyCloses: DailyCloseSource;
   newsSentiment: NewsSentimentSource;
   position: PositionSettings;
+  /** 원장 쓰기 한 번 = 한 트랜잭션(`DB-REQ-022` FR-72) */
+  ledger: LedgerTransaction;
 }
 
 export interface PortfolioUseCases {
   recordTransaction: RecordTransaction;
   updateTransaction: UpdateTransaction;
   deleteTransaction: DeleteTransaction;
+  /** 쓰지 않는 전후 계산(F006 G절 2단계 — 거래 시트) */
+  previewTransaction: PreviewTransaction;
   listTransactions: ListTransactions;
   getHoldings: GetHoldings;
   getPortfolioSummary: GetPortfolioSummary;
@@ -127,9 +133,10 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
   const listTransactions = new ListTransactions(deps.transactions);
 
   const useCases: PortfolioUseCases = {
-    recordTransaction: new RecordTransaction(deps.transactions, deps.holdings, deps.krStock),
-    updateTransaction: new UpdateTransaction(deps.transactions, deps.holdings, deps.krStock),
-    deleteTransaction: new DeleteTransaction(deps.transactions, deps.holdings, deps.krStock),
+    recordTransaction: new RecordTransaction(deps),
+    updateTransaction: new UpdateTransaction(deps),
+    deleteTransaction: new DeleteTransaction(deps),
+    previewTransaction: new PreviewTransaction(deps.transactions),
     listTransactions,
     getHoldings: new GetHoldings(deps.holdings),
     getPortfolioSummary: new GetPortfolioSummary(deps.holdings),
@@ -166,10 +173,7 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
       deps.transactions.countByUser(userId, assetType),
     heldSymbols: (assetType) => deps.holdings.distinctSymbols(assetType),
     ledgerOwnerIds: () => deps.transactions.distinctUserIds(),
-    getTransaction: async (userId, transactionId) => {
-      const transaction = await deps.transactions.findById(transactionId);
-      return transaction && transaction.userId === userId ? transaction : null;
-    },
+    getTransaction: (userId, transactionId) => deps.transactions.findOwned(userId, transactionId),
   };
 
   return { api, useCases };

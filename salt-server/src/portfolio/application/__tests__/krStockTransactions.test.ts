@@ -46,10 +46,7 @@ const fakes = (opts: { held?: Holding | null; price?: number | null; tradable?: 
       opts.price == null ? [] : codes.map((symbol) => ({ symbol, currentPrice: opts.price! })),
   };
   const holdings = {
-    findOne: async (_u: string, _s: string, assetType: PortfolioAssetType) => {
-      calls.findOne.push(assetType);
-      return opts.held === undefined ? holding({}) : opts.held;
-    },
+    findOne: async () => (opts.held === undefined ? holding({}) : opts.held),
     save: async (_u: string, _s: string, assetType: PortfolioAssetType) => {
       calls.saved.push(assetType);
     },
@@ -63,11 +60,16 @@ const fakes = (opts: { held?: Holding | null; price?: number | null; tradable?: 
       calls.created.push({ assetType: input.assetType, symbol: input.symbol });
       return { id: "t1", ...input };
     },
-    findForRecalculation: async () => [
-      { transactionType: "buy", quantity: 10, price: 70_000, totalAmount: 700_000, fee: 0 },
-    ],
+    findLedger: async (_u: string, _s: string, assetType: PortfolioAssetType) => {
+      calls.findOne.push(assetType);
+      return [
+        { id: "t0", transactionType: "buy", quantity: 10, price: 70_000, totalAmount: 700_000, fee: 0, transactionDate: new Date("2026-11-01") },
+      ];
+    },
+    lockLedger: async () => {},
   } as unknown as TransactionRepository;
-  return { calls, useCase: new RecordTransaction(transactions, holdings, krStock) };
+  const ledger = { run: <T>(fn: () => Promise<T>) => fn() };
+  return { calls, useCase: new RecordTransaction({ transactions, holdings, krStock, ledger }) };
 };
 
 const buy = { userId: "u1", transactionType: "buy" as const, quantity: 10, price: 70_000, fee: 0 };
@@ -96,7 +98,7 @@ describe("RecordTransaction — 국내 주식", () => {
     assert.equal(calls.created.length, 0);
   });
 
-  it("매도 보유 확인은 같은 자산군에서 한다", async () => {
+  it("매도 보유 확인은 같은 자산군 원장에서 한다", async () => {
     const { calls, useCase } = fakes({ price: 72_000 });
     await useCase.execute({ ...buy, transactionType: "sell", quantity: 3, assetType: "kr_stock", symbol: "005930" });
     assert.deepEqual(calls.findOne[0], "kr_stock");

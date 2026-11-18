@@ -3,9 +3,9 @@ import type { Prisma } from "@prisma/client";
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   PortfolioAssetType,
+  LedgerEntry,
   TimelineTrade,
   Transaction,
-  TransactionFact,
   TransactionFilter,
   TransactionRepository,
 } from "../domain";
@@ -59,10 +59,8 @@ export class PrismaTransactionRepository implements TransactionRepository {
     return toDomain(await prisma.portfolioTransaction.create({ data: input }));
   }
 
-  async findById(transactionId: string): Promise<Transaction | null> {
-    const row = await prisma.portfolioTransaction.findUnique({
-      where: { id: transactionId },
-    });
+  async findOwned(userId: string, transactionId: string): Promise<Transaction | null> {
+    const row = await prisma.portfolioTransaction.findFirst({ where: { id: transactionId, userId } });
     return row ? toDomain(row) : null;
   }
 
@@ -107,7 +105,8 @@ export class PrismaTransactionRepository implements TransactionRepository {
         where,
         skip: (filter.page - 1) * filter.limit,
         take: filter.limit,
-        orderBy: { transactionDate: "desc" },
+        // 같은 시각 거래가 쪽 경계에서 겹치거나 빠지지 않게 id 로 끊는다
+        orderBy: [{ transactionDate: "desc" }, { id: "desc" }],
       }),
       prisma.portfolioTransaction.count({ where }),
     ]);
@@ -115,36 +114,20 @@ export class PrismaTransactionRepository implements TransactionRepository {
     return { transactions: transactions.map(toDomain), total };
   }
 
-  /**
-   * 재계산 입력.
-   *
-   * **`transactionDate` 오름차순이 이 메서드의 계약**이다 — FIFO 가 입력 순서대로
-   * 원가를 소진한다. 계산에 쓰는 다섯 컬럼만 읽는다.
-   */
-  async findForRecalculation(
-    userId: string,
-    symbol: string,
-    assetType: PortfolioAssetType
-  ): Promise<TransactionFact[]> {
+  /** `compareLedger` 순서 — `buy` < `sell` 이라 문자열 정렬이 "같은 시각이면 매수 먼저"다. 계산에 쓰는 칸만 */
+  async findLedger(userId: string, symbol: string, assetType: PortfolioAssetType): Promise<LedgerEntry[]> {
     const rows = await prisma.portfolioTransaction.findMany({
       where: { userId, symbol, assetType },
-      orderBy: { transactionDate: "asc" },
-      select: {
-        transactionType: true,
-        quantity: true,
-        price: true,
-        totalAmount: true,
-        fee: true,
-      },
+      orderBy: [{ transactionDate: "asc" }, { transactionType: "asc" }, { id: "asc" }],
+      select: { id: true, transactionType: true, quantity: true, price: true, totalAmount: true, fee: true, transactionDate: true },
     });
+    return rows.map((row) => ({ ...row, transactionType: row.transactionType === "sell" ? "sell" : "buy" }));
+  }
 
-    return rows.map((row) => ({
-      transactionType: row.transactionType === "sell" ? "sell" : "buy",
-      quantity: row.quantity,
-      price: row.price,
-      totalAmount: row.totalAmount,
-      fee: row.fee,
-    }));
+  /** 트랜잭션 끝에 풀리는 잠금(`_xact_` — 해제를 잊는 사고가 없다, `performance-database.md` §5). 열쇠는 사람 · 자산군 · 종목 */
+  async lockLedger(userId: string, symbol: string, assetType: PortfolioAssetType): Promise<void> {
+    const key = `portfolio-ledger:${userId}:${assetType}:${symbol}`;
+    await prisma.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
   }
 
   /** 수량 복원 칸 다섯만 · 오름차순 · `limit + 1` 행으로 넘침을 안다(`(user_id, …)` 인덱스) */
