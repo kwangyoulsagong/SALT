@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+
 import { AppNavigationIcon } from "@repo/ui/app-navigation";
 
 import { useHasSession, useUnreadAlertCount } from "../api";
@@ -15,7 +18,16 @@ import { ALERT_BELL_MESSAGES as MESSAGES } from "./messages";
  */
 export const AlertBell = () => {
   const signedIn = useHasSession();
-  const { data: count = 0 } = useUnreadAlertCount();
+  const { data: count = 0, refetch } = useUnreadAlertCount();
+  // FR-72 "탭 전환 시 · 알림 화면을 떠날 때 다시 조회" — zone 을 넘는 이동은 문서가 새로 떠 저절로 부르지만, 같은 zone 안 이동
+  // (셸 /home → /alerts → /settings)은 벨이 남아 있어 안 부른다. 주소가 바뀔 때 한 번(첫 렌더는 쿼리가 이미 부른다). 폴링 아님
+  const pathname = usePathname();
+  const seen = useRef(pathname);
+  useEffect(() => {
+    if (seen.current === pathname) return;
+    seen.current = pathname;
+    if (signedIn === true) void refetch();
+  }, [pathname, signedIn, refetch]);
   if (signedIn !== true) return null;
   return (
     <ZoneLink href={ROUTES.alerts} className={bell} aria-label={MESSAGES.label(count)}>

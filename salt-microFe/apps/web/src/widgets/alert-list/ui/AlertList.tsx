@@ -7,12 +7,16 @@ import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { useHasSession } from "@repo/web-shared/api";
 import { alertTargetHref } from "@repo/web-shared/config";
 import { useZoneNavigate } from "@repo/web-shared/lib";
+import { BlockSkeleton } from "@repo/web-shared/ui";
 
 import { AlertRow, alertTextOf, useAlertList, type AlertsVM, type AlertVM } from "@/entities/notification";
 import { MarkAllReadButton, useMarkAlertRead } from "@/features/mark-alert-read";
 
 import { ALERT_LIST_MESSAGES as MESSAGES } from "../model";
 import * as s from "./AlertList.css";
+
+/** 행 56 × 넷 + 머리 — 목록이 오면 그 아래로 늘어난다(줄어들지 않게 아래쪽 값) */
+const LIST_SKELETON_HEIGHT = 280;
 
 interface AlertListProps {
   /** 서버 컴포넌트가 받은 첫 쪽 — 못 받았으면 null(브라우저가 1쪽부터) */
@@ -31,7 +35,8 @@ export const AlertList = ({ initial }: AlertListProps) => {
 
   if (signedIn === false) return <EmptyState title={MESSAGES.signedOut} />;
   if (list.isError && !list.data) return <EmptyState title={MESSAGES.loadFailed} tone="error" />;
-  if (!list.data) return null;
+  // 서버가 첫 쪽을 못 준 때(시간 초과 · 실패) · 로그인 판정 전 — 빈칸 대신 자리표시(2026-11-18 확인 2회차: 빈칸이었다)
+  if (!list.data) return <BlockSkeleton name={MESSAGES.listLabel} minHeight={LIST_SKELETON_HEIGHT} lines={4} />;
 
   // 문장이 없는 코드의 줄은 그리지 않으므로(FR-93) 빈 상태 · 안 읽음 판정도 그릴 줄 기준
   const alerts = list.data.pages.flatMap((page) => page.alerts).filter((a) => alertTextOf(a.messageCode, a.params, a.symbol));

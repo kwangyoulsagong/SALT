@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ROUTES } from "@repo/web-shared/config";
 import { BlockBoundary, NavChevron } from "@repo/web-shared/ui";
-import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
+import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { AlertList } from "@/widgets/alert-list";
 
@@ -19,17 +19,21 @@ export const AlertsPage = async () => {
   const initial = await serverAlerts();
   return (
     <div className={s.page}>
-      <div className={s.head}>
-        <h1 className={panelTitle}>{ALERTS_PAGE.title}</h1>
-        <Link href={ROUTES.settings} className={s.settingsLink}>
-          {ALERTS_PAGE.settingsLink}
-          <NavChevron />
-        </Link>
-      </div>
-      <p className={panelDescription}>{ALERTS_PAGE.description}</p>
-      <BlockBoundary name={ALERTS_PAGE.blockName} minHeight={160}>
-        <AlertList initial={initial} />
-      </BlockBoundary>
+      {/* 머리 · 설명 · 목록이 한 본문 패널 위(`screen-desktop.md` §1). 회색 바탕에 바로 두면 설명 글자(2단)가 대비 미달이고
+          자리표시(neutral 100)가 바탕과 같아 안 보였다(2026-11-18 확인 2회차 — axe · 스크린샷) */}
+      <section className={panel}>
+        <div className={s.head}>
+          <h1 className={panelTitle}>{ALERTS_PAGE.title}</h1>
+          <Link href={ROUTES.settings} className={s.settingsLink}>
+            {ALERTS_PAGE.settingsLink}
+            <NavChevron />
+          </Link>
+        </div>
+        <p className={s.description}>{ALERTS_PAGE.description}</p>
+        <BlockBoundary name={ALERTS_PAGE.blockName} minHeight={160}>
+          <AlertList initial={initial} />
+        </BlockBoundary>
+      </section>
     </div>
   );
 };
