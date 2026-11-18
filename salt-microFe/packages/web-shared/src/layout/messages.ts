@@ -9,6 +9,12 @@ export const PROFILE_MENU_MESSAGES = {
   profileImageAlt: "프로필 이미지",
 } as const;
 
+/** 머리 알림 벨(F006 `FE-REQ-030` FR-81) — 안 읽은 수는 서버 값, 99 를 넘으면 "99+" */
+export const ALERT_BELL_MESSAGES = {
+  label: (count: number) => (count > 0 ? `알림 ${count}건 안 읽음` : "알림"),
+  badge: (count: number) => (count > 99 ? "99+" : String(count)),
+} as const;
+
 /** 앱 내비게이션(`FE-REQ-054`) — 탭 이름 · 순서는 `@repo/core/navigation` 한 벌(앱과 같다) */
 export const NAVIGATION_FRAME_MESSAGES = {
   /** 레일 · 하단 탭의 화면 리더 이름 */

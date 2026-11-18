@@ -29,6 +29,8 @@ export const ROUTES = {
   search: "/search",
   /** 설정 — 헤더 프로필 메뉴에서 들어온다(F004 FR-12) */
   settings: "/settings",
+  /** 알림 — 머리 벨에서 들어온다(F006 `FE-REQ-030` FR-110, 셸 화면 — 도메인 셋을 한 목록에) */
+  alerts: "/alerts",
   /** 상세 분석. 투자 우측 패널 · 시장 요약 띠가 같이 쓴다 */
   investmentDetail: (symbol: string) => `/investments/${encodeURIComponent(symbol)}`,
   /** 코치 리포트. 투자 화면 머리에서 들어온다 */

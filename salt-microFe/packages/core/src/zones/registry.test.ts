@@ -75,6 +75,9 @@ describe("zone 레지스트리 (ADR-005)", () => {
     expect(isCrossZonePath("/", "web-investment")).toBe(true);
     expect(isCrossZonePath("/home", "web-investment")).toBe(true);
     expect(isCrossZonePath("/settings", "web-investment")).toBe(true);
+    // 알림은 셸 화면 — 도메인 zone 머리 벨은 문서 이동(2026-11-18 F006)
+    expect(isCrossZonePath("/alerts", "web-household")).toBe(true);
+    expect(isCrossZonePath("/alerts", "web")).toBe(false);
     expect(isCrossZonePath("/goals/addgoals", "web-investment")).toBe(true);
     expect(CROSS_ZONE_PATH_PREFIXES).not.toContain("/");
   });

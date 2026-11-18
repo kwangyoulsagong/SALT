@@ -3,3 +3,4 @@ export * from "./env";
 export * from "./network";
 export * from "./routes";
 export * from "./seo";
+export * from "./alertTarget";
