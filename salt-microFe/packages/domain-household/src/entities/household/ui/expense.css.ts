@@ -14,13 +14,13 @@ export const row = style({ display: "flex", alignItems: "baseline", justifyConte
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const value = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 
 export const bigValue = style([value, { fontSize: "22px", lineHeight: "28px", fontWeight: 700 }]);
 
-export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const list = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
 
@@ -39,7 +39,7 @@ export const itemTitle = style({ fontSize: "14px", lineHeight: "20px", fontWeigh
 
 export const itemSide = style({ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 });
 
-export const badge = style({ padding: "0 6px", borderRadius: "4px", background: SURFACE.weakFill, fontSize: "11px", lineHeight: "16px", fontWeight: 600, color: vars.colors.neutral[600] });
+export const badge = style({ padding: "0 6px", borderRadius: "4px", background: SURFACE.weakFill, fontSize: "11px", lineHeight: "16px", fontWeight: 600, color: vars.colors.text.tertiary });
 
 /** 봉투 막대 — 쓴 만큼 채운다(서버 spent/budget 그대로 비율, 넘치면 꽉 찬 막대 + 숫자). 색은 하나 */
 export const bar = style({ height: "6px", borderRadius: "3px", background: "rgba(7, 25, 76, 0.08)", overflow: "hidden" });

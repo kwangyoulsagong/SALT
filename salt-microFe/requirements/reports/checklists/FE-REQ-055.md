@@ -134,3 +134,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 앱(RN) 설정 화면 | 앱 셸 미착수 | `RN-REQ-035` |
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 설정 패널 조회 · 켜고 끄기 무변경 — 알림 빈 상태 확인 때 DB 로 끄고 켬
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

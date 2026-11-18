@@ -13,8 +13,8 @@ export const chips = style({ display: "flex", flexWrap: "wrap", gap: "8px" });
 
 export const period = style({ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" });

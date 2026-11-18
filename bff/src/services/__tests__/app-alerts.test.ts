@@ -14,7 +14,7 @@ describe("AppAlertsService", () => {
       seen.push(`${m} ${url}`);
       return (url.endsWith("unread-count") ? { data: { data: { unreadCount: 2 } } } : { data: { data: { items: [] } } }) as never;
     });
-    assert.deepEqual(await appAlertsService.getAlerts("t"), { alerts: [], unreadCount: 2 });
+    assert.deepEqual(await appAlertsService.getAlerts("t"), { alerts: [], unreadCount: 2, nextPage: null });
     assert.deepEqual(seen.sort(), ["GET /notifications/unread-count", "GET /notifications?page=1&size=20"]);
   });
 
@@ -35,5 +35,27 @@ describe("AppAlertsService", () => {
     const vm = await appAlertsService.setPref("t", "sa/vings", true);
     assert.deepEqual(call.slice(0, 4), ["PUT", "/notifications/prefs/sa%2Fvings", "t", { enabled: true }]);
     assert.deepEqual(vm, { domains: [{ domain: "savings", enabled: true }] });
+  });
+
+  it("쪽 번호를 서버에 그대로 · 다음 쪽은 서버 total 로", async () => {
+    const seen: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      seen.push(`${m} ${url}`);
+      return (url.endsWith("unread-count") ? { data: { data: { unreadCount: 0 } } } : { data: { data: { page: 2, size: 20, total: 45, items: [] } } }) as never;
+    });
+    assert.equal((await appAlertsService.getAlerts("t", 2)).nextPage, 3);
+    assert.ok(seen.includes("GET /notifications?page=2&size=20"));
+  });
+
+  it("안 읽은 수 · 읽음 · 모두 읽음 — 서버 경로 1:1 · id 인코딩 · 숫자가 아니면 0", async () => {
+    const seen: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      seen.push(`${m} ${url}`);
+      return { data: { data: { unreadCount: "3" } } } as never;
+    });
+    assert.deepEqual(await appAlertsService.getUnreadCount("t"), { unreadCount: 0 });
+    await appAlertsService.markRead("t", "a/b");
+    await appAlertsService.markAllRead("t");
+    assert.deepEqual(seen, ["GET /notifications/unread-count", "PATCH /notifications/a%2Fb/read", "PATCH /notifications/read-all"]);
   });
 });

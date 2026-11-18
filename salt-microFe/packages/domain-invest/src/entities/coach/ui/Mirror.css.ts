@@ -123,7 +123,7 @@ export const outcomeMeta = style({
   flexWrap: "wrap",
   alignItems: "center",
   gap: "6px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
   fontVariantNumeric: vars.numeric.tabular,

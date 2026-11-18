@@ -32,3 +32,13 @@
 - BFF `npm test` 547 · `build` — pass
 - 미충족: 없음(FR-83 해당 없음 — BFF 캐시 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- FR-90 — `bff/src/services/app-alerts.service.ts` `getAlerts(token, page)` · `alerts.viewmodel.ts` `toNextPage` — 시험 `app-alerts.test.ts` · `alerts.viewmodel.test.ts`(쪽 판정 7경계)
+- FR-91 — `rest/routes/alerts.routes.ts` 경로 셋 · `alerts.controller.ts`(쪽 1 이상 정수만 · `no-store` · 204) — 실BFF(4001 브랜치 코드)로 안 읽은 16 · 2쪽 5건 · 읽음 PATCH 확인
+- FR-92 — `toAlertTarget`(종류 + 종목 → 코드 넷) · 시험이 `/` 0 확인
+- FR-93 — POST 경로 0(라우터 넷 전부 GET · PATCH)
+- FR-90 의 `{ items, nextCursor }` 모양은 `{ alerts, unreadCount, nextPage }` 로 정정(서버가 커서가 아니라 쪽을 준다 · 기존 소비처 0)
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

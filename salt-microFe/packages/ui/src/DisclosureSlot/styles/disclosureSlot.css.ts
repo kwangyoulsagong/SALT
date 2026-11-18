@@ -19,7 +19,7 @@ export const listStyles = style({
 });
 
 export const itemStyles = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontFamily: vars.fontFamily.base,
   fontSize: "12px",
   lineHeight: "18px",

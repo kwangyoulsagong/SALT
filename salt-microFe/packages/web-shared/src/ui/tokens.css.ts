@@ -31,7 +31,8 @@ export const vars = createGlobalTheme(":root", {
       base: "#FFFFFF",
       nickname: "#2A282F",
       email: "#A8A6AC",
-      primary: "#868E96",
+      /** 본문 기본 글자색(globals) — 2026-11-18 #868E96 → #616871(`@repo/tokens` `text.tertiary` 와 같은 값, 회색 바탕 3.01 → 5.11:1, `FE-REQ-047` FR-13). 색을 따로 안 준 글자가 이것을 물려받는다 */
+      primary: "#616871",
       secondary: "#191F28",
     },
   },

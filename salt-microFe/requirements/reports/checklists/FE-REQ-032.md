@@ -16,3 +16,12 @@
 
 - FR-21 · 51 · 52 — `entities/coach/api/useCoachConversationHistory.ts` · `useCoachBriefing.ts` · core 타입 — check-types 13 · lint 13 — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- FR-64 — 서버 HTML 에 첫 목록(실측 "판단이 바뀌었어요" 포함) · [더 보기] → 24줄 · 다음 쪽 실패 `route` 500 → 재시도 뒤 "다음 알림을 불러오지 못했어요"
+- FR-65 — 안 읽은 수 실패 `route` 500 → 벨만(배지 없음 · `aria-label` "알림")
+- FR-68 — `entities/notification/model/alerts.ts` 재수출만
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+- 확인 2회차 — 서버 첫 쪽이 없을 때 빈칸 → 자리표시(`aria-busy`) · 셸 안 복귀 시 캐시 대신 서버 첫 쪽

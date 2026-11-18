@@ -55,10 +55,10 @@ export const panelTitle = style({
   fontWeight: vars.fontWeights.bold,
 });
 
-/** 제목 아래 한 줄 설명 */
+/** 제목 아래 한 줄 설명 — `text.tertiary`(2026-11-18 neutral 500 → 이 토큰. 흰 3.03 → 5.63:1, `FE-REQ-047` FR-13 · 사용자 결정) */
 export const panelDescription = style({
   margin: "-8px 0 0",
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
@@ -76,7 +76,7 @@ export const backLink = style({
   display: "inline-flex",
   alignItems: "center",
   gap: "2px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,

@@ -268,3 +268,10 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
   - `salt-microFe/packages/core/src/auth/keys.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-18 `text.tertiary` 토큰 변경 짝(`feat/f006-alerts-screen`, 파일만 걸침)
+
+- `@repo/tokens` `text.tertiary` 값만 `#656D76` 으로(대비, `FE-REQ-047` FR-13). zone 구조 무변경
+- zone 다섯 빌드 · 스크린샷 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`

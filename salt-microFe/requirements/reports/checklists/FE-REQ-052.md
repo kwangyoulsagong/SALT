@@ -97,3 +97,9 @@
 ## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
 
 - 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- `registry.test.ts` 통과(core 305)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

@@ -1,3 +1,4 @@
+import { GOAL_TEMPLATE_LABEL } from "@repo/core/labels";
 import { formatPrice } from "@repo/web-shared/lib";
 
 import type {
@@ -14,15 +15,8 @@ import type {
  * 저축 문구 — **사실만 말한다.** 칭찬 · 재촉 · 명령형 0(`FE-REQ-056` 수용 기준 2 · FEATURE-012 정책). 상태 키 → 문장은 여기 한 곳.
  * 한 점 날짜를 단정하지 않는다 — 구간이 없으면 "계획대로면"을 붙인다(FR-5).
  */
-export const TEMPLATE_LABEL: Readonly<Record<GoalTemplateKey, string>> = {
-  wedding: "결혼",
-  housing: "주거",
-  first_car: "첫 차",
-  travel: "여행",
-  emergency: "비상금",
-  childbirth: "출산",
-  other: "기타",
-};
+/** 이름표는 `@repo/core/labels` 한 벌 — 셸 알림 화면이 같이 읽는다(2026-11-18) */
+export const TEMPLATE_LABEL: Readonly<Record<GoalTemplateKey, string>> = GOAL_TEMPLATE_LABEL;
 
 /** 원 단위 표시 — 서버 금액의 포맷만(계산 0). 저축 화면의 금액 표기는 이 한 곳(코드 리뷰 2026-11-03: 4파일에 '원' 이 흩어져 있었다) */
 export const formatWon = (value: number): string => `${formatPrice(value)}원`;

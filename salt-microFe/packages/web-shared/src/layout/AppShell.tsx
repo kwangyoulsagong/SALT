@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Container } from "./AppShell.css";
 import { appContent } from "./NarrowScreenNotice.css";
+import { AlertBell } from "./AlertBell";
 import { NarrowScreenNotice } from "./NarrowScreenNotice";
 import { ProfileMenu } from "./ProfileMenu";
 import { SpeculationRules } from "./SpeculationRules";
@@ -17,7 +18,7 @@ import { ZoneNavigation } from "./ZoneNavigation";
  * (숨겨질 뿐). 휴대폰 화면은 앱이 맡는다.
  *
  * 본문 바깥은 앱 내비게이션(`FE-REQ-054` · `FE-REQ-069`) — 1024 이상 왼쪽 레일 · 768~1023 하단 탭(도메인) · 머리 52(로고 · zone 메뉴 · 검색칸 · 계정 메뉴).
- * 메뉴(`headerNav`) · 검색칸(`headerSearch`)은 zone 이 꽂는다 — **투자 zone 만**(`FE-REQ-069` FR-2 · 3). 다른 zone 머리는 로고 · 계정
+ * 머리 오른쪽은 알림 벨(로그인일 때 · F006 2026-11-18) · 계정 메뉴. 메뉴(`headerNav`) · 검색칸(`headerSearch`)은 zone 이 꽂는다 — **투자 zone 만**(`FE-REQ-069` FR-2 · 3). 다른 zone 머리는 로고 · 계정
  * (~~기본은 투자 zone `/search` 링크~~ 2026-11-10 — 사용자 "검색은 투자에서만").
  * 공개 화면(로그인 · 온보딩)에는 없다. 앱 웹뷰는 네이티브 탭이 따로 있어 숨긴다(`AppShell.css.ts`).
  * zone 간 탭 prerender 규칙도 여기서 단다(로그인 상태 · Chromium 만).
@@ -37,7 +38,14 @@ export const AppShell = ({
     <div className={Container}>
       {/* 모든 라우트의 main 랜드마크는 여기 하나다 — 페이지는 <main> 을 두지 않는다(중첩 금지). 좁은 화면에서는
           숨고 안내가 main 이 된다(axe landmark-one-main) */}
-      <ZoneNavigation headerEnd={<ProfileMenu />} headerNav={headerNav} headerSearch={headerSearch}>
+      <ZoneNavigation
+        headerEnd={
+          <>
+            {/* 알림 벨 — 모든 zone 같은 자리(F006 FR-80 · 81). 화면은 셸 `/alerts` */}
+            <AlertBell />
+            <ProfileMenu />
+          </>
+        } headerNav={headerNav} headerSearch={headerSearch}>
         <main className={appContent}>{children}</main>
       </ZoneNavigation>
       <NarrowScreenNotice />

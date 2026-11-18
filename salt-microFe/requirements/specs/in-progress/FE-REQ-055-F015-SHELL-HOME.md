@@ -75,3 +75,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
 | 2026-11-12 | 로그아웃 빨강 뺌 · lint `danger-only-irreversible`(빨강은 되돌릴 수 없는 일에만) — 같은 브랜치 |
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): FR-7 done · 새 FR-9 계측 done. `/settings` 번들 7.41 → 8.34 kB · `/home` 12.4 → 12.6 kB |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — 셸 `entities/notification` 배럴에 알림 목록 · 행 · 시각을 더했다. 알림 설정(FR-6) 동작 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

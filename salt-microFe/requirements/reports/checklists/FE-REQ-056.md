@@ -131,3 +131,9 @@
 ## 2026-11-18 확인 2회차
 
 - `web-savings` 운영 빌드 · 레이어 훅 사후 · 저축 화면 × 390 · 1024 넘침 0
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 저축 zone 빌드 통과 · core 시험이 이벤트 계약 일곱 값과 대조
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

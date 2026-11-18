@@ -195,6 +195,8 @@ const REGISTRY = {
     "portfolio-transactions",
     "search",
     "settings",
+    // 알림 `/alerts` — 셸, 도메인 셋을 한 목록에(F006 `FE-REQ-030` FR-110, 2026-11-18)
+    "alerts",
     "onboarding",
     "login",
     "streaming-probe",

@@ -1,5 +1,5 @@
 import { backendApi } from "./backend-api.service";
-import { ALERT_LIMIT, toAlertViewModels, type AlertsVM } from "./alerts.viewmodel";
+import { ALERT_LIMIT, toAlertViewModels, toNextPage, type AlertsVM, type AlertUnreadVM } from "./alerts.viewmodel";
 
 /**
  * 알림 (`/api/app/alerts` · `/api/app/me/notifications`). 서버는 Kotlin `notification` 서비스(`SRV-REQ-048` FR-5, 서버 S2c) —
@@ -28,19 +28,41 @@ export const toNotificationPrefs = (data: unknown): NotificationPrefsVM => {
   };
 };
 
+const readUnread = (data: unknown): number => {
+  const n = (data as { data?: { unreadCount?: unknown } } | null)?.data?.unreadCount;
+  return typeof n === "number" ? n : 0;
+};
+
 class AppAlertsService {
-  async getAlerts(token: string): Promise<AlertsVM> {
+  /** 목록 한 쪽 + 안 읽은 수(`BFF-REQ-027` FR-90). 쪽은 1부터 — 첫 쪽은 화면 서버 컴포넌트, 다음 쪽은 브라우저(`FE-REQ-032` FR-64) */
+  async getAlerts(token: string, page = 1): Promise<AlertsVM> {
     const [notifications, unread] = await Promise.all([
-      backendApi.proxyAuthRequest("GET", `/notifications?page=1&size=${ALERT_LIMIT}`, token),
+      backendApi.proxyAuthRequest("GET", `/notifications?page=${page}&size=${ALERT_LIMIT}`, token),
       backendApi.proxyAuthRequest("GET", "/notifications/unread-count", token),
     ]);
 
-    const items = notifications.data?.data?.items;
-    const unreadCount = unread.data?.data?.unreadCount;
+    const body = notifications.data?.data;
+    const items = body?.items;
     return {
       alerts: toAlertViewModels(Array.isArray(items) ? items : []),
-      unreadCount: typeof unreadCount === "number" ? unreadCount : 0,
+      unreadCount: readUnread(unread.data),
+      nextPage: toNextPage(body?.page, body?.size, body?.total),
     };
+  }
+
+  /** 벨 배지(`BFF-REQ-027` FR-91) — 목록에 보이는 것과 같은 범위(켠 도메인만)는 서버가 맞춘다 */
+  async getUnreadCount(token: string): Promise<AlertUnreadVM> {
+    const { data } = await backendApi.proxyAuthRequest("GET", "/notifications/unread-count", token);
+    return { unreadCount: readUnread(data) };
+  }
+
+  /** 읽음 — 남의 알림 · 꺼진 도메인은 서버가 무시한다. 응답 본문 없음(204) */
+  async markRead(token: string, id: string): Promise<void> {
+    await backendApi.proxyAuthRequest("PATCH", `/notifications/${encodeURIComponent(id)}/read`, token);
+  }
+
+  async markAllRead(token: string): Promise<void> {
+    await backendApi.proxyAuthRequest("PATCH", "/notifications/read-all", token);
   }
 
   async getPrefs(token: string): Promise<NotificationPrefsVM> {

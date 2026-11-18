@@ -1,3 +1,5 @@
+import { COACH_MODE_LABEL } from "@repo/core/labels";
+
 import type {
   CoachAction,
   CoachMode,
@@ -25,7 +27,8 @@ export const COACH_MESSAGES = {
   guestWhat: "코치 판단",
   modeGroupLabel: "판단 관점",
   judgmentHeading: "지금의 판단",
-  modes: { scalp: "단타", long_term: "장기" } satisfies Record<CoachMode, string>,
+  /** 이름표는 `@repo/core/labels` 한 벌 — 셸 알림 화면이 같이 읽는다(2026-11-18) */
+  modes: COACH_MODE_LABEL satisfies Record<CoachMode, string>,
   validity: {
     scalp_24h: "판단 뒤 24시간 기준",
     long_term_30d: "판단 뒤 30일 기준",

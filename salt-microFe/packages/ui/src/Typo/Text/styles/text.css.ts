@@ -37,8 +37,9 @@ export const textVariant = recipe({
       tertiary: {
         color: vars.colors.text.tertiary,
       },
+      // 2026-11-18 text.disabled(#B0B8C1, 흰 위 2:1) → text.tertiary — 글자는 읽혀야 한다(`FE-REQ-047` FR-13). 비활성은 disabled 를 직접
       muted: {
-        color: vars.colors.text.disabled,
+        color: vars.colors.text.tertiary,
       },
       /** 흰 면 위 작은 보조 글자 — tertiary 보다 한 단계 진하다(4.62:1, AA). FE-REQ-044 */
       subtle: {

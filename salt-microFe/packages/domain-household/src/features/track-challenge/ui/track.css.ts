@@ -31,8 +31,8 @@ export const row = style({
 
 export const rowText = style({ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0, fontSize: "13px", lineHeight: "20px", color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 
-export const rowSub = style({ fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const rowSub = style({ fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const chips = style({ display: "flex", flexWrap: "wrap", gap: "8px" });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

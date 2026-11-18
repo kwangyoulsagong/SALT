@@ -36,3 +36,13 @@
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
 - 확인 2회차: main 대조 — 상세 기록 → 같은 zone 안 이동으로 돌아온 포지션 갱신(2,788,000 → 2,858,000), 무효화 줄을 빼면 그대로(main 결함 재현) — pass
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- FR-72 — `@repo/web-shared/api` `useUnreadAlertCount`(`staleTime: 0` · `refetchOnWindowFocus: false` · `refetchInterval` 없음)
+- FR-100 · 101 — `features/mark-alert-read/api/useMarkAlertRead.ts` — 실패 `route` 500: "모두 읽음 처리를 못 했어요" · 배지 15 → 15 · 점 14 그대로(되돌림)
+- FR-102 — `@repo/web-shared/config` `alertTargetHref`(`satisfies Record<AlertTarget, …>`)
+- FR-103 — 0
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+- 확인 2회차 — FR-72 같은 zone 안 이동(`/alerts` → `/settings`)에서 배지가 안 바뀌던 결함 고침: 주소가 바뀔 때 한 번 다시 조회(폴링 0). 실측 3 → 4

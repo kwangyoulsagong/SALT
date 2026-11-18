@@ -183,3 +183,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 이 REQ 에 걸린 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 온보딩 장면 배치(P-20) — 초대 = 대화 · 고르기 = 동전 주머니(본문은 폼이라 장면 숨김) · 첫 기록 = 장부. 새 장면 0 `c1baa77a` |
 | 2026-11-09 | `@repo/ui` Modal 에 `size="article"` 변형(읽는 모달 — `FE-REQ-065`) · 등장 · 퇴장 움직임은 그대로 |
+| 2026-11-18 | F006 알림 화면 확인 3회차(`feat/f006-alerts-screen`) — 파일만 걸침 — `surface.css.ts` `panelDescription` 글자색만 2단으로(FR-13 · 대비). 패널 등장 움직임 · 모양 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

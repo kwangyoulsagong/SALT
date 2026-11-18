@@ -101,3 +101,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 저축 목표 화면 `/goals` 머리 설명 아래 때맞춘 팁 칸 0~1장(`TimelyTip` context=savings — 무엇을 띄울지는 서버) |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(저축 줄은 그대로) |
 | 2026-11-18 | FR-5 이어서 · FR-7 오늘 돈 done(O4) — 구간 문장 아래 적중 이력 한 줄(판정 수 · 맞은 수 · 사람 수 — 서버 값) 또는 이유 · `TodayMoneyBox`(그때 물가 · 지금 물가 · 값어치 · 같은 값어치 · 출처 · "고칠지는 직접" — 숫자 없으면 이유 한 줄). 팬 차트는 여전히 실채점 뒤. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `TEMPLATE_LABEL` 이 `@repo/core/labels` `GOAL_TEMPLATE_LABEL` 을 가리킨다(글자 같음). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

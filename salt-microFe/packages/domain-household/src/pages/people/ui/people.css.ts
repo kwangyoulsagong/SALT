@@ -22,9 +22,9 @@ export const nav = style({ display: "flex", alignItems: "center", gap: "12px", f
 
 export const link = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
-export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const list = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none", maxWidth: "720px" });
 

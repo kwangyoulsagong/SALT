@@ -114,3 +114,9 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 - 이 REQ 몫: `@repo/web-shared/api` 에 `countUsage` — `apiFetch` 를 지난다(축 하나 유지)
 - 확인: check-types · lint 13/13
 - 미검증: 없음
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- lint 통과(`axios` 0)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

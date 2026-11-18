@@ -9,7 +9,7 @@ export const card = style({ display: "flex", flexDirection: "column", gap: "10px
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const description = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const description = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const list = style({ display: "flex", flexDirection: "column", gap: "12px", margin: 0, padding: 0, listStyle: "none" });
 
@@ -17,7 +17,7 @@ export const item = style({ display: "flex", alignItems: "center", justifyConten
 
 export const actions = style({ display: "flex", alignItems: "center", gap: "8px" });
 
-export const note = style({ display: "flex", alignItems: "center", gap: "8px", margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ display: "flex", alignItems: "center", gap: "8px", margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 /** 지운 분류 후보의 분류 고르기 — 줄 전체 폭(가계부 S1f) */
 export const pick = style({ display: "flex", flexDirection: "column", gap: "6px", flexBasis: "100%" });

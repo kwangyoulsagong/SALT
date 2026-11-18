@@ -168,7 +168,7 @@ export const bandZero = style({
   top: 0,
   bottom: 0,
   width: "1px",
-  background: vars.colors.text.tertiary,
+  background: vars.colors.neutral[500],
 });
 
 /** 성적 막대 둘 — 이 시나리오 vs 늘 오른다(같은 확신 행) */

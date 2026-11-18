@@ -8,9 +8,9 @@ export const form = style({ display: "flex", flexDirection: "column", gap: "12px
 
 export const chips = style({ display: "flex", flexWrap: "wrap", gap: "6px" });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
-export const hint = style({ minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const hint = style({ minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const result = style({ display: "flex", flexDirection: "column", gap: "4px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
 
@@ -29,7 +29,7 @@ export const deleteButton = style({
   borderRadius: "6px",
   fontSize: "12px",
   lineHeight: "16px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   cursor: "pointer",
   ":hover": { background: SURFACE.weakFill },
 });

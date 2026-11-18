@@ -23,7 +23,7 @@ export const scenarioPanelNote = style({
   margin: 0,
   fontSize: "12px",
   lineHeight: "16px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   wordBreak: "keep-all",
 });
 

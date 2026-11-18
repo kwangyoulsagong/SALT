@@ -26,4 +26,4 @@ export const lines = style({ display: "flex", flexDirection: "column", gap: "8px
 
 export const line = style({ margin: 0, fontSize: "15px", lineHeight: "22px", overflowWrap: "anywhere" });
 
-export const empty = style({ margin: 0, fontSize: "14px", lineHeight: "20px", color: vars.colors.neutral[600] });
+export const empty = style({ margin: 0, fontSize: "14px", lineHeight: "20px", color: vars.colors.text.tertiary });

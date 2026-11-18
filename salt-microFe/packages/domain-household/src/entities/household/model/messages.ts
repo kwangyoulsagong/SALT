@@ -1,3 +1,4 @@
+import { HOUSEHOLD_CATEGORY_LABEL } from "@repo/core/labels";
 import { formatPrice } from "@repo/web-shared/lib";
 
 import type {
@@ -17,20 +18,8 @@ import type {
  * 가계부 문구 — **사실만 말한다.** 칭찬 · 재촉 · 경고 · 명령형 0(`FE-REQ-057` 수용 기준 · FEATURE-013 정책 "차단 · 경고 팝업 없음").
  * 넘친 봉투는 "남은 돈 −3,000원" 숫자일 뿐 — 빨강 · 경고 아이콘 · "초과" 낱말을 쓰지 않는다. 상태 키 → 문장은 여기 한 곳.
  */
-export const CATEGORY_LABEL: Readonly<Record<DefaultCategoryKey, string>> = {
-  food: "식비",
-  cafe: "카페 · 간식",
-  transport: "교통",
-  housing: "주거 · 공과금",
-  telecom: "통신",
-  living: "생활",
-  health: "의료",
-  education: "교육",
-  shopping: "쇼핑",
-  culture: "문화 · 여가",
-  gift: "경조사 · 선물",
-  other: "기타",
-};
+/** 이름표는 `@repo/core/labels` 한 벌 — 셸 알림 화면이 같이 읽는다(2026-11-18) */
+export const CATEGORY_LABEL: Readonly<Record<DefaultCategoryKey, string>> = HOUSEHOLD_CATEGORY_LABEL;
 
 /** 50/30/20 봉투 이름 */
 export const BUCKET_LABEL: Readonly<Record<string, string>> = { needs: "꼭 필요한 데(50%)", wants: "하고 싶은 데(30%)" };

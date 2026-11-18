@@ -98,7 +98,7 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-90 | `GET /api/app/alerts`를 **1종 목록**으로: `{ items: [{ id, messageCode, params, target, isRead, createdAt }], nextCursor }` | Must |
+| FR-90 | `GET /api/app/alerts`를 ~~**1종 목록**으로: `{ items: [{ id, messageCode, params, target, isRead, createdAt }], nextCursor }`~~ **정정 2026-11-18**: 켠 도메인 종류 셋(서버 S2c) 한 쪽 `?page=` → `{ alerts: [{ id, kind, symbol, messageCode, params, target, isRead, createdAt }], unreadCount, nextPage }` — 서버가 커서가 아니라 쪽 · total 을 준다 | Must |
 | FR-91 | `PATCH /api/app/alerts/:id/read` · `PATCH /api/app/alerts/read-all` · `GET /api/app/alerts/unread-count`를 서버 경로에 1:1로 연다 | Must |
 | FR-92 | `target` 코드를 화면 경로로 바꾸지 않는다. 딥링크 해석은 프론트 · 모바일이 한다 | Must |
 | FR-93 | 알림 생성 · 조건 알림 경로를 **열지 않는다** (B19) | Must |
@@ -195,3 +195,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-3 카드 한 이벤트 · FR-42 그대로(게이트 칸을 채우지 않는다 — 리포트 추천과 같은 변환 `toReportRecommendation` 으로 좁히기만, 깨진 · 3종 빈 통과 카드는 버림). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-70~72: `GET /api/app/portfolio/position`(개요 — 최대 비중 종목에만 이름 · 로고) · `/position/flow?range=1w|1m|3m|1y`(그대로 전달 · 모르는 기간 400 `INVALID_RANGE`). **정정 FR-70**: 서버 `overview` ∥ `risk` 두 경로 대신 개요 한 경로 — 섹션 격리는 서버가 원천별로 한다(레이더 원천이 실패해도 Hero 는 나온다, 실패 축은 null + degraded). 옛 `GET /api/app/portfolio` 는 그대로. 남은 것 거래 쓰기 중계 FR-80~83. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 `GET/POST /api/app/portfolio/transactions` · `PATCH/DELETE …/:id` · `POST …/preview`(`transactionController`) · FR-81 미리보기 서버 값 그대로 · FR-82 정정(4xx 코드 그대로 — error middleware) · FR-83 해당 없음 · FR-84 재시도 0(`backendApi` 재시도 없음 · 쓰기 5초) · FR-85 경로 · 주석 "주문이 아님". 목록은 그 쪽 종목만 이름 · 로고(실패면 심볼 · `namesDegraded`), 모르는 자산군 행은 싣지 않음. 수정에 종목 · 매수/매도 키가 오면 BFF 가 먼저 400(조용히 버리지 않음) |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-90 목록 한 쪽(`?page=` · `nextPage` — 서버 total 기준) · FR-91 `unread-count` · `/:id/read` · `/read-all` 서버 1:1(204) · FR-92 `target` 코드(경로 0) · FR-93 만드는 경로 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

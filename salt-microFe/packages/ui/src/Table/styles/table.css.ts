@@ -340,10 +340,10 @@ export const sortArrowStyles = recipe({
   variants: {
     direction: {
       up: {
-        borderBottom: `6px solid ${vars.colors.text.tertiary}`,
+        borderBottom: `6px solid ${vars.colors.neutral[500]}`,
       },
       down: {
-        borderTop: `6px solid ${vars.colors.text.tertiary}`,
+        borderTop: `6px solid ${vars.colors.neutral[500]}`,
       },
     },
 

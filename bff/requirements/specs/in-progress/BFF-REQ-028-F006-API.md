@@ -109,7 +109,7 @@ type HomeViewModel = {
 | FR-23 | AI 추천에 **`renderable`·`blockedReason`·`scoreNote`** 가 있다 | Must |
 | FR-24 | 비원화 환산이 있으면 **`fxBasisCode`가 있다.** 화면이 "현재 환율 기준" 툴팁을 띄운다. **개정 2026-09-21** — 세금 비교 삭제 | Must |
 | FR-25 | `disclaimer`가 있다 | Must |
-| FR-26 | 알림은 **1종(`signal_update`)** 이고 `messageCode` + `params` + `target`이다. **개정 2026-09-21** (D5) | Must |
+| FR-26 | 알림은 ~~**1종(`signal_update`)**~~ **도메인마다 1종 — 셋**(`signal_update` · `goal_reached` · `fixed_cost_increased`, 서버 S2c · 정정 2026-11-18)이고 `messageCode` + `params` + `target`이다. **개정 2026-09-21** (D5) | Must |
 | FR-27 | ~~`holdingsPreview` 5개 이하~~ **삭제 2026-09-21** (D6). 홈에 `unreadAlertCount`가 있다 | Must |
 | FR-28 | 블록별 엔드포인트 응답이 집계의 해당 필드와 **동일**하다 | Must |
 | FR-29 | 메시지 목록이 **역순 커서 페이징**이다 | Must |
@@ -133,7 +133,8 @@ type PerformanceViewModel = { range: '1w' | '1m' | '3m' | '1y'; points: Array<{ 
                               worstObservedReturn: { pct: number; peakAt: string; troughAt: string } | null };
 type TransactionInput = { symbol: string; assetType: string; side: 'buy' | 'sell'; quantity: number; price: number; fee?: number; transactionDate: string; note?: string };
 type TransactionPreviewViewModel = { symbol: string; before: { quantity: number; avgPrice: number | null }; after: { quantity: number; avgPrice: number | null }; totalCostKrw: number };
-type AlertViewModel = { id: string; messageCode: string; params: Record<string, string | number>; target: 'coach' | 'home.weekly-plan'; isRead: boolean; createdAt: string };
+// 정정 2026-11-18 — 정의는 bff/src/services/alerts.viewmodel.ts `CONTRACT:BEGIN AlertsView` = @repo/core/alerts(글자 대조)
+type AlertViewModel = { id: string; kind: AlertKind; symbol: string | null; messageCode: string; params: Record<string, string>; target: 'invest.symbol' | 'invest.coach' | 'savings.goals' | 'household.board'; isRead: boolean; createdAt: string };
 type SettingsViewModel = {
   plan:   { status; monthlyBaseKrw: number | null; weeklyBaseKrw: number | null;     // 주간 환산은 서버 값
             bandThresholds: { mvrvZ: number[]; capePercentile: number[] }; bandThresholdsEditable: false };
@@ -208,3 +209,4 @@ type SettingsViewModel = {
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-3 · 4 카드 단일 이벤트 · `CardViewModel` = 리포트 `ReportRecommendation` + `generatedAt` · `GET /api/app/coach/briefing`. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-40 포지션 계약 `PositionOverviewVM` · `PositionFlowVM` · `PositionRadarAxis` — `@repo/core/position` 과 글자 대조(`position-contract.test.ts`, 홈 카드와 같은 방법). **정정**: 경로 `/api/app/portfolio/position` · `/position/flow`(표의 `/api/app/portfolio` · `/performance` 는 옛 모양 그대로 둠). 실패 섹션 금액 null — 개요 실패는 화면 블록 실패, 레이더 원천 실패는 축 null. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — 거래 계약을 `PositionView` CONTRACT 블록에 더함: `PositionTransactionVM` · `PositionTransactionPageVM` · `LedgerFigures` · `TransactionPreviewVM` · `TransactionCreateInput` · `TransactionPatchInput` · `TransactionPreviewInput` · `INSUFFICIENT_QUANTITY_CODE` — `@repo/core/position` 과 글자 대조(`position-contract.test.ts` 통과) |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 엔드포인트 표 셋(목록 · 읽음 · 안 읽은 수) 구현 · FR-26 갈 곳 코드 넷으로 정정 · FR-45 경로 0 · FR-48 `@repo/core/alerts` 글자 대조(`alerts-contract.test.ts`). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

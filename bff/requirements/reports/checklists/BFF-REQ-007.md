@@ -231,3 +231,10 @@ BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch �
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `gone.middleware.ts`(머리 주인) `RETIRED_PATHS` 에 코치 칸별 경로 둘(`/scenario` · `/explanation` → `/panel`, 1주) | 충족 | 주인 REQ 체크리스트(`FE-REQ-064` · `BFF-REQ-052`) |
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- `bff/src/services/alerts.viewmodel.ts` — 계약 블록 · `toAlertTarget` · `toNextPage`
+- 시험 — 키 목록에 `target` · 종류별 갈 곳 · 쪽 경계(552 통과)
+- 미충족: 없음
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

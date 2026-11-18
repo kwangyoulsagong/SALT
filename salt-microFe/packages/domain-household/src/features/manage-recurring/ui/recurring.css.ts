@@ -17,11 +17,11 @@ export const line = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 60
 
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const form = style({ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "560px" });
 
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.neutral[600] });
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const row = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "10px 0", borderBottom: `1px solid ${SURFACE.weakFill}` });
 

@@ -71,3 +71,9 @@
 - `@repo/web-shared/config` `routes.ts` — `portfolioTransactions` 경로 한 줄. 이 REQ 범위 동작 무변경
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 타입 검사 통과
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

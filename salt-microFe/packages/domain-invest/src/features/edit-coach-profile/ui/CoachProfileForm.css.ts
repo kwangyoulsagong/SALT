@@ -34,7 +34,7 @@ export const unit = style({ color: "rgba(26, 31, 41, 0.89)", fontSize: "13px", f
 export const hint = style({
   margin: 0,
   maxWidth: "720px",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   fontSize: "12px",
   lineHeight: "18px",
   wordBreak: "keep-all",

@@ -39,6 +39,7 @@ source: 사용자 2026-11-10 — "헤더바 좌측은 유지이고 헤더에는 
 | 2026-11-10 | in-progress → done — `f193c6aa` · `29b9a212` · 번들 `c914fe2e`(뉴스 모달 늦게 싣기 — `FE-REQ-065`) |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — `/portfolio` 본문 맨 위에 포지션(`widgets/position-overview`, `next/dynamic`) · 내 보유 · 매입가 숨김은 그대로. 첫 로드 149 kB. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `AppShell` 머리 `headerEnd` 에 벨 + 프로필. 투자 머리 메뉴 · 검색칸 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/pages/investments/ui/InvestHeaderNav.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/portfolio/ui/PortfolioBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

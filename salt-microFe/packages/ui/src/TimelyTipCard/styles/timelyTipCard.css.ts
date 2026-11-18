@@ -87,7 +87,7 @@ export const dismissStyles = style({
   border: "none",
   borderRadius: vars.radius.medium,
   background: "transparent",
-  color: vars.colors.neutral[600],
+  color: vars.colors.text.tertiary,
   cursor: "pointer",
   fontSize: vars.typography.t6.fontSize,
   selectors: {

@@ -72,3 +72,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `coach/domain/ports.ts`(머리 주인)의 대화 메시지 포트에 `card` · `insightId`(주인 `SRV-REQ-028`). identity · notification 포트 변경 0 |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/composition.ts` 에 포트폴리오 조립에 일봉 · 뉴스 감성 ACL 과 레이더 설정을 꽂았다. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `salt-server/src/composition.ts` — portfolio 조립에 `ledger: { run: runInTransaction }` 한 줄. identity · 알림 무변경 |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — BFF `app-alerts.service.ts`(머리에 이 REQ) 가 Kotlin notification 의 `unread-count` · `/{id}/read` · `/read-all` 을 처음 부른다. 서버 코드 변경 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

@@ -7,7 +7,8 @@
  *
  * 이름은 `@repo/core/navigation` `AppTabIcon` 과 같다(앱도 같은 이름으로 네이티브 그림을 고른다). 외부 그래픽 파일 없음(`motion.md` §2).
  */
-export type AppNavigationIconName = "home" | "coin" | "wallet" | "chart";
+/** `bell` 은 탭이 아니라 머리 알림 벨(F006 알림, 2026-11-18) — 같은 글리프 한 벌이라 여기 둔다 */
+export type AppNavigationIconName = "home" | "coin" | "wallet" | "chart" | "bell";
 
 const PATHS: Record<AppNavigationIconName, string> = {
   // 집 — 문 자리는 아래가 파인 모양(구멍 아님)
@@ -25,6 +26,10 @@ const PATHS: Record<AppNavigationIconName, string> = {
     "M3.5 14.6A1.6 1.6 0 0 1 5.1 13h1.3A1.6 1.6 0 0 1 8 14.6v4.8A1.6 1.6 0 0 1 6.4 21H5.1a1.6 1.6 0 0 1-1.6-1.6z" +
     "M9.8 9.6A1.6 1.6 0 0 1 11.4 8h1.2a1.6 1.6 0 0 1 1.6 1.6v9.8a1.6 1.6 0 0 1-1.6 1.6h-1.2a1.6 1.6 0 0 1-1.6-1.6z" +
     "M16 4.6A1.6 1.6 0 0 1 17.6 3h1.3a1.6 1.6 0 0 1 1.6 1.6v14.8a1.6 1.6 0 0 1-1.6 1.6h-1.3a1.6 1.6 0 0 1-1.6-1.6z",
+  // 종 — 몸 + 아래 추(작은 반원)
+  bell:
+    "M12 2.5a6.5 6.5 0 0 0-6.5 6.5v3.6l-1.6 2.9A1.4 1.4 0 0 0 5.1 17.6h13.8a1.4 1.4 0 0 0 1.2-2.1l-1.6-2.9V9A6.5 6.5 0 0 0 12 2.5z" +
+    "M9.2 19.2h5.6a2.8 2.8 0 0 1-5.6 0z",
 };
 
 export interface AppNavigationIconProps {

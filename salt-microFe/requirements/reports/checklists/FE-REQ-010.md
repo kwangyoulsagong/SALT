@@ -381,3 +381,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 390 앱 웹뷰 실화면에서 이름 한 줄 · 금액 아랫줄 — pass
 - 미충족: 없음(이 REQ 몫)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-18 글자색 대비 짝(`feat/f006-alerts-screen`, 파일만 걸침)
+
+- 필터 탭 미선택 글자 `text.tertiary` — axe 위반 0(사람 장부 · 코치 설정)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`

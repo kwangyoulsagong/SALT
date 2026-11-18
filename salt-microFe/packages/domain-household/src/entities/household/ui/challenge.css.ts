@@ -18,7 +18,7 @@ export const title = style({
   whiteSpace: "nowrap",
 });
 
-export const meta = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const meta = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });
 
 export const numbers = style({
   display: "flex",

@@ -108,3 +108,9 @@
 - `@repo/core/embed` 에 `IN_APP_WEBVIEW` 선택자 — 앱 웹뷰에서만 패널 글자 13 · 누름 칸 44(`RN-REQ-032` FR-7). 좁은 화면 안내 규칙은 그대로
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-18 F006 알림 화면(`feat/f006-alerts-screen`)
+
+- 390 앱 웹뷰 가로 넘침 0
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`

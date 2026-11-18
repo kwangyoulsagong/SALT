@@ -8,4 +8,4 @@ export const list = style({ display: "flex", flexDirection: "column", gap: "12px
 
 export const sectionTitle = style({ margin: "8px 0 0", fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

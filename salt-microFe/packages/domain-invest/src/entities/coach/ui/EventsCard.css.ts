@@ -179,7 +179,7 @@ const barBase = {
 } as const;
 
 export const outer = style({ ...barBase, background: vars.colors.text.primary, opacity: 0.16 });
-export const outerMuted = style({ ...barBase, background: vars.colors.text.tertiary, opacity: 0.32, animationDelay: "120ms" });
+export const outerMuted = style({ ...barBase, background: vars.colors.neutral[500], opacity: 0.32, animationDelay: "120ms" });
 export const inner = style({ ...barBase, background: vars.colors.text.primary, opacity: 0.4, animationDelay: "80ms" });
 
 const midBase = {
@@ -193,7 +193,7 @@ const midBase = {
   animation: `${fade} 200ms ease 420ms both`,
 } as const;
 export const mid = style({ ...midBase, background: vars.colors.text.primary });
-export const midMuted = style({ ...midBase, background: vars.colors.text.tertiary });
+export const midMuted = style({ ...midBase, background: vars.colors.neutral[500] });
 
 export const facts = style({
   margin: 0,

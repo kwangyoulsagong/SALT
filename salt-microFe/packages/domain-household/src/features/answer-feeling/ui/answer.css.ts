@@ -17,4 +17,4 @@ export const line = style({ fontSize: "13px", lineHeight: "20px", color: vars.co
 /** 버튼이 카드 폭으로 늘지 않게 */
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" });
 
-export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+export const note = style({ margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.tertiary });

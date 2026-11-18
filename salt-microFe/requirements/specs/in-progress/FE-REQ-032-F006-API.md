@@ -180,3 +180,4 @@ created: 2026-09-09
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **대화 API 층** — 목록 읽기 `entities/coach` `useCoachConversationHistory` · 묻기 mutation `features/ask-coach` · 429 문구 · 완료 뒤 캐시 낡음 표시. FR-10 · 12~17 · 40 · 41 · 50. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-21 `useInfiniteQuery`(쪽마다 역순 → 뒤집어 오래된 것이 위) · FR-51 `card` 이벤트 · FR-52 `CoachCard` = `ReportRecommendation` + `generatedAt`(`@repo/core/coach`). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-64 첫 쪽 서버 컴포넌트(`pages/alerts/api/serverAlerts.ts`) · 다음 쪽 `useInfiniteQuery` · FR-65 안 읽은 수 쿼리 · FR-68 `AlertViewModel` 을 `@repo/core/alerts` 에서. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

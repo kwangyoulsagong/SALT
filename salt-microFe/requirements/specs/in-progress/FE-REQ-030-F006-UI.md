@@ -179,7 +179,7 @@ created: 2026-09-09
 ## UX 상태
 
 - **Loading**: 블록별 스켈레톤. 총자산은 마지막 캐시를 회색으로 먼저. 포지션은 섹션별(Hero · 차트 · 목록 · 레이더) 스켈레톤
-- **Empty (보유 0건)**: FR-107. **Empty (알림 없음)**: "새 알림이 없습니다"
+- **Empty (보유 0건)**: FR-107. **Empty (알림 없음)**: ~~"새 알림이 없습니다"~~ "새 알림이 없어요"(해요체 — 2026-11-18 정정)
 - **Empty (온보딩 미완료)**: 온보딩 카드 1개
 - **Empty (대화 없음)**: FR-31 브리핑 카드 + FR-32 Chip. **빈 입력창만 0건**
 - **Partial**: 블록별 "지금 불러올 수 없습니다" + 재시도
@@ -283,3 +283,4 @@ created: 2026-09-09
 | 2026-11-18 | F006 대화 2단계 확인 2회차 — 한 화면에 같은 추천 카드는 한 번(`@repo/core/coach` `firstCardHolders`, 나머지 자리는 한 줄) |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-100~103 · 107 + 보유 행 → 상세 링크: `/portfolio` 위쪽 `widgets/position-overview` — Hero(`PositionHero`) · 평가금 흐름(기간 4 · MDD · 구간 수익률, `ValueFlow`) · 리스크 레이더(`@repo/ui/radarChart` 새 컴포넌트 + 축별 표 · 사유 문장) · 보유 0 이면 첫 기록 안내 + 종목 찾기. 상한 넘음은 경고 노랑(되돌릴 수 있는 상태 — `danger` 아님). **정정 FR-2**: 3탭 세그먼트가 아니라 포트폴리오 페이지(`FE-REQ-069`). 남은 것 FR-104~106 · 109(거래 시트 · 목록). 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-104 `features/record-transaction` `TransactionSheet`(좁으면 바텀시트 · 넓으면 모달 — `useNarrowViewport` 를 `run-preflight` 에서 `@repo/web-shared/lib` 로 내림) · 미리보기 카드 `LedgerPreviewCard` · 종목 찾기 `LedgerSymbolPicker`(기존 `useAssetSearch`) · FR-105 과매도 = 저장 막음 + 서버 사유 · 입력 보존 · FR-106 정정(경로 · 확인) `widgets/transaction-list` · `pages/portfolio-transactions` · FR-107 빈 상태 [거래 기록 추가] · FR-108 주문 링크 0 · FR-109 포지션 아래 보유 기록 관리 · 설정(코치 설정) 링크. 실화면 1440 · 390 앱 웹뷰 · 실패 둘(목록 · 미리보기) |
+| 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-80 벨 자리(모든 zone 머리 · 프로필 앞) · FR-81 배지(0 숨김 · 99+ · `aria-label`) · FR-110~113 `/alerts`(행 · 읽음 + 이동 · 모두 읽음 · 만드는 칸 0) · 빈 상태 문구 해요체로 정정. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |

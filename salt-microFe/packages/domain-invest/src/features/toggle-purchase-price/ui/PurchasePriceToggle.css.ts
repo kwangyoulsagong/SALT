@@ -7,7 +7,7 @@ export const block = style({ display: "flex", flexDirection: "column", gap: vars
 
 export const hint = style({
   margin: 0,
-  color: vars.colors.neutral[500],
+  color: vars.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
