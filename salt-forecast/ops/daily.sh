@@ -34,8 +34,9 @@ rc=0
 # 사건 반응 창 · 선반영 삼분위(event_window, FC-REQ-028 FR-8)는 그 뒤 — 같은 사전 · 같은 초과. 약 5초
 # 예측 실험 H3 큰 움직임 × 소식(move_news, move-news@1)은 그 뒤 — 사건을 라벨 전에 기록 · 닫힌 것 채점. 약 8초
 # 예측 실험 H1 흔들림 · 범위(vol_range, vol-range@1)는 그 뒤 — 1차 판정 · 전진 예측 기록 · 채점. 코인 1시간봉 · 국내 일봉. 약 15초
+# 개인 재무 구간 채점(personal_scoring, FC-REQ-024)은 끝 — 저축 · 가계부 export 뷰만 읽고 시세와 무관. 1초 안
 # 온톨로지 네 층(ontology_build)은 그 뒤 — 서버 원인 스냅샷 → 사건 · 근거 · 원인 후보, 일봉 → 결과. 원인 설명 채점(cause_explain, cause-explain@1)이 바로 뒤. 둘 합 약 1초
-steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction event_window move_news vol_range ontology_build cause_explain events signals volatility market_regime move_beta target_weight_live)
+steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score judgment_tier news_reaction event_window move_news vol_range ontology_build cause_explain events signals volatility market_regime move_beta target_weight_live personal_scoring)
 # 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
 # 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
 "$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
