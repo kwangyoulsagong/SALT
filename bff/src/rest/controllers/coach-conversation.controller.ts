@@ -32,6 +32,15 @@ class CoachConversationController {
     }
   };
 
+  briefing = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await coachConversationService.briefing(req.token!);
+      return res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   listConversations = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await coachConversationService.listConversations(req.token!, req.query);
