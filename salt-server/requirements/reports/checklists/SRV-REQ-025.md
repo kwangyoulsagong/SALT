@@ -562,3 +562,7 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 ## 2026-11-18 — F008 O3 해설 에이전트 도구(`feat/fc-req-023-agent-tools`)
 
 - 이 REQ 몫 변경 0 — 도구 칸이 없을 때 프롬프트 동일(해설 시험 전부 통과 · 프롬프트 판 그대로)
+
+## 2026-11-18 — `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`)
+
+- `explanationPrompt.ts`(머리 주인): 원인 단계 '없음'이면 두 프롬프트(줄 형식 · JSON) 모두 원인 줄을 쓰지 않게 — 원인 줄은 서버 문장(`fixedCauseLine`). 프롬프트 @4. 시험 `explanationPromptCause.test.ts` · `explanationServerCause.test.ts` · 변이(규칙을 끄면 실패). 상세 `SRV-REQ-060` 체크리스트
