@@ -72,13 +72,19 @@ const generate = async () => {
   await localCliReady;
   const today = new Date().toISOString().slice(0, 10);
   // 같은 날 다시 재면 `--round 2` — 앞 평가지(평가가 끝났을 수 있다)를 덮지 않는다
+  // `--against rule` — 원인 분리(3회차): 대조군 = 지금 운영 해설 + 작성 프롬프트의 도구 줄(사실 0). 평가지 하나만 만든다
+  const rule = process.argv.includes("--against") && process.argv[process.argv.indexOf("--against") + 1] === "rule";
   const roundAt = process.argv.indexOf("--round");
   const tag = roundAt >= 0 ? `-r${process.argv[roundAt + 1]}` : "";
-  const names = { template: `explain-agent-ab-${today}${tag}-template`, current: `explain-agent-ab-${today}${tag}-current` };
-  for (const n of Object.values(names)) if (existsSync(join(OUT_DIR, `${n}.md`))) throw new Error(`이미 있다: ${n}.md — 앞 평가지를 덮지 않는다`);
+  const names = {
+    template: `explain-agent-ab-${today}${tag}-template`,
+    current: `explain-agent-ab-${today}${tag}-${rule ? "rule" : "current"}`,
+  };
+  const written = rule ? (["current"] as const) : (["template", "current"] as const);
+  for (const n of written.map((w) => names[w])) if (existsSync(join(OUT_DIR, `${n}.md`))) throw new Error(`이미 있다: ${n}.md — 앞 평가지를 덮지 않는다`);
   const sheets = {
     template: header(`에이전트 해설 블라인드 A/B ① — ${today}`),
-    current: header(`에이전트 해설 블라인드 A/B ② — ${today}`),
+    current: header(`에이전트 해설 블라인드 A/B ${rule ? "③" : "②"} — ${today}`),
   };
   const keys: Record<"template" | "current", KeyRow[]> = { template: [], current: [] };
   const trace: unknown[] = [];
@@ -88,7 +94,7 @@ const generate = async () => {
       no += 1;
       const started = Date.now();
       try {
-        const c = await contextUseCases.coach.compareAgentExplanation.execute(symbol, mode, { plain: true });
+        const c = await contextUseCases.coach.compareAgentExplanation.execute(symbol, mode, rule ? { plainRule: true } : { plain: true });
         if (!c || !c.plain) throw Object.assign(new Error("재료 없음"), { name: "NoFacts" });
         const facts = lineFactsText(c.input).filter((l) => l !== "").join("\n");
         const bySide = { template: c.template, current: c.plain.explanation, agent: c.agent.explanation };
@@ -145,7 +151,7 @@ const generate = async () => {
     }
   }
   mkdirSync(OUT_DIR, { recursive: true });
-  for (const other of ["template", "current"] as const) {
+  for (const other of written) {
     writeFileSync(join(OUT_DIR, `${names[other]}.md`), sheets[other].join("\n"));
     writeFileSync(join(OUT_DIR, `${names[other]}.key.json`), JSON.stringify(keys[other], null, 2) + "\n");
     console.log(`평가지 ${join(OUT_DIR, `${names[other]}.md`)}`);

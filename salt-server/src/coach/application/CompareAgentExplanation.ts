@@ -38,7 +38,7 @@ export interface AgentComparison {
   agent: VerifiedExplanation;
   /** 에이전트 작성기 원문(검증 전) — 측정 리포트가 검사가 버린 문장을 보려고. 화면 · 저장 0 */
   agentRaw: CoachExplanation;
-  /** 지금 운영 해설(도구 없이 같은 작성기 · 검증기) — `plain` 을 켰을 때만. 에이전트가 지금 화면보다 나은지 보는 두 번째 기준 */
+  /** 대조 해설(같은 작성기 · 검증기) — `plain`(지금 운영 해설) · `plainRule`(도구 줄만 같고 사실 0)일 때만 */
   plain: VerifiedExplanation | null;
   /** 에이전트 해설의 인용 붙은 문장 — 도구 사실 인용(`tool-n`)을 센다 */
   sentences: ExplanationSentence[];
@@ -54,7 +54,11 @@ export interface AgentComparison {
 export class CompareAgentExplanation {
   constructor(private readonly deps: CompareAgentExplanationDeps) {}
 
-  async execute(symbol: string, mode: CoachMode, options: { plain?: boolean } = {}): Promise<AgentComparison | null> {
+  /**
+   * `plain` — 지금 운영 해설(도구 칸 없음)도 만든다. `plainRule` — 대신 "도구 칸은 있고 사실 0"(작성 프롬프트의 도구 줄만 같고 도구 사실만 다른 대조군,
+   * 원인 분리 실험 — 2회차 승리가 도구 덕인지 그 한 줄 덕인지)
+   */
+  async execute(symbol: string, mode: CoachMode, options: { plain?: boolean; plainRule?: boolean } = {}): Promise<AgentComparison | null> {
     const now = this.deps.now?.() ?? new Date();
     const prepared = await prepareExplanation(this.deps, symbol, mode, now);
     if (!prepared.input) return null;
@@ -64,8 +68,9 @@ export class CompareAgentExplanation {
     const agent = await gatherAgentFacts(this.deps.agent, base, asset, now, { geminiAllowed: budget.geminiAllowed });
     const llm = await this.deps.explainer.explain(agent.input, undefined, { userId: null, geminiAllowed: budget.geminiAllowed });
     const verified = verifyExplanation(llm, agent.input, now);
-    const plain = options.plain
-      ? verifyExplanation(await this.deps.explainer.explain(base, undefined, { userId: null, geminiAllowed: budget.geminiAllowed }), base, now)
+    const control: CoachExplanationInput | null = options.plainRule ? { ...base, tools: { facts: [] } } : options.plain ? base : null;
+    const plain = control
+      ? verifyExplanation(await this.deps.explainer.explain(control, undefined, { userId: null, geminiAllowed: budget.geminiAllowed }), control, now)
       : null;
     return {
       symbol: prepared.symbol,
