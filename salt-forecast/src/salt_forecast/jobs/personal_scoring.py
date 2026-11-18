@@ -86,6 +86,10 @@ def main(argv: list[str] | None = None) -> int:
             stored = judged
         covs = coverage(issues, stored, today)
         checks = coverage_checks(covs)
+        for c in checks:
+            if c.under_nominal:  # 운영 점검과 같은 꼴 — 막지 않고 WARN(ops_check 는 아무도 화면에 안 그린다)
+                fields = {"job": JOB, "subject": c.subject, "detail": c.detail}
+                log.warning("커버리지 명목 미달", extra={"fields": fields})
         if not args.dry_run:
             hour = now.replace(minute=0, second=0, microsecond=0)
             write_checks(

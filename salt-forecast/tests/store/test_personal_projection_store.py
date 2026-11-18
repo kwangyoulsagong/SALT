@@ -84,6 +84,9 @@ def test_idempotent_prune_and_first_verdict_kept(eng: Engine) -> None:
     prune_missing(eng, "savings_reach", [IDS[1]])
     assert _count(eng, "personal_projection") == 2
     assert _count(eng, "personal_projection_score") == 1
+    # 원천을 읽었는데 비었다(그 종류 계정이 전부 지워짐) — 그 종류 사본 전부, 다른 종류는 그대로
+    prune_missing(eng, "savings_reach", [])
+    assert _count(eng, "personal_projection") == 1
 
 
 def test_coverage_view_counts_counted_recent(eng: Engine) -> None:
