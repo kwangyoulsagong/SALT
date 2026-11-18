@@ -45,4 +45,9 @@ export const COACH_ENDPOINTS = {
     month
       ? `/api/app/coach/review/monthly/kr-stock?month=${encodeURIComponent(month)}`
       : "/api/app/coach/review/monthly/kr-stock",
+  /** 코치 대화 목록(F006 C절 · `BFF-REQ-028`) — 최근 대화가 앞 */
+  coachConversations: (limit: number) => `/api/app/coach/conversations?limit=${limit}`,
+  /** 대화의 메시지 — 최신이 앞(역순 커서) */
+  coachMessages: (conversationId: string, limit: number) =>
+    `/api/app/coach/conversations/${encodeURIComponent(conversationId)}/messages?limit=${limit}`,
 } as const;

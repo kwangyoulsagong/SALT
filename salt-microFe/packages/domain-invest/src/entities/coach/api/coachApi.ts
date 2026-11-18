@@ -14,6 +14,9 @@ import type {
   TradePlanListResult,
   TradeCheckResult,
   TradeCheckSide,
+  CoachConversationItem,
+  CoachConversationPage,
+  CoachMessage,
 } from "@repo/core/coach";
 
 import { apiFetch, readApiError } from "@repo/web-shared/api";
@@ -220,5 +223,19 @@ export const coachApi = {
 
     const body = (await response.json()) as AppEnvelope<DecisionOutcomeListResult>;
     return body.data;
+  },
+
+  /** 코치 대화 목록(`GET /api/app/coach/conversations`, F006). **인증이 필요하다** */
+  coachConversations: async (limit: number, signal?: AbortSignal): Promise<CoachConversationPage<CoachConversationItem>> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachConversations(limit)}`, { signal });
+    if (!response.ok) throw await readApiError(response, "coach conversations");
+    return ((await response.json()) as AppEnvelope<CoachConversationPage<CoachConversationItem>>).data;
+  },
+
+  /** 대화의 메시지 — 최신이 앞(F006). 남의 · 없는 대화면 404 */
+  coachMessages: async (conversationId: string, limit: number, signal?: AbortSignal): Promise<CoachConversationPage<CoachMessage>> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachMessages(conversationId, limit)}`, { signal });
+    if (!response.ok) throw await readApiError(response, "coach messages");
+    return ((await response.json()) as AppEnvelope<CoachConversationPage<CoachMessage>>).data;
   },
 };
