@@ -70,6 +70,13 @@ export class TooManyRequestsError extends AppError {
   }
 }
 
+/** 본문이 경로 상한을 넘었다(패널 배치 16KB — `SRV-REQ-029` FR-30). 413 */
+export class PayloadTooLargeError extends AppError {
+  constructor(message: string = "Payload too large") {
+    super(message, 413);
+  }
+}
+
 /** 검증 키(identity JWKS)를 못 읽었다 — 토큰 탓이 아니라 401 로 접지 않는다(화면이 로그인으로 튕기지 않게, `SRV-REQ-048` FR-8) */
 export class ServiceUnavailableError extends AppError {
   constructor(message: string = "Service Unavailable") {
