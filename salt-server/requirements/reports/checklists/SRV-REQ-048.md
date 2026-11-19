@@ -220,3 +220,8 @@
 - `coach/domain/ports.ts`(머리 주인) — `FEEDBACK_KEY_PREFIX` · `pruneBefore` 포트 선언. 시험 `feedbackRowsExcluded.test.ts` · `recordCoachFeedbackKey.test.ts` · `generateCoachLogging.test.ts`
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0
+- 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절

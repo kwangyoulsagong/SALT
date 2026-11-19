@@ -13,8 +13,8 @@ export enum CoachQuestionChip {
   MistakeReview = "mistake_review",
 }
 
-/** 답 아래 화면 이동 코드 — 경로는 화면이 정한다 */
-export type CoachAnswerLinkKind = "risk_budget" | "profit_plan" | "behavior_mirror" | "size_check" | "symbol";
+/** 답 아래 화면 이동 코드 — 경로는 화면이 정한다. `plan` = 밴드 적립(2026-11-19 — 서버 · BFF 목록과 같이) */
+export type CoachAnswerLinkKind = "risk_budget" | "profit_plan" | "behavior_mirror" | "size_check" | "symbol" | "plan";
 export interface CoachAnswerLink {
   kind: CoachAnswerLinkKind;
   symbol?: string;

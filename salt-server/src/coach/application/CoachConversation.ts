@@ -49,6 +49,17 @@ export interface CoachAnswerSources {
   behavior: { execute(userId: string): Promise<BehaviorCoachView> };
   /** 가장 최근 저장 추천을 3종 게이트를 지난 카드로(`ReadConversationCard`) — 코치 상세와 같은 조립 */
   card: { execute(userId: string): Promise<ConversationCard | null> };
+  /**
+   * 이번 주 적립 계획 — 밴드 적립(`plan`, portfolio 서비스) 주간 계획의 좁힌 모양. 코치는 `plan` 을 import 하지 않는다 — 조립(`composition.ts`)이
+   * 끼운다(서비스가 갈라지면 이 자리만 원격 호출로, `msa-services.md`). 2026-11-19
+   */
+  weeklyPlan: {
+    execute(userId: string): Promise<{
+      configured: boolean;
+      totalKrw: number | null;
+      items: Array<{ asset: "btc" | "kospi"; amountKrw: number | null; fixed: boolean }>;
+    }>;
+  };
 }
 
 const SELL_STATUSES = new Set<SellPlanFacts["status"]>([
@@ -258,7 +269,7 @@ const gatherFacts = async (
   const want = new Set(materials);
   const fail = (name: string) => (error: unknown) =>
     log(`코치 대화 재료 실패 — ${name}: ${(error as Error).name}`);
-  const [risk, plans, behavior, card] = await Promise.all([
+  const [risk, plans, behavior, card, weeklyPlan] = await Promise.all([
     want.has("risk")
       ? settle(() => sources.riskBudget.execute(userId), fail("risk"))
       : Promise.resolve(undefined),
@@ -273,6 +284,9 @@ const gatherFacts = async (
           fail("recommendation")(error);
           return UNAVAILABLE_CARD as typeof UNAVAILABLE_CARD;
         })
+      : Promise.resolve(undefined),
+    want.has("weekly_plan")
+      ? settle(() => sources.weeklyPlan.execute(userId), fail("weekly_plan"))
       : Promise.resolve(undefined),
   ]);
   const facts: CoachAnswerFacts = {
@@ -310,6 +324,16 @@ const gatherFacts = async (
       behavior === undefined
         ? undefined
         : behavior && toBehaviorFacts(behavior),
+    // 이번 주 적립 — 금액은 옮기기만. 못 읽었으면 `undefined`(문장은 "불러올 수 없어요")
+    weeklyPlan:
+      weeklyPlan === undefined || weeklyPlan === null
+        ? undefined
+        : {
+            configured: weeklyPlan.configured,
+            totalKrw: weeklyPlan.totalKrw,
+            items: weeklyPlan.items.map((item) => ({ asset: item.asset, amountKrw: item.amountKrw })),
+            fixed: weeklyPlan.items.every((item) => item.fixed),
+          },
     // 한 번 거래 손실 한도 — 위험 예산 설정의 원 환산. 위험 예산을 못 읽었으면 `undefined`(못 읽음), 안 정했으면 `null`
     perTradeMaxLossKrw:
       risk === undefined || risk === null

@@ -347,6 +347,8 @@ const moveCauseAdapter = new MoveCauseAdapter(market.api);
 const coach = createCoachApplication({
   // 코치 대화(F006 C절)
   conversations: new PrismaCoachConversationStore(),
+  // 대화 "이번 주 얼마 넣을까" — 밴드 적립(portfolio 서비스의 `plan`)의 주간 계획을 좁혀 끼운다. 부를 때 평가라 아래 선언 순서와 무관(2026-11-19)
+  weeklyPlan: { execute: (userId) => plan.useCases.getWeeklyPlan.execute(userId) },
   // PC 패널 배치(F006 A절)
   panelLayouts: new PrismaPanelLayoutStore(),
   profiles: new PrismaCoachProfileStore(),

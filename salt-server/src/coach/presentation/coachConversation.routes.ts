@@ -72,7 +72,7 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
    *         `renderable: true` 면 코치 상세 `recommendation` 과 같은 모양 + `generatedAt`, `false` 면 `blockedReason` · `signalTrackRecord` ·
    *         빈 `failureCases` · `generatedAt` 만(행동 · 종목 · 근거 없음 — 3종 게이트)
    *       - `message.done` `{ messageId, intent, explanationSource, links[], gaps[], replayed }` — `links` 는 화면 이동 코드(`risk_budget` ·
-   *         `profit_plan` · `behavior_mirror` · `size_check` · `symbol`+`symbol`), `gaps` 는 못 읽은 재료(그 문장은 "불러올 수 없어요")
+   *         `profit_plan` · `behavior_mirror` · `size_check` · `symbol`+`symbol` · `plan` — 밴드 적립 화면, 2026-11-19), `gaps` 는 못 읽은 재료(그 문장은 "불러올 수 없어요")
    *       - `message.error` `{ code, fallbackText }` — `LLM_TIMEOUT`(60초 넘게 멈춘 답) · `LLM_ERROR`
    *
    *       답은 서버 규칙 문장이다(`explanationSource: rule`) — 숫자는 위험 예산 · 익절/손절 계획 · 행동 코치가 낸 값. 같은 답에

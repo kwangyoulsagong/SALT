@@ -83,6 +83,8 @@ describe("뷰모델", () => {
   });
 
   it("링크 — 배열이 아니면 빈 배열", () => assert.deepEqual(toLinks(null), []));
+  it("링크 — 적립 화면(`plan`, 2026-11-19)은 지나가고 모르는 종류는 걸러진다", () =>
+    assert.deepEqual(toLinks([{ kind: "plan" }, { kind: "unknown" }]), [{ kind: "plan" }]));
 });
 
 describe("SSE 파서 id", () => {

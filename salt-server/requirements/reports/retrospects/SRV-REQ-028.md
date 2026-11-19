@@ -30,3 +30,8 @@
 ## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
 
 - 구현은 슬라이스 다섯에서 끝났는데 "남은 것" 칸이 9월 전제(홈 · 3탭 · 설정 한 화면)로 남아 있었다. Action: 슬라이스를 닫을 때 그 결정으로 소멸한 FR 을 주인 REQ 에 바로 대체로 적는다
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- **"이번 주 얼마 넣을까" 답을 밴드 적립 주간 계획으로**(`feat/f006-coach-chat-redesign`) — 전에는 `/plan` 이 생긴 뒤에도 "적립 계산은 아직 SALT에 없어요"라고 답했다. 재료 `weekly_plan`(plan 컨텍스트 주간 계획 — 코치는 import 하지 않고 조립이 끼운다) · 계획 있음 / 굳지 않음 / 안 정함 / 못 읽음 경계 시험 · 링크 `plan` · 빈 재료 `weekly_plan`
+- 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`

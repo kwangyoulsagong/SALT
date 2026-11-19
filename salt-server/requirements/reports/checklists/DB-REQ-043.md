@@ -186,3 +186,8 @@
 
 - 코치 공개 API 조립 파일에 패널 배치 유스케이스 둘
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 코치 조립 의존(`CoachDependencies`)에 주간 계획 소스 한 줄(`feat/f006-coach-chat-redesign`) — 표 · 뷰 변경 0
+- 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절

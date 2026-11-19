@@ -224,3 +224,4 @@ type SettingsViewModel = {
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 엔드포인트 표 셋(목록 · 읽음 · 안 읽은 수) 구현 · FR-26 갈 곳 코드 넷으로 정정 · FR-45 경로 0 · FR-48 `@repo/core/alerts` 글자 대조(`alerts-contract.test.ts`). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | 패널 배치 경로 정정 `/api/app/panel-layout` → `/api/app/coach/panel-layout` · 응답 `PanelLayoutResult { tree, updatedAt, degraded }`(`@repo/core/coach`) — 구현(`feat/f006-pc-panel-grid`) |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | 프론트 계약 `CoachAnswerLinkKind` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 서버 · BFF · 화면 같은 PR |
