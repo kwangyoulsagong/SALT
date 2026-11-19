@@ -11,16 +11,6 @@ const NARROW = "screen and (max-width: 640px)";
 const CARD_RADIUS = SURFACE.panelRadius;
 const CARD_SHADOW = SURFACE.hairline;
 
-export const backLink = style({
-  alignSelf: "flex-start",
-  color: vars.colors.text.tertiary,
-  fontSize: "13px",
-  lineHeight: "20px",
-  fontWeight: vars.fontWeights.semibold,
-  textDecoration: "none",
-  ":hover": { color: vars.colors.neutral[800] },
-});
-
 /* ── 종목 헤더 ──────────────────────────────────────────────── */
 
 /**
@@ -306,7 +296,7 @@ export const preflightLink = style({
   padding: "0 12px",
   borderRadius: "10px",
   background: "rgba(7, 25, 76, 0.04)",
-  color: "rgba(26, 31, 41, 0.89)",
+  color: vars.colors.desk.text1,
   fontSize: "13px",
   fontWeight: vars.fontWeights.semibold,
   textDecoration: "none",

@@ -1,11 +1,9 @@
 import { AssetIcon } from "@repo/ui/assetIcon";
 import { ShieldCheck } from "lucide-react";
-import Link from "next/link";
 
 import type { MarketOverviewItem } from "@/entities/market";
-import { PREFLIGHT_ANCHOR_ID, ROUTES } from "@repo/web-shared/config";
+import { PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@repo/web-shared/lib";
-import { backLink } from "@repo/web-shared/ui/surface.css";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
 import { HeaderWatchlistStar } from "./HeaderWatchlistStar";
@@ -61,14 +59,9 @@ interface SymbolHeaderProps {
  */
 export const SymbolHeader = ({ symbol, listing }: SymbolHeaderProps) => {
   const displayName = listing?.koreanName ?? symbol;
-  // ~~판단 모드를 들고 돌아간다(FR-111)~~ 목록 미리보기에 단타/장기 스위치가 없다(F017 v4 순서 6 — 기간 탭) — 그냥 목록으로
-  const backHref = ROUTES.investments;
 
   return (
     <>
-      <Link href={backHref} className={backLink}>
-        {`‹ ${MESSAGES.back}`}
-      </Link>
       <header className={headerCard}>
         <div className={identity}>
           <div className={nameRow}>
