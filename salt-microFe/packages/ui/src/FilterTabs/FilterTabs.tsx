@@ -14,9 +14,10 @@ interface Props {
   /**
    * `segmented`(기본) = 회색 막대 안의 흰 조각 — 투자 표 필터(변경 금지 목록).
    * `chip` = 막대 없이 글자 칩, 고른 것만 옅은 회색 면(높이 28 · 13px) — 차트 기간처럼
-   * 카드 머리에 가볍게 얹는 선택
+   * 카드 머리에 가볍게 얹는 선택.
+   * `filter` = 목록을 거르는 칩, 고른 것은 파랑 글자 + 옅은 파랑 면(`FE-REQ-047` FR-4 — 높이 28 · 13/600)
    */
-  variant?: "segmented" | "chip";
+  variant?: "segmented" | "chip" | "filter";
 }
 
 /**

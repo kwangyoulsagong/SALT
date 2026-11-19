@@ -1,7 +1,5 @@
 import { KeyboardEvent, ReactNode, useId, useState } from "react";
-import { useSlidingIndicator } from "../Motion/useSlidingIndicator";
-import { HeadingProps } from "../Typo/Heading/Heading";
-import { tabIndicatorStyles, tabListStyles, tabsContainerStyles } from "./style/tabs.css";
+import { tabListStyles, tabsContainerStyles } from "./style/tabs.css";
 import { Tab } from "./Tab/Tab";
 import { TabPanel } from "./TabPanel/TabPanel";
 
@@ -10,7 +8,6 @@ export interface TabItem {
   label: ReactNode;
   content?: ReactNode;
   disabled?: boolean;
-  color?: HeadingProps["color"];
 }
 
 export interface TabsProps {
@@ -37,7 +34,6 @@ export const Tabs = ({
   const isControlled = controlledActiveTab !== undefined;
   const activeTab = isControlled ? controlledActiveTab : internalActiveTab;
   const baseId = useId();
-  const indicator = useSlidingIndicator<HTMLDivElement>(activeTab, '[role="tab"][aria-selected="true"]');
 
   const handleTabClick = (tabId: string) => {
     if (!isControlled) {
@@ -154,11 +150,9 @@ export const Tabs = ({
     <div className={className}>
       <div className={tabsContainerStyles}>
         <div
-          ref={indicator.containerRef}
           role="tablist"
           aria-label="Tabs"
           className={tabListStyles}
-          data-sliding={indicator.sliding}
           onKeyDown={handleKeyDown}
         >
           {tabs.map((tab) => (
@@ -170,18 +164,10 @@ export const Tabs = ({
               isActive={validActiveTab === tab.id}
               disabled={tab.disabled}
               onClick={() => handleTabClick(tab.id)}
-              color={tab.color}
             >
               {tab.label}
             </Tab>
           ))}
-          {indicator.sliding ? (
-            <span
-              aria-hidden="true"
-              className={tabIndicatorStyles({ animated: indicator.animated })}
-              style={indicator.indicatorStyle}
-            />
-          ) : null}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import {
   column,
   columnBare,
   content,
+  contentPanel,
   frame,
   header,
   headerNav,
@@ -146,7 +147,9 @@ export const AppNavigation = ({
           {headerEnd}
         </header>
       )}
-      <div className={content}>{children}</div>
+      <div className={bare ? content : `${content} ${contentPanel}`} data-app-navigation-content="">
+        {children}
+      </div>
     </div>
     {bare ? null : (
       <nav aria-label={label} className={bottom} data-app-navigation="bottom">

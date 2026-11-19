@@ -2,19 +2,18 @@
 
 // 클라이언트 잎: 탭 상태를 갖고, 실시간 테이블을 ssr:false 로 내린다.
 import { FlexBox } from "@repo/ui/flexBox";
-import { Heading } from "@repo/ui/heading";
 import { Margin } from "@repo/ui/margin";
 import { Section } from "@repo/ui/section";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
-import React, { type ReactNode, Suspense, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 
 import { StatusLine } from "@repo/ui/statusLine";
-import { INVESTMENTS_ASSET_PARAM, INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
+import { INVESTMENTS_ASSET_PARAM, INVESTMENTS_NEWS_PARAM, INVESTMENTS_TAB_PARAM } from "@repo/web-shared/config";
 import { BOUNDARY_MESSAGES } from "@repo/web-shared/i18n";
-import { useLazyComponent } from "@repo/web-shared/lib";
+import { useLazyComponent, useScrollRestoreOnBack } from "@repo/web-shared/lib";
 
 
 import {
@@ -26,7 +25,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
-import { headingRow } from "./MarketBoardLayout.css";
+import { boardTitle, headingRow } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -108,12 +107,17 @@ interface MarketBoardProps {
  * ~~본문 자산군 탭~~ 2026-11-10 머리 메뉴로 올라갔다. 주소를 읽는 잎을 따로 두고 Suspense 로 감싼다 — 보드 전체가 `useSearchParams` 때문에
  * 클라이언트로 미뤄지지 않게. 국내가 안 열리면(키 꺼짐) 아래 판정이 코인으로 되돌린다
  */
-const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
+const AssetParamSync = ({ onAsset, onTab }: { onAsset: (asset: string) => void; onTab: (tab: string) => void }) => {
   const params = useSearchParams();
   const asset = params?.get(INVESTMENTS_ASSET_PARAM) ?? null;
+  const tab = params?.get(INVESTMENTS_TAB_PARAM) ?? null;
   useEffect(() => {
-    onAsset(asset && ASSET_CLASS_TABS.some((tab) => tab.id === asset) ? asset : DEFAULT_ASSET_CLASS_TAB);
+    onAsset(asset && ASSET_CLASS_TABS.some((item) => item.id === asset) ? asset : DEFAULT_ASSET_CLASS_TAB);
   }, [asset, onAsset]);
+  // 표 탭도 주소가 정한다(`FE-REQ-047` FR-11) — 모르는 값이면 실시간
+  useEffect(() => {
+    onTab(tab && MARKET_BOARD_TABS.some((item) => item.id === tab) ? tab : DEFAULT_MARKET_BOARD_TAB);
+  }, [tab, onTab]);
   // 뉴스 모달은 주소에 `?news=` 가 있을 때만 싣는다 — 없는 동안 그 청크를 받지 않는다
   const news = params?.get(INVESTMENTS_NEWS_PARAM);
   return news ? <LazyNewsModal newsKey={news} /> : null;
@@ -126,20 +130,34 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
   const [krAvailable, setKrAvailable] = useState(false);
   // 자산군 탭이 사라지면(키 꺼짐) 코인으로 돌아온다 — 빈 국내 주식 화면에 남지 않는다
   const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
+  const router = useRouter();
+  const pathname = usePathname();
+  // 상세에서 뒤로 오면 떠날 때의 스크롤 자리로 — 표가 브라우저에서 늦게 차 Next 기본 복원이 0 으로 잘렸다(`FE-REQ-047` FR-11)
+  useScrollRestoreOnBack();
+  // 탭을 누르면 주소를 바꾼다(기록을 쌓지 않는 replace · 스크롤 그대로) — 상세에서 뒤로 오면 같은 탭. 화면은 주소 → `onTab` 이 바꾼다
+  const changeTab = useCallback(
+    (next: string) => {
+      setActiveTab(next);
+      const query = new URLSearchParams(window.location.search);
+      if (next === DEFAULT_MARKET_BOARD_TAB) query.delete(INVESTMENTS_TAB_PARAM);
+      else query.set(INVESTMENTS_TAB_PARAM, next);
+      const search = query.toString();
+      router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+    },
+    [pathname, router],
+  );
   return (
-    <Section noContainer>
+    <Section noContainer padding="none">
       <Suspense fallback={null}>
         {/* 자산군 · 뉴스 모달 — 주소(`?asset=` · `?news=&newsOf=`)가 상태라 새로고침 · 뒤로가기에도 같은 화면(`FE-REQ-069` · `FE-REQ-065`) */}
-        <AssetParamSync onAsset={setAssetTab} />
+        <AssetParamSync onAsset={setAssetTab} onTab={setActiveTab} />
       </Suspense>
       <FlexBox direction="column">
         <div className={headingRow}>
           <FlexBox direction="row" align="center" gap="lg">
             <ServiceIcon variant="analysis" />
-            {/* 화면의 첫 제목 — 모양은 h2, 태그는 h1(axe page-has-heading-one) */}
-            <Heading level={2} as={1}>
-              {MARKET_BOARD_MESSAGES.heading}
-            </Heading>
+            {/* 화면의 첫 제목 — h1 · 18/700(`FE-REQ-047` FR-5) */}
+            <h1 className={boardTitle}>{MARKET_BOARD_MESSAGES.heading}</h1>
           </FlexBox>
           {/* 종목 검색 · 코치 리포트 진입은 머리로 옮겼다(검색 2026-11-09 `FE-REQ-066` · 리포트 2026-11-10 `FE-REQ-069` 머리 메뉴) */}
         </div>
@@ -161,7 +179,7 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
           <Tabs
             tabs={MARKET_BOARD_TABS}
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={changeTab}
           />
         </Margin>
         <Margin top="md">

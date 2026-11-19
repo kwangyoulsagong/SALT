@@ -10,7 +10,7 @@ import { SURFACE } from "@repo/web-shared/ui/surface.css";
  */
 export const quiz = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.weakFill });
 
-export const eyebrow = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 600, color: "rgba(22, 31, 46, 0.64)" });
+export const eyebrow = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 600, color: vars.colors.desk.text2 });
 
 export const question = style({ margin: 0, fontSize: "16px", lineHeight: "24px", fontWeight: 600, color: vars.colors.text.primary, wordBreak: "keep-all" });
 
@@ -40,8 +40,8 @@ const choiceBase = style({
 export const choice = styleVariants({
   idle: [choiceBase],
   right: [choiceBase, { border: `2px solid ${vars.colors.text.primary}`, fontWeight: 600 }],
-  pickedWrong: [choiceBase, { borderStyle: "dashed", color: "rgba(22, 31, 46, 0.64)" }],
-  rest: [choiceBase, { color: "rgba(22, 31, 46, 0.64)" }],
+  pickedWrong: [choiceBase, { borderStyle: "dashed", color: vars.colors.desk.text2 }],
+  rest: [choiceBase, { color: vars.colors.desk.text2 }],
 });
 
 export const choiceTag = style({ marginLeft: "8px", fontSize: "12px", fontWeight: 600 });

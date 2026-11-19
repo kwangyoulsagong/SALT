@@ -16,7 +16,7 @@ import { vars } from "@repo/ui/tokens";
  */
 export const SURFACE = {
   panelRadius: "16px",
-  hairline: "inset 0 0 0 1px rgba(2, 32, 71, 0.05)",
+  hairline: `inset 0 0 0 1px ${vars.colors.desk.line}`,
   weakFill: "rgba(7, 25, 76, 0.04)",
 } as const;
 

@@ -43,3 +43,4 @@ source: 사용자 스크린샷(국내 탭 코스피 · 코스닥 큰 상자 두 
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/widgets/judgment-overview/ui/JudgmentOverview.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-09 | 요약 띠 — 화면 폭(1379) 대신 칸 폭으로 항목 열을 줄인다(레일 72 뒤 1440 에서 끝 열이 상자 밑에 잘림, 사용자 2026-11-09) · 열 200~280 · 틈 8 · 변동률에도 부호(금액 말줄임 때 색만 남던 것) |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 요약 띠 국내 · 코인 같은 두 칸(위험 · 판정 성적) — 목표 비중 칸 삭제로 국내 전용 두 칸 스타일(`stripTwo`)이 하나로(F017 v4 순서 6) |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 요약 띠 패널의 옅은 면 값을 토큰(`colors.desk.line`)으로 — 값 같음 |

@@ -13,3 +13,4 @@ export * from "./useZoneNavigate";
 export * from "./useNarrowViewport";
 export * from "./useWideViewport";
 export * from "./useLazyComponent";
+export * from "./useScrollRestoreOnBack";

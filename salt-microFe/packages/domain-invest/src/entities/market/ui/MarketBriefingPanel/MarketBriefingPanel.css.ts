@@ -135,7 +135,7 @@ export const dday = style({
   flexShrink: 0,
   padding: "0 6px",
   borderRadius: 6,
-  background: "rgba(2, 32, 71, 0.05)",
+  background: vars.colors.desk.line,
   color: vars.colors.text.secondary,
   fontSize: 12,
   lineHeight: "18px",

@@ -1,10 +1,5 @@
-import { Container } from "@repo/ui/container";
-import { Heading } from "@repo/ui/heading";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import { COACH_CHAT_PAGE } from "../model";
 import { CoachChatBody } from "./CoachChatBody";
@@ -14,18 +9,9 @@ import { CoachChatBody } from "./CoachChatBody";
  * 본문을 놓는 것까지만 한다(`fsd-pages.md`).
  */
 export const CoachChatPage = () => (
-  <Root background="transparent">
-    <Section containerSize="full" padding="sm">
-      <Container size="2xl" padding="none">
-        <Padding paddingX="xl">
-          <Heading level={1} size="lg">
-            {COACH_CHAT_PAGE.title}
-          </Heading>
-          <BlockBoundary name={COACH_CHAT_PAGE.blockName} minHeight={COACH_CHAT_PAGE.blockMinHeight}>
-            <CoachChatBody />
-          </BlockBoundary>
-        </Padding>
-      </Container>
-    </Section>
-  </Root>
+  <PageFrame title={COACH_CHAT_PAGE.title}>
+    <BlockBoundary name={COACH_CHAT_PAGE.blockName} minHeight={COACH_CHAT_PAGE.blockMinHeight}>
+      <CoachChatBody />
+    </BlockBoundary>
+  </PageFrame>
 );

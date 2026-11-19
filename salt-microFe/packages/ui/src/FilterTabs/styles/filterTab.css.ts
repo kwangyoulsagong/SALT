@@ -33,6 +33,9 @@ export const filterContainer = recipe({
       chip: {
         gap: "2px",
       },
+      filter: {
+        gap: vars.space.xs,
+      },
     },
   },
   defaultVariants: { variant: "segmented" },
@@ -75,6 +78,22 @@ export const tabButton = recipe({
           "&:hover": { background: CHIP_FILL, color: vars.colors.text.primary },
         },
       },
+      /**
+       * 필터 칩(`FE-REQ-047` FR-4 · `screen-desktop.md` §3 실측) — 28 · 모서리 7 · 4×8 · 13/600, 켜짐 = 파랑 글자 + 9% 파랑 면.
+       * `chip`(차트 기간 — 고른 칸만 옅은 회색 면, 2026-09-23)과 다른 자리: 목록을 거르는 켜고 끄는 칩. 여럿이 켜질 수 있는 자리는 부르는 쪽이 `aria-pressed` 로
+       */
+      filter: {
+        height: "28px",
+        padding: "4px 8px",
+        borderRadius: "7px",
+        fontSize: vars.deskType.body.fontSize,
+        lineHeight: vars.deskType.body.lineHeight,
+        fontWeight: vars.deskType.body.fontWeight,
+        color: vars.colors.desk.text2,
+        selectors: {
+          "&:hover": { background: CHIP_FILL, color: vars.colors.desk.text1 },
+        },
+      },
     },
     active: {
       true: {},
@@ -96,6 +115,14 @@ export const tabButton = recipe({
       style: {
         background: CHIP_FILL,
         color: vars.colors.text.primary,
+      },
+    },
+    {
+      variants: { variant: "filter", active: true },
+      style: {
+        background: vars.colors.desk.accentFill,
+        color: vars.colors.desk.accent,
+        selectors: { "&:hover": { background: vars.colors.desk.accentFill, color: vars.colors.desk.accent } },
       },
     },
   ],

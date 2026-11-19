@@ -1,15 +1,9 @@
 import { isKrStockCode } from "@repo/core/marketKr";
-import { Container } from "@repo/ui/container";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { BlockBoundary } from "@repo/web-shared/ui";
-import { backLink } from "@repo/web-shared/ui/surface.css";
+import { BackNav, BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import { publicMarketApi } from "../api";
 import {
@@ -64,8 +58,10 @@ export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps
 
   const listing = await publicMarketApi.listing(symbol);
 
+  const name = listing?.koreanName ?? symbol;
+
   return (
-    <Root background="transparent">
+    <PageFrame>
       <script
         type="application/ld+json"
         // 종목 이름은 서버 문자열이다 — `<` 를 이스케이프해 `</script>` 로 빠져나갈 길을 막는다
@@ -73,49 +69,50 @@ export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps
           __html: JSON.stringify(buildDetailBreadcrumb(symbol, listing)).replace(/</g, "\\u003c"),
         }}
       />
-      <Section containerSize="full" padding="sm">
-        <Container size="2xl" padding="none">
-          <Padding paddingX="xl">
-            <BlockBoundary
-              name={INVESTMENT_DETAIL_PAGE_MESSAGES.blockName}
-              minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
-            >
-              <div className={detailStack}>
-                <SymbolHeader symbol={symbol} listing={listing} />
-                <InvestmentDetailBody symbol={symbol} />
-              </div>
-            </BlockBoundary>
-          </Padding>
-        </Container>
-      </Section>
-    </Root>
+      <BlockBoundary
+        name={INVESTMENT_DETAIL_PAGE_MESSAGES.blockName}
+        minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
+      >
+        <div className={detailStack}>
+          <DetailBackNav fallbackHref={ROUTES.investments} assetLabel={INVESTMENT_DETAIL_PAGE_MESSAGES.trailCrypto} name={name} />
+          <SymbolHeader symbol={symbol} listing={listing} />
+          <InvestmentDetailBody symbol={symbol} />
+        </div>
+      </BlockBoundary>
+    </PageFrame>
   );
 };
+
+/** 상세 머리 첫 줄(`FE-REQ-047` FR-10) — 코인 · 국내가 같은 자리 · 같은 모양. 목록 주소는 자산군을 들고 간다 */
+const DetailBackNav = ({ fallbackHref, assetLabel, name }: { fallbackHref: string; assetLabel: string; name: string }) => (
+  <BackNav
+    label={INVESTMENT_DETAIL_PAGE_MESSAGES.back}
+    trailLabel={INVESTMENT_DETAIL_PAGE_MESSAGES.trailLabel}
+    fallbackHref={fallbackHref}
+    crumbs={[
+      { label: INVESTMENT_DETAIL_PAGE_MESSAGES.trailInvest, href: ROUTES.investments },
+      { label: assetLabel, href: fallbackHref },
+      { label: name },
+    ]}
+  />
+);
 
 /**
  * 국내 주식 상세(F011 `FE-REQ-041` FR-46) — 같은 라우트, 숫자로 시작하는 6자리 코드면 여기로 온다(F011 OQ). 서버는 껍데기만
  * 그린다: (2026-11-10 국내 시세 공개 — `ADR-011`. 서버 렌더 · 색인은 `FEATURE-018` OQ2 까지 안 한다.) JSON-LD · 코치 본문도 없다.
  */
 const KrStockDetailPage = ({ code }: { code: string }) => (
-  <Root background="transparent">
-    <Section containerSize="full" padding="sm">
-      <Container size="2xl" padding="none">
-        <Padding paddingX="xl">
-          <div className={detailStack}>
-            <Link href={ROUTES.investments} className={backLink}>
-              {`‹ ${INVESTMENT_DETAIL_PAGE_MESSAGES.krBack}`}
-            </Link>
-            <BlockBoundary
-              name={INVESTMENT_DETAIL_PAGE_MESSAGES.krBlockName}
-              minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
-            >
-              <KrStockDetailBody code={code} />
-            </BlockBoundary>
-          </div>
-        </Padding>
-      </Container>
-    </Section>
-  </Root>
+  <PageFrame>
+    <div className={detailStack}>
+      <DetailBackNav fallbackHref={ROUTES.investmentsKr} assetLabel={INVESTMENT_DETAIL_PAGE_MESSAGES.trailKr} name={code} />
+      <BlockBoundary
+        name={INVESTMENT_DETAIL_PAGE_MESSAGES.krBlockName}
+        minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
+      >
+        <KrStockDetailBody code={code} />
+      </BlockBoundary>
+    </div>
+  </PageFrame>
 );
 
 export default InvestmentDetailPage;

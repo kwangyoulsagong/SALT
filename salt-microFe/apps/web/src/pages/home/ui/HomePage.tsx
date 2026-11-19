@@ -1,3 +1,5 @@
+import { PageFrame } from "@repo/web-shared/ui";
+
 import { HomeBriefing } from "@/widgets/home-briefing";
 import { OnboardingCard } from "@/widgets/onboarding-flow";
 
@@ -12,7 +14,8 @@ import { srOnly } from "./HomePage.css";
  */
 export const HomePage = () => {
   return (
-    <>
+    // 틀(폭 · 여백)은 데스크톱 화면 공통(`FE-REQ-047` FR-2) — 카드 배치는 `FE-REQ-048`
+    <PageFrame>
       {/*
         온보딩 안내는 **카드 하나**다 (`FE-REQ-010` FR-25). 블록마다 안내하면 미완료
         사용자의 홈이 안내로 덮인다. 끝났으면 카드가 아무것도 렌더하지 않는다.
@@ -28,7 +31,7 @@ export const HomePage = () => {
       <h1 className={srOnly}>{HOME_PAGE_MESSAGES.heading}</h1>
       <OnboardingCard />
       <HomeBriefing />
-    </>
+    </PageFrame>
   );
 };
 

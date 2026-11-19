@@ -4,9 +4,9 @@ import { vars } from "@repo/ui/tokens";
 
 /**
  * 검색 모달 행(`FE-REQ-066` FR-3 · FR-4 — 참고 화면 실측 2026-11-09): 결과 행 54 · 순위 행 44 · 패딩 8×12 · 모서리 10 ·
- * 고른 행 = 옅은 면(`rgba(2,32,71,.05)`) + 오른쪽 ↵ 칩. 로고는 우리 `AssetIcon` md(32 — 실측 28 · 30 의 사이 크기를 새로 두지 않는다)
+ * 고른 행 = 옅은 면(`desk.line` 토큰) + 오른쪽 ↵ 칩. 로고는 우리 `AssetIcon` md(32 — 실측 28 · 30 의 사이 크기를 새로 두지 않는다)
  */
-const ACTIVE_SURFACE = "rgba(2, 32, 71, 0.05)";
+const ACTIVE_SURFACE = vars.colors.desk.line;
 
 export const row = style({
   display: "flex",

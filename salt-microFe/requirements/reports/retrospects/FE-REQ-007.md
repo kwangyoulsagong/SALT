@@ -141,3 +141,8 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-18 `text.tertiary` 토큰 변경 짝
 
 - 다른 기능이 이 파일을 지나갔다. Action 없음
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- `@repo/tokens` 에 데스크톱 틀 토큰(`colors.desk` · `deskType`) · 바탕 `#F4F5F8` · 글꼴 네 키를 시스템 서체로 — 어댑터 구조(토큰 한 곳 → 웹 변수)는 그대로
+- 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`

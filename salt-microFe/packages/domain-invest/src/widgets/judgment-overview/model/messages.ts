@@ -21,4 +21,18 @@ export const JUDGMENT_OVERVIEW_MESSAGES = {
     note: "관찰 기간이 끝난 판단만 채점해요",
     unavailable: "지금은 불러올 수 없어요",
   },
+  /** 오른쪽 사이드(`FE-REQ-047` FR-7) — 같은 두 칸을 세로로 + 관심 종목 */
+  side: {
+    label: "투자 요약",
+    watchlistHeading: "관심 종목",
+    watchlistLink: "시세 화면에서 관심 종목 전체 보기",
+    watchlistEmpty: "관심 종목이 아직 없어요",
+    watchlistUnavailable: "지금은 불러올 수 없어요",
+  },
 } as const;
+
+/**
+ * 사이드 `aside` 이름 — 서버 컴포넌트(페이지)가 `PageFrame` `sideLabel` 로 넘긴다. `"use client"` 파일 밖에 둔다 —
+ * 클라이언트 모듈의 값을 서버가 읽으면 문자열이 아니라 참조가 온다(2026-11-05 때맞춘 팁 400 — `no-client-enum-export`)
+ */
+export const INVEST_SIDE_LABEL = JUDGMENT_OVERVIEW_MESSAGES.side.label;

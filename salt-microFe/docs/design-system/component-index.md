@@ -49,7 +49,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/input` | `InputField` | `register`, `name`, `variant`, `placeholder`, `type` | `packages/ui/src/InputField/InputField.tsx` |
 | `@repo/ui/radiobutton` | `RadioButton` | `checked`, `onChange` | `packages/ui/src/RadioButton/RadioButton.tsx` |
 | `@repo/ui/tabs` | `Tabs` | `tabs`, `defaultActiveTab`, `activeTab`, `onTabChange`, `tabPanel` | `packages/ui/src/Tabs/Tabs.tsx` |
-| `@repo/ui/filterTabs` | `FilterTabs` | `options`, `value`, `onChange`, `label`, `variant`(`segmented` 기본 · `chip` 막대 없는 글자 칩 · 2026-09-23) | `packages/ui/src/FilterTabs/FilterTabs.tsx` |
+| `@repo/ui/filterTabs` | `FilterTabs` | `options`, `value`, `onChange`, `label`, `variant`(`segmented` 기본 · `chip` 막대 없는 글자 칩 · 2026-09-23 · `filter` 목록 거르는 칩, 켜짐 = 파랑 글자 + 옅은 파랑 면 · 2026-11-19 `FE-REQ-047`) | `packages/ui/src/FilterTabs/FilterTabs.tsx` |
 | `@repo/ui/segmentedControl` | `SegmentedControl` | `options`, `value`, `onChange`, `label` | `packages/ui/src/SegmentedControl/SegmentedControl.tsx` |
 | `@repo/ui/chip` | `Chip` | `selected`, `onPress`, `disabled`, `size`, `leading` | `packages/ui/src/Chip/Chip.tsx` |
 | `@repo/ui/toggle` | `Toggle` | `checked`, `onChange`, `disabled`, `label` | `packages/ui/src/Toggle/Toggle.tsx` |

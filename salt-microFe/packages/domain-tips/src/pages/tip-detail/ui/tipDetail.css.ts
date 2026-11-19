@@ -15,13 +15,13 @@ export const page = style({
 
 export const title = style({ margin: 0, fontSize: "18px", lineHeight: "24px", fontWeight: 700, color: vars.colors.text.primary, wordBreak: "keep-all" });
 
-export const summary = style({ margin: 0, fontSize: "15px", lineHeight: "24px", color: "rgba(22, 31, 46, 0.64)", wordBreak: "keep-all", maxWidth: "720px" });
+export const summary = style({ margin: 0, fontSize: "15px", lineHeight: "24px", color: vars.colors.desk.text2, wordBreak: "keep-all", maxWidth: "720px" });
 
 export const section = style({ display: "flex", flexDirection: "column", gap: "8px" });
 
 export const sectionTitle = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const disclaimer = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: "rgba(22, 31, 46, 0.64)", maxWidth: "720px" });
+export const disclaimer = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.desk.text2, maxWidth: "720px" });
 
 /** 공식 링크 — 32 높이 버튼 모양(`screen-desktop.md` §3), 44 누름 칸은 줄 높이로 */
 export const official = style({

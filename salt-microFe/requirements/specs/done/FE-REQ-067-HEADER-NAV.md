@@ -57,3 +57,4 @@ source: 사용자 2026-11-09 — "우리도 투자 탭은 헤더로 하는 게 �
 | 2026-11-10 | D1 되돌림 — `FE-REQ-069`(`f193c6aa`): 레일 복원 · 머리 = 투자 zone 메뉴 · 검색칸 투자 zone 만. 링크 · 검색칸 값은 이어 씀 |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — 공용 `ZoneNavigation` 마운트 효과에 도메인 방문 계측 한 번(도메인 zone · 공개 경로 아님 · 로그인일 때) · `ZoneLink` `onClick` 칸 |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 머리 검색칸 면 하드코딩을 토큰으로 — 값 같음 |

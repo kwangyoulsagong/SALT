@@ -75,3 +75,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `@repo/web-shared/config` `routes.ts` — `portfolioTransactions` 경로 한 줄. 이 REQ 범위 동작 무변경 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `ROUTES.alerts` 한 줄. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — `ROUTES.plan` 한 줄. 이 REQ 의 FR 은 그대로 |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 뉴스 줄 글자 · 면 하드코딩을 토큰으로 — 값 같음 |

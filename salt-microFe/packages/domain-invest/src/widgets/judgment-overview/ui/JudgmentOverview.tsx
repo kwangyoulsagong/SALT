@@ -9,7 +9,7 @@ import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
 import { JUDGMENT_OVERVIEW_MESSAGES } from "../model";
-import { cell, cellBody, cellLabel, cellNote, cellValue, cellValueAlert, strip, stripPending } from "./JudgmentOverview.css";
+import { cell, cellBody, cellLabel, cellNote, cellValue, cellValueAlert, sideStrip, strip, stripPending } from "./JudgmentOverview.css";
 
 const M = JUDGMENT_OVERVIEW_MESSAGES;
 
@@ -93,13 +93,16 @@ const ScoreboardCell = ({ assetClass }: { assetClass: string }) => {
  *
  * 국내 탭(`FE-REQ-050` FR-5): 위험은 보유 전체(BTC 동조 줄 뺌) · 성적표는 `kr_stock` 그룹만.
  */
-export const JudgmentOverview = ({ assetClass = "crypto" }: { assetClass?: string }) => {
+/**
+ * `layout="side"` — 오른쪽 사이드 312 의 세로 판(`FE-REQ-047` FR-7). 칸 · 값 · 갈 곳은 띠와 같다(같은 숫자를 두 모양으로 다시 계산하지 않는다)
+ */
+export const JudgmentOverview = ({ assetClass = "crypto", layout = "strip" }: { assetClass?: string; layout?: "strip" | "side" }) => {
   const signedIn = useHasSession();
   if (signedIn === null) return <div className={stripPending} aria-hidden="true" />;
   if (!signedIn) return null;
   const isKr = assetClass === KR_STOCK;
   return (
-    <nav className={strip} aria-label={isKr ? M.krRegionLabel : M.regionLabel}>
+    <nav className={layout === "side" ? sideStrip : strip} aria-label={isKr ? M.krRegionLabel : M.regionLabel}>
       {/* ~~목표 비중 칸~~ 지웠다 — 목표 비중 패널은 쓰는 흐름이 없어 화면에서 뺐다(F017 v4 순서 6 · `FE-REQ-064` FR-12, 계산은 서버에 남는다) */}
       <RiskCell withBeta={!isKr} />
       <ScoreboardCell assetClass={isKr ? KR_STOCK : "crypto"} />

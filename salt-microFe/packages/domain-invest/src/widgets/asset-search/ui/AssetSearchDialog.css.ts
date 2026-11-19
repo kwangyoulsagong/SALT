@@ -6,7 +6,7 @@ import { vars } from "@repo/ui/tokens";
  * 검색 모달 칸(`FE-REQ-066` FR-2 — 실측 2026-11-09): 검색칸 616×40(위 12 · 좌우 12) · 본문만 스크롤 · 아래 안내 바 52.
  * 판 크기 · 모서리 · 그림자는 `@repo/ui` `Modal` `size="search"` 가 정한다
  */
-const SURFACE = "rgba(2, 32, 71, 0.05)";
+const SURFACE = vars.colors.desk.line;
 
 export const top = style({
   display: "flex",
@@ -49,7 +49,7 @@ export const sectionMeta = style({
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
-  color: "rgba(22, 31, 46, 0.64)",
+  color: vars.colors.desk.text2,
 });
 
 export const list = style({ display: "flex", flexDirection: "column", gap: "2px", margin: 0, padding: 0 });
@@ -150,7 +150,7 @@ export const tabs = style({ flexShrink: 0, padding: `0 ${vars.space.md}` });
  * 새 요소인 이 탭 줄만 2단(`screen-desktop.md` §2 — 4.5:1 이상)
  */
 globalStyle(`${tabs} [role="tab"][aria-selected="false"], ${tabs} [role="tab"][aria-selected="false"] *`, {
-  color: "rgba(22, 31, 46, 0.64)",
+  color: vars.colors.desk.text2,
 });
 
 /** 두 칸 — 왼쪽 결과(스크롤) · 오른쪽 곁 칸(실측 두 칸). 768 밑은 곁 칸이 숨어 한 열 */
@@ -163,7 +163,7 @@ export const groupHead = style({
   fontSize: vars.fontSizes.base,
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
-  color: "rgba(22, 31, 46, 0.64)",
+  color: vars.colors.desk.text2,
 });
 
 export const more = style({ alignSelf: "flex-start", marginLeft: vars.space.md });

@@ -69,6 +69,7 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-12 | 서버 S3c 브랜치(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 공용 머리 프로필 메뉴의 로그아웃에서 빨강(`tone: "danger"`)을 뺐다 — 로그아웃은 다시 로그인하면 되돌아온다(사용자 2026-11-12). 동작 무변경 |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `AppNavigationIcon` 에 `bell` 글리프(같은 면 채움 한 벌) · 탭 아이콘 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — `AppNavigation` 본문 칸에 패널 면(`contentPanel` — `#FBFCFD` · 모서리 12 · 안쪽 선 · 여백 12) · `data-app-navigation-content`(앱 웹뷰에서 면을 걷는 표지) · 머리 미선택 색을 토큰으로 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.css.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.tsx` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"

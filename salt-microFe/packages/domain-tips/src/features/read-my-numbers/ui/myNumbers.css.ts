@@ -14,7 +14,7 @@ export const title = style({ margin: 0, fontSize: "16px", lineHeight: "24px", fo
 
 export const line = style({ margin: 0, fontSize: "14px", lineHeight: "22px", color: vars.colors.text.primary, wordBreak: "keep-all", maxWidth: "720px" });
 
-export const muted = style([line, { color: "rgba(22, 31, 46, 0.64)" }]);
+export const muted = style([line, { color: vars.colors.desk.text2 }]);
 
 export const figures = style({ margin: 0, display: "flex", flexDirection: "column", gap: "8px", maxWidth: "720px" });
 
@@ -28,7 +28,7 @@ export const figure = style({
   background: "#ffffff",
 });
 
-export const figureLabel = style({ margin: 0, fontSize: "14px", lineHeight: "22px", color: "rgba(22, 31, 46, 0.64)", wordBreak: "keep-all" });
+export const figureLabel = style({ margin: 0, fontSize: "14px", lineHeight: "22px", color: vars.colors.desk.text2, wordBreak: "keep-all" });
 
 export const figureValue = style({ margin: 0, fontSize: "15px", lineHeight: "22px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 
@@ -56,7 +56,7 @@ const tagBase = style({
 export const tag = styleVariants({
   met: [tagBase, { border: `1px solid ${vars.colors.text.primary}` }],
   not_met: [tagBase, { borderStyle: "dashed" }],
-  unknown: [tagBase, { color: "rgba(22, 31, 46, 0.64)" }],
+  unknown: [tagBase, { color: vars.colors.desk.text2 }],
 });
 
-export const footnote = style([line, { fontSize: "12px", lineHeight: "18px", color: "rgba(22, 31, 46, 0.64)" }]);
+export const footnote = style([line, { fontSize: "12px", lineHeight: "18px", color: vars.colors.desk.text2 }]);

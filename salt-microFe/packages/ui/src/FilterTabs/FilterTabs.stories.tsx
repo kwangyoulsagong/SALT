@@ -85,3 +85,28 @@ export const Chip: Story = {
     return <Chips />;
   },
 };
+
+/** 필터 칩 — 목록을 거르는 칩. 고른 것은 파랑 글자 + 옅은 파랑 면(색만이 아니라 `aria-pressed` 로도 알린다) */
+export const Filter: Story = {
+  args: { options: exampleOptions },
+  render: () => {
+    const Filters = () => {
+      const [value, setValue] = useState("all");
+      return (
+        <FilterTabs
+          variant="filter"
+          options={[
+            { label: "전체", value: "all" },
+            { label: "코인", value: "crypto" },
+            { label: "국내 주식", value: "kr" },
+            { label: "관심 종목", value: "watch" },
+          ]}
+          value={value}
+          onChange={setValue}
+          label="종류"
+        />
+      );
+    };
+    return <Filters />;
+  },
+};

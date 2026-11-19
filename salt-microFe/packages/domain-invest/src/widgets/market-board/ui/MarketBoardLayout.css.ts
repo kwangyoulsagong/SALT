@@ -168,6 +168,15 @@ export const headingRow = style({
   flexWrap: "wrap",
 });
 
+/** 화면 제목 18/700 · 1단(`FE-REQ-047` FR-5 — 전 `Heading level 2` 20px) */
+export const boardTitle = style({
+  margin: 0,
+  fontSize: vars.deskType.title.fontSize,
+  lineHeight: vars.deskType.title.lineHeight,
+  fontWeight: vars.deskType.title.fontWeight,
+  color: vars.colors.desk.text1,
+});
+
 /** 섹션 머리의 "더 보기" 류 텍스트 링크 — 버튼처럼 칠하지 않는다 */
 export const reportLink = style({
   display: "inline-flex",

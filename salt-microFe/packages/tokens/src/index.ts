@@ -30,12 +30,32 @@ export const tokens = {
   colors: {
     // 배경색
     background: {
-      primary: "#F2F4F6",
+      /** 데스크톱 틀 바탕 — 2026-11-19 #F2F4F6 → #F4F5F8(`FE-REQ-047` FR-14 실측). 회색 단계 `neutral[100]` 은 그대로 */
+      primary: "#F4F5F8",
       secondary: "#F8F9FA",
       tertiary: "#F0F1F3",
       white: "#FFFFFF",
       dark: "#191F28",
       gray: "#F2F4F5",
+    },
+
+    /**
+     * 데스크톱 틀 면 · 글자 3단(`FE-REQ-047` FR-2 · FR-3 · FR-13, `screen-desktop.md` §1 · §2). 투명도 글자라 어느 면 위에서도 같은 위계다.
+     * `text1` 제목 · 값 · 선택 탭 / `text2` 보조 · 라벨 · 시각 · 미선택 탭(바탕 `#F4F5F8` 위 4.5 이상 — 실측 .61 은 4.42 라 .64) /
+     * `nonText3` 은 **글자에 쓰지 않는다**(2.92~2.98:1 — 구분선 · 비활성 아이콘 · 자리 표시 글만)
+     */
+    desk: {
+      panel: "#FBFCFD",
+      line: "rgba(2, 32, 71, 0.05)",
+      text1: "rgba(26, 31, 41, 0.89)",
+      text2: "rgba(22, 31, 46, 0.64)",
+      nonText3: "rgba(18, 31, 51, 0.47)",
+      /**
+       * 켜진 필터 칩 — 파랑 글자 + 9% 파랑 면(`screen-desktop.md` §3). 실측 글자 `#2272EB` 는 그 면 위 3.70~4.01:1 로 13px 에 AA 미달이라
+       * 같은 계열을 진하게(`#1B5FC7` — 바탕 · 패널 · 흰 위 면에서 4.93~5.34:1, 2026-11-19 계산)
+       */
+      accent: "#1B5FC7",
+      accentFill: "rgba(26, 122, 249, 0.09)",
     },
 
     // 브랜드 색상
@@ -271,6 +291,18 @@ export const tokens = {
     t8: { fontSize: "11px", lineHeight: "16.5px" },
   },
 
+  /**
+   * 데스크톱 글자 4단 + 가격(`FE-REQ-047` FR-3 · `screen-desktop.md` §2) — 화면 제목 18/700 · 섹션 14/600 · 본문 13/600 · 라벨 12/500 ·
+   * 상세 가격 24/700. 데스크톱 화면은 이 다섯만 쓴다 — 사이값(20 · 16 · 15 …)을 새로 쓰지 않는다(`fontSizeBudget.test.ts` 가 센다)
+   */
+  deskType: {
+    title: { fontSize: "18px", lineHeight: "24px", fontWeight: "700" },
+    section: { fontSize: "14px", lineHeight: "20px", fontWeight: "600" },
+    body: { fontSize: "13px", lineHeight: "20px", fontWeight: "600" },
+    label: { fontSize: "12px", lineHeight: "16px", fontWeight: "500" },
+    price: { fontSize: "24px", lineHeight: "32px", fontWeight: "700" },
+  },
+
   fontSizes: {
     xs: "10px",
     sm: "12px",
@@ -294,13 +326,17 @@ export const tokens = {
     extrabold: "800",
   },
 
+  /**
+   * 시스템 서체 한 줄(`FE-REQ-047` FR-15, 2026-11-19 사용자 결정) — 웹 글꼴을 받지 않는다(전: next/font Inter + Noto Sans KR).
+   * 맥 · iOS 는 Apple SD Gothic Neo, 윈도는 맑은 고딕, 그 밖은 Noto Sans KR 이 깔려 있으면 그것. 네 키 모두 같은 줄 — 자리마다 글꼴이 갈리지 않는다
+   */
   fontFamily: {
-    base: "'Inter', 'Noto Sans KR', sans-serif",
-    sans: "'Inter', sans-serif",
-    korean: "'Noto Sans KR', sans-serif",
+    base: '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif',
+    sans: '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif',
+    korean: '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif',
 
     // 기존 호환성 유지
-    secondary: "'Noto Sans KR', sans-serif",
+    secondary: '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif',
   },
 
   lineHeights: {

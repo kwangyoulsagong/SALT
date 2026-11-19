@@ -65,3 +65,8 @@ written: 2026-10-27
 ## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
 
 - 구현은 슬라이스 다섯에서 끝났는데 "남은 것" 칸이 9월 전제(홈 · 3탭 · 설정 한 화면)로 남아 있었다. Action: 슬라이스를 닫을 때 그 결정으로 소멸한 FR 을 주인 REQ 에 바로 대체로 적는다
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- 코치 대화 페이지 틀을 `PageFrame` 으로(가운데 1536 → 가득 찬 폭). PC 격자 · 대화 본문은 그대로
+- 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`

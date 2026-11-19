@@ -101,3 +101,8 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 걸친 몫이 더하기뿐이라 이 REQ 의 판단은 바뀌지 않았다. Action: 없음
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- `AppNavigation` 본문 칸에 패널 면(`contentPanel` — `#FBFCFD` · 모서리 12 · 안쪽 선 · 여백 12) · `data-app-navigation-content`(앱 웹뷰에서 면을 걷는 표지) · 머리 미선택 색을 토큰으로
+- 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`

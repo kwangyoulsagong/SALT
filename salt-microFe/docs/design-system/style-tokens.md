@@ -39,12 +39,23 @@ import { vars } from "@repo/ui/tokens";
 
 | 토큰 | 값 |
 | --- | --- |
-| `vars.colors.background.primary` | `#F2F4F6` |
+| `vars.colors.background.primary` | `#F4F5F8`(2026-11-19 `FE-REQ-047` FR-14 — 전 `#F2F4F6`) |
 | `vars.colors.background.secondary` | `#F8F9FA` |
 | `vars.colors.background.tertiary` | `#F0F1F3` |
 | `vars.colors.background.white` | `#FFFFFF` |
 | `vars.colors.background.dark` | `#191F28` |
 | `vars.colors.background.gray` | `#F2F4F5` |
+
+### 데스크톱 틀 (`FE-REQ-047`, 2026-11-19)
+
+| 토큰 | 값 | 쓰는 곳 |
+| --- | --- | --- |
+| `vars.colors.desk.panel` | `#FBFCFD` | 본문 패널 면(공용 `AppNavigation` 이 칠한다) |
+| `vars.colors.desk.line` | `rgba(2, 32, 71, 0.05)` | 패널 · 카드 안쪽 선, 옅은 면 |
+| `vars.colors.desk.text1` | `rgba(26, 31, 41, 0.89)` | 제목 · 값 · 선택 탭 |
+| `vars.colors.desk.text2` | `rgba(22, 31, 46, 0.64)` | 보조 · 라벨 · 시각 · 미선택 탭(바탕 위 4.5 이상) |
+| `vars.colors.desk.nonText3` | `rgba(18, 31, 51, 0.47)` | **글자 금지** — 구분선 · 비활성 아이콘 · 자리 표시 |
+| `vars.colors.desk.accent` · `accentFill` | `#1B5FC7` · `rgba(26, 122, 249, 0.09)` | 켜진 필터 칩 글자 · 면 |
 
 ### 브랜드와 액션
 
@@ -172,7 +183,8 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | --- | --- |
 | `vars.fontSizes` | `xs: 10px`, `sm: 12px`, `base/md: 14px`, `lg: 16px`, `xl: 18px`, `2xl: 20px`, `3xl: 24px`, `4xl: 32px`, `5xl: 40px`, `6xl: 48px` |
 | `vars.fontWeights` | `light: 300`, `regular: 400`, `medium: 500`, `semibold: 600`, `bold: 700`, `extrabold: 800` |
-| `vars.fontFamily` | `base`, `sans`, `korean`, `secondary` |
+| `vars.deskType` | 데스크톱 글자 다섯 단 — `title` 18/700/24 · `section` 14/600/20 · `body` 13/600/20 · `label` 12/500/16 · `price` 24/700/32. 사이값은 `fontSizeBudget.test.ts` 가 센다 |
+| `vars.fontFamily` | `base`, `sans`, `korean`, `secondary` — 네 키 모두 시스템 서체 한 줄(`-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif`, 2026-11-19 — 웹 글꼴 없음) |
 | `vars.lineHeights` | `tight`, `snug`, `normal`, `relaxed`, `loose` |
 | `vars.letterSpacings` | `tighter: -0.05em`, `tightest: -0.03em`, `tight: -0.02em`, `normal`, `wide`, `wider` |
 | `vars.numeric.tabular` | `tabular-nums`. 시세·금액은 자리가 흔들리지 않아야 한다 |

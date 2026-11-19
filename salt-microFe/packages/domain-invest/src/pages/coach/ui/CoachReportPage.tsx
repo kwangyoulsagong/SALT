@@ -1,9 +1,6 @@
-import { Container } from "@repo/ui/container";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { InvestSide, INVEST_SIDE_LABEL } from "@/widgets/judgment-overview";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import { COACH_REPORT_PAGE } from "../model";
 import { CoachReportBody } from "./CoachReportBody";
@@ -16,20 +13,14 @@ import { CoachReportBody } from "./CoachReportBody";
  * 프로필 블록을 두지 않는다: 읽을 내용이 첫 화면에서 한 칸 밀려 내려간다.
  */
 export const CoachReportPage = () => (
-  <Root background="transparent">
-    <Section containerSize="full" padding="sm">
-      <Container size="2xl" padding="none">
-        <Padding paddingX="xl">
-          <BlockBoundary
-            name={COACH_REPORT_PAGE.blockName}
-            minHeight={COACH_REPORT_PAGE.blockMinHeight}
-          >
-            <CoachReportBody />
-          </BlockBoundary>
-        </Padding>
-      </Container>
-    </Section>
-  </Root>
+  <PageFrame side={<InvestSide />} sideLabel={INVEST_SIDE_LABEL}>
+    <BlockBoundary
+      name={COACH_REPORT_PAGE.blockName}
+      minHeight={COACH_REPORT_PAGE.blockMinHeight}
+    >
+      <CoachReportBody />
+    </BlockBoundary>
+  </PageFrame>
 );
 
 export default CoachReportPage;

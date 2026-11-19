@@ -35,7 +35,7 @@ export const label = style({
   fontWeight: vars.fontWeights.medium,
 });
 
-export const unit = style({ color: "rgba(26, 31, 41, 0.89)", fontSize: "13px", fontWeight: vars.fontWeights.medium });
+export const unit = style({ color: vars.colors.desk.text1, fontSize: "13px", fontWeight: vars.fontWeights.medium });
 
 export const hint = style({ margin: 0, color: vars.colors.text.tertiary, fontSize: "12px", lineHeight: "18px" });
 
@@ -48,7 +48,7 @@ export const weakButton = style({
   border: "none",
   borderRadius: "7px",
   background: "rgba(7, 25, 76, 0.04)",
-  color: "rgba(26, 31, 41, 0.89)",
+  color: vars.colors.desk.text1,
   fontSize: "13px",
   fontWeight: vars.fontWeights.semibold,
   cursor: "pointer",

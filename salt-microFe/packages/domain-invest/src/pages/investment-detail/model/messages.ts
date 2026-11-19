@@ -3,7 +3,12 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   /** 브라우저 탭 제목(`FE-REQ-049` FR-12) — `{가격} {등락률} | {이름}` · 장 밖이면 끝에 "장 마감" */
   tabTitle: (price: string, rate: string, name: string, closed: boolean) =>
     `${price} ${rate}${closed ? " 장 마감" : ""} | ${name}`,
-  back: "투자로 돌아가기",
+  /** 뒤로 버튼 이름 · 이동 경로(`FE-REQ-047` FR-10) — 경로 칸은 투자 › 자산군 › 종목 */
+  back: "뒤로",
+  trailLabel: "이동 경로",
+  trailInvest: "투자",
+  trailCrypto: "코인",
+  trailKr: "국내 주식",
   /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) */
   guestWhat: { preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
   /** 4블록(F017 v4 순서 6) — 내 거래 블록 제목 · 펼침 */
@@ -28,7 +33,6 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   breadcrumbInvestments: "코인 시세",
 
   /** 국내 주식 상세(F011) — 메타데이터에 시세를 넣지 않는다(KRX 재배포 약관) */
-  krBack: "투자로 돌아가기",
   krBlockName: "국내 주식 상세",
   krMetaTitle: (code: string) => `국내 주식 ${code}`,
 } as const;

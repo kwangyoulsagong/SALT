@@ -431,3 +431,8 @@
 - `satisfies Record<CoachMode, string>` 유지 · 투자 zone 빌드 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- 코치 리포트 · 판정 근거 · 코치 설정 페이지 틀을 `PageFrame` 으로(가운데 1536 → 가득 찬 폭) + 투자 오른쪽 사이드
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)
