@@ -189,6 +189,20 @@ def main(argv: list[str] | None = None) -> int:
                         return replace_series(eng, ecos.SOURCE, ecos.SERIES, pts, datetime.now(UTC))
 
                     total += guarded("ecos", ecos.SERIES, save_cpi)
+
+                    def save_kospi() -> int:
+                        # 코스피 PER · 배당(월) · 지수(일) — FC-REQ-029.
+                        # 시리즈마다 통째 교체(정정 · 휴장 보정이 과거를 다시 쓴다)
+                        pts = ecos.kospi_points(client, cfg.ecos_url, ecos_key, Pacer(1.0), now)
+                        if args.dry_run:
+                            return len(pts)
+                        stamp = datetime.now(UTC)
+                        return sum(
+                            replace_series(eng, ecos.SOURCE, sid, [p for p in pts if p.series_id == sid], stamp)
+                            for sid, *_ in ecos.KOSPI_SERIES
+                        )
+
+                    total += guarded("ecos", "kr_kospi", save_kospi)
             if "fred" in only:
                 if cfg.fred_api_key is None:
                     failed["fred"] = ["FORECAST_FRED_API_KEY 없음"]

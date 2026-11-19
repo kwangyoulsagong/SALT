@@ -31,6 +31,9 @@ METRICS = {
     "FlowOutExNtv": "btc",
     "AdrActCnt": "count",
     "HashRate": "th_per_s",
+    # 밴드 적립 MVRV Z 분자 · 분모(시가총액)와 52주 라벨 가격(band-accumulation@1, 2026-11-19 커뮤니티 실조회 확인)
+    "CapMrktCurUSD": "usd",
+    "PriceUSD": "usd",
 }
 LAG = timedelta(days=2)
 PAGE_SIZE = 10000
@@ -93,8 +96,8 @@ def daily(
                 if raw is None or observed <= since.get(sid, HISTORY_START - timedelta(days=1)):
                     continue
                 value = float(raw)
-                if value < 0 or (metric == "CapMVRVCur" and value == 0):
-                    continue  # 음수 · MVRV 0 은 원천 오류 — 버린다(입출금 0 은 유효하다)
+                if value < 0 or (metric in ("CapMVRVCur", "CapMrktCurUSD", "PriceUSD") and value == 0):
+                    continue  # 음수 · MVRV · 시가총액 · 가격 0 은 원천 오류 — 버린다(입출금 0 은 유효하다)
                 yield SeriesPoint(SOURCE, sid, observed, available, value, unit)
         if not page.next_page_token:
             return
