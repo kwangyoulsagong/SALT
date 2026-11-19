@@ -6,7 +6,8 @@ export const containerStyles = style({
   position: "relative",
   width: "100%",
   height: "100%",
-  overflow: "hidden",
+  // 칸은 늘 이 틀 안에 놓인다 — 자르는 것은 칸 머리말에서 열린 메뉴뿐이라 자르지 않는다(2026-11-19 F006)
+  overflow: "visible",
   background: vars.colors.neutral[100],
   fontFamily: vars.fontFamily.base,
   // 드래그 중에 브라우저 기본 스크롤·선택이 끼어들지 않게 한다.
@@ -18,9 +19,14 @@ export const panelStyles = recipe({
     position: "absolute",
     display: "flex",
     flexDirection: "column",
-    overflow: "hidden",
+    // 머리말 메뉴(칸 옮기기 등)가 칸 밖으로 열린다 — 자르지 않는다. 모서리는 본문이 자른다
+    overflow: "visible",
     borderRadius: vars.radius.medium,
     background: vars.colors.background.white,
+    selectors: {
+      // 메뉴가 열려 포커스가 칸 안에 있으면 옆 칸 위로 — 뒤에 그려진 칸이 메뉴를 덮지 않게
+      "&:focus-within": { zIndex: 1 },
+    },
   },
 
   variants: {
@@ -77,6 +83,8 @@ export const panelBodyStyles = style({
   flex: 1,
   minHeight: 0,
   overflow: "auto",
+  borderBottomLeftRadius: vars.radius.medium,
+  borderBottomRightRadius: vars.radius.medium,
 });
 
 export const splitterStyles = recipe({
