@@ -1,11 +1,11 @@
 "use client";
 
-import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
+import { StatusLine } from "@repo/ui/statusLine";
 
-import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
+import { todayInKorea } from "@repo/web-shared/lib";
 
-import { EXPENSE_MESSAGES as E, useHouseholdBudget, useWorkHours } from "@/entities/household";
+import { CategoryNamesProvider, EXPENSE_MESSAGES as E, useHouseholdBudget, useHouseholdMonth, useWorkHours } from "@/entities/household";
 import { BudgetEditor } from "@/features/edit-budget";
 import { CategoryManager } from "@/features/manage-categories";
 import { WorkHoursEditor } from "@/features/set-work-hours";
@@ -21,21 +21,35 @@ const WorkHoursBlock = () => {
   return <WorkHoursEditor setting={work.data} />;
 };
 
-/** 지금 예산을 받아 편집기에 넣는다 — 받은 뒤에 그려야 입력 칸 초기값이 맞다 */
+/** 오른쪽 사이드 — 내 분류(봉투 칸 · 칩에 같이 쓰인다) · 근무 시간 */
+export const BudgetSide = () => (
+  <>
+    <section className={s.sideBlock} aria-labelledby="budget-categories">
+      <h2 id="budget-categories" className={s.sideTitle}>
+        {M.categories}
+      </h2>
+      <CategoryManager />
+    </section>
+    {/* 근무 시간 — 편집기가 자기 제목을 갖는다(같은 제목 두 번 금지) */}
+    <WorkHoursBlock />
+  </>
+);
+
+/**
+ * 지금 예산 + 이번 달 분류별 쓴 돈(서버 `byCategory` — 봉투 행 보조 줄)을 받아 편집기에 넣는다. 받은 뒤에 그려야 입력 칸 초기값이 맞다.
+ * 쓴 돈을 못 받아도 편집은 된다(보조 줄만 빠진다)
+ */
 export const BudgetBoard = () => {
   const budget = useHouseholdBudget();
-  if (budget.isSignedOut) return <EmptyState title={E.signedOut} />;
-  if (budget.isError) return <EmptyState title={E.loadFailed} tone="error" />;
-  if (budget.data === undefined) return <Skeleton height={200} />;
+  const month = useHouseholdMonth(todayInKorea().slice(0, 7));
+  // 상태는 한 줄(`FE-REQ-060` FR-13)
+  if (budget.isSignedOut) return <StatusLine kind="blocked">{E.signedOut}</StatusLine>;
+  if (budget.isError) return <StatusLine kind="error">{E.loadFailed}</StatusLine>;
+  if (budget.data === undefined) return <Skeleton height={400} />;
+  const spent = Object.fromEntries((month.data?.byCategory ?? []).map((c) => [c.key, c.spent]));
   return (
-    <>
-      <BudgetEditor budget={budget.data} />
-      {/* 내 분류(가계부 S1f) — 봉투 칸 · 칩에 같이 쓰인다. 분류 표 조회 하나(예산 실패와 따로) */}
-      <section className={`${panel} ${s.categoryPanel}`} aria-label={M.categories}>
-        <h2 className={panelTitle}>{M.categories}</h2>
-        <CategoryManager />
-      </section>
-      <WorkHoursBlock />
-    </>
+    <CategoryNamesProvider categories={month.data?.categories ?? []}>
+      <BudgetEditor budget={budget.data} spent={spent} />
+    </CategoryNamesProvider>
   );
 };

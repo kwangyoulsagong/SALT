@@ -1,6 +1,14 @@
 import { style } from "@vanilla-extract/css";
 
-export const page = style({ display: "flex", flexDirection: "column", gap: "16px", padding: "20px 24px 32px" });
+import { vars } from "@repo/ui/tokens";
 
-/** 내 분류 패널 — 위 예산 편집기와 같은 폭(가계부 S1f). 가득 찬 패널이면 줄 끝 버튼이 화면 끝으로 밀린다 */
-export const categoryPanel = style({ maxWidth: "640px" });
+/** 예산 화면 사이드 묶음(`FE-REQ-060` FR-7) — 제목 13/600 */
+export const sideBlock = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
+
+export const sideTitle = style({
+  margin: 0,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text1,
+});

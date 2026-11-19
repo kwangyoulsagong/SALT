@@ -5,7 +5,7 @@ import * as s from "./expense.css";
 /**
  * 월말 착지 구간 + 지난달 같은 날 적중 + 쌓인 적중 기록(FR-7 — 예측 채점 집계). 한 점으로 단정하지 않는다 — 구간이 없으면 이유를 말한다(수용 기준 "적중 또는 기록 부족 이유").
  */
-export const LandingBox = ({ month }: { month: HouseholdMonth }) => {
+export const LandingBox = ({ month, hideRange = false }: { month: HouseholdMonth; /** 구간 숫자는 요약 띠가 이미 보인다 — 같은 숫자 두 번 금지(`FE-REQ-060`) */ hideRange?: boolean }) => {
   const l = month.landing;
   return (
     <section className={s.box} aria-label={L.title}>
@@ -16,7 +16,7 @@ export const LandingBox = ({ month }: { month: HouseholdMonth }) => {
         <p className={s.note}>{L.monthOver}</p>
       ) : l.low !== null && l.high !== null ? (
         <>
-          <span className={s.value}>{L.range(formatWon(l.low), formatWon(l.high))}</span>
+          {hideRange ? null : <span className={s.value}>{L.range(formatWon(l.low), formatWon(l.high))}</span>}
           <p className={s.note}>{L.note}</p>
           {l.scheduled > 0 ? <p className={s.note}>{L.scheduled(formatWon(l.scheduled))}</p> : null}
         </>

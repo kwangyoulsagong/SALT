@@ -1,67 +1,29 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ROUTES } from "@repo/web-shared/config";
-import { BlockBoundary, TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
-import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
-
-import { formatMonth } from "@/entities/household";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import { serverMonth } from "../api";
-import { HOUSEHOLD_PAGE as M, currentMonth, isMonth, shiftMonth } from "../model";
+import { HOUSEHOLD_PAGE as M, currentMonth, isMonth } from "../model";
 import { HouseholdBoard } from "./HouseholdBoard";
-import * as s from "./household.css";
+import { HouseholdSide } from "./HouseholdSide";
+import { MonthNav } from "./MonthNav";
 
+/**
+ * 한 달 화면(`FE-REQ-057` FR-1 · FR-7 → `FE-REQ-060` FR-1~6 데스크톱 틀). 서버 셸 — 첫 숫자는 서버가 쿠키로 받아 본문 · 사이드에 같이 넘긴다
+ * (둘 다 같은 조회 키라 요청은 한 번). 머리 = 제목 + 달 이동, 오른쪽 사이드 = 바로 적기 · 봉투 · 분류 · 착지 · 도구
+ */
 const MonthView = async ({ ym }: { ym: string }) => {
   const initial = await serverMonth(ym);
-  const thisMonth = currentMonth();
   return (
-    <div className={s.page}>
-      <div className={s.head}>
-        <h1 className={panelTitle}>{M.title}</h1>
-        <div className={s.actions}>
-          <Link href={ROUTES.householdRecurring} className={s.link}>
-            {M.recurring}
-          </Link>
-          <Link href={ROUTES.householdChallenges} className={s.link}>
-            {M.challenges}
-          </Link>
-          <Link href={ROUTES.householdPeople} className={s.link}>
-            {M.people}
-          </Link>
-          <Link href={ROUTES.householdStory(ym)} className={s.link}>
-            {M.story}
-          </Link>
-          <Link href={ROUTES.householdBudget} className={s.link}>
-            {M.budget}
-          </Link>
-          <Link href={ROUTES.newExpense} className={s.link}>
-            {M.add}
-          </Link>
-        </div>
-      </div>
-      <p className={panelDescription}>{M.description}</p>
-      {/* 때맞춘 팁 0~1장 — 5월 종합소득세 · 11~12월 연말정산 같은 달 트리거(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
-      <TimelyTip context={TimelyTipContext.Household} />
-      <nav className={s.monthNav} aria-label={M.current}>
-        <Link href={ROUTES.householdMonth(shiftMonth(ym, -1))} className={s.link}>
-          {M.prev}
-        </Link>
-        <span>{formatMonth(ym)}</span>
-        {ym < thisMonth ? (
-          <Link href={ym === shiftMonth(thisMonth, -1) ? ROUTES.household : ROUTES.householdMonth(shiftMonth(ym, 1))} className={s.link}>
-            {M.next}
-          </Link>
-        ) : null}
-      </nav>
-      <BlockBoundary name={M.blockName} minHeight={240}>
+    <PageFrame title={M.title} actions={<MonthNav ym={ym} />} side={<HouseholdSide ym={ym} initial={initial} />} sideLabel={M.title}>
+      <BlockBoundary name={M.blockName} minHeight={480}>
         <HouseholdBoard ym={ym} initial={initial} />
       </BlockBoundary>
-    </div>
+    </PageFrame>
   );
 };
 
-/** 가계부 `/household` — 이번 달(`FE-REQ-057` FR-1). 서버 셸 + 한 달 잎 */
+/** 가계부 `/household` — 이번 달 */
 export const HouseholdPage = async () => <MonthView ym={currentMonth()} />;
 
 /** 지난 달 `/household/month/[ym]`(FR-7). 형식이 틀리거나 미래 달이면 404 */

@@ -14,6 +14,8 @@ export const RECORD_MESSAGES = {
   approxHint: "밀린 날을 한 번에 — 통계에서 '대략'으로 따로 세요",
   memo: "메모(선택)",
   submit: "저장",
+  /** 사이드 빠른 입력 — 쓴 곳 · 날짜 · 결제 · 기분 · 대략을 접은 칸(`FE-REQ-060` FR-6) */
+  more: "더 적기 — 쓴 곳 · 날짜 · 결제",
   saved: "저장했어요",
   envelopeAfter: (label: string, remaining: string) => `${label} 봉투 남은 돈 ${remaining}`,
   failed: "저장 못 했어요. 입력한 값은 그대로 있어요",
