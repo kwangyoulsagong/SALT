@@ -9,6 +9,16 @@ labels: [ddd, domain, band-engine, indicator, kimchi-premium]
 created: 2026-09-09
 ---
 
+> **2026-11-19 F003 v2 순서 2 — 이 블록이 아래 본문보다 우선한다**(`feat/f003-v2-s2-plan-server`, 루트 `F003-v2-s2-plan-server-slice.md`).
+> - 컨텍스트는 `plan` 하나(**portfolio 서비스** — `ADR-006` §1 · S4 전이라 Express). `indicator` 컨텍스트 · 밴드 엔진 · Puell · CAPE · 바이낸스 · 환율 · LLM 근거 문장은 **만들지 않는다** — 지표 · 밴드 · 52주 검산 관문 · 실패 사례 · 김프는 예측 뷰(`FC-REQ-029`), 서버는 **금액과 사람 기록만**
+> - 자산 BTC · 코스피(FR-7 국내 `excluded` 폐기). 관문 실패면 1.0(정액) — FR-1~4 · 6 · 13 · 14 · 50 · 55 · 56 · 60~62 는 예측 몫으로 대체
+> - 게이트(FR-10~12): `trackRecordId` 대신 `renderable` + `blockedReason`(`band_missing` · `indicator_missing` · `track_record_missing` · `failure_cases_missing`). 3종 하나라도 없으면 카드 0, **금액은 그대로**(FR-22)
+> - 폴백(FR-20~23): "지표 3일 결측" 대신 **"그 주 예측 행 없음" → 정액 + `fallback`**. 이번 주 예측 회차 전이면 굳히지 않고 `band_pending`(회차 뒤 그 배수로 굳는다)
+> - 주 생성(FR-32): 월요일 워커 대신 **읽을 때 멱등하게 채움** — 이 맥은 평일 업무 시간에만 켜져 월요일 07:00 회차를 놓친다. 열지 않은 지난 주도 `skipped`(그 주 예측 행이 있으면 그 배수, 없으면 정액)
+> - 근거 문장(FR-60~64): 코드 + 수치만(`reasonCode` 넷), LLM 0. 김프 문장도 화면 몫(`level` 코드만)
+> - 실행 체크: **이번 주만**(지난 주 422 `PLAN_WEEK_NOT_CURRENT`) · 설정 전 422 `PLAN_NOT_CONFIGURED`
+> - 구현 FR: 5 · 8 · 10~12 · 20~23 · 30~32 · 40~45 · 51~54 · 63 · 64 · 70~76 · 80~83. FR-77(자산별 `enabled`)은 배분 읽기 전용이라 v2 범위 밖
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
 
@@ -211,3 +221,4 @@ D9: *설정 = 한 화면. 적립 기본액만 편집, 밴드 임계값은 읽기
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-1·2(D9 전역 읽기 전용 밴드), FR-40~42(수동 체크만 — ADR-002 · B20) 개정, FR-46 삭제. FR-70~77(기본액 설정 · 온보딩 저장 — D9 · B12), FR-80~83(이번 달 적립 합계 — B20) 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 2 구현(`feat/f003-v2-s2-plan-server`) — `src/plan` 4층 · 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |

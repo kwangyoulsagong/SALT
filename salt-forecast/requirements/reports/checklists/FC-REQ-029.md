@@ -17,3 +17,9 @@
 | 검증 명령 | ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · leakage 51 · store(실 DB) | pass |
 
 미검증: 매일 배치 첫 회차(`daily.sh` 끝 `accumulation_band`) — 다음 매일 회차(2026-11-20) `job_run` 확인.
+
+## 2026-11-19 F003 v2 순서 2 짝
+
+- `tests/jobs/test_accumulation_band_job.py` — 밴드 표 = 사전등록 TOML(두 자산) · 표준 JSON(inf 0) · `test_schema_contract` 통과(실 DB)
+- ruff · pyright 0 · lint-imports 3 kept · pytest 전부 · `--dry-run --as-of 2026-06-30` · 실 DB 재실행 2행(밴드 표 채움)
+- 미충족: 실행 트리(`~/.salt-run`)는 머지 뒤 따라간다 — 그 전 회차는 `bands` 를 안 써 기본값 `[]` 이 유지된다(지금 행은 브랜치 실행으로 채움)

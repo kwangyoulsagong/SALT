@@ -9,6 +9,10 @@ labels: [ddd, infrastructure, worker, indicator, binance, kimchi]
 created: 2026-09-09
 ---
 
+> **2026-11-19 F003 v2 순서 2 — 이 블록이 우선한다**(`feat/f003-v2-s2-plan-server`). 워커 0 · 외부 클라이언트 0 — 지표 수집 · 김프는 예측 배치(`FC-REQ-029`).
+> 서버는 `forecast.v_accumulation_band`(자산마다 최신) · `v_accumulation_band_week`(주별 — 지난 주 마감용)를 **뷰로만** 읽는다(`PrismaBandReader`).
+> FR-40 의 `BandPreset` 은 예측 행 `bands`(사전등록 밴드 표 그대로)로 대체 — 서버 · 프론트 임계 상수 0. FR-41 · 45 는 `plan_settings.previous_monthly_base_krw` · `effective_week` + 읽을 때 채움으로. 쓰기는 한 문장씩(`noParallelRowWrites`).
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - 김프 선행 조건이 깨졌다 — F006 은 `FxRate` 를 보류했고(`DB-REQ-021` FR-33) `fx` 컨텍스트도 없다. 반면 `forecast.market_signal` 이 `kimchi_premium` · `fx_usdkrw` 를 이미 저장한다 — 재사용 여부는 F003 착수 때 결정
 > - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
@@ -184,3 +188,4 @@ ADR-002(원장 · 청구서 · 세금 제거) · 기본안 — 감사 문서 B20
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 원장 매칭 절(FR-50~53) 삭제·개정, FR-3·FR-30 개정(ADR-002 · B20). `BandPreset` 읽기 전용 FR-60·61 추가(D9). 월 합계 Projection 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 2 — 워커 · 외부 연동 없이 예측 뷰 둘을 읽는 구조로(머리 블록). to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |

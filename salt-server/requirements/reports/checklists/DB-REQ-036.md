@@ -102,3 +102,8 @@
 - `salt-server/src/portfolio/application/api/index.ts` — 유스케이스 하나(`previewTransaction`) · 의존 하나(`ledger`). 교차 스키마 조인 0 · 테이블 주인 무변경
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-19 F003 v2 순서 2
+
+- 주인 표 portfolio +2 · 합계 고침 · 교차 스키마 조인 0(plan 은 `forecast` 뷰만 `$queryRaw`) · 사용자 FK 0
+- 미충족: 없음

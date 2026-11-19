@@ -74,3 +74,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `salt-server/src/composition.ts` — portfolio 조립에 `ledger: { run: runInTransaction }` 한 줄. identity · 알림 무변경 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — BFF `app-alerts.service.ts`(머리에 이 REQ) 가 Kotlin notification 의 `unread-count` · `/{id}/read` · `/read-all` 을 처음 부른다. 서버 코드 변경 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 계정 삭제 · 내보내기 목록(`coach/infrastructure/userRows.ts`)에 `panel_layouts`. 이 REQ 동작 무변경 |
+| 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`, 파일만 걸침) — `salt-server/src/composition.mydata.ts` 내 데이터 목록에 plan 표 둘(`PLAN_USER_ROWS` — 내보내기 · 계정 삭제 실확인). 이 REQ 의 동작 변경 0. 루트 `F003-v2-s2-plan-server-slice.md` |
