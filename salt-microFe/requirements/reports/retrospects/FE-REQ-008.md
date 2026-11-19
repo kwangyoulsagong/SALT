@@ -173,3 +173,8 @@ Action item 1은 원래 "빠진 미러 9개를 채운다"였다. 실제 결정�
 ## 2026-11-19
 
 - 나중에 받는 잎은 `useLazyComponent` — `next/dynamic` 실패는 섹션 경계까지 올라간다
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- zone 루트 레이아웃에서 `next/font` 글꼴 변수(`FONT_VARIABLES`)를 뺐다 — 스트리밍 경계 · 레이아웃 구조는 그대로
+- 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`

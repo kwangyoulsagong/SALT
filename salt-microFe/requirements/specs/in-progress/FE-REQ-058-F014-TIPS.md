@@ -75,3 +75,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-05 | 금융 팁 S2d 확인 2회차 — 빈 사용자 머리 문구 결함 고침(숫자가 있을 때만) · `test:layer-check` · zone 5 빌드 |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `PublicShell` 주석 — 공개 zone 은 앱 내비 · 검색칸 없음(변화 없음) |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 에 금융 팁 zone `web-tips`(3005)가 **빠져 있었다** — 셸이 `/tips` 를 프록시하는데 아무도 띄우지 않았다(11-13 수동 기동 후 넣음) |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 팁 화면 글자 2단 하드코딩을 토큰(`colors.desk.text2`)으로 — 값 같음 |

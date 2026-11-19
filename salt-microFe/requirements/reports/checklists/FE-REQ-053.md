@@ -98,3 +98,8 @@
 - 이 REQ 몫: `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(이 REQ 줄은 그대로 — 같은 줄에 이름이 나란히 있다)
 - 확인: `ops/salt.sh help` · `zsh -n`
 - 미검증: 없음
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- 셸 `src/app` 재수출에서 `FONT_VARIABLES` 를 뺐다 — `fonts.ts` 삭제(시스템 서체)
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)

@@ -66,3 +66,4 @@ RN 앱은 코드가 없다(`apps/mobile` 없음, RN-REQ-001~031 전부 to-do). �
 | 2026-11-13 | **v4 한 장 패널**(`requirements/specs/in-progress/F017-v4-one-panel-global-plan.md`) — FR-7 웹뷰 휴대폰 폭 · FR-8 스트림 복귀 · FR-9 네이티브 연결 셋(입력 시트 · 내 선 알림 · 공유) · FR-10 화면 정리 따라가기 |
 | 2026-11-13 | FR-10 확정 — `FE-REQ-064` FR-12 확정을 따라감 |
 | 2026-11-17 | **F017 v4 순서 6**(`feat/f017-v4-s6-screen-cleanup`) — to-do → in-progress. FR-7 · 8 · 10 웹 몫 done(앱 웹뷰 UA 390 · 360 넘침 0 · 글자 13 · 누름 44 · 스트림 오프라인 · 복귀) · FR-9 대기(앱 없음). 실기기 측정은 `RN-REQ-001` 뒤 |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 앱 웹뷰에서 본문 패널 면 · 여백 · 선(`FE-REQ-047` FR-2)을 걷는다 · 화면 틀 사이드도 숨김 — 앱은 모바일 배치(FR-17). 390 앱 UA 실화면 확인 |

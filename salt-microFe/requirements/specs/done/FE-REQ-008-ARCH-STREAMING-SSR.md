@@ -224,5 +224,6 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 | 2026-11-10 | `MarketBoard` 주소 잎이 자산군 · 뉴스 모달을 함께 — 모달은 `?news=` 있을 때만 dynamic(`c914fe2e`) · 투자 zone 레이아웃 머리 메뉴는 Suspense 잎(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
 | 2026-11-19 | 파일만 걸침 — 뉴스 창 · 거래 시트를 나중에 받는 공용 훅 `useLazyComponent`(청크 실패면 화면 그대로 · 한 줄 `BOUNDARY_MESSAGES.lazyFailed`). 루트 `WEB-perf-req-close-slice.md` 판단 12 |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — zone 루트 레이아웃에서 `next/font` 글꼴 변수(`FONT_VARIABLES`)를 뺐다 — 스트리밍 경계 · 레이아웃 구조는 그대로 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/MarketBoard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

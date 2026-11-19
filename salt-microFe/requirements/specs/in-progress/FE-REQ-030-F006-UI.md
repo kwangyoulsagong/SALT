@@ -308,3 +308,4 @@ created: 2026-09-09
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-80 벨 자리(모든 zone 머리 · 프로필 앞) · FR-81 배지(0 숨김 · 99+ · `aria-label`) · FR-110~113 `/alerts`(행 · 읽음 + 이동 · 모두 읽음 · 만드는 칸 0) · 빈 상태 문구 해요체로 정정. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | **PC 이동식 격자 구현**(`feat/f006-pc-panel-grid`) — FR-50~58. 격자 자리 `/coach/chat`(정정 — 3탭 없음) · 칸 "오늘의 추천"(정정) · 저장 경로 `/api/app/coach/panel-layout`(정정). 루트 `F006-pc-panel-grid-slice.md` |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 코치 대화 페이지 틀을 `PageFrame` 으로(가운데 1536 → 가득 찬 폭). PC 격자 · 대화 본문은 그대로 |

@@ -36,6 +36,7 @@
 | 영구 실패(DART 013 · 014)를 프로세스 메모리로만 세어 재기동마다 다시 부름(2026-11-17) | `salt-server` `collectDartDisclosures.test.ts` 영구 · 지나가는 실패 경계 | `npm test` |
 | 공유 한도 페이서가 순수 우선순위 — 몇 시간짜리 백필이 아래 줄(전 종목 일봉 · 시황 제목)을 굶김(2회차, 2026-11-16 · 11-17) | `salt-server` `pacer.test.ts` 굶는 요청 0(포화에서도 단계 × `agingMs` 안팎) | `npm test` |
 | Swagger 주석 YAML 이 깨져(응답 키 중복) 경로 파일이 문서에서 조용히 빠짐 — 부팅 로그에만(국내 주식 경로 넷 열흘, 2026-11-19) | `salt-server` `swagger.test.ts`(`failOnErrors`) | `npm test` |
+| 데스크톱 글자 크기 사이값(20 · 16 · 15 …)이 화면마다 늘어남 — 규칙 문서만으로 211곳(2026-11-19 `FE-REQ-047` FR-3) | `@repo/ui` `fontSizeBudget.test.ts` 영역별 래칫(늘면 실패 · 줄면 기준을 낮춤) | `pnpm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

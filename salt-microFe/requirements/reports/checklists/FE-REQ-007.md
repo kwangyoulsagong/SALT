@@ -275,3 +275,8 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 - zone 다섯 빌드 · 스크린샷 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- `@repo/tokens` 에 데스크톱 틀 토큰(`colors.desk` · `deskType`) · 바탕 `#F4F5F8` · 글꼴 네 키를 시스템 서체로 — 어댑터 구조(토큰 한 곳 → 웹 변수)는 그대로
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)

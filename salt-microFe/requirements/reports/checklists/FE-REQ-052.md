@@ -107,3 +107,8 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 레지스트리 invest `pathPrefixes` 에 `/plan` — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- zone 루트 레이아웃 다섯에서 `next/font` 글꼴 변수를 뺐다(시스템 서체) — zone 구조 그대로
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)

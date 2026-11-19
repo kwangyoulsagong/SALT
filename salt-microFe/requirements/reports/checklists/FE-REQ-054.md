@@ -154,3 +154,8 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 머리 메뉴 시험에 `/plan` · `/planner`(아님) · 순서 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- `AppNavigation` 본문 칸에 패널 면(`contentPanel` — `#FBFCFD` · 모서리 12 · 안쪽 선 · 여백 12) · `data-app-navigation-content`(앱 웹뷰에서 면을 걷는 표지) · 머리 미선택 색을 토큰으로
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)

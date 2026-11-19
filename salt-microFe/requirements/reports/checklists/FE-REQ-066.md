@@ -97,3 +97,8 @@
   - `salt-microFe/packages/domain-invest/src/widgets/asset-search/ui/AssetSearchDialog.tsx` — 게스트 검색 결과 대기 결함(꺼진 관심 조회 `isPending`) 고침 · 주석 정정
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-19 `FE-REQ-047` 데스크톱 틀이 걸침
+
+- 검색 모달 · 옆 칸 · 행 면 하드코딩을 토큰으로 — 값 같음. 교체 중 옆 칸 테두리가 따옴표 안 `${…}` 로 남아 CSS 가 깨졌던 것을 dev 화면에서 찾아 고침(머지 전)
+- 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)

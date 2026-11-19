@@ -94,6 +94,7 @@ source: 사용자 스크린샷 6장(2026-10-30 09:18~09:20) · "국내주식 상
 | 2026-11-10 | v2 대체 표시 — Summary · FR-5 · 지키는 것 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-11 | F017 v2 단계 5 — 국내 상세 '자세히' 문구 `변동 범위` → `다음 몇 시간 시나리오` |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 상세 머리 뒤로 링크에서 `?mode=` 를 뺌 · 심리 온도 문구 지움(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — **FR-6(상세 머리 값 — 이름 14/700 · 가격 · 알약 탭 · 고정 열 360)을 `FE-REQ-047` 에서 받음**. 상세 머리 첫 줄 뒤로 버튼 + 이동 경로(`BackNav`)는 047 이 놓았다 — 옛 "‹ 투자로 돌아가기" 글자 링크 제거 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`41447893`) — 문제 목록 "같은 숫자 두 번" 중 해설 칸 성적 3칸 제거
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리

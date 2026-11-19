@@ -184,3 +184,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 온보딩 장면 배치(P-20) — 초대 = 대화 · 고르기 = 동전 주머니(본문은 폼이라 장면 숨김) · 첫 기록 = 장부. 새 장면 0 `c1baa77a` |
 | 2026-11-09 | `@repo/ui` Modal 에 `size="article"` 변형(읽는 모달 — `FE-REQ-065`) · 등장 · 퇴장 움직임은 그대로 |
 | 2026-11-18 | F006 알림 화면 확인 3회차(`feat/f006-alerts-screen`) — 파일만 걸침 — `surface.css.ts` `panelDescription` 글자색만 2단으로(FR-13 · 대비). 패널 등장 움직임 · 모양 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 섹션 탭의 미끄러지는 밑줄(P-31)을 지웠다 — 탭은 글자 진하기로만(`FE-REQ-047` FR-4). 세그먼트의 미끄러지는 알약은 그대로 |
