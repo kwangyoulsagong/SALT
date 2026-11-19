@@ -12,6 +12,7 @@ import type {
   SavingsEmergency,
   SavingsGoal,
   SavingsGoalDetail,
+  SavingsOverview,
   SavingsSimulation,
 } from "../model/types";
 import { goalApi } from "./goalApi";
@@ -33,6 +34,19 @@ export const useSavingsGoals = (initial?: SavingsGoal[] | null) => {
   const query = useQuery({
     queryKey: goalQueryKeys.list(),
     queryFn: ({ signal }) => goalApi.list(signal),
+    enabled: signedIn === true,
+    staleTime: GOALS_STALE_MS,
+    ...(initial ? { initialData: initial } : {}),
+  });
+  return { ...query, isSignedOut: signedIn === false && !initial };
+};
+
+/** 목록 요약 띠(`FE-REQ-060` FR-2) — 첫 숫자는 서버 컴포넌트가 쿠키로(목록과 같은 방식) */
+export const useSavingsOverview = (initial?: SavingsOverview | null) => {
+  const signedIn = useHasSession();
+  const query = useQuery({
+    queryKey: goalQueryKeys.overview(),
+    queryFn: ({ signal }) => goalApi.overview(signal),
     enabled: signedIn === true,
     staleTime: GOALS_STALE_MS,
     ...(initial ? { initialData: initial } : {}),

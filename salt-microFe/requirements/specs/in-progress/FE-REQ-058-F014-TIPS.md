@@ -77,3 +77,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 에 금융 팁 zone `web-tips`(3005)가 **빠져 있었다** — 셸이 `/tips` 를 프록시하는데 아무도 띄우지 않았다(11-13 수동 기동 후 넣음) |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 팁 화면 글자 2단 하드코딩을 토큰(`colors.desk.text2`)으로 — 값 같음 |
 | 2026-11-19 | `FE-REQ-060` 1단계 — 가계부 때맞춘 팁 칸 자리만 옮김(요약 띠 아래). 팁 계약 · 동작 변경 0 |
+| 2026-11-19 | `FE-REQ-060` 2단계 저축(파일만 걸침) — 저축 목록의 때맞춘 팁 칸(`TimelyTip` Savings) 자리를 요약 띠 아래로 옮김 — 동작 무변경. 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md` |

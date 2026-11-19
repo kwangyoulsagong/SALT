@@ -19,6 +19,24 @@ describe("AppSavingsService", () => {
     assert.deepEqual(seen, ["GET /savings/goals"]);
   });
 
+  it("목록 요약 띠 — 서버 합을 가공 없이 · 경로 /savings/overview", async () => {
+    const body = {
+      month: "2026-11",
+      totalGoals: 2,
+      activeGoals: 2,
+      totalSaved: 600000,
+      monthDeposited: 600000,
+      nearestReach: { goalId: "g", title: "여행", template: "travel", projection: { method: "plan_only", earlyMonth: null, lateMonth: null, planMonth: "2027-04", reason: "history_short" } },
+    };
+    const seen: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      seen.push(`${m} ${url}`);
+      return { data: { success: true, data: body } } as never;
+    });
+    assert.deepEqual(await appSavingsService.overview("t"), body);
+    assert.deepEqual(seen, ["GET /savings/overview"]);
+  });
+
   it("적립 · 나눠 넣기 · 만들기는 본문을 그대로 서버로 — 경로의 id 는 인코딩", async () => {
     const seen: Array<[string, string, unknown]> = [];
     mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {

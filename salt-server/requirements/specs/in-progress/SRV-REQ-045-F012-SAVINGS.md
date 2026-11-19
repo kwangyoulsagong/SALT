@@ -36,11 +36,14 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-17 | 구독 — `household.ExpenseRecorded` → 목표 지연 일수 재계산(가계부 응답용 조회 API 제공) · `household.MonthClosed` → 월 저축 속도 갱신 | F013 FR-8 |
 | FR-18 | 발행 — `GoalCreated` · `GoalReached` · `ProjectionIssued` | — |
 | FR-19 | 성능 — 목록 쿼리 3회 이하 · 저울 300ms · 지연 일수 조회 50ms | NFR |
+| FR-20 | 목록 요약 띠 — `GET overview`: 모은 돈 합(다 찬 목표 포함 — 홈 카드와 같은 정의) · 이번 달(KST) 넣은 돈 합(목표마다 이정표 넣은 돈의 합) · 목표 수 · 진행 중 수 · 가장 이른 도달(진행 중만 · 구간 이른 끝 → 계획 달로 비교 · 같으면 먼저 만든 목표, 구간 · 계획 달 그대로). 합은 서버(화면 합산 0). 쿼리 2회 — **done 2026-11-19**(`GoalsOverview` · `GoalsOverviewSpec` · `SavingsEndToEndTest`) | `FE-REQ-060` FR-2 |
 
 ## API (Swagger)
 
 `GET /api/savings/goals` · `POST /api/savings/goals` · `GET /api/savings/goals/:id` · `POST /api/savings/goals/:id/deposits` · `POST /api/savings/deposits/split` ·
 `POST /api/savings/simulate` · `GET /api/savings/goals/:id/delay?amount=` · `GET /api/savings/home-card` · `POST /api/savings/goals/:id/members`
+
+**2026-11-19 `FE-REQ-060` 2단계로 생긴 것**: `GET /api/savings/overview`(FR-20, 더하기만).
 
 **2026-11-03 S1b 로 생긴 것**: `PUT /api/savings/goals/plans`(저울 확정) · `POST /api/savings/goals/:id/emergency-compare` · `POST /api/savings/goals/:id/units` · `DELETE /api/savings/goals/:id/units/:unitId`. 목록 · 상세 응답 칸 `scene` · `stampCount` · `postcard` · `unitLine` · `planMeetsDeadline` · 상세 `missedMonths` · `units` · `unitLimit`. 아직 없음: ~~`delay`(가계부 S1)~~ **정정 2026-11-04** — 목록 칸이 아니라 따로 `GET /api/savings/goal-clock?amount=`(가계부 S1a `a16356f6`) · `members`(공동)
 
@@ -125,3 +128,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름). 이 REQ 몫 기능 변경 0 |
 | 2026-11-16 | 새 맥 이전(루트 `requirements/specs/done/OPS-002-new-mac-setup-slice.md`) — `run-platform.sh`: 55672 가 닫혀 있으면 네이티브 RabbitMQ(brew)를 먼저 켠다, 없으면 Compose(55672 로 덮어). 동작 계약 무변경 |
 | 2026-11-18 | FR-6 done · FR-10 done(O4) — 목록 · 상세 `projection.track`(6개월 판정 10 이상일 때 판정 수 · 맞은 수 · 사람 수 · 명목 %, 아니면 `trackReason` history_short · unavailable) · 상세 `todayMoney`(만든 때 알던 물가 달 ↔ 지금 아는 달 · 정한 금액의 지금 값어치 · 같은 값어치 금액 · 변화율 · 6개월 안 · 새 지수 없음 · 못 읽음은 이유). 예측 뷰를 세이브포인트 안에서 읽어 실패해도 그 칸만 — 쓰기(적립) 트랜잭션도 산다. 홈 카드 · 목표 시계는 예측을 읽지 않는다. 목록 쿼리 3 → 4. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
+| 2026-11-19 | FR-20 신규 · done — 저축 목록 요약 띠 `GET /api/savings/overview`(`GoalsOverview` 유스케이스 — 목록과 같은 읽기에서 실물 단위 · 적중 이력 빼고 쿼리 2회). 화면이 합하지 않게 서버가 더한다(`FE-REQ-060` FR-2). 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md` |

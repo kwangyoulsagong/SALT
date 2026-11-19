@@ -114,3 +114,7 @@
 - `FE-REQ-060` 1단계가 이 틀 위에 가계부를 놓음 — `PageFrame`(가계부 · 예산 · 적기) · `@repo/ui` `SummaryBand` · `ListRow density="desk"` · `Button size="desk"`(32 · 모서리 8 · 14/600) · `SURFACE.infoFill`(정보 상자) · `useDesktopViewport`(1024). 래칫 가계부 6 → 5
 - 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-19 `FE-REQ-060` 2단계 저축이 걸침
+
+- 확인은 `FE-REQ-060` 체크리스트 2단계 절. 이 REQ 몫 동작 변경 0

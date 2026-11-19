@@ -13,6 +13,7 @@ import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
 import com.salt.savings.application.GoalClockQuery
 import com.salt.savings.application.GoalReader
+import com.salt.savings.application.GoalsOverview
 import com.salt.savings.application.HomeCard
 import com.salt.savings.application.ListGoals
 import com.salt.savings.application.ListTemplates
@@ -104,6 +105,9 @@ class SavingsComposition {
 
     @Bean
     fun savingsHomeCard(reader: GoalReader): HomeCard = HomeCard(reader)
+
+    @Bean
+    fun goalsOverview(reader: GoalReader, clock: Clock): GoalsOverview = GoalsOverview(reader, clock)
 
     @Bean
     fun simulateBalance(reader: GoalReader, clock: Clock): SimulateBalance = SimulateBalance(reader, clock)

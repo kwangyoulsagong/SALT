@@ -1,32 +1,35 @@
 import Link from "next/link";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { BlockBoundary, TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
-import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
-import { serverGoals } from "../api";
-import { GOALS_PAGE } from "../model";
+import { serverGoals, serverOverview } from "../api";
+import { GOALS_PAGE as M } from "../model";
 import { GoalsBoard } from "./GoalsBoard";
+import { GoalsSide } from "./GoalsSide";
 import * as s from "./goals.css";
 
-/** 저축 목표 목록 `/goals` — 서버 컴포넌트 셸 + 목록 잎(`FE-REQ-056` FR-1). 같은 zone 안 이동은 `<Link>` */
+/**
+ * 저축 목표 `/goals`(`FE-REQ-056` FR-1 → `FE-REQ-060` FR-1 · 2 · 8 데스크톱 틀). 서버 셸 — 목록 · 요약 띠 첫 숫자를 병렬로 받아 본문 · 사이드에 같이 넘긴다
+ * (사이드는 같은 목록 조회 키라 요청은 한 번). 머리 = 제목 + 새 목표, 사이드 = 나눠 넣기 · 저울 · 엽서 보관함
+ */
 export const GoalsPage = async () => {
-  const initialGoals = await serverGoals();
+  const [initialGoals, initialOverview] = await Promise.all([serverGoals(), serverOverview()]);
   return (
-    <div className={s.page}>
-      <div className={s.head}>
-        <h1 className={panelTitle}>{GOALS_PAGE.title}</h1>
+    <PageFrame
+      title={M.title}
+      actions={
         <Link href={ROUTES.addGoal} className={s.addLink}>
-          {GOALS_PAGE.add}
+          {M.add}
         </Link>
-      </div>
-      <p className={panelDescription}>{GOALS_PAGE.description}</p>
-      {/* 때맞춘 팁 0~1장 — 결혼 · 주거 목표를 만들면 붙는 제도 한 줄(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
-      <TimelyTip context={TimelyTipContext.Savings} />
-      <BlockBoundary name={GOALS_PAGE.blockName} minHeight={160}>
-        <GoalsBoard initialGoals={initialGoals} />
+      }
+      side={<GoalsSide initialGoals={initialGoals} />}
+      sideLabel={M.tools}
+    >
+      <BlockBoundary name={M.blockName} minHeight={480}>
+        <GoalsBoard initialGoals={initialGoals} initialOverview={initialOverview} />
       </BlockBoundary>
-    </div>
+    </PageFrame>
   );
 };
 

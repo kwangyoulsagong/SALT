@@ -15,12 +15,19 @@ const signed = (value: number | string): string => {
  * 숫자 · 기준 달은 서버(`SRV-REQ-045` FR-10). 금액을 고치라고 하지 않는다 — 고칠지는 사용자가 정한다는 사실만.
  * 숫자가 없으면 이유 한 줄(6개월 전 · 새 물가 없음 · 못 읽음).
  */
-export const TodayMoneyBox = ({ money, targetAmount }: { money: SavingsTodayMoney; targetAmount: number }) => {
+export interface TodayMoneyBoxProps {
+  money: SavingsTodayMoney;
+  targetAmount: number;
+  /** 제목이 있는 패널 안(상세 회고 탭) — 상자 · 제목 없이 */
+  bare?: boolean;
+}
+
+export const TodayMoneyBox = ({ money, targetAmount, bare = false }: TodayMoneyBoxProps) => {
   const M = GOAL_MESSAGES.todayMoney;
   const ready = money.reason === null && money.baseMonth && money.latestMonth && money.worthToday !== null && money.sameValue !== null;
   return (
-    <div className={s.box} aria-label={M.title}>
-      <span className={s.label}>{M.title}</span>
+    <div className={bare ? s.bare : s.box} aria-label={M.title}>
+      {bare ? null : <span className={s.label}>{M.title}</span>}
       {ready ? (
         <>
           <span className={s.value}>

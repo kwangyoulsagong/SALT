@@ -22,7 +22,14 @@ const parseRate = (text: string): number | null => (text.trim() === "0" ? 0 : pa
  * 비상시 비교(`FE-REQ-056` FR-7) — 목표에서 꺼내기 vs 사용자가 넣은 금리로 빌리기. 숫자는 전부 서버 계산 · 저장 없음.
  * 금액 계산을 하지 않는 feature 다(`fsd-features.md`) — 입력을 보내고 두 줄을 같은 무게로 보여 줄 뿐
  */
-export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
+export interface EmergencyCompareProps {
+  goalId: string;
+  /** 상세 고정 열 360(`FE-REQ-060` FR-9) — 입력 32 · 한 열 */
+  compact?: boolean;
+}
+
+export const EmergencyCompare = ({ goalId, compact = false }: EmergencyCompareProps) => {
+  const field = compact ? "compact" : undefined;
   // 금액 원 단위 · 금리 소수 하나 · 개월 숫자만 — 값과 안내를 한 덩어리로, 안내는 그 칸 아래(`useNumberFields` · `@repo/core/input`)
   const nums = useNumberFields({ amount: "won", rate: "decimal", months: "count" }, { months: DEFAULT_MONTHS });
   const amount = nums.value("amount");
@@ -41,12 +48,12 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
   const code = isApiError(compare.error) ? compare.error.code : null;
 
   return (
-    <div className={s.form} aria-label={M.title} role="group">
+    <div className={compact ? `${s.form} ${s.compact}` : s.form} aria-label={M.title} role="group">
       <span className={s.label}>{M.description}</span>
       <div className={s.inputs}>
-        <TextField label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
-        <TextField label={M.rate} value={rate} onChange={(v) => nums.change("rate", v)} inputMode="decimal" error={nums.message("rate")} />
-        <TextField label={M.months} value={months} onChange={(v) => nums.change("months", v)} inputMode="numeric" error={nums.message("months")} />
+        <TextField variant={field} label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
+        <TextField variant={field} label={M.rate} value={rate} onChange={(v) => nums.change("rate", v)} inputMode="decimal" error={nums.message("rate")} />
+        <TextField variant={field} label={M.months} value={months} onChange={(v) => nums.change("months", v)} inputMode="numeric" error={nums.message("months")} />
       </div>
       {compare.isError && settled ? (
         <span className={s.label} role="status">

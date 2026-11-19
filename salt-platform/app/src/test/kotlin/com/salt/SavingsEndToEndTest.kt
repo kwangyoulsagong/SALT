@@ -177,6 +177,25 @@ class SavingsEndToEndTest {
 
         data(call("GET", "/api/savings/home-card", "nobody-${UUID.randomUUID()}", null)).path("totalSaved").isNull shouldBe true
 
+        // 목록 요약 띠(FR-20) — 합은 서버. 가장 이른 도달 = 계획 달이 이른 목표(near: 남은 50만 ÷ 10만 = 5달, small: 99달)
+        val band = data(call("GET", "/api/savings/overview", user, null))
+        band.path("totalGoals").asInt() shouldBe 2
+        band.path("activeGoals").asInt() shouldBe 2
+        band.path("totalSaved").asLong() shouldBe 600_000
+        band.path("monthDeposited").asLong() shouldBe 600_000
+        band.path("month").asString() shouldBe java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul")).toString()
+        band.path("nearestReach").path("goalId").asString() shouldBe near
+        band.path("nearestReach").path("projection").path("planMonth").asString() shouldBe
+            items(list).first { it.path("id").asString() == near }.path("projection").path("planMonth").asString()
+        val nobody = data(call("GET", "/api/savings/overview", "nobody-${UUID.randomUUID()}", null))
+        nobody.path("totalSaved").isNull shouldBe true
+        nobody.path("monthDeposited").asLong() shouldBe 0
+        nobody.path("nearestReach").isNull shouldBe true
+        val beforeOverview = statements()
+        call("GET", "/api/savings/overview", user, null, countQueries = true).statusCode() shouldBe 200
+        // 목표 · 집계+월별 — 실물 단위 · 적중 이력은 읽지 않는다
+        (statements() - beforeOverview) shouldBe 2L
+
         // 목록과 상세가 같은 구간을 보인다 — 둘 다 지금 기준으로 다시 계산(코드 리뷰: 목록은 빈 기록, 상세는 실제 기록이었다)
         val listed = items(list).first { it.path("id").asString() == near }.path("projection")
         val detailed = data(call("GET", "/api/savings/goals/$near", user, null)).path("goal").path("projection")

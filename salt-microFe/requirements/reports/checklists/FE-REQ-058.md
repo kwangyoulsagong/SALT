@@ -102,3 +102,7 @@
 - `FE-REQ-060` 1단계 — 가계부 때맞춘 팁 칸 자리만 옮김(요약 띠 아래). 팁 계약 · 동작 변경 0
 - 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-19 `FE-REQ-060` 2단계 저축이 걸침
+
+- 확인은 `FE-REQ-060` 체크리스트 2단계 절. 이 REQ 몫 동작 변경 0

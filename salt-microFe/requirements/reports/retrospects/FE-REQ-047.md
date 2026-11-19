@@ -47,3 +47,7 @@
 ## 2026-11-19 — `FE-REQ-060` 1단계 걸침
 
 - `FE-REQ-060` 1단계가 이 틀 위에 가계부를 놓음 — `PageFrame`(가계부 · 예산 · 적기) · `@repo/ui` `SummaryBand` · `ListRow density="desk"` · `Button size="desk"`(32 · 모서리 8 · 14/600) · `SURFACE.infoFill`(정보 상자) · `useDesktopViewport`(1024). 래칫 가계부 6 → 5
+
+## 2026-11-19 `FE-REQ-060` 2단계
+
+- 파일만 걸침 — 이 REQ 몫 교훈 없음

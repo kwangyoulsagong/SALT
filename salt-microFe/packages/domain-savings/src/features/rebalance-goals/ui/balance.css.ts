@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -22,3 +22,7 @@ export const value = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 6
 export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
 export const actions = style({ display: "flex", gap: "8px" });
+
+/** 사이드 312 — 입력과 결과를 세로로(가로 두 칸이 좁다) */
+export const compact = style({ maxWidth: "none" });
+globalStyle(`${compact} ${row}`, { gridTemplateColumns: "1fr", gap: "4px" });

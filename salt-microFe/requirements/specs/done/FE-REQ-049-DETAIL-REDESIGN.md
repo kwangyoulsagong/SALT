@@ -125,3 +125,4 @@ FR-2 의 알약 탭(차트 · 코치 판단 · 자세히 · 내 거래)과 11-17
 - 2026-11-10 — F017 v2 단계 1(`41447893`) — 문제 목록 "같은 숫자 두 번" 중 해설 칸 성적 3칸 제거
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
 - 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 상세 페이지 문구 표 — 유리막 이름 `scenario` 더함 · `krMoreSummary` · `krMoreHint` 삭제(소비처 0). 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8
+- 2026-11-19: `FE-REQ-060` 2단계 저축(파일만 걸침) — 목표 상세가 `DetailTabs`(알약 탭 · 고정 열 360 · `?view=`) · `detailPanel` 의 두 번째 소비처 — 공용 코드 무변경. 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md`

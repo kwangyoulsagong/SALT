@@ -149,3 +149,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-19 | `PageFrame` `surface` — 패널 면 `panel`(기본) · `white`. 첫 소비처 시세 목록(`/investments`) 패널 면을 흰색으로(`PageFrame surface="white"`) — 사용자 "투자 테이블은 흰색인데 … 붕 떠 보이자나 · 투자페이지 배경 자체를 흰색으로". 흰 표 · 흰 띠가 `#FBFCFD` 패널 위에 떠 보였다. 다른 투자 화면은 패널 그대로 |
 | 2026-11-19 | `FE-REQ-049` 가 이 REQ 틀 위에 상세를 놓음 — `Tabs variant="pill"`(FR 표 "알약 탭(상세)" 값) · `PageFrame` `headMaxWidth`(가운데 단 화면 제목 맞춤) · 글자 크기 래칫 투자 62 → 54 |
 | 2026-11-19 | `FE-REQ-060` 1단계가 이 틀 위에 가계부를 놓음 — `PageFrame`(가계부 · 예산 · 적기) · `@repo/ui` `SummaryBand` · `ListRow density="desk"` · `Button size="desk"`(32 · 모서리 8 · 14/600) · `SURFACE.infoFill`(정보 상자) · `useDesktopViewport`(1024). 래칫 가계부 6 → 5 |
+| 2026-11-19 | `FE-REQ-060` 2단계 저축(파일만 걸침) — 저축 목록 · 상세가 `PageFrame` · `BackNav` 를 쓴다. 공용 `@repo/web-shared/lib` 에 `useInAppWebview`(사이드가 숨는 웹뷰에서 도구를 본문에 붙일지 — 마운트 뒤 판정) 더함. 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md` |

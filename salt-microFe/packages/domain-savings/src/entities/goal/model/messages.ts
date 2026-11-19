@@ -18,6 +18,15 @@ import type {
 /** 이름표는 `@repo/core/labels` 한 벌 — 셸 알림 화면이 같이 읽는다(2026-11-18) */
 export const TEMPLATE_LABEL: Readonly<Record<GoalTemplateKey, string>> = GOAL_TEMPLATE_LABEL;
 
+/**
+ * 이름 옆에 붙일 템플릿 이름 — 이름이 곧 템플릿 이름이면 null(같은 글자 두 번 "비상금 비상금", `FE-REQ-060` 2단계 실화면).
+ * 목록 행 · 미리보기 · 상세 머리 · 엽서가 같이 쓴다
+ */
+export const templateTag = (goal: { title: string; template: GoalTemplateKey }): string | null => {
+  const label = TEMPLATE_LABEL[goal.template];
+  return goal.title.trim() === label ? null : label;
+};
+
 /** 원 단위 표시 — 서버 금액의 포맷만(계산 0). 저축 화면의 금액 표기는 이 한 곳(코드 리뷰 2026-11-03: 4파일에 '원' 이 흩어져 있었다) */
 export const formatWon = (value: number): string => `${formatPrice(value)}원`;
 
@@ -34,6 +43,8 @@ export const GOAL_MESSAGES = {
   target: "목표 금액",
   monthlyPlan: "월 계획",
   depositCount: (n: number) => `적립 ${n}회`,
+  /** 목록 행 오른쪽 아래 — 목표 금액 · 진척(서버 값 그대로) */
+  rowTarget: (target: string, percent: number) => `${target} 중 ${percent}%`,
   baselineUnverified: "기준 금액은 원문을 확인하기 전이라 비워 두었어요",
   completed: "목표 금액에 닿았어요",
   milestone: {
