@@ -441,3 +441,9 @@
 
 - 1440 실화면 `/investments` · `?asset=kr_stock` — 패널 흰색 · 표 · 요약 띠 경계 사라짐. 포트폴리오는 패널 그대로
 - 린트 · 타입 통과
+
+## 2026-11-19 — `FE-REQ-049` 상세 재설계 걸침
+
+- `FE-REQ-049` 상세 재설계가 걸침 — 상세 머리(`SymbolHeader`)를 2줄(88px)로 · 범위 막대 컴포넌트 · 주문 전 체크 해시 링크는 그대로(1280 미만은 "내 거래" 탭을 연 뒤 같은 카드)
+- 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
+- 미검증: 없음(이 REQ 몫)

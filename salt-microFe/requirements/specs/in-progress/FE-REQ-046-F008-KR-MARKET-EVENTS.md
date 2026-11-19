@@ -45,3 +45,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-04 | `EventsCard` 의 렌더 중 `new Date()` 에 `no-render-read` 예외 주석 — 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(서버 렌더에 없음, `DEV-001`) |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-3 구현** — 실적 공시 한 줄 · 펼침 3종 + 공시 뒤 반응 · 390 앱 웹뷰 이름 칸 사라짐 고침. FR-8 실화면 |
+| 2026-11-19 | `FE-REQ-049` 상세 재설계가 걸침 — 국내 주요 사건 카드가 "소식 · 일정" 탭으로(펼침 → 탭) · 면 `detailPanel` |

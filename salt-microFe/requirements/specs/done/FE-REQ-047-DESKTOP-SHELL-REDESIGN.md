@@ -147,3 +147,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-19 | **구현 · done**(`feat/fe-req-047-desktop-shell`) — 위 "구현" 표. FR-6 → `FE-REQ-049` · FR-8 · FR-16 띠 합치기 → 범위 밖(사용자 결정). 시스템 서체 · 투자 사이드 자리(사용자 결정). 필터 칩 켜짐 글자 실측 `#2272EB` → `#1B5FC7`(파랑 면 위 3.70~4.01 → 4.93~5.34:1). 루트 `requirements/specs/done/F000-desktop-shell-slice.md` |
 | 2026-11-19 | `FE-REQ-048` 홈(`feat/fe-req-048-home-desktop`)이 이 REQ 파일을 걸침 — `PageFrame` 사이드가 비면 칸째 접힘(`:has(> aside:empty)`) · 사이드 목록 행 `SideRow` · `SideBlock` 공용 · 크기 래칫 투자 63 → 62(시나리오 큰 숫자 44 → 24) |
 | 2026-11-19 | `PageFrame` `surface` — 패널 면 `panel`(기본) · `white`. 첫 소비처 시세 목록(`/investments`) 패널 면을 흰색으로(`PageFrame surface="white"`) — 사용자 "투자 테이블은 흰색인데 … 붕 떠 보이자나 · 투자페이지 배경 자체를 흰색으로". 흰 표 · 흰 띠가 `#FBFCFD` 패널 위에 떠 보였다. 다른 투자 화면은 패널 그대로 |
+| 2026-11-19 | `FE-REQ-049` 가 이 REQ 틀 위에 상세를 놓음 — `Tabs variant="pill"`(FR 표 "알약 탭(상세)" 값) · `PageFrame` `headMaxWidth`(가운데 단 화면 제목 맞춤) · 글자 크기 래칫 투자 62 → 54 |
