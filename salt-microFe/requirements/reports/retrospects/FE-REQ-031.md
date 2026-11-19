@@ -31,3 +31,8 @@
 ## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
 
 - 구현은 슬라이스 다섯에서 끝났는데 "남은 것" 칸이 9월 전제(홈 · 3탭 · 설정 한 화면)로 남아 있었다. Action: 슬라이스를 닫을 때 그 결정으로 소멸한 FR 을 주인 REQ 에 바로 대체로 적는다
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 코치 대화 재설계(`feat/f006-coach-chat-redesign`)가 이 REQ 파일을 걸침 — 격자 상태(배치 저장 · 칸 메뉴)는 대화 화면에서 쓰지 않는다(코드 · 경로는 남김). SSE · 재연결 · 따라 내려가기 규칙은 그대로. 입력 Enter · Shift+Enter · `isComposing` 더함
+- 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`

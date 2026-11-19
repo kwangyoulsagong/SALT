@@ -214,3 +214,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-90 목록 한 쪽(`?page=` · `nextPage` — 서버 total 기준) · FR-91 `unread-count` · `/:id/read` · `/read-all` 서버 1:1(204) · FR-92 `target` 코드(경로 0) · FR-93 만드는 경로 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — FR-50~52. 읽기 실패 → `degraded` 기본 배치 · 401/403 만 그대로 · 400/413. 같은 원인으로 본문 100kb 초과가 500 이던 것 413 |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | 코치 답 링크 목록 `COACH_LINK_KINDS` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 모르는 종류는 여전히 거른다(시험) |

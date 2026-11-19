@@ -128,3 +128,8 @@
 ## 2026-11-19 — `WEB-perf-req-close-slice.md` 짝
 
 - 머리 주석 주인이라 걸렸다 — 이 REQ 의 계약은 그대로. Action 없음
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0
+- 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`

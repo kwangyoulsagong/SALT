@@ -95,3 +95,8 @@
 ## 2026-11-19 PC 격자 짝
 
 - 다른 기능이 이 파일을 지나갔다. Action 없음
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 코치 조립 의존(`CoachDependencies`)에 주간 계획 소스 한 줄(`feat/f006-coach-chat-redesign`) — 표 · 뷰 변경 0
+- 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`

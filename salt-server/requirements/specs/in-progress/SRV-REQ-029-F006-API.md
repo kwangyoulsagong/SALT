@@ -261,3 +261,4 @@ type TransactionPreview = {
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 `message.card` 완성 객체 한 번(이벤트 id = 문장 수 — 마지막 문장까지 받고 끊긴 재연결도 카드를 받는다) · 메시지 목록에 `card` · 새 경로 `GET /api/coach/briefing`(저장 0). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — GET · PUT `/api/coach/panel-layout`(정정 — 컨텍스트 경로) · FR-30 16KB 413 · Swagger. 같은 원인 — body-parser 오류(본문 너무 큼 · 깨진 JSON)가 500 → 413 · 400(`errorMiddleware`) |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | 답 링크 종류에 `plan`(밴드 적립 화면) · 빈 재료에 `weekly_plan` 더함(`feat/f006-coach-chat-redesign`) — Swagger 설명 갱신. 경로 · 모양 그대로 |

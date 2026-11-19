@@ -309,3 +309,4 @@ created: 2026-09-09
 | 2026-11-19 | **PC 이동식 격자 구현**(`feat/f006-pc-panel-grid`) — FR-50~58. 격자 자리 `/coach/chat`(정정 — 3탭 없음) · 칸 "오늘의 추천"(정정) · 저장 경로 `/api/app/coach/panel-layout`(정정). 루트 `F006-pc-panel-grid-slice.md` |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 코치 대화 페이지 틀을 `PageFrame` 으로(가운데 1536 → 가득 찬 폭). PC 격자 · 대화 본문은 그대로 |
+| 2026-11-19 | **코치 대화 재설계**(`feat/f006-coach-chat-redesign`) — 가운데 한 줄(720) · 답 본문 · 내 질문 말풍선 · 브리핑 카드 · 입력 박스 하나 + 보내기 아이콘(Enter · Shift+Enter · 한글 조합) · 시작 질문 2×2 / 이어 묻기 3 · 출처 한 줄 · 면책 한 번 · **PC 이동식 격자 → 오른쪽 고정 칸**(오늘의 추천 · 포지션 요약 — 사용자 결정). 리서치 `research/2026-11-19-coach-chat.md`. 체크리스트 같은 날 절 |

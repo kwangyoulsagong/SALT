@@ -255,3 +255,4 @@ created: 2026-09-09
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-72 배지 다시 부르기(문서 이동 · 읽음 무효화, 폴링 0 · 포커스 재요청 끔) · FR-100 · 101 낙관적 읽음 + 실패 되돌림 · FR-102 갈 곳 매핑 한 곳(코드 넷으로 정정) · FR-103 만드는 칸 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | PC 격자 짝(`feat/f006-pc-panel-grid`) — `CoachConversation` 에 `fill`(격자 칸을 채움) · `asideCard`(옆 칸에 펼친 카드와 같은 판단이면 대화 안 카드를 한 줄로). 질문 · 스트림 동작 무변경 |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | 코치 대화 재설계(`feat/f006-coach-chat-redesign`)가 이 REQ 파일을 걸침 — 격자 상태(배치 저장 · 칸 메뉴)는 대화 화면에서 쓰지 않는다(코드 · 경로는 남김). SSE · 재연결 · 따라 내려가기 규칙은 그대로. 입력 Enter · Shift+Enter · `isComposing` 더함 |

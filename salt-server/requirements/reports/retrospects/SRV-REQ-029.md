@@ -19,3 +19,8 @@
 ## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
 
 - 구현은 슬라이스 다섯에서 끝났는데 "남은 것" 칸이 9월 전제(홈 · 3탭 · 설정 한 화면)로 남아 있었다. Action: 슬라이스를 닫을 때 그 결정으로 소멸한 FR 을 주인 REQ 에 바로 대체로 적는다
+
+## 2026-11-19 코치 대화 재설계가 걸침
+
+- 답 링크 종류에 `plan`(밴드 적립 화면) · 빈 재료에 `weekly_plan` 더함(`feat/f006-coach-chat-redesign`) — Swagger 설명 갱신. 경로 · 모양 그대로
+- 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`
