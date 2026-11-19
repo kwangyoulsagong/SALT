@@ -51,3 +51,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 - 2026-11-12: 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0
 - 2026-09-30: 초판 · FR-1~6 완료. `dvol-sigma@1` 채택 없음
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 파일에 O4 몫: `jobs/ingest_market.py` 에 소스 `ecos`(소비자물가 — 통째 교체). 주인 `FC-REQ-024`. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
+| 2026-11-19 | 파일만 걸침(`feat/f003-v2-s1-band-forecast`, `FC-REQ-029`) — `ingest_market` ECOS 칸에 코스피 세 시리즈 저장 한 블록. 이 REQ 동작 무변경 |

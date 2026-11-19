@@ -59,3 +59,4 @@ status: in-progress
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-19 | 신규 — 사용자 "BTC + 국내 지수(코스피)". 원천 판정(ECOS · Coin Metrics 쓴다 · KRX 정보데이터시스템 약관상 제외) · 순서 셋 · 관문 신설 |
+| 2026-11-19 | 순서 1 구현(`feat/f003-v2-s1-band-forecast`) — 사전등록 @1 → @2 · 첫 결과 BTC · 코스피 모두 관문 실패(정액 1.0). `F003-v2-s1-band-forecast-slice.md` |
