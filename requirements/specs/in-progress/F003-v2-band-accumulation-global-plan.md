@@ -61,3 +61,4 @@ status: in-progress
 | 2026-11-19 | 신규 — 사용자 "BTC + 국내 지수(코스피)". 원천 판정(ECOS · Coin Metrics 쓴다 · KRX 정보데이터시스템 약관상 제외) · 순서 셋 · 관문 신설 |
 | 2026-11-19 | 순서 1 구현(`feat/f003-v2-s1-band-forecast`) — 사전등록 @1 → @2 · 첫 결과 BTC · 코스피 모두 관문 실패(정액 1.0). `F003-v2-s1-band-forecast-slice.md` |
 | 2026-11-19 | 순서 2 서버 구현(`feat/f003-v2-s2-plan-server`) — `plan` = portfolio 서비스 컨텍스트 · 경로 다섯 · 사람 표 둘 · 읽을 때 주 채움 · 예측 행에 밴드 표 + 주별 뷰. `F003-v2-s2-plan-server-slice.md` |
+| 2026-11-19 | 순서 3 BFF · 화면 구현(`feat/f003-v2-s3-plan-screen`) — 경로 넷 · `/plan` · 머리 메뉴 "적립" · 홈 한 줄. 지금 예측으로 정액 300,000원 + 밴드 효과 미검증 + 3종. `F003-v2-s3-plan-screen-slice.md` |

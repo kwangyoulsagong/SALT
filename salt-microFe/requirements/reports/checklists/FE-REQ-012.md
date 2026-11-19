@@ -218,3 +218,7 @@
 - 심리 · 스마트 머니 응답 타입을 지움(소비처 0 — F017 v4 순서 6 · `FE-REQ-064` FR-12)
 - 확인: `pnpm check-types` · `lint` · `test` 통과 · 투자 zone 운영 빌드 · 실화면 1440 · 390 · 360(임시 사용자 실로그인) — 본문 `FE-REQ-064` 체크리스트 같은 날 절
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- BFF 오류 봉투에 입력 경계 칸이 붙는다(더하기만) — 웹 `ApiError` 는 그대로 `code` 만 읽는다 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)

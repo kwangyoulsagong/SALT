@@ -150,3 +150,7 @@
 - zone 다섯 운영 빌드 통과 · 머리 스크린샷(투자 · 홈)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- 머리 메뉴 시험에 `/plan` · `/planner`(아님) · 순서 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)

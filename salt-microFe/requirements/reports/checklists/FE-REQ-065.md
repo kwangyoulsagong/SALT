@@ -77,3 +77,7 @@
 - 타입 검사 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- `ROUTES.plan` 한 줄 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)

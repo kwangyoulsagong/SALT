@@ -55,3 +55,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-10 | 투자 zone 레이아웃이 `pages/investments` `InvestHeaderNav` 를 `AppShell` `headerNav` 로 꽂는다 · 레지스트리 투자 경로 `/portfolio`(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` · `f193c6aa` |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — 레지스트리 셸 `pathPrefixes` 에 `/alerts` · 시험 두 줄(도메인 zone 에서 cross-zone · 셸에선 아님). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 레지스트리 invest `pathPrefixes` 에 `/plan`. 이 REQ 의 FR 은 그대로 |

@@ -9,6 +9,14 @@ labels: [fe, api, bff, plan]
 created: 2026-09-09
 ---
 
+> **2026-11-19 F003 v2 순서 3 — 이 블록이 아래 본문보다 우선한다**(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`).
+> - 화면 자리는 **투자 zone `/plan`**(머리 메뉴 "적립") + 셸 홈 투자 카드 한 줄. 온보딩 3단계 · 목표 화면 상단 합계 · 설정 화면(F006) 그룹은 **만들지 않는다** — 이번 달 합계 · 월 적립액 칸은 `/plan` 안에(기획 v2)
+> - 자산 BTC · 코스피(Puell · CAPE · `excluded` 폐기). 근거는 지표 값 · 백분위 · 추정 표시 · 지금 밴드 · 밴드 배수(관문이 꺼져 있으면 "금액에 쓰지 않았어요"), 과거 성적은 밴드 적립 vs 정액(52주 · 90% 구간 · 해마다), 실패 이력은 예측이 뽑은 "빗나간 때" — v1 시드(4/4 · 2025-10)는 쓰지 않는다
+> - 슬라이스: `entities/plan`(조회 · 표시) · `features/complete-weekly-plan` · `features/edit-plan-settings` · 위젯 `weekly-plan` · 페이지 `plan`. `entities/indicator` · `fx` 는 만들지 않는다(서버가 한 응답으로 준다)
+> - 데이터는 클라이언트 잎(React Query, 포지션 화면과 같은 이유 — 토큰은 쿠키) · 블록 실패 격리(월 합계 · 설정 실패가 금액을 막지 않는다)
+> - 완료 체크: 체크 상태만 낙관적 · 금액 고치기(FR-35) · `Idempotency-Key` 대신 서버 주 단위 멱등 + 겹쳐 누름 ref 막기(FR-32) · 실패 이력 lazy fetch 없음(FR-23 — 한 응답)
+> - 미충족: FR-16 게이트 차단 이벤트(관측성 — 보낼 곳이 없다, 배포 환경 확정 시) · zod 런타임 파싱(FR-2 — BFF 가 fail-closed 로 모양을 지킨다, 앱 착수 때 다시 본다)
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-50 은 이 REQ 가 아니라 `FE-REQ-012` FR-50(뷰모델 타입 공유) — Changelog 의 "FR-50 범위 밖"은 그 뜻. 시세 · 관심 · 인증 뷰모델 한 벌화를 이 REQ 로 가리키던 코드 주석 3 · 문서 7곳을 `FE-REQ-012` FR-50 으로 바로잡았다
 
@@ -178,3 +186,4 @@ type KimchiPremiumViewModel = {
 | 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `ChartPeriod` enum 추가(파일 머리 REQ). FR-50 타입 공유 범위 밖 그대로. 동작 무변경(4xx 재시도 0 유지) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 설정 저장 PUT→PATCH · 월 적립액 1필드(D9 · B12), `monthly-summary` 신설(B20), 422 코드 개정. FR-12~15 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 3 구현(`feat/f003-v2-s3-plan-screen`) — 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s3-plan-screen-slice.md` |

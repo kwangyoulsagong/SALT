@@ -9,6 +9,14 @@ labels: [bff, api, contract, viewmodel, plan]
 created: 2026-09-09
 ---
 
+> **2026-11-19 F003 v2 순서 3 — 이 블록이 아래 본문보다 우선한다**(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`).
+> - 자산 BTC · 코스피(`us_stock` · `excluded[]` 폐기) · 경로 넷 `/api/app/plan/{weekly, weekly/complete, settings, monthly-summary}` — 김프 · 과거 성적 · 실패 사례는 서버 `weekly` 한 응답이라 `/indicators` · `/kimchi-premium` · `track-record` 호출은 **만들지 않는다**(FR-1 · 2 · 5 의 "병렬 김프"는 서버 몫)
+> - 계약은 서버 v2 모양 그대로: `trackRecordId` 대신 `renderable` + `blockedReason` + `trackRecord` · `failureCases` · `basis.bands`. 정의 `bff/src/services/plan.viewmodel.ts` `CONTRACT` = `@repo/core/plan`(글자 대조 테스트)
+> - 게이트는 닫기만(fail-closed): `renderable` 이 `true` 일 때만 `true`, 없으면 `false` + `blockedReason: gate_missing` + `degradedReasons`. 모르는 자산 · 배수 없는 행은 싣지 않는다(`item_dropped`)
+> - 실패는 상태 코드 그대로(화면 블록이 다시 부른다) — `status: 'unavailable'` 봉투는 두지 않는다. 서버 422 의 `field` · `min` · `max` · `unit` · `currentWeek` 는 error middleware 가 정해진 이름만 옮긴다
+> - 홈 투자 카드에 적립 한 줄(`note`, 600ms — 카드 800ms 안). 매입가 숨김 질문이 있으면 그 줄이 먼저
+> - 미충족: FR-14 게이트 미충족 카운터(관측성 — 보낼 곳이 없다, 배포 환경 확정 시) · 모바일 집계(RN 착수 시)
+
 ## Summary
 
 주간 계획 뷰모델. **게이트 필드(`renderable`·`trackRecordId`)** 와 **지표 상태(`fallback`·`staleDays`)** 가 계약의 핵심이다.
@@ -177,3 +185,4 @@ type IndicatorPanelViewModel = {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. settings 계약 개정(D9 — 월 적립액만 · 밴드 읽기 전용), `monthly-summary` 신설(B20), 온보딩 저장 경로(B12). FR-15~19 추가 |
+| 2026-11-19 | F003 v2 순서 3 구현(`feat/f003-v2-s3-plan-screen`) — 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s3-plan-screen-slice.md` |

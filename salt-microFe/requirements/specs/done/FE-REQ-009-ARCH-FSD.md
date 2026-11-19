@@ -328,3 +328,4 @@ export { importLedger as POST } from '@/app/api-routes';
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/model/tabs.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 - 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `layer-rules.cjs` features 레지스트리에 `read-privacy`(저장하는 것 · AI 로 가는 것 읽기)
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — 페이지 레지스트리(`layer-rules.cjs` `pages`)에 `portfolio-transactions` 한 줄 — `/portfolio/transactions`. 레이어 검사 시험(차단 16 · 통과 10) 통과 |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 레지스트리에 페이지 `plan` · 위젯 `weekly-plan`(엔티티 `plan` · 기능 둘은 이미 있었다). 이 REQ 의 FR 은 그대로 |

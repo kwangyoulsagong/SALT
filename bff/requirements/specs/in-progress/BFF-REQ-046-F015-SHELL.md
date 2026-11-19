@@ -75,3 +75,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-12 | S3c 확인 3회차 — 지워지는 범위를 BFF 가 준다(`GET /api/app/me/data-scope`), 화면은 키별 문구만 · 못 받으면 지우기 막음 |
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): 새 FR-10 개인정보 뷰모델 · FR-11 계측 중계 done. 라우팅 표 `/notification/me/data-classification` → platform(`BFF-REQ-045`) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `alerts.controller.ts` 에 목록 · 안 읽은 수 · 읽음 셋을 더했다. 설정(`/api/app/me/notifications`) 경로 · 동작 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 홈 투자 카드 `note` 에 적립 한 줄(서버 `totalKrw`, 600ms · 매입가 숨김 질문 우선) — 카드 계약 모양 무변경. 이 REQ 의 FR 은 그대로 |

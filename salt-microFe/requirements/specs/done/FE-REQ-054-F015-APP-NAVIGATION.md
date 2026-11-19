@@ -72,3 +72,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.css.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.tsx` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 머리 메뉴 시험에 `/plan` · `/planner`(아님) · 순서. 이 REQ 의 FR 은 그대로 |

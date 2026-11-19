@@ -108,3 +108,7 @@
 
 - 오류 미들웨어 시험 파일에 413 한 블록(본문 너무 큼)
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- error middleware 가 서버 4xx 의 `field` · `min` · `max` · `unit` · `asset` · `currentWeek` 를 정해진 이름 · 형식만 옮긴다(시험 1 더함) — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)

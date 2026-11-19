@@ -354,3 +354,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 레이어 검사 시험(차단 16 · 통과 10) 통과 · 새 파일 전부 훅 사후 실행 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- 레지스트리에 페이지 `plan` · 위젯 `weekly-plan`(엔티티 `plan` · 기능 둘은 이미 있었다) — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
