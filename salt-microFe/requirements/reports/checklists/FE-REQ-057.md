@@ -194,3 +194,9 @@
 - 가계부 zone 빌드 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 — `FE-REQ-060` 1단계 걸침
+
+- `FE-REQ-060` 1단계가 가계부 화면을 데스크톱 틀로 — 한 달 화면(요약 띠 · 날짜 묶음 · 달력 고르기 · 사이드) · 예산 봉투 행 · 지출 적기 틀. 안 쓴 날 표시는 달력 칸 누름 → 고른 날 칸 버튼(`MarkNoSpendButton`). 옛 `MonthTotals` · `EnvelopeList` · `ExpenseList` · `NoSpendCalendar` · `MarkableCalendar` 삭제(소비처 0). 기능 · 서버 계약 변경 0
+- 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
+- 미검증: 없음(이 REQ 몫)

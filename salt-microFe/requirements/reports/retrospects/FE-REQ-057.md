@@ -94,3 +94,7 @@
 ## 2026-11-18 F006 알림 화면
 
 - Action 없음
+
+## 2026-11-19 — `FE-REQ-060` 1단계 걸침
+
+- `FE-REQ-060` 1단계가 가계부 화면을 데스크톱 틀로 — 한 달 화면(요약 띠 · 날짜 묶음 · 달력 고르기 · 사이드) · 예산 봉투 행 · 지출 적기 틀. 안 쓴 날 표시는 달력 칸 누름 → 고른 날 칸 버튼(`MarkNoSpendButton`). 옛 `MonthTotals` · `EnvelopeList` · `ExpenseList` · `NoSpendCalendar` · `MarkableCalendar` 삭제(소비처 0). 기능 · 서버 계약 변경 0

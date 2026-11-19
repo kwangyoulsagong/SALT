@@ -108,3 +108,9 @@
 - `FE-REQ-049` 가 이 REQ 틀 위에 상세를 놓음 — `Tabs variant="pill"`(FR 표 "알약 탭(상세)" 값) · `PageFrame` `headMaxWidth`(가운데 단 화면 제목 맞춤) · 글자 크기 래칫 투자 62 → 54
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-19 — `FE-REQ-060` 1단계 걸침
+
+- `FE-REQ-060` 1단계가 이 틀 위에 가계부를 놓음 — `PageFrame`(가계부 · 예산 · 적기) · `@repo/ui` `SummaryBand` · `ListRow density="desk"` · `Button size="desk"`(32 · 모서리 8 · 14/600) · `SURFACE.infoFill`(정보 상자) · `useDesktopViewport`(1024). 래칫 가계부 6 → 5
+- 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
+- 미검증: 없음(이 REQ 몫)
