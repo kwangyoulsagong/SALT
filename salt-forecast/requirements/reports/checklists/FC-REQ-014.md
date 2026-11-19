@@ -40,3 +40,8 @@
 ## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
 
 - 이 REQ 몫 기능 변경 0 — `jobs/ingest_market.py` 에 소스 `ecos`(소비자물가 — 통째 교체). 예측 validate 전부 통과(`FC-REQ-024` 체크리스트)
+
+## 2026-11-19 F003 v2 순서 1 짝(`feat/f003-v2-s1-band-forecast`, 파일만 걸침)
+
+- `ingest_market` ECOS 칸에 코스피 세 시리즈 저장 한 블록
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 `salt-forecast/requirements/reports/checklists/FC-REQ-029.md`

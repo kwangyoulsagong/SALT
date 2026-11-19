@@ -34,3 +34,5 @@ status: done
 | `e958e506` | FE — 게스트 발급 · 유리막 · 돌아올 주소 · 결함 둘 |
 
 검증 `requirements/reports/checklists/F018-public-market-guest.md`.
+
+> **후속 2026-11-19**(`fix/kr-stock-swagger-dup-401`) — 이 슬라이스가 국내 주식 경로 Swagger 에 게스트 판 `401` 을 더하면서 옛 `401` 줄을 남겨 YAML 이 깨졌고, 그 파일 전체가 API 문서에서 빠져 있었다. 옛 줄 지움 · `swagger.test.ts` 로 기계가 센다

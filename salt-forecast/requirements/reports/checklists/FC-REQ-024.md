@@ -35,3 +35,8 @@
 ## 2026-11-18 확인 2회차
 
 - 변이 15(동치 1) · 시험 둘 추가(못 읽은 원천 · 빈 원천) · 미달 WARN 로그 — 루트 체크리스트 §5
+
+## 2026-11-19 F003 v2 순서 1 짝(`feat/f003-v2-s1-band-forecast`, 파일만 걸침)
+
+- ECOS 파일에 코스피 PER · 배당 · 지수 수집 함수(소비자물가 경로 무변경)
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 `salt-forecast/requirements/reports/checklists/FC-REQ-029.md`

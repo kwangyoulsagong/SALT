@@ -45,3 +45,8 @@
 ## 2026-11-18 — F008 O3 해설 에이전트 도구(`feat/fc-req-023-agent-tools`)
 
 - 이 REQ 몫 변경 0 — 같은 파일 끝에 `ontology_quality_gate` 선언. `test_schema_contract.py` 통과
+
+## 2026-11-19 F003 v2 순서 1 짝(`feat/f003-v2-s1-band-forecast`, 파일만 걸침)
+
+- 예측 표 선언 파일(`store/tables.py`)에 `accumulation_band` 한 표
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 `salt-forecast/requirements/reports/checklists/FC-REQ-029.md`

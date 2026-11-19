@@ -619,3 +619,9 @@
 ## 2026-11-18 — `SRV-REQ-057` FR-9 짝
 
 - 지난 날 5분봉 줄 분류 · 전 종목 일봉 먼저. 검증 표는 `SRV-REQ-057` 체크리스트
+
+## 2026-11-19 Swagger 응답 키 중복(`fix/kr-stock-swagger-dup-401`)
+
+- `swagger.test.ts`(`failOnErrors`) 고치기 전 실패 3건(이 파일만) → 통과 · 서버 `npm test` 1,941 · build · lint
+- 재기동 뒤 부팅 로그 `YAMLSemanticError` 0 — 머지 뒤 확인
+- 미충족: 없음

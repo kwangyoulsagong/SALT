@@ -68,3 +68,36 @@ def test_points_drop_months_not_yet_released() -> None:
     assert pts[1].available_at == datetime(2025, 3, 5, 8, tzinfo=KST)
     assert pts[0].available_at == datetime(2025, 2, 15, tzinfo=KST)  # 보도 기록 없음 — 보수
     assert all(p.available_at <= now for p in pts)
+
+
+# ── 코스피 밸류에이션(FC-REQ-029) ──────────────────────────────────────────────
+
+
+def test_kospi_rows_skip_blank_and_other_items() -> None:
+    from salt_forecast.ingest.ecos import parse_rows
+
+    raw = {
+        "StatisticSearch": {
+            "list_total_count": 3,
+            "row": [
+                {"TIME": "202608", "DATA_VALUE": "18.64", "ITEM_CODE1": "1110000"},
+                {"TIME": "202609", "DATA_VALUE": " ", "ITEM_CODE1": "1110000"},
+                {"TIME": "202609", "DATA_VALUE": "2.1", "ITEM_CODE1": "1100000"},
+            ],
+        }
+    }
+    assert parse_rows(raw, "1110000") == (3, [("202608", 18.64)])
+
+
+def test_kospi_availability_is_conservative() -> None:
+    from datetime import UTC, datetime
+
+    from salt_forecast.ingest.ecos import available_of, observed_of
+
+    sep = observed_of("202609")
+    assert sep == datetime(2026, 9, 1, tzinfo=UTC)
+    # 9월 30일 + 50일 = 11월 19일 — 2026-11-19 에 9월이 보이고 그 전엔 없다
+    assert available_of(sep, "M") == datetime(2026, 11, 19, tzinfo=UTC)
+    assert available_of(observed_of("202612"), "M") == datetime(2027, 2, 19, tzinfo=UTC)
+    day = observed_of("20261113")
+    assert available_of(day, "D") == datetime(2026, 11, 14, tzinfo=UTC)

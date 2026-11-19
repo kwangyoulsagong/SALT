@@ -1022,3 +1022,37 @@ ontology_quality_gate = Table(
     Column("ok", Boolean, nullable=False),
     Column("labels", Text, nullable=False),
 )
+
+# 밸류에이션 밴드 적립(FC-REQ-029 · band-accumulation@2) — 자산 × 이번 주 결정일 한 행.
+# 서버 plan 은 뷰 `v_accumulation_band` 만 읽는다
+accumulation_band = Table(
+    "accumulation_band",
+    metadata,
+    Column("asset", Text, primary_key=True),
+    Column("plan_week", DateTime(timezone=True), primary_key=True),
+    Column("prereg_key", Text, primary_key=True),
+    Column("indicator", Text, nullable=False),
+    Column("indicator_value", Float),
+    Column("percentile", Float),
+    Column("estimated", Boolean, nullable=False),
+    Column("basis_observed", DateTime(timezone=True)),
+    Column("secondary_value", Float),
+    Column("band_key", Text),
+    Column("band_multiplier", Float),
+    Column("gate_passed", Boolean, nullable=False),
+    Column("blocked_reason", Text),
+    Column("multiplier", Float, nullable=False),
+    Column("closed_weeks", Integer, nullable=False),
+    Column("excess", Float),
+    Column("ci_low", Float),
+    Column("ci_high", Float),
+    Column("years_total", Integer, nullable=False),
+    Column("years_positive", Integer, nullable=False),
+    Column("window_from", DateTime(timezone=True)),
+    Column("window_to", DateTime(timezone=True)),
+    Column("failure_cases", JSONB, nullable=False),
+    Column("failure_count", Integer, nullable=False),
+    Column("kimchi_premium", Float),
+    Column("kimchi_as_of", DateTime(timezone=True)),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)

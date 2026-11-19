@@ -53,3 +53,4 @@ FR-2 는 PK 교체라 되돌리려면 `symbol <> ''` 행을 먼저 지워야 한
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **FR-4 · 5 · 8 구현** — `kind` 둘 · `kr_earnings_window`(3종 · 확정 일정 열 확대) · `v_kr_earnings_reaction`(신규). 추가만 |
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 예측 `store/tables.py` 에 O4 표 둘 선언만 더했다(주인 `FC-REQ-024` · `DB-REQ-029`). 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 예측 `store/tables.py` 끝에 O2 관문 표 선언만 더했다(주인 `FC-REQ-023` · `DB-REQ-045`). 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
+| 2026-11-19 | 파일만 걸침(`feat/f003-v2-s1-band-forecast`, `FC-REQ-029`) — 예측 표 선언 파일(`store/tables.py`)에 `accumulation_band` 한 표. 이 REQ 동작 무변경 |

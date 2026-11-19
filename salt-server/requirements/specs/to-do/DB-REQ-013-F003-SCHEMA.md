@@ -179,3 +179,4 @@ model WeeklyPlanExecution {
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-1·FR-2·FR-11 개정(D9 · ADR-002 · B20). FR-13~16 추가 — `BandPreset` 전역 읽기 전용 · `monthlyBaseKrw` 원값 · 이번 달 적립 합계 집계 기준 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 1 — 예측 스키마 `forecast.accumulation_band` · 뷰 `v_accumulation_band`(`20261119200000_forecast_accumulation_band`, 로컬 적용). v1 의 `IndicatorSnapshot` · `BandPreset` · `IndicatorTrackRecord` 는 예측 표 하나로 대체(지표 · 밴드 · 성적 · 실패 사례가 예측 몫). 사람 표(`PlanSettings` · `WeeklyPlanExecution`)는 순서 2 |

@@ -105,7 +105,6 @@ export const createKrStockRouter = (
    *                             state: { type: string, enum: [idle, connecting, open, backoff, degraded] }
    *                             subscribed: { type: integer }
    *                             lastTickAt: { type: string, format: date-time, nullable: true }
-   *       401: { description: 인증 실패 }
    *       401: { description: 토큰 없음 · 만료(사람 · 게스트) }
    *       503: { description: KIS 키 없음 — 국내 주식 꺼짐 }
    */
@@ -139,7 +138,6 @@ export const createKrStockRouter = (
    *       200:
    *         description: "`{ session, items: (KrStockQuote & { periodChange })[], nextOffset }`"
    *       400: { description: 정렬 · 순서 · 기간 · 페이지 형식 오류 }
-   *       401: { description: 인증 실패 }
    *       401: { description: 토큰 없음 · 만료(사람 · 게스트) }
    *       503: { description: KIS 키 없음 }
    */
@@ -234,7 +232,6 @@ export const createKrStockRouter = (
    *                           daysUntil: { type: integer }
    *                     marketActions: { type: array, items: { $ref: '#/components/schemas/KrMarketAction' } }
    *                     degraded: { type: boolean }
-   *       401: { description: 인증 실패 }
    *       401: { description: 토큰 없음 · 만료(사람 · 게스트) }
    *       503: { description: KIS 키 없음 — 국내 주식 꺼짐 }
    * components:
