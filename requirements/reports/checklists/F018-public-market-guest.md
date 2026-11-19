@@ -28,3 +28,7 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 게스트 발급 클라이언트 IP 상한 | `X-Forwarded-For` 사슬 없음 — 지금은 서버 전체 상한 | 배포 라우팅(`OPS-001`) |
+
+## 2026-11-19 후속 — Swagger 응답 키 중복(`fix/kr-stock-swagger-dup-401`)
+
+- `swagger.test.ts`(`failOnErrors`) 통과 · 고치기 전 실패 3건 확인
