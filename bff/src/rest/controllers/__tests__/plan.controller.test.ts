@@ -24,7 +24,11 @@ const call = async (method: string, path: string, body?: unknown) => {
     headers: { Authorization: "Bearer t", "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  return { status: res.status, body: (await res.json()) as Record<string, unknown> };
+  return {
+    status: res.status,
+    cacheControl: res.headers.get("cache-control"),
+    body: (await res.json()) as Record<string, unknown>,
+  };
 };
 
 const upstream = (status: number, data: unknown) =>
@@ -142,5 +146,29 @@ describe("서버로 — 한 번만 · 코드 그대로", () => {
     const summary = await call("GET", "/monthly-summary?month=2026-11");
     assert.equal((summary.body.data as { progressPct: number | null }).progressPct, null);
     assert.deepEqual(urls, ["/plan/weekly", "/plan/monthly-summary?month=2026-11"]);
+  });
+
+  it("성공 응답 다섯 경로 모두 no-store — 개인 금액(BFF-REQ-022 FR-34)", async () => {
+    mock.method(backendApi, "getMarketOverview", async () => ({ items: [] }));
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => ({
+      data: {
+        data: url.startsWith("/plan/weekly")
+          ? { weekOf: "2026-11-16", configured: false, totalKrw: null, items: [] }
+          : url.startsWith("/plan/monthly")
+            ? { month: "2026-11", executedKrw: 0, plannedKrw: 0, progressPct: null }
+            : {},
+      },
+    }));
+    const responses = [
+      await call("GET", "/weekly"),
+      await call("POST", "/weekly/complete", { weekOf: "2026-11-16", executions: [{ asset: "btc" }] }),
+      await call("GET", "/settings"),
+      await call("PATCH", "/settings", { monthlyAmountKrw: 100000 }),
+      await call("GET", "/monthly-summary"),
+    ];
+    for (const res of responses) {
+      assert.equal(res.status, 200, JSON.stringify(res.body));
+      assert.equal(res.cacheControl, "no-store");
+    }
   });
 });
