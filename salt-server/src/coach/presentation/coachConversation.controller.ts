@@ -188,7 +188,7 @@ export class CoachConversationController {
       const { id } = idSchema.parse(req.params);
       const query = pageSchema.parse(req.query);
       const result = await this.useCases.listCoachMessages.execute(req.user!.userId, id, query.limit, query.cursor ?? null);
-      return ResponseUtil.success(res, { items: result.items.map(toMessageView), nextCursor: result.nextCursor });
+      return ResponseUtil.success(res, { items: result.items.map(toMessageView), nextCursor: result.nextCursor, keep: result.keep });
     } catch (error) {
       next(error);
     }

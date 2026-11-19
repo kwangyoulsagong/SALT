@@ -1278,4 +1278,11 @@ export interface CoachConversationStore {
   listMessages(userId: string, conversationId: string, limit: number, cursor: string | null): Promise<CoachMessageRecord[] | null>;
   /** 사용자가 지울 때만(`SRV-REQ-029` FR-29). 지웠으면 true */
   deleteConversation(userId: string, conversationId: string): Promise<boolean>;
+  /** 이 사람의 질문 시각, 최신이 앞 · 최대 `limit` 개(보관 한도 경계 — `coachHistoryCutoff`) */
+  recentQuestionTimes(userId: string, limit: number): Promise<Date[]>;
+  /**
+   * 보관 한도 — `before` 보다 앞인 이 사람 메시지를 지운다(`streaming` 은 남긴다). 메시지가 0 이 된 대화도 지우고 남은 대화의 메시지 수를
+   * 다시 센다(`SRV-REQ-028` FR-30). 지운 메시지 수
+   */
+  deleteHistoryBefore(userId: string, before: Date): Promise<number>;
 }

@@ -163,7 +163,8 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
    *         schema: { type: string, format: uuid }
    *     responses:
    *       200:
-   *         description: "`{ items: [{ id, role, content, intent, status, explanationSource, links, gaps, errorCode, card, createdAt }], nextCursor }`"
+   *         description: "`{ items: [{ id, role, content, intent, status, explanationSource, links, gaps, errorCode, card, createdAt }], nextCursor, keep: { questions, days } }` — keep 은 보관 한도(최근 질문 · 일 중 먼저 닿는 쪽까지, 질문마다 오래된 것을 지운다 · SRV-REQ-029 FR-30)"
+   *       400: { description: limit · cursor 형식 오류 }
    *       401: { description: 인증 실패 }
    *       404: { description: 없는 · 남의 대화 }
    */
