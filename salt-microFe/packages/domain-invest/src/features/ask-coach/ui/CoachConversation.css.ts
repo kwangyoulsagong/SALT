@@ -28,6 +28,21 @@ export const log = style({
   paddingRight: vars.space.xs,
 });
 
+/** PC 격자 칸을 채운다(`FE-REQ-030` FR-51) — 대화 칸이 남은 높이를 다 쓰고 칩 · 입력은 칸 아래에 붙는다. 칸 안 여백은 이 면이 */
+export const rootFill = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.md,
+  height: "100%",
+  minHeight: 0,
+  padding: vars.space.md,
+  boxSizing: "border-box",
+});
+
+export const logFrameFill = style({ position: "relative", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" });
+
+export const logFill = style([log, { flex: 1, minHeight: 0, maxHeight: "none" }]);
+
 export const older = style({ display: "flex", justifyContent: "center" });
 
 export const newMessage = style({

@@ -35,6 +35,8 @@ export const ASK_COACH_MESSAGES = {
   cardJudgedAt: (time: string) => `이 판단을 만든 때 ${time}`,
   /** 같은 카드가 위에 이미 있을 때 — 한 화면에 같은 숫자 두 번 금지(`screen-desktop.md` §5) */
   sameCardAbove: (time: string) => `카드는 위에 붙인 것과 같은 판단이에요${time ? `(${time})` : ""}.`,
+  /** PC 격자 — 같은 카드가 옆 칸 "오늘의 추천"에 펼쳐져 있다 */
+  sameCardAside: (time: string) => `카드는 옆 칸 오늘의 추천과 같은 판단이에요${time ? `(${time})` : ""}.`,
 } as const;
 
 export const COACH_CHIP_LABEL: Record<CoachQuestionChip, string> = {

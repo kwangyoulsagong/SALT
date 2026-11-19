@@ -54,4 +54,6 @@ export const COACH_ENDPOINTS = {
     }`,
   /** 오늘의 브리핑 — 대화 첫 메시지(F006 2단계) */
   coachBriefing: "/api/app/coach/briefing",
+  /** PC 패널 배치(F006 A절 · `BFF-REQ-028`) — 읽기 GET · 저장 PUT(`features/arrange-panels`)이 같은 경로 */
+  panelLayout: "/api/app/coach/panel-layout",
 } as const;

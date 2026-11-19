@@ -74,6 +74,9 @@ const cardKey = (card: CoachCard): string =>
     ? `ok|${card.generatedAt ?? ""}|${card.symbol}|${card.action}`
     : `blocked|${card.generatedAt ?? ""}|${card.blockedReason}`;
 
+/** 두 카드가 같은 판단인가(`firstCardHolders` 와 같은 열쇠) — PC 격자에서 옆 칸 카드와 대화 안 카드를 맞출 때 */
+export const isSameCard = (a: CoachCard, b: CoachCard): boolean => cardKey(a) === cardKey(b);
+
 /**
  * 한 화면에 같은 카드는 한 번만(`screen-desktop.md` §5 "같은 숫자 두 번" — F006 2단계 실화면에서 지난 답 · 브리핑 · 새 답에
  * 같은 카드가 세 번 나왔다). 위에서부터 처음 나온 자리의 id 만 돌려준다 — 나머지 자리는 한 줄로 가리킨다.
@@ -91,3 +94,13 @@ export const firstCardHolders = (items: ReadonlyArray<{ id: string; card: CoachC
   }
   return first;
 };
+
+/**
+ * PC 패널 배치(F006 A절 · `BFF-REQ-028` `GET /api/app/coach/panel-layout`). `tree` 모양은 `@repo/ui/layoutTree` `parseLayout` 이
+ * 판정한다 — BFF · 서버는 객체인지 · 크기만 본다. `degraded` = 서버에서 못 읽음(화면은 기본 배치)
+ */
+export interface PanelLayoutResult {
+  tree: Record<string, unknown> | null;
+  updatedAt: string | null;
+  degraded: boolean;
+}

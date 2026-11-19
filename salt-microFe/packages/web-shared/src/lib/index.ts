@@ -11,3 +11,4 @@ export * from "./useNumberFields";
 export * from "./labelOr";
 export * from "./useZoneNavigate";
 export * from "./useNarrowViewport";
+export * from "./useWideViewport";
