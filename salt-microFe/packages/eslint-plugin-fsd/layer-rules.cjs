@@ -158,6 +158,8 @@ const REGISTRY = {
     "alert-list",
     "settings-panel",
     "transaction-list",
+    // 밴드 적립 `/plan` 본문 — plan 엔티티 + 완료 체크 · 월 적립액 설정(F003 v2 순서 3, 2026-11-19)
+    "weekly-plan",
   ],
   pages: [
     "home",
@@ -193,6 +195,8 @@ const REGISTRY = {
     "portfolio",
     // 보유 기록 관리 `/portfolio/transactions` — 거래 목록 · 고치기 · 지우기(F006 G절 2단계, 2026-11-18)
     "portfolio-transactions",
+    // 밴드 적립 `/plan` — 이번 주 금액 · 근거 · 성적 · 실패 사례(F003 v2 순서 3, 2026-11-19)
+    "plan",
     "search",
     "settings",
     // 알림 `/alerts` — 셸, 도메인 셋을 한 목록에(F006 `FE-REQ-030` FR-110, 2026-11-18)
