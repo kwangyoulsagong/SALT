@@ -41,4 +41,9 @@ FE 만 — 서버 · BFF · DB 변경 0.
 
 ## 커밋
 
+- `29ed2c44` feat(ui) 알약 탭 변형 · 미끄러지는 선택 면 · 누름 공개 — 공용 컴포넌트라 화면 변경과 따로 본다
+- `b07d200b` feat(fe) 상세 재설계 본체 — 되돌리려면 이 커밋(위 ui 커밋은 남겨도 소비처 0)
+- `e082d4a2` fix(fe) 코치 대화 정렬 — 다른 REQ(`FE-REQ-030`)라 따로 되돌릴 수 있게
+- 문서 커밋 — 스펙 · 체크리스트 · 회고 · 마스터 인덱스 · 규칙 두 줄
+
 체크리스트 `requirements/reports/checklists/F000-detail-redesign.md` · 회고 `requirements/reports/retrospects/F000-detail-redesign.md`.
