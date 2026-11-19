@@ -97,3 +97,19 @@ export const Narrow: Story = {
     </div>
   ),
 };
+
+/** 데스크톱 밀도 — 행 44(보조 줄 있으면 56) · 13/600 · 금액 오른쪽 고정폭 숫자 · 호버 면(`FE-REQ-060` FR-3) */
+export const Desk: Story = {
+  args: {
+    density: "desk",
+    title: "점심 김밥",
+    caption: "식비 · 카드",
+    trailingTop: "8,500원",
+    onPress: () => undefined,
+  },
+};
+
+/** 데스크톱 밀도 — 보조 줄 없는 행(44) */
+export const DeskCompact: Story = {
+  args: { density: "desk", title: "식비", trailingTop: "358,100원" },
+};

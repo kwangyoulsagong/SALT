@@ -16,7 +16,7 @@ const BUDGET: Record<string, number> = {
   "apps/web/src": 5,
   "packages/domain-invest/src": 54, // 2026-11-19 `FE-REQ-049` 상세 재설계 −8
   "packages/domain-savings/src": 0,
-  "packages/domain-household/src": 6,
+  "packages/domain-household/src": 5, // 2026-11-19 `FE-REQ-060` 가계부 단계 −1
   "packages/domain-tips/src": 8,
   "packages/web-shared/src": 10,
   "packages/ui/src": 119,

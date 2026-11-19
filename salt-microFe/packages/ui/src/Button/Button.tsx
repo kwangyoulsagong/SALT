@@ -14,7 +14,7 @@ export type ButtonVariant =
   | "danger"
   | "success";
 
-export type ButtonSize = "xs" | "sm" | "md" | "lg";
+export type ButtonSize = "desk" | "xs" | "sm" | "md" | "lg";
 
 export interface ButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {

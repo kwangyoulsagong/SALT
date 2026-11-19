@@ -8,7 +8,8 @@ import { SURFACE } from "@repo/web-shared/ui/surface.css";
  * 가계부 표시 — 데스크톱 글자 위계(`screen-desktop.md` §2) 5단만. **넘친 봉투도 같은 색**이다 — 빨강 · 경고 색을 쓰지 않는다(`FE-REQ-057` 수용 기준 2).
  * 음수 금액은 부호 글자(−)로만 구별한다.
  */
-export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
+/** 정보 상자 — 패널 위 회색 상자 대신 옅은 면(`FE-REQ-060` FR-1 · H1). 그림자 없음 */
+export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
 
 export const row = style({ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "12px" });
 

@@ -6,6 +6,12 @@ import {
   bodyStyles,
   captionStyles,
   chevronStyles,
+  deskCaption,
+  deskPressable,
+  deskRow,
+  deskTitle,
+  deskTrailing,
+  deskTrailingBottom,
   leadingStyles,
   listRowStyles,
   titleStyles,
@@ -25,6 +31,8 @@ export interface ListRowProps {
   onPress?: () => void;
   chevron?: boolean;
   divider?: boolean;
+  /** 밀도 — `mobile`(기본, 56 · 본문 15) · `desk`(데스크톱 목록 행 44 · 13/600 · 금액 오른쪽 `tabular-nums`, `FE-REQ-060` FR-3) */
+  density?: "mobile" | "desk";
   className?: string;
 }
 
@@ -37,24 +45,26 @@ export const ListRow = ({
   onPress,
   chevron = false,
   divider = false,
+  density = "mobile",
   className,
 }: ListRowProps) => {
   const pressable = Boolean(onPress);
+  const desk = density === "desk";
 
   const content = (
     <>
       {leading ? <span className={leadingStyles}>{leading}</span> : null}
 
       <span className={bodyStyles}>
-        <span className={titleStyles}>{title}</span>
-        {caption ? <span className={captionStyles}>{caption}</span> : null}
+        <span className={desk ? `${titleStyles} ${deskTitle}` : titleStyles}>{title}</span>
+        {caption ? <span className={desk ? `${captionStyles} ${deskCaption}` : captionStyles}>{caption}</span> : null}
       </span>
 
       {trailingTop || trailingBottom ? (
-        <span className={trailingStyles}>
+        <span className={desk ? `${trailingStyles} ${deskTrailing}` : trailingStyles}>
           {trailingTop}
           {trailingBottom ? (
-            <span className={trailingBottomStyles}>{trailingBottom}</span>
+            <span className={desk ? `${trailingBottomStyles} ${deskTrailingBottom}` : trailingBottomStyles}>{trailingBottom}</span>
           ) : null}
         </span>
       ) : null}
@@ -65,9 +75,9 @@ export const ListRow = ({
     </>
   );
 
-  const rowClassName = `${listRowStyles({ pressable, divider })} ${
-    className || ""
-  }`;
+  const rowClassName = [listRowStyles({ pressable, divider }), desk ? deskRow : "", desk && pressable ? deskPressable : "", className ?? ""]
+    .filter(Boolean)
+    .join(" ");
 
   if (pressable) {
     return (

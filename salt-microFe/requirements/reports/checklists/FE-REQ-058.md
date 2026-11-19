@@ -96,3 +96,9 @@
 
 - 팁 화면 글자 2단 하드코딩을 토큰(`colors.desk.text2`)으로 — 값 같음
 - 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)
+
+## 2026-11-19 — `FE-REQ-060` 1단계 걸침
+
+- `FE-REQ-060` 1단계 — 가계부 때맞춘 팁 칸 자리만 옮김(요약 띠 아래). 팁 계약 · 동작 변경 0
+- 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
+- 미검증: 없음(이 REQ 몫)

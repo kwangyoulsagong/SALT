@@ -29,12 +29,26 @@ import * as s from "./record.css";
 import { SaveResult } from "./SaveResult";
 
 const PAYMENTS: PaymentMethodKey[] = ["card", "cash", "transfer", "other"];
+/** 사이드 칸에 보이는 최근 쓴 곳 수 */
+const COMPACT_RECENT = 5;
 
 /**
  * 바로 적기(`FE-REQ-057` FR-2 · FR-4) — **금액 먼저**(첫 칸 · 숫자 키패드 · 자동 포커스), 최근 쓴 곳 칩 하나로 가맹점 · 분류가 같이 찬다.
  * 칩 → 금액 → 저장 = 3탭(FEATURE-013 FR-1). 저장에 실패하면 입력값을 그대로 둔다(FR-10).
  */
-export const QuickEntryForm = () => {
+/**
+ * `compact` — 데스크톱 가계부 오른쪽 사이드(`FE-REQ-060` FR-6 · H6): 금액 · 최근 쓴 곳 · 분류만 펴고 쓴 곳 · 날짜 · 결제 · 기분 · 대략은 "더 적기"에 접는다.
+ * 저장은 데스크톱 주 버튼(32). 다른 화면으로 가지 않는다
+ */
+export const QuickEntryForm = ({
+  compact = false,
+  expanded = false,
+}: {
+  compact?: boolean;
+  /** 접지 않는다 — 지출 적기 화면처럼 칸을 다 펼 자리가 있을 때(입력 크기는 `compact` 그대로) */
+  expanded?: boolean;
+} = {}) => {
+  const fold = compact && !expanded;
   const record = useRecordExpense();
   const suggestions = useHouseholdSuggestions();
   const nums = useNumberFields({ amount: "won" });
@@ -78,13 +92,14 @@ export const QuickEntryForm = () => {
   const errorCode = isApiError(record.error) ? record.error.code : null;
 
   return (
-    <form className={s.form} onSubmit={onSubmit} aria-label={M.modes.quick}>
+    <form className={compact ? `${s.form} ${s.compactForm}` : s.form} onSubmit={onSubmit} aria-label={M.modes.quick}>
       <TextField
+        variant={compact ? "compact" : undefined}
         label={M.amount}
         value={amountText}
         onChange={(v) => nums.change("amount", v)}
         inputMode="numeric"
-        autoFocus
+        autoFocus={!fold}
         helperText={amount !== null ? formatWon(amount) : M.amountHint}
         error={nums.message("amount")}
       />
@@ -92,7 +107,7 @@ export const QuickEntryForm = () => {
         <div>
           <span className={s.label}>{M.recent}</span>
           <div className={s.chips}>
-            {suggestions.data.merchants.map((m) => (
+            {(fold ? suggestions.data.merchants.slice(0, COMPACT_RECENT) : suggestions.data.merchants).map((m) => (
               <Chip
                 key={m.merchant}
                 size="sm"
@@ -112,39 +127,84 @@ export const QuickEntryForm = () => {
         <span className={s.label}>{M.category}</span>
         <CategoryChips value={category} onChange={setCategory} />
       </div>
-      <TextField label={M.merchant} value={merchant} onChange={setMerchant} maxLength={40} />
-      <TextField label={M.date} type="date" value={date} onChange={setDate} />
-      <SegmentedControl
-        label={M.payment}
-        value={payment}
-        onChange={setPayment}
-        options={PAYMENTS.map((p) => ({ value: p, label: M.payments[p] }))}
-      />
-      {suggestions.data && suggestions.data.emotions.length > 0 ? (
-        <div>
-          <span className={s.label}>{F.tag}</span>
-          <EmotionChips
-            emotions={suggestions.data.emotions}
-            value={emotion}
-            onChange={(next) => {
-              setEmotion(next);
-              if (next === null) setFeltNow(null);
-            }}
+      {fold ? (
+        <details className={s.more}>
+          <summary className={s.moreSummary}>{M.more}</summary>
+          <div className={s.moreBody}>
+            <TextField variant={compact ? "compact" : undefined} label={M.merchant} value={merchant} onChange={setMerchant} maxLength={40} />
+            <TextField variant={compact ? "compact" : undefined} label={M.date} type="date" value={date} onChange={setDate} />
+            <SegmentedControl
+              label={M.payment}
+              value={payment}
+              onChange={setPayment}
+              options={PAYMENTS.map((p) => ({ value: p, label: M.payments[p] }))}
+            />
+            {suggestions.data && suggestions.data.emotions.length > 0 ? (
+              <div>
+                <span className={s.label}>{F.tag}</span>
+                <EmotionChips
+                  emotions={suggestions.data.emotions}
+                  value={emotion}
+                  onChange={(next) => {
+                    setEmotion(next);
+                    if (next === null) setFeltNow(null);
+                  }}
+                />
+              </div>
+            ) : null}
+            {emotion ? (
+              <div>
+                <span className={s.label}>{F.feltNow}</span>
+                <FeltScale label={F.feltNow} value={feltNow} onChange={setFeltNow} />
+              </div>
+            ) : null}
+            <Checkbox checked={approx} onChange={setApprox} label={M.approx} />
+            {approx ? <span className={s.hint}>{M.approxHint}</span> : null}
+          </div>
+        </details>
+      ) : (
+        <>
+          <TextField variant={compact ? "compact" : undefined} label={M.merchant} value={merchant} onChange={setMerchant} maxLength={40} />
+          <TextField variant={compact ? "compact" : undefined} label={M.date} type="date" value={date} onChange={setDate} />
+          <SegmentedControl
+            label={M.payment}
+            value={payment}
+            onChange={setPayment}
+            options={PAYMENTS.map((p) => ({ value: p, label: M.payments[p] }))}
           />
-        </div>
-      ) : null}
-      {emotion ? (
-        <div>
-          <span className={s.label}>{F.feltNow}</span>
-          <FeltScale label={F.feltNow} value={feltNow} onChange={setFeltNow} />
-        </div>
-      ) : null}
-      <Checkbox checked={approx} onChange={setApprox} label={M.approx} />
-      {approx ? <span className={s.hint}>{M.approxHint}</span> : null}
+          {suggestions.data && suggestions.data.emotions.length > 0 ? (
+            <div>
+              <span className={s.label}>{F.tag}</span>
+              <EmotionChips
+                emotions={suggestions.data.emotions}
+                value={emotion}
+                onChange={(next) => {
+                  setEmotion(next);
+                  if (next === null) setFeltNow(null);
+                }}
+              />
+            </div>
+          ) : null}
+          {emotion ? (
+            <div>
+              <span className={s.label}>{F.feltNow}</span>
+              <FeltScale label={F.feltNow} value={feltNow} onChange={setFeltNow} />
+            </div>
+          ) : null}
+          <Checkbox checked={approx} onChange={setApprox} label={M.approx} />
+          {approx ? <span className={s.hint}>{M.approxHint}</span> : null}
+        </>
+      )}
       <span className={s.hint} role="status">
         {record.isError ? labelOr(M.errorCode, errorCode, M.failed) : category === null && amount !== null ? M.pickCategory : ""}
       </span>
-      <Button type="submit" disabled={amount === null || category === null || record.isPending} loading={record.isPending}>
+      <Button
+        className={compact && expanded ? s.submitInline : undefined}
+        type="submit"
+        size={compact ? "desk" : undefined}
+        disabled={amount === null || category === null || record.isPending}
+        loading={record.isPending}
+      >
         {M.submit}
       </Button>
       {record.data && record.isSuccess ? <SaveResult result={record.data} /> : null}

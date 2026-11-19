@@ -226,6 +226,7 @@ export const AllSizes: Story = {
         alignItems: "flex-start",
       }}
     >
+      <Button size="desk">Desk (32px · 데스크톱 주 버튼)</Button>
       <Button size="xs">Extra Small (30px)</Button>
       <Button size="sm">Small (40px)</Button>
       <Button size="md">Medium (48px)</Button>

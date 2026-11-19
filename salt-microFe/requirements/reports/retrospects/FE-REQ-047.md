@@ -43,3 +43,7 @@
 
 - `FE-REQ-049` 가 이 REQ 틀 위에 상세를 놓음 — `Tabs variant="pill"`(FR 표 "알약 탭(상세)" 값) · `PageFrame` `headMaxWidth`(가운데 단 화면 제목 맞춤) · 글자 크기 래칫 투자 62 → 54
 - 판단은 `FE-REQ-049` 회고 같은 날 절
+
+## 2026-11-19 — `FE-REQ-060` 1단계 걸침
+
+- `FE-REQ-060` 1단계가 이 틀 위에 가계부를 놓음 — `PageFrame`(가계부 · 예산 · 적기) · `@repo/ui` `SummaryBand` · `ListRow density="desk"` · `Button size="desk"`(32 · 모서리 8 · 14/600) · `SURFACE.infoFill`(정보 상자) · `useDesktopViewport`(1024). 래칫 가계부 6 → 5

@@ -120,6 +120,15 @@ export const buttonVariants = recipe({
     },
 
     size: {
+      /** 데스크톱 주 버튼 — 32 · 모서리 8 · 14/600(`screen-desktop.md` §3 "버튼(주)", `FE-REQ-060` FR-6) */
+      desk: {
+        height: "32px",
+        fontSize: vars.deskType.section.fontSize,
+        lineHeight: vars.deskType.section.lineHeight,
+        fontWeight: vars.deskType.section.fontWeight,
+        borderRadius: "8px",
+        padding: "0 12px",
+      },
       xs: {
         height: "30px",
         fontSize: vars.fontSizes.sm,

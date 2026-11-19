@@ -185,6 +185,22 @@ export const FEELING_MESSAGES = {
   mirrorBar: (when: string, score: number, n: number) => `${when} ${score}점 ${n}건`,
 } as const;
 
+/** 데스크톱 한 달 화면(`FE-REQ-060` FR-2~4) — 날짜 묶음 · 분류 비율 · 달력 칸. 숫자는 서버 값, 여기는 글자만 */
+export const BOARD_MESSAGES = {
+  dayTotal: (amount: string) => `합 ${amount}`,
+  groupsLabel: "날짜별 쓴 내역",
+  ratioTitle: "분류별로 쓴 돈",
+  ratioEmpty: "이 달에 쓴 돈이 없어요",
+  calendarTitle: "달력",
+  calendarHint: "날을 누르면 그날 쓴 내역을 보여 드려요",
+  dayEmpty: "이 날 적은 지출이 없어요",
+  envelopeLine: (spent: string, budget: string) => `${spent} / ${budget}`,
+  envelopeRemaining: (amount: string) => `남은 ${amount}`,
+  noBudget: "정한 봉투가 없어요",
+  weekday: ["일", "월", "화", "수", "목", "금", "토"] as const,
+  dayHead: (date: string, weekday: string) => `${formatDay(date)} (${weekday})`,
+} as const;
+
 /** 무지출 달력(가계부 S1c FR-16) — 연속 일수 · "기록" 같은 압박 낱말 0. 기록 없는 날은 비워 둔다 */
 export const CALENDAR_MESSAGES = {
   title: "안 쓴 날",

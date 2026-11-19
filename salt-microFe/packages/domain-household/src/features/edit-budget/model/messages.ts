@@ -16,6 +16,11 @@ export const BUDGET_MESSAGES = {
   archivedEnvelope: (name: string) => `${name}(지운 분류)`,
   submit: "저장",
   saved: "예산을 저장했어요",
+  /** 봉투 행(`FE-REQ-060` FR-7) — 쓴 돈 · 합은 서버 값 */
+  spentThisMonth: (amount: string) => `이번 달 ${amount} 썼어요`,
+  unset: "정하지 않음",
+  savedTotal: (amount: string) => `저장한 봉투 합 ${amount}`,
+  rowsLabel: "봉투",
   failed: "저장 못 했어요. 입력한 값은 그대로 있어요",
   /** 서버 거절 코드 → 까닭 한 줄(가계부 S1f). 모르는 코드는 failed */
   errors: {
