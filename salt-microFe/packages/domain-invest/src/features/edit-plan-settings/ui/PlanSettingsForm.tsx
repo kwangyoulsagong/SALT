@@ -23,7 +23,7 @@ export const PlanSettingsForm = ({ settings }: { settings: PlanSettingsVM }) => 
   const nums = useNumberFields({ monthly: "won" }, settings.monthlyBaseKrw === null ? {} : { monthly: String(settings.monthlyBaseKrw) });
   const amount = parseAmountInput(nums.value("monthly"));
   const code = save.error?.code ?? null;
-  // 겹쳐 누름 막기 — `isPending` 은 다음 렌더에야 참이다(완료 체크와 같은 원인, 2026-11-19)
+  // 겹쳐 누름 막기 — `isPending` 은 다음 렌더에야 참이다(완료 체크와 같은 이유 — 0ms 연속 submit)
   const sending = useRef(false);
   const limits = settings.limits;
   const fieldError =

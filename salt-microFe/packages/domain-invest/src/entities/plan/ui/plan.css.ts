@@ -13,16 +13,8 @@ export const total = style({
 
 export const stack = style({ display: "grid", gap: 8, minWidth: 0 });
 
-export const assetLines = style({ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 });
-
-export const assetLine = style({
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 12,
-  fontVariantNumeric: "tabular-nums",
-  color: vars.colors.text.primary,
-  fontWeight: 600,
-});
+/** 자산 카드 머리 — 종목 아이콘 + 이름 */
+export const assetHead = style({ display: "flex", alignItems: "center", gap: 8, margin: 0 });
 
 export const muted = style({ color: vars.colors.text.secondary, fontSize: 13, margin: 0 });
 

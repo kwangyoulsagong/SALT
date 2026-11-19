@@ -1,3 +1,4 @@
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import {
@@ -12,7 +13,7 @@ import {
 import { PLAN_MESSAGES as M } from "../model/messages";
 import type { WeeklyPlanItemVM } from "../model/types";
 import { BandTable } from "./BandTable";
-import { amountLine, blockedBox, box, boxTitle, evidenceGrid, list, muted, stack } from "./plan.css";
+import { amountLine, assetHead, blockedBox, box, boxTitle, evidenceGrid, list, muted, stack } from "./plan.css";
 
 /**
  * 자산 하나 — 금액 분해 · 이유 · (게이트가 열리면) 근거 · 밴드 표 · 과거 성적 · 빗나간 때(`FE-REQ-022` B · C · D절).
@@ -23,9 +24,15 @@ import { amountLine, blockedBox, box, boxTitle, evidenceGrid, list, muted, stack
  */
 export const PlanAssetCard = ({ item, headingId }: { item: WeeklyPlanItemVM; headingId: string }) => (
   <div className={stack}>
-    <h3 id={headingId} className={boxTitle}>
-      {M.asset[item.asset]}
-    </h3>
+    <div className={assetHead}>
+      {/* 이름은 바로 옆 제목이 읽는다 — 아이콘은 꾸밈 */}
+      <span aria-hidden="true">
+        <AssetIcon symbol={item.asset === "btc" ? "BTC" : M.asset[item.asset]} src={item.logoUrl ?? undefined} name={M.asset[item.asset]} size="sm" />
+      </span>
+      <h3 id={headingId} className={boxTitle}>
+        {M.asset[item.asset]}
+      </h3>
+    </div>
     <AmountLine item={item} />
     <p className={muted}>{M.reason[item.reasonCode]}</p>
     {item.status === "executed" && item.executedKrw !== null ? (

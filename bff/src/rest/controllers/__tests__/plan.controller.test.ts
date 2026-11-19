@@ -99,7 +99,38 @@ describe("서버로 — 한 번만 · 코드 그대로", () => {
     assert.deepEqual([res.status, res.body.field, res.body.min, res.body.max, res.body.unit], [422, "monthlyBaseKrw", 10_000, 100_000_000, 1_000]);
   });
 
+  it("주간 계획 — 비트코인 로고는 시세 목록에서 · 시세 목록이 실패해도 계획은 그대로(로고 null)", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => ({
+      data: { data: { weekOf: "2026-11-16", configured: true, totalKrw: 1, items: [{ asset: "btc", multiplier: 1, reasonCode: "gate_not_passed", renderable: false }, { asset: "kospi", multiplier: 1, reasonCode: "gate_not_passed", renderable: false }] } },
+    }));
+    const market = mock.method(backendApi, "getMarketOverview", async () => ({ items: [{ symbol: "BTC", logoUrl: "https://x/btc.png" }] }));
+    const ok = await call("GET", "/weekly");
+    assert.deepEqual((ok.body.data as { items: Array<{ logoUrl: string | null }> }).items.map((i) => i.logoUrl), ["https://x/btc.png", null]);
+    market.mock.mockImplementation(async () => {
+      throw new Error("시세 목록 실패");
+    });
+    const failed = await call("GET", "/weekly");
+    assert.equal(failed.status, 200);
+    assert.deepEqual((failed.body.data as { items: Array<{ logoUrl: string | null }> }).items.map((i) => i.logoUrl), [null, null]);
+  });
+
+  it("주간 계획 실패는 상태 코드 그대로 — 빈 계획(200)으로 덮지 않는다 · 401 은 401", async () => {
+    mock.method(backendApi, "getMarketOverview", async () => ({ items: [] }));
+    const proxied = mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw upstream(401, { success: false, code: "UNAUTHORIZED", message: "x" });
+    });
+    const unauth = await call("GET", "/weekly");
+    assert.equal(unauth.status, 401);
+    proxied.mock.mockImplementation(async () => {
+      throw new Error("connect ECONNREFUSED");
+    });
+    const down = await call("GET", "/weekly");
+    assert.ok(down.status >= 500, `5xx 여야 한다: ${down.status}`);
+    assert.equal(down.body.data, undefined);
+  });
+
   it("주간 계획 — 봉투 { success, data } · 월 합계는 month 를 그대로 넘긴다", async () => {
+    mock.method(backendApi, "getMarketOverview", async () => ({ items: [] }));
     const urls: string[] = [];
     mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => {
       urls.push(url);

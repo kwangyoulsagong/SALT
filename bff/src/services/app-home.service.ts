@@ -100,7 +100,7 @@ const CARD_SOURCES: CardSource[] = [
         appAICoachService.getProfile(token),
         backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
         // 카드 예산보다 짧게 — 적립 줄이 늦어 카드 전체가 degraded 가 되지 않게
-        appPlanService.getWeekly(token, HOME_PLAN_LINE_TIMEOUT_MS),
+        appPlanService.getWeekly(token, HOME_PLAN_LINE_TIMEOUT_MS, false),
       ]);
       if (summary.status === "rejected") throw summary.reason;
       const hidden = profile.status === "fulfilled" && profile.value.hidePurchasePrice;

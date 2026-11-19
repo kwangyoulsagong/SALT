@@ -39,6 +39,8 @@ export interface PlanFailureCase {
 
 export interface WeeklyPlanItemVM {
   asset: PlanAsset;
+  /** 자산 아이콘 — 비트코인은 시세 목록의 로고, 코스피 · 못 받음은 null(글자 아이콘) */
+  logoUrl: string | null;
   indicator: PlanIndicator | null;
   /** 설정 전이면 null */
   weeklyBaseKrw: number | null;
@@ -234,7 +236,7 @@ const toTrackRecord = (v: unknown): WeeklyPlanItemVM["trackRecord"] => {
 };
 
 /** 한 자산 — 모르는 자산 · 배수 없음은 싣지 않는다(근거 없는 금액). 게이트 필드가 없으면 닫는다(fail-closed) */
-const toItem = (v: unknown, reasons: Set<string>): WeeklyPlanItemVM | null => {
+const toItem = (v: unknown, reasons: Set<string>, logos: ReadonlyMap<PlanAsset, string>): WeeklyPlanItemVM | null => {
   if (!isObject(v)) return null;
   const asset = oneOf(PLAN_ASSET_LIST, v.asset);
   const multiplier = num(v.multiplier);
@@ -247,6 +249,7 @@ const toItem = (v: unknown, reasons: Set<string>): WeeklyPlanItemVM | null => {
   if (!gateKnown) reasons.add("gate_missing");
   return {
     asset,
+    logoUrl: logos.get(asset) ?? null,
     indicator: oneOf(INDICATORS, v.indicator),
     weeklyBaseKrw: num(v.weeklyBaseKrw),
     multiplier,
@@ -273,11 +276,11 @@ const toKimchi = (v: unknown): WeeklyPlanVM["kimchiPremium"] => {
   return { premiumPct, costKrwOnPlan: num(v.costKrwOnPlan), level, asOf };
 };
 
-/** `GET /api/plan/weekly` → 뷰모델. 서버 `degraded` 는 지우지 않고 BFF 가 거른 사유를 덧붙인다 */
-export const toWeeklyPlanViewModel = (server: unknown): WeeklyPlanVM => {
+/** `GET /api/plan/weekly` → 뷰모델. 서버 `degraded` 는 지우지 않고 BFF 가 거른 사유를 덧붙인다. 로고는 BFF 가 시세 목록에서 붙인 것 */
+export const toWeeklyPlanViewModel = (server: unknown, logos: ReadonlyMap<PlanAsset, string> = new Map()): WeeklyPlanVM => {
   const s = isObject(server) ? server : {};
   const reasons = new Set<string>(Array.isArray(s.degradedReasons) ? s.degradedReasons.filter((r): r is string => typeof r === "string") : []);
-  const items = (Array.isArray(s.items) ? s.items : []).map((i) => toItem(i, reasons)).filter((i): i is WeeklyPlanItemVM => i !== null);
+  const items = (Array.isArray(s.items) ? s.items : []).map((i) => toItem(i, reasons, logos)).filter((i): i is WeeklyPlanItemVM => i !== null);
   const streak = isObject(s.streak) ? s.streak : {};
   return {
     weekOf: str(s.weekOf) ?? "",

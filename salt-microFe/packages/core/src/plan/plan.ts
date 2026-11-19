@@ -34,6 +34,8 @@ export interface PlanFailureCase {
 
 export interface WeeklyPlanItemVM {
   asset: PlanAsset;
+  /** 자산 아이콘 — 비트코인은 시세 목록의 로고, 코스피 · 못 받음은 null(글자 아이콘) */
+  logoUrl: string | null;
   indicator: PlanIndicator | null;
   /** 설정 전이면 null */
   weeklyBaseKrw: number | null;

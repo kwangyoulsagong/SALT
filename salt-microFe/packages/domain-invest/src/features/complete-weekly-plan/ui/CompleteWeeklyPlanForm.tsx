@@ -34,7 +34,7 @@ export const CompleteWeeklyPlanForm = ({ plan }: { plan: WeeklyPlanVM }) => {
   const nums = useNumberFields(Object.fromEntries(plan.items.map((i) => [i.asset, "won" as const])), initial);
   const allDone = plan.items.length > 0 && plan.items.every((i) => i.status === "executed");
   const code = complete.error?.code ?? null;
-  // 겹쳐 누름 막기 — `isPending` 은 다음 렌더에야 참이라 같은 틱의 두 번째 submit 을 못 막는다(실화면 더블 클릭 2회 전송, 2026-11-19)
+  // 겹쳐 누름 막기 — `isPending` 은 다음 렌더에야 참이라 0ms 연속 submit 은 둘 다 나간다(시험 도구 dblclick 실측 2026-11-19 · 사람 간격 10ms~ 는 1회)
   const sending = useRef(false);
 
   const onSubmit = (event: FormEvent) => {
