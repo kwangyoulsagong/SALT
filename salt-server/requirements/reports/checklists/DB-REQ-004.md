@@ -7,3 +7,8 @@
 ## 2026-10-30 — F000 레거시 모델 drop · 중복 워커 정정 (루트 `F000-legacy-cleanup`)
 
 - FR-30 · 31 · 수용 기준 "BFF worker 단일 경로" 정정 → `market_assets` 정기 쓰기 = 서버 잡 하나(재시작 뒤 1초 안 갱신 확인). 스키마 무변경
+
+## 2026-11-19 — FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- FR-40 · 41 — 10-30 실측 그대로 — 충족 · 나머지 대체(정리 절 표)
+- 미충족: 없음

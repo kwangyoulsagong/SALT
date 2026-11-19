@@ -48,3 +48,8 @@
 - FR-50 모양 안 봄(객체면 통과) · FR-51 16KB 정확히 통과 / +1 413(서버 0회) · FR-52 5xx · 504 · 시간 초과 → `degraded` — `panel-layout.test.ts` 6 · 변이 둘
 - 실측: 20KB 413 · 200KB 413(전 500) · 배열 400
 - 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-5 — LLM 경로 결정 · 앱 착수 때

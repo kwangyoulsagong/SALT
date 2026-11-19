@@ -7,3 +7,7 @@
 ## 2026-10-30 — F000 레거시 모델 drop · 중복 워커 정정 (루트 `F000-legacy-cleanup`)
 
 - 같은 전제 복사. Action: 없음
+
+## 2026-11-19 — FR 대조 · done (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- "정리 전/후" 측정 FR 은 정리 전에 재지 않으면 영영 못 잰다. Action: 전후 비교 FR 은 정리 커밋 전에 전 값을 먼저 체크리스트에 남긴다

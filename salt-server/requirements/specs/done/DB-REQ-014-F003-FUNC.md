@@ -1,0 +1,197 @@
+---
+id: DB-REQ-014
+feature: F003
+area: db
+kind: FUNC
+title: "F003 밸류에이션 밴드 적립 — 데이터 불변식 정의 (멱등 수집 · 주차 경계 · 실패이력 게이트)"
+priority: high
+labels: [db, invariant, idempotency, week-boundary, render-gate]
+created: 2026-09-09
+---
+
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
+
+
+## Summary
+
+F003의 불변식은 **지표 수집 멱등**, **주차 경계**, 그리고 **실패 이력이 없으면 배수 카드를 렌더하지 않는다**는 게이트다.
+
+## 불변식 목록
+
+| ID | 불변식 | 지키는 장치 | 깨지면 |
+|---|---|---|---|
+| INV-1 | 같은 날 지표 수집을 3회 해도 스냅샷이 1건 | `@@unique([indicator, asOf])` | 지표 이력이 오염된다 |
+| INV-2 | 주간 계획이 주차·심볼당 1건 | `@@unique([userId, weekOf, symbol])` | 계획이 중복된다 |
+| INV-3 | `weekOf`가 KST 월요일 | 계산 정책 | 일/월 경계 매수의 귀속 주차가 틀린다 |
+| INV-4 | **실패 이력이 없으면 배수 카드를 렌더하지 않는다** | `IndicatorTrackRecord` 조회 + 게이트 | **정책 위반** |
+| INV-5 | 배수가 0~3 범위 | 도메인 VO + CHECK | 계획 금액이 이상해진다 |
+| INV-6 | 지표 결측 시 배수가 1.0x로 폴백 | 폴백 정책 + `indicatorFallback` 기록 | 결측을 모른 채 잘못된 배수가 쓰인다 |
+| INV-7 | 임계값·배수·기본액이 코드 상수가 아니다. **사용자가 바꿀 수 있는 것은 기본액뿐**이다(개정 2026-09-21 — D9) | `BandPreset`(전역 시드) · `PlanSettings.monthlyBaseKrw` | 설정 변경이 재배포다 · 사용자별 밴드가 적중률을 거짓으로 만든다 |
+| INV-8 | 계획에 지표 상태가 스냅샷된다 | `WeeklyPlanExecution` 4필드 | "왜 그 배수였나"를 설명할 수 없다 |
+| INV-9 | 미실행 주가 비난 없이 기록된다 | `status: skipped` + 문구 정책 | 자책 도구가 된다 |
+| INV-10 | 이번 달 적립 합계 = 그 달 `weekOf`의 `executed` 행 `executedKrw` 합 (2026-09-21 — B20) | 서버 집계 한 곳 | 목표 화면과 적립 화면의 숫자가 갈린다 |
+| INV-11 | 월 적립액 → 주간 기본액 환산이 서버 한 곳에서 일어난다 (2026-09-21 — D9 · B12) | `policy/baseAmount` | 설정 화면과 온보딩의 환산값이 갈린다 |
+
+## Requirements
+
+### A. 멱등 수집 (INV-1)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-1 | 수집은 **upsert**다. 같은 `(indicator, asOf)`면 값을 갱신한다 | Must |
+| FR-2 | `asOf`는 **날짜 단위**다. 시각을 넣으면 멱등이 깨진다 | Must |
+| FR-3 | 같은 날 3회 실행 테스트로 검증한다 | Must |
+| FR-4 | 수집 실패 시 **마지막 값을 carry-forward** 하고 `staleDays`를 센다 | Must |
+| FR-5 | **추정값을 만들지 않는다.** carry-forward는 마지막 실제 값이다 | Must |
+
+### B. 주차 경계 (INV-2, INV-3)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-10 | `weekOf` = 그 주의 **KST 월요일 날짜** | Must |
+| FR-11 | 일요일 23:59 매수는 **그 주**, 월요일 00:01 매수는 **다음 주**다. 테스트로 고정한다 | Must |
+| FR-12 | 주간 계획 생성은 **upsert**다. 같은 주차 재실행이 row를 늘리지 않는다 | Must |
+| FR-13 | ~~원장 매칭은 주간 윈도우 안의 동일 심볼 매수를 찾는다~~ → **개정 2026-09-21** — 원장 자동 매칭을 하지 않는다(ADR-002 · 기본안 — 감사 문서 B20). 실행 기록은 **사용자의 수동 체크만**이다. `PortfolioTransaction`을 읽어 `executed`로 바꾸는 경로가 0건이다 | Must |
+| FR-14 | ~~매칭된 거래를 `matchedTransactionId`에 남긴다~~ → **개정 2026-09-21** — 수동 체크는 `executedKrw`(사용자 입력, 기본값 = `plannedKrw`)·`recordedAt`만 남긴다. 같은 주차·심볼 재체크는 upsert다 | Must |
+
+### C. 실패 이력 게이트 (INV-4) — F004와 공유
+
+FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다. 실패 이력 데이터가 없으면 배수 카드를 렌더하지 않는다."*
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-20 | 배수 카드 응답에 **`trackRecordId`(필수)** 를 담는다. 없으면 렌더 불가 | Must |
+| FR-21 | `IndicatorTrackRecord`를 삭제하면 **카드가 렌더되지 않는지** 테스트로 검증한다 | Must |
+| FR-22 | 최소 항목: **MVRV Z 바닥 4/4 적중**(2011·2015·2018·2022), **2025-10 톱 미검출(이후 −52%)** | Must |
+| FR-23 | `signalTypes` 배열로 **F004의 `signalType`과 매핑**된다. 같은 모델을 두 기능이 쓴다 | Must |
+| FR-24 | 게이트 차단은 **에러가 아니다.** 정상 동작이다 | Must |
+
+### D. 배수와 폴백 (INV-5, INV-6)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-30 | 배수 범위 `0 <= multiplier <= 3` CHECK 제약 | Must |
+| FR-31 | **BTC(MVRV Z)만 0x가 가능**하다. CAPE는 **하한 0.25x**(지수 적립 중단은 장기 기회비용이 크다) | Must |
+| FR-32 | 지표 **3일 이상 결측이면 배수를 1.0x(중립)로 폴백**하고 `indicatorFallback: true`를 기록한다 | Must |
+| FR-33 | 폴백 사실과 `staleDays`를 화면에 표시할 수 있게 계획에 저장한다 | Must |
+| FR-34 | 지표 소스 **전체 실패 시에도 기본액을 제시**한다. 화면이 비지 않는다 | Must |
+| FR-35 | **`Z >= 7`의 0x에서도 매도 지시를 하지 않는다.** 계획 금액이 0일 뿐이다 | Must |
+
+### E. 설정값 (INV-7)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-40 | 임계값·배수는 **`BandPreset`**, 기본액은 **`PlanSettings`** 에서 온다. 코드 상수 0건. **개정 2026-09-21** — D9: 임계값·배수는 사용자별 설정이 아니라 전역 프리셋이고 읽기 전용이다 | Must |
+| FR-41 | 기본액을 바꾸면 **다음 계획부터 반영**된다. 이미 만든 주간 계획을 소급 변경하지 않는다. 단, **그 주 계획이 아직 없는 첫 저장**(온보딩)은 예외다 — FR-45 | Must |
+| FR-42 | 기본 프리셋을 시드로 제공한다 | Must |
+| FR-43 | 금액은 **1,000원 단위 반올림**한다. 반올림 규칙도 설정값 | Must |
+| FR-44 | **2026-09-21 추가 — D9.** 주간 기본액 = `monthlyBaseKrw × 12 ÷ 52`, 1,000원 단위 반올림. 서버만 환산한다(INV-11) | Must |
+| FR-45 | **2026-09-21 추가 — B12.** 첫 저장(사용자에게 `PlanSettings`가 0건)에서 그 주 `WeeklyPlanExecution`을 **즉시 upsert**한다. 월요일 워커를 기다리면 온보딩 직후 홈 적립 블록이 비어 있다 | Must |
+| FR-46 | **2026-09-21 추가 — D9.** `BandPreset`을 바꾸는 사용자 경로가 0건이다. 운영자 시드 변경은 `version`을 올린다 | Must |
+### F. 지표 스냅샷 (INV-8)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-50 | 계획 생성 시 `indicatorValue`·`indicatorAsOf`·`staleDays`·`fallback`을 **스냅샷**한다 | Must |
+| FR-51 | 지표가 나중에 갱신되어도 **과거 계획의 근거가 바뀌지 않는다** | Must |
+| FR-52 | 화면이 "MVRV Z −0.3 → 극단 저평가 밴드"를 보여줄 때 그 값은 **계획 시점 값**이다 | Must |
+
+### G. 미실행 기록 (INV-9)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 실행하지 않은 주는 `status: skipped`로 기록한다 | Must |
+| FR-61 | **비난 문구를 만들지 않는다.** "3주 중 1주 미실행" 같은 **사실만** | Must |
+| FR-62 | 서버는 **코드와 수치**만 주고 문구는 프론트가 만든다 | Must |
+| FR-63 | 연속 주차·누적액을 계산해 표시한다. **점수·등급 0건** | Must |
+
+### H. 이번 달 적립 합계 (INV-10) — 2026-09-21 추가
+
+기본안 — 감사 문서 B20. 스토리보드 `goals` n1: 목표 화면 상단 "이번 달 적립".
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | 합계 = KST 기준 그 달에 `weekOf`가 속한 행 중 `status = 'executed'`의 `executedKrw` 합. `planned`·`skipped`는 더하지 않는다 | Must |
+| FR-71 | 비교값 `plannedKrw` = 같은 행들의 `plannedKrw` 합(밴드 배수 반영). **월 적립액(`monthlyBaseKrw`)과 다를 수 있다** — 배수 때문이다 | Must |
+| FR-72 | 진행률·남은 일수도 **서버가** 계산한다. 프론트는 표시만(공통 기준 ③) | Must |
+| FR-73 | 계획이 0건인 달은 `executedKrw: 0`·`plannedKrw: 0`이다. 에러가 아니다 | Must |
+## Acceptance Criteria
+
+- [ ] 같은 날 지표 수집 3회 → 스냅샷 1건
+- [ ] `asOf`가 날짜 단위다
+- [ ] 수집 실패 시 carry-forward되고 `staleDays`가 센다
+- [ ] **추정값 생성이 0건이다**
+- [ ] `weekOf`가 KST 월요일이다
+- [ ] **일요일 23:59 / 월요일 00:01 매수의 귀속 주차가 갈린다** (테스트 고정)
+- [ ] 주간 계획 생성이 멱등이다
+- [ ] **`PortfolioTransaction`을 읽어 실행 상태를 바꾸는 경로가 0건이다** (ADR-002 · B20)
+- [ ] 수동 체크가 `executedKrw`·`recordedAt`을 남기고 재체크가 upsert다
+- [ ] **`IndicatorTrackRecord`를 삭제하면 배수 카드가 렌더되지 않는다**
+- [ ] 실패 이력에 MVRV Z 바닥 4/4와 2025-10 톱 미검출이 있다
+- [ ] `signalTypes`로 F004의 `signalType`과 매핑된다
+- [ ] 배수 CHECK 제약이 있다 (범위 밖 insert 실패)
+- [ ] CAPE 최저 배수가 0.25x 이상이다 (0x 0건)
+- [ ] **지표 3일 결측 시 배수가 1.0x로 폴백되고 `fallback: true`가 기록된다**
+- [ ] 지표 전체 실패 시에도 기본액이 제시된다
+- [ ] **`Z >= 7`에서 매도 지시 문구가 0건이다**
+- [ ] 임계값·배수·기본액이 설정값이다 (코드 상수 0건)
+- [ ] **`BandPreset`을 바꾸는 사용자 경로가 0건이다** (D9)
+- [ ] 월 1,300,000원 → 주간 300,000원으로 환산된다 (×12÷52, 1,000원 반올림)
+- [ ] 첫 저장 직후 그 주 계획이 있다 (B12)
+- [ ] 이번 달 적립 합계가 `executed` 행만 더하고 귀속 달이 `weekOf` 기준이다 (B20)
+- [ ] 설정 변경이 과거 계획을 바꾸지 않는다
+- [ ] 금액이 1,000원 단위로 반올림된다
+- [ ] **계획에 지표 상태 4필드가 스냅샷된다**
+- [ ] 지표 갱신 후에도 과거 계획의 근거가 그대로다
+- [ ] 미실행 주가 `skipped`로 기록된다
+- [ ] **비난 문구가 서버 응답에 0건이다** (코드 + 수치만)
+- [ ] 점수·등급 표현이 0건이다
+
+## Dependencies
+
+- **선행:** `DB-REQ-013`(스키마) · `DB-REQ-002`(FR-22 주차 경계)
+- **구현:** `SRV-REQ-020`(F003 FUNC)
+- **공유:** `IndicatorTrackRecord`를 F004가 읽는다(`DB-REQ-018` INV-4)
+
+## Open Questions
+
+- ~~원장 매칭이 여러 건일 때 `matchedTransactionId`에 무엇을 넣을지~~ → **닫힘 2026-09-21** — 원장 매칭이 없다(ADR-002).
+- 수동 체크를 **취소**(executed → planned)할 수 있게 할지. 기본안: 그 주 안에서만 허용.
+- 스토리보드 설정·온보딩은 월 1,300,000원 → 주간 325,000원(÷4)으로 그렸다. 이 REQ는 ×12÷52(300,000원)다 — ÷4는 연간 적립이 월 계획보다 8% 많아진다. **스토리보드 숫자를 고쳐야 한다.**
+- 주간 윈도우 경계에서 매수가 걸치면(일요일 23:59) 사용자가 의도한 주차와 다를 수 있다. **사용자가 주차를 수동 지정**할 수 있게 할지.
+- `Z >= 7` 0x가 장기간 이어지면 적립이 멈춘다. 그때 현금을 어디에 둘지 안내할지 → **금융상품 추천 여지가 있어 하지 않는 방향**(FEATURE-003 Open Question).
+
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 불변식은 DB 제약으로(2026-11-19 Changelog). 지표 멱등 수집은 예측 몫.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| INV-1 · FR-1~5 | 대체 | 지표 멱등 수집은 예측(`FC-REQ-029`) |
+| INV-2 · 3 · FR-10~12 | 충족 | 유일 키 · 월요일 CHECK · `ON CONFLICT DO NOTHING`(`prisma/migrations/20261119300100_plan_weekly/migration.sql:46 · 56`) |
+| FR-13 · 14 | 충족 | 수동 체크만 · `executed_krw` · `recorded_at`(status CHECK `:50`) |
+| INV-4 · FR-20 · 21 · 24 | 충족 | v2 모양 — `trackRecordId` 대신 3종 게이트(`src/plan/domain/policy/bandCard.ts:12`) · 차단은 오류가 아니다 |
+| FR-22 · 23 | 대체 | v1 시드 · `signalTypes` 없음(10-29 정정 · `FE-REQ-022` 머리 블록) |
+| INV-5 · FR-30 | 충족 | CHECK `:47` |
+| FR-31 | 대체 | CAPE 없음 — 코스피 하한은 사전등록 밴드 |
+| INV-6 · FR-32~34 | 충족 | v2 모양 — 그 주 예측 행 없음 → 1.0 + `fallback`(`domain/policy/weekPlan.ts:15`) |
+| FR-35 | 충족 | 0배 = 금액 0 |
+| INV-7 · 11 · FR-40 · 41 · 43~45 | 충족 | 월 적립액만 사용자 값 · 1,000원 CHECK(`:16`) · 환산 서버 한 곳(`domain/policy/amount.ts:35`) · 다음 주부터 · 첫 저장 즉시 |
+| FR-42 · 46 | 대체 | `BandPreset` 시드 없음 — 사전등록 `bands` |
+| INV-8 · FR-50~52 | 충족 | 처음 스냅샷을 `ON CONFLICT DO NOTHING` 으로 지킨다(`infrastructure/PrismaExecutionStore.ts:56`) |
+| INV-9 · FR-60~63 | 충족 | `skipped` · 코드만 · 점수 0(`domain/policy/execution.ts:31`) |
+| INV-10 · FR-70~73 | 충족 | `domain/policy/monthlySummary.ts:23` |
+
+미충족 — 없음
+
+판정: **done**
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. INV-7·FR-13·FR-14·FR-40·FR-41 개정(ADR-002 · D9 · B20). INV-10·11, FR-44~46(환산 · 첫 저장 · 프리셋 읽기 전용), H절 FR-70~73(이번 달 적립 합계) 추가 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 2 — 불변식을 DB 제약으로: 주 · 자산 유일(넣기는 `ON CONFLICT DO NOTHING` — 처음 스냅샷을 지킨다) · 월요일 CHECK · 1,000원 단위 · 배수 0~3 · 상태와 값 한 덩어리(executed ⇔ 금액 · 시각). 지표 멱등 수집(FR-1~) 은 예측 몫. to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |
+| 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 남은 FR 없음. in-progress → done |

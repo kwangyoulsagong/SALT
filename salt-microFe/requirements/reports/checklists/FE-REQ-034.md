@@ -114,3 +114,11 @@ DOM 범례 글자 리플로다 — 범례를 숨기면 0.12ms 로 돌아간다. 
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-19 FR 대조 정리 (`WEB-perf-req-close-slice.md`, `feat/web-perf-close`)
+
+- 상태: **in-progress → done**. 코드 변경 0 — 문서 정리
+- 수용 기준 마지막 줄 충족: 엔진 vitest 21(`packages/ui/src/TradingChart/engine/engine.test.ts`) · 병합 · KST 파싱 vitest 11(`packages/core/src/market/candleTime.test.ts`, `FE-REQ-035` FR-7)
+- §5 정리: 첫 페인트 600ms → `FE-REQ-029`(예산 표 · FR-74 수용 기준)로 범위 이동 — 이 REQ 몫 응답 → 그리기 p95 40ms 통과 · 판단이 열린 화면 → v2 로 대체(`ADR-010` v2) ·
+  과거 보는 중 새 봉 붙기는 `followAppend` 단위 테스트로 FR-26 pass 유지 · 200봉 이전 · 월/년 봉 · 핀치 · 이동평균 위치는 Open Questions(FR 아님)
+- 미충족: 없음

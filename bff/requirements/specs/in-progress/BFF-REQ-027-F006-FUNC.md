@@ -18,6 +18,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈 3블록 조립**(블록 격리, 웹/모바일 이원 계약)에 2026-09-21 **③ 포지션 ④ 거래 쓰기 ⑤ 알림 ⑥ 설정**이 더해졌다.
@@ -188,6 +190,17 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 - F004 BFF 성향 쓰기 경로 이름은 F004 REQ가 정한다. 이 REQ는 "소유자 경로로 보낸다"만 고정한다.
 - 거래 목록 페이징: 서버는 `page`·`limit`이다. BFF가 커서로 감쌀지(다른 목록과 통일) 그대로 둘지 — 거래 수가 적어 **그대로가 기본안**.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-5 | 남음(LLM) | 유령 LLM 호출 — LLM 이 없다. 종료 전파(FR-4)는 충족 |
+| FR-20~30 | 대체 | 홈 3블록 없음 — F015 홈 카드(`BFF-REQ-046`) |
+| FR-100~104 | 대체 | 설정 조립 없음 — 도메인 zone 으로 흩어짐(④ 알림은 `me.routes` `BFF-REQ-046` FR-8) |
+| FR-110~112 | 대체 | 온보딩 은퇴 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -200,3 +213,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 `GET/POST /api/app/portfolio/transactions` · `PATCH/DELETE …/:id` · `POST …/preview`(`transactionController`) · FR-81 미리보기 서버 값 그대로 · FR-82 정정(4xx 코드 그대로 — error middleware) · FR-83 해당 없음 · FR-84 재시도 0(`backendApi` 재시도 없음 · 쓰기 5초) · FR-85 경로 · 주석 "주문이 아님". 목록은 그 쪽 종목만 이름 · 로고(실패면 심볼 · `namesDegraded`), 모르는 자산군 행은 싣지 않음. 수정에 종목 · 매수/매도 키가 오면 BFF 가 먼저 400(조용히 버리지 않음) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-90 목록 한 쪽(`?page=` · `nextPage` — 서버 total 기준) · FR-91 `unread-count` · `/:id/read` · `/read-all` 서버 1:1(204) · FR-92 `target` 코드(경로 0) · FR-93 만드는 경로 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — FR-50~52. 읽기 실패 → `degraded` 기본 배치 · 401/403 만 그대로 · 400/413. 같은 원인으로 본문 100kb 초과가 500 이던 것 413 |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

@@ -13,6 +13,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 대화 SSE 계약과 홈 3블록 뷰모델(2026-09-21 개정). **웹은 블록별, 모바일은 집계**이고 두 형태가 같은 함수에서 나온다. 여기에 포지션 · 거래 기록 · 알림 · 설정 계약이 더해졌다.
@@ -200,6 +202,16 @@ type SettingsViewModel = {
 - `SettingsViewModel.coach` 필드 이름은 F004 계약(`FE-REQ-026` FR-80 · `riskTolerance` 등)에 맞췄다(2026-09-21 대조). `alerts.alertsEnabled`(전체 켜기/끄기, F006)와 `coach.notificationLevel`(켜져 있을 때의 빈도, F004)은 **둘 다 둔다** — 감사 문서 B34.
 - `assetType`을 거래 입력에 둘지는 감사 Q2(자산군 3종)에 달려 있다. 크립토 하나로 줄면 필드가 빠진다.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-6 | 남음(LLM) | `source` 는 지금 늘 `rule` — `llm` 값은 LLM 경로가 켜질 때 |
+| FR-20~25 · 28 · 30 | 대체 | 홈 F015 |
+| FR-46 · 47 | 대체 | `SettingsViewModel` 없음 — 설정은 도메인 zone 으로 흩어짐 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -211,3 +223,4 @@ type SettingsViewModel = {
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — 거래 계약을 `PositionView` CONTRACT 블록에 더함: `PositionTransactionVM` · `PositionTransactionPageVM` · `LedgerFigures` · `TransactionPreviewVM` · `TransactionCreateInput` · `TransactionPatchInput` · `TransactionPreviewInput` · `INSUFFICIENT_QUANTITY_CODE` — `@repo/core/position` 과 글자 대조(`position-contract.test.ts` 통과) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 엔드포인트 표 셋(목록 · 읽음 · 안 읽은 수) 구현 · FR-26 갈 곳 코드 넷으로 정정 · FR-45 경로 0 · FR-48 `@repo/core/alerts` 글자 대조(`alerts-contract.test.ts`). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | 패널 배치 경로 정정 `/api/app/panel-layout` → `/api/app/coach/panel-layout` · 응답 `PanelLayoutResult { tree, updatedAt, degraded }`(`@repo/core/coach`) — 구현(`feat/f006-pc-panel-grid`) |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

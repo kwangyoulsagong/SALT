@@ -51,3 +51,8 @@
 
 - 격자 칸 안 질문 → 답 · 맨 아래 따라가기(1280×720 실화면) · 옆 칸 카드와 같은 판단 한 줄(route 통과 카드)
 - 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-9, FR-61 — LLM 경로 결정 · 앱 착수 때

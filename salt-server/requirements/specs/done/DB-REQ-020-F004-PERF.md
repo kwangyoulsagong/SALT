@@ -1,0 +1,226 @@
+---
+id: DB-REQ-020
+feature: F004
+area: db
+kind: PERF
+title: "F004 AI 코치 추천 — DB 성능 정의 (JSON 조건 제거 효과 · 성적표 집계)"
+priority: high
+labels: [db, performance, index, json-to-column, projection]
+created: 2026-09-09
+---
+
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "지금 문제"의 200쿼리 N+1(`signal-performance.service.ts`) · `payload` fallback 체인은 **삭제됨**(`SRV-REQ-024` FR-176) — 성적표는 스냅샷 store 에서 읽는다. 이 REQ 의 동기는 해소, 남은 FR 은 착수 때 재검토
+
+
+## Summary
+
+F004의 성능 개선은 **`payload` JSON 조건 쿼리를 컬럼으로 승격하는 것**에서 나온다. 현재 `signal-performance`가 100건을 읽어와 루프로 버리고, 그 안에서 **거래마다 `PriceHistory`를 두 번 조회한다** — N+1이다.
+
+## 지금 문제 — 실측 가능한 N+1
+
+`signal-performance.service.ts`:
+
+```ts
+const insights = await prisma.investmentInsight.findMany({ ..., take: 100 });
+for (const insight of insights) {
+  const [entry, latest] = await Promise.all([
+    prisma.priceHistory.findFirst({ where: { symbol, timestamp: { gte: insight.createdAt } }, orderBy: { timestamp: 'asc' } }),
+    prisma.priceHistory.findFirst({ where: { symbol }, orderBy: { timestamp: 'desc' } }),
+  ]);
+}
+```
+
+**insight 100건 × 쿼리 2회 = 200 쿼리.** 그리고 `latest`는 심볼별로 같은 값인데 매번 조회한다.
+
+## 예산
+
+| 작업 | 예산 | 현재 추정 |
+|---|---|---|
+| 최신 추천 조회 | **50ms** | 인덱스 승격 후 |
+| 코치 상세 조립 | **400ms** | 추천 + 성적표 + 실패이력 + 익절플랜 + 행동기록 |
+| **신호 성적표(그룹별)** | **300ms** | **현재 200 쿼리 → 3 쿼리** |
+| 실패 이력 조회 | 30ms | `IndicatorTrackRecord` |
+| 익절 플랜 (보유 종목별) | 150ms | |
+| 행동 기록 | 200ms | `behavior-coach` |
+| 후보 목록 | 50ms | `payload`에서 읽는다 |
+| 피드백 저장 | 50ms | upsert |
+| 쿨다운 판정 | **20ms** | `CoachGenerationLog` 인덱스 |
+| 추천 생성 (LLM 포함) | 6s · **비동기** | |
+| **종목 판단 패널 조립** (2026-09-21) | **150ms** | 판단 + 성적표 + 실패이력 + 바이존/관찰 구간 + 게이지 적중률, 두 모드 |
+| 관찰 구간 계산 (모드당) | 40ms | `PriceHistory` 범위 1회 + `percentile_cont` |
+| 게이지 적중률 조회 | 10ms | `GaugeTrackRecord` 유니크 1회 |
+| 게이지 적중률 집계 (워커) | 일 1회 · 종목당 < 5s | 배치 |
+
+## 개선 1 — JSON 조건 제거
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-1 | `payload.kind === 'coach_feedback'` 필터를 **`WHERE kind != 'coach_feedback'`** 로 바꾼다 | Must |
+| FR-2 | `@@index([userId, kind, createdAt DESC])`가 그 쿼리를 덮는다 | Must |
+| FR-3 | 개선 전/후 **쿼리 수와 지연을 측정**해 기록한다 | Must |
+| FR-4 | 신규 코드에 `payload` 조건 쿼리가 0건이다 | Must |
+
+## 개선 2 — 성적표 N+1 제거
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-10 | insight 100건의 심볼을 모아 **`PriceHistory`를 심볼별로 한 번씩** 조회한다 | Must |
+| FR-11 | `latest`(심볼별 최신가)는 **심볼당 1회**다. insight마다 조회하지 않는다 | Must |
+| FR-12 | `entry`(insight 시점 이후 첫 가격)는 **`(symbol, timestamp)` 범위 조회 1회로** 여러 insight를 커버한다 | Must |
+| FR-13 | 목표: **쿼리 3회 이하** (insight 1 + latest 1 + entry 1) | Must |
+| FR-14 | 개선 전/후 쿼리 수를 `log: ['query']`로 측정해 기록한다. **200 → 3** | Must |
+| FR-15 | `signalType`별 그룹 집계를 **DB에서** 한다. 애플리케이션 루프로 그룹핑하지 않는다 | Must |
+
+## 인덱스
+
+| 쿼리 | 인덱스 | 상태 |
+|---|---|---|
+| `WHERE userId=? AND type='ai_coach' ORDER BY createdAt DESC LIMIT 100` | `@@index([userId, type, createdAt DESC])` | **신규** (`DB-REQ-004` FR-20에서 이미 요구) |
+| `WHERE userId=? AND kind!='coach_feedback' ORDER BY createdAt DESC` | `@@index([userId, kind, createdAt DESC])` | 신규 |
+| `WHERE userId=? AND signalType=? ORDER BY createdAt DESC` | `@@index([userId, signalType, createdAt DESC])` | 신규 |
+| `WHERE symbol=? AND timeframe=? AND timestamp>=?` | `PriceHistory @@index([symbol, timeframe, timestamp])` | 기존 충분 |
+| `WHERE userId=? ORDER BY requestedAt DESC LIMIT 1` | `CoachGenerationLog @@index([userId, requestedAt DESC])` | 신규 |
+| `WHERE userId=? AND insightId=?` | `CoachFeedback @@unique([userId, insightId])` | 유니크가 인덱스 |
+| 피드백 분포 집계 | `@@index([helpful, reasonCode])` | 신규 |
+| `WHERE indicator=?` | `IndicatorTrackRecord` (F003) | F003이 담당 |
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-20 | 위 신규 인덱스 4개를 만든다 | Must |
+| FR-21 | 각 인덱스의 `EXPLAIN (ANALYZE, BUFFERS)`를 checklist에 첨부한다. **`Seq Scan` on `investment_insights` 0건** | Must |
+| FR-22 | `kind != 'coach_feedback'`는 **부등호**이므로 인덱스 효율이 낮다. **부분 인덱스**를 검토한다: `@@index([userId, createdAt DESC]) WHERE kind != 'coach_feedback'` | Should |
+
+## Projection
+
+| Projection | 쿼리 | 대체하는 것 |
+|---|---|---|
+| `InsightProjection.latestRecommendation` | `WHERE userId AND type AND kind ORDER BY createdAt DESC LIMIT 1` | 100건 로드 후 첫 번째 |
+| `SignalPerformanceProjection.byType` | `GROUP BY signalType` + 가격 조인 | 애플리케이션 루프 |
+| `FeedbackProjection.distribution` | `GROUP BY helpful, reasonCode` | 전체 로드 |
+| `GenerationLogProjection.lastRequestedAt` | `ORDER BY requestedAt DESC LIMIT 1` | 전체 로드 |
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-30 | 위 4개를 `domain` Port로 선언하고 `infrastructure`가 구현한다 | Must |
+| FR-31 | 코치 상세 렌더 1회의 **쿼리 수가 15개 이하**다 | Must |
+
+## 쿨다운 판정
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-40 | 쿨다운 판정이 **인덱스 1회 조회(20ms)** 다. 로그 전체를 읽지 않는다 | Must |
+| FR-41 | `CoachGenerationLog`가 무한히 쌓인다. **보존 정책**을 정한다(최근 90일 또는 사용자당 최근 100건) | Must |
+| FR-42 | 정리는 배치로 나눠 지운다 | Must |
+
+## 종목 판단 패널 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B9 · B10. 투자 화면에서
+종목을 바꿀 때마다 불리는 경로라 **코치 탭보다 자주 불린다.**
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | 패널 조립 1회가 **두 모드를 함께** 계산한다(모드 전환에 재호출 없음). 쿼리 수 **10개 이하** | Must |
+| FR-71 | 관찰 구간은 모드당 **`PriceHistory` 범위 조회 1회** + DB 의 `percentile_cont(0.2/0.5/0.8)` 이다. 행을 전부 애플리케이션으로 끌어와 정렬하지 않는다. 인덱스는 기존 `@@index([symbol, timeframe, timestamp])` | Must |
+| FR-72 | 관찰 구간 결과를 **(symbol, mode, 시간 버킷)** 으로 서버 메모리 캐시한다(단타 5분 · 장기 1시간). 사용자와 무관한 값이다 | Should |
+| FR-73 | 게이지 적중률은 **요청 시 집계하지 않는다.** `GaugeTrackRecord` 를 유니크 키로 1회 읽는다 | Must |
+| FR-74 | `GaugeTrackRecord` 집계 워커는 `MarketSentiment @@index([symbol, calculatedAt])`(기존) 와 `PriceHistory` 일봉을 **종목당 범위 조회 각 1회**로 읽는다. 시점마다 가격을 따로 조회하지 않는다(N+1 금지) | Must |
+| FR-75 | 종목 판단 스냅샷 쓰기는 (추적 자산 ≤ 10 + 보유) × 2모드 upsert 다. **배치 1트랜잭션이 아니라 종목 단위**로 커밋한다 | Must |
+| FR-76 | 종목 경로 성적표는 `@@index([symbol, kind, mode, createdAt DESC])`(`DB-REQ-017` FR-52)로 덮는다. `EXPLAIN` 을 checklist 에 첨부한다 | Must |
+
+## MVCC
+
+| 대상 | 성질 | 대응 |
+|---|---|---|
+| `InvestmentInsight` | insert 위주 + `@@unique([userId, type, dedupeKey])` upsert | upsert가 UPDATE를 유발한다 → autovacuum 임계값 확인 |
+| `CoachFeedback` | upsert | 동일 |
+| `CoachGenerationLog` | insert만 | 보존 정책 필요 |
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-50 | `InvestmentInsight`의 upsert 빈도를 확인한다. `dedupeKey` 유니크가 있어 **같은 키로 계속 UPDATE된다** | Must |
+| FR-51 | autovacuum 임계값을 테이블 단위로 낮춘다 | Should |
+
+## 응답 크기
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | `payload` 전체를 응답에 담지 않는다. **필요한 필드만**(`reasons`·`risks`·`candidates`·`topCandidateFactors`) | Must |
+| FR-61 | 성적표 샘플을 **20건까지만** 응답에 담는다(`SRV-REQ-005` 기존 계약) | Must |
+| FR-62 | 실패 이력(`missesJson`)을 전부 담지 않는다. 최근 3건 | Should |
+
+## Acceptance Criteria
+
+- [ ] 신규 인덱스 4개가 있다
+- [ ] `EXPLAIN (ANALYZE, BUFFERS)` 결과가 checklist에 있고 `investment_insights`에 `Seq Scan`이 0건이다
+- [ ] `payload` 조건 쿼리가 신규 코드에 0건이다
+- [ ] **성적표 쿼리 수가 200 → 3 이하로 줄었다** (개선 전/후 측정값 기록)
+- [ ] `latest` 조회가 심볼당 1회다
+- [ ] `signalType` 그룹 집계가 DB에서 일어난다
+- [ ] 성적표 조회 p95 < 300ms (측정값 기록)
+- [ ] 최신 추천 조회 < 50ms
+- [ ] 코치 상세 조립 p95 < 400ms (측정값 기록)
+- [ ] 코치 상세 렌더 1회 쿼리 수 ≤ 15
+- [ ] Projection 4개가 `domain` Port로 선언되어 있다
+- [ ] 쿨다운 판정이 20ms 이내다
+- [ ] `CoachGenerationLog` 보존 정책이 있고 정리가 배치다
+- [ ] `InvestmentInsight` upsert 빈도가 확인되고 autovacuum이 조정되어 있다
+- [ ] 응답에 `payload` 전체가 담기지 않는다
+- [ ] 성적표 샘플이 20건 이하다
+- [ ] 종목 판단 패널 조립 p95 < 150ms · 쿼리 수 ≤ 10 (측정값 기록)
+- [ ] 관찰 구간이 모드당 범위 조회 1회 + DB 백분위수다
+- [ ] 게이지 적중률이 요청 시 집계되지 않는다 (유니크 1회 조회)
+- [ ] 게이지 집계 워커가 종목당 범위 조회 각 1회다 (N+1 0건)
+- [ ] 종목 경로 성적표 인덱스의 `EXPLAIN` 이 checklist 에 있다
+
+## Dependencies
+
+- **선행:** `DB-REQ-017`~`019` · `DB-REQ-004` FR-20(인덱스)
+- **구현:** `SRV-REQ-027`(F004 PERF)
+- **규칙:** `performance-database.md`
+
+## Open Questions
+
+- `kind != 'coach_feedback'` 부등호 인덱스 효율. **부분 인덱스가 나은지 측정 후 판단**(FR-22).
+- `entry` 조회를 범위 1회로 합칠 수 있는가. insight 100건의 시각이 흩어져 있으면 **심볼별 전체 구간을 받아 애플리케이션에서 매칭**하는 것이 나을 수 있다 → 데이터 양을 측정해야 한다.
+- `CoachGenerationLog` 보존 기간. 쿨다운만 필요하면 **최근 1건만** 있으면 되지만, 관측성(LLM 성공률)을 위해서는 이력이 필요하다.
+- 단타 관찰 구간이 `m5` 캔들 24시간(288행)을 전제한다. `PriceHistory` 에 `m5` 가 그만큼 쌓여 있는지 확인 필요 — 없으면 `unavailable` 이 기본이 된다.
+
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+루트 `requirements/specs/done/WEB-perf-req-close-slice.md`(브랜치 `feat/web-perf-close`). 이 REQ 의 동기(200쿼리 N+1 · `payload` 조건)는 원장으로 해소됐고,
+대조 중 FR-1 이 막으려던 결함(피드백 행이 최신 추천을 가림)이 실제로 살아 있어 고쳤다. 종목 판단 패널 측정(FR-70) · 구간 캐시(FR-72) · 지연 수용 기준 셋은
+같은 요구가 `SRV-REQ-027` 에 있어 그리로 옮겼다(그쪽 FR-70 · 73 · 6). **이 REQ 에 남은 FR 없음 → done.**
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-1 | 충족(2026-11-19) | 조건을 `kind` 열 대신 키 접두사로 — 도메인 `FEEDBACK_KEY_PREFIX`(`coach/domain/ports.ts:105`) · 저장소 `EXCLUDE_FEEDBACK`(`PrismaCoachInsightStore.ts:65-66`)를 최신 추천(:97) · 이력(:186) · 점수 재료(:86) 세 조회에. 접두사 없는 피드백 키는 거절(:154-156). `InsightType` 은 enum 이라 타입을 늘리면 `ALTER TYPE` — 유니크 인덱스 열인 키를 썼다. 시험 `infrastructure/__tests__/feedbackRowsExcluded.test.ts` · `application/__tests__/recordCoachFeedbackKey.test.ts` · 변이 확인 · 실 DB(임시 사용자, 지움) |
+| FR-2 | 대체 | `kind` 열이 없다. 키 조건은 기존 `@@unique([userId, type, dedupeKey])` · `@@index([userId, type])`(schema.prisma:589-590) 위 — 사용자당 추천 1행 + 피드백 |
+| FR-3 | 대체 | 전 값(N+1)이 없어졌다. 새 경로 수치는 `SRV-REQ-027` 정리 표 |
+| FR-4 | 충족 | 새 조건은 키 열 — `payload` 조건 쿼리 0(`EXCLUDE_FEEDBACK`) |
+| FR-10 ~ 15 | 대체 | 성적표 = 추천 스냅샷 원장, 집계는 DB(`PrismaRecommendationSnapshotStore.ts:110-125`) · `SRV-REQ-024` FR-176 |
+| FR-20 | 대체 · 일부 충족 | 컬럼 승격 없음. 남은 하나 `coach_generation_logs (user_id, requested_at DESC)` 는 있음(schema.prisma:526). 피드백 분포 인덱스는 피드백 표가 없어 대상 없음 |
+| FR-21 · 22 | 대체 | `investment_insights` 45행 · 사용자당 `main_coach` 1행 — 부분 인덱스 대상 없음. 성적표 인덱스는 원장 표(schema.prisma:621-623 · 662-669) |
+| FR-30 | 대체 | Projection 4개 → 원장 저장소 메서드(`summarize` · `recentCases`) · `findLatestRecommendation` · `lastAcceptedManualAt` |
+| FR-31 | 측정 충족 | coach detail 쿼리 **11**(≤ 15) · 서버 p95 5.0ms · BFF p95 9.1ms |
+| FR-40 | 측정 충족 | 인덱스 1회(`lastAcceptedManualAt`) — 같은 인덱스의 `generation-status` 쿼리 2 · 서버 p95 1.0ms |
+| FR-41 | 충족(2026-11-19) | 최근 90일 — `GenerateCoachRecommendation.ts:75` `COACH_GENERATION_LOG_KEEP_DAYS` · 생성이 끝날 때마다 `pruneBefore`(:124-127). 시험 `generateCoachLogging.test.ts:99` 외 1 · 실 DB(100일 전 1건만 지움) |
+| FR-42 | 충족(한 문장) | 나눠 지우기는 큰 표의 일이다 — 표 0행 · 48kB, 기록은 생성 때만 늘어나(사용자 ≤ 10 · 수동 쿨다운 5분) 한 번에 지울 행이 하루치 안팎. `PrismaCoachGenerationLogStore.ts:72-79` 주석에 근거 |
+| FR-50 · 51 | 측정 충족 | upsert 대상은 사용자당 `main_coach` 1행(표 45행) — autovacuum 조정 대상 아님 |
+| FR-60 ~ 62 | 충족 | 필요한 필드만 · 샘플 20(`policy/signalPerformance.ts:37`) · 실패 이력 3(`policy/symbolJudgment.ts:126` · `lib/recommendationCard.ts:58`) |
+| FR-70 | 범위 이동 → `SRV-REQ-027` FR-70 | 같은 측정(종목 판단 p95 150ms · 쿼리 ≤ 10) |
+| FR-71 | 충족 | 모드당 범위 1회 + DB `percentile_cont`(`market/infrastructure/PrismaPriceHistoryRepository.ts:168-184`) |
+| FR-72 | 범위 이동 → `SRV-REQ-027` FR-73 | 같은 Should(구간 캐시) |
+| FR-73 | 충족 | 저장값 읽기(`GetSymbolCoach.ts:132-134`) — 요청 시 집계 0 |
+| FR-74 | 충족 | 집계 워커가 전 종목을 한 쿼리로(`RefreshGaugeTrackRecords.ts:28-32` `sentimentForwardReturns`) — 시점마다 조회 0 |
+| FR-75 | 대체 | upsert 가 아니라 append-only 스냅샷 한 문장 insert(`PrismaSymbolJudgmentStore.ts:185` `createMany`) — 긴 트랜잭션이 없다 |
+| FR-76 | 대체 | 인덱스가 `symbol_judgment_snapshots` 로(schema.prisma:663 · 669, `DB-REQ-017` 같은 날) |
+| 수용 기준 — 성적표 p95 300ms · 최신 추천 50ms · 종목 판단 패널 | 범위 이동 → `SRV-REQ-027` FR-6 · 예산 표 · FR-70 | 같은 측정 |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 예산에 종목 판단 패널 · 관찰 구간 · 게이지 적중률 추가. 신규 FR-70~76(두 모드 1회 조립 · DB 백분위수 · 게이지 적중률 사전 집계(B9) · 스냅샷 쓰기 단위) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 피드백 행 결함 고침으로 FR-1 충족(키 접두사 `FEEDBACK_KEY_PREFIX` · 세 조회 `EXCLUDE_FEEDBACK`) · 생성 기록 보존 90일로 FR-41 · 42 충족(나눠 지우기는 한 문장 — 0행 · 48kB) · coach detail 쿼리 11 측정 충족(FR-31). FR-70 · 72 · 지연 수용 기준은 같은 요구인 `SRV-REQ-027` FR-70 · 73 · 6 으로 범위 이동. 남은 FR 없음 → to-do → **done** |

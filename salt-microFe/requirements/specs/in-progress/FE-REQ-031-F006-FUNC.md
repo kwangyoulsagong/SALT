@@ -19,6 +19,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` · 스토리보드 갭 감사 반영. 홈 블록은 3개(FR-32 순서), 총자산 툴팁에서 세금 비교 삭제(FR-36). 거래 기록 · 알림 읽음 · 설정 · 온보딩 건너뛰기 · 세그먼트 경로의 기능 규칙을 추가했다(§2026-09-21). 근거: 감사 D5 · D6 · D7 · D9 · B12 · B13 · B14 · B16.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 대화의 **SSE 구독·재연결·취소**가 이 REQ의 핵심이다. 그리고 홈은 **읽기 전용**이고 격자는 **저장 실패해도 동작**해야 한다.
@@ -223,6 +225,23 @@ created: 2026-09-09
 - 격자 배치를 서버에 저장할지 `localStorage`에 둘지(`DB-REQ-021` Open Question).
 - 알림 읽음의 낙관적 반영(FR-100)은 FEATURE-006 "Optimistic update 없음"의 예외다. 금액이 아니라서 허용했다 — PR에서 판단 확인.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-4 | 대체 | 델타가 문장 2~6개 한 번에 — 프레임 버퍼링 대상이 없다(긴 프레임 0 실측) |
+| FR-9 | 남음(LLM) | 취소 버튼 — LLM 경로가 켜질 때(종료 전파는 있다) |
+| FR-12 | 충족 | 재연결은 서버가 `Last-Event-ID` 다음 문장부터 — 같은 id 가 다시 오지 않는다 |
+| FR-25 · 87 | 대체(정정) | 앱에 `DialogProvider` 없음 — 삭제 확인은 시트 안 한 줄(루트 `F006-position-trades-slice.md` 판단 7) |
+| FR-30~36 | 대체 | 홈 F015 |
+| FR-44 | 정정 | 1280 미만은 격자 없이 같은 대화 화면(3탭 없음) |
+| FR-61 | 남음(LLM) | 주문 약속 개발 경고 — 규칙 답은 검사기를 지난 문장뿐. LLM 경로가 켜질 때 |
+| FR-70 · 71 | 대체 | 세그먼트 없음 |
+| FR-110~113 | 대체 | 설정 그룹이 흩어짐 — ④ 알림 스위치는 셸 `/settings`(`FE-REQ-055`) |
+| FR-120~122 | 대체 | 온보딩 은퇴 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -235,3 +254,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 시트 상태는 `features/record-transaction`(필드 순서 그대로) · FR-81 세 칸 유효할 때만 미리보기 · 300ms · 키가 입력이라 앞 요청 끊음 · FR-82 계산 0 · 미리보기 실패면 문구 + 저장 가능(실화면 route 500) · FR-83 재시도 0 · 낙관적 0 · 무효화 `positionAll`(개요 · 흐름 · 레이더 · 목록 · 미리보기) + 홈 요약 + 코치 보유 칸. **같은 원인**: 상세 화면 기록 폼(`useRecordTrade`)이 포지션을 무효화하지 않던 것 고침 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-72 배지 다시 부르기(문서 이동 · 읽음 무효화, 폴링 0 · 포커스 재요청 끔) · FR-100 · 101 낙관적 읽음 + 실패 되돌림 · FR-102 갈 곳 매핑 한 곳(코드 넷으로 정정) · FR-103 만드는 칸 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | PC 격자 짝(`feat/f006-pc-panel-grid`) — `CoachConversation` 에 `fill`(격자 칸을 채움) · `asideCard`(옆 칸에 펼친 카드와 같은 판단이면 대화 안 카드를 한 줄로). 질문 · 스트림 동작 무변경 |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

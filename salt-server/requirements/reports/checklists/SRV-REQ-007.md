@@ -81,3 +81,9 @@
 |---|---|---|
 | 예측 수정의 운영 효과 실측(504 0) | 예측 배치는 머지된 main 실행 트리에서 돈다(`OPS-005`) — 지금 매시 · 장중 회차는 옛 쿼리. 효과는 쿼리 단위로 실측(읽기 4.5GB → 22MB) | 머지 · 매시 동기화 뒤 장중 패널 탐침(결함 줄 `패널 느림` · BFF 504 0) |
 | 서버 쪽 수정 운영 실측 | 서버 · 뉴스 워커는 브랜치 코드로 재기동해 둠. 지우기 매시 :37 첫 회차 · 풀 나눔 효과는 예측 수정과 같이 봐야 갈린다 | 위와 같이 |
+
+## 2026-11-19 — `WEB-perf-req-close-slice.md` 짝(파일만 걸침)
+
+- `coach/infrastructure/PrismaCoachInsightStore.ts`(머리 주인) — 세 조회에 `EXCLUDE_FEEDBACK` · 접두사 없는 피드백 키 거절. 시험 `infrastructure/__tests__/feedbackRowsExcluded.test.ts` · 변이 · 실 DB(임시 사용자, 지움)
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절

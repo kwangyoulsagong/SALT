@@ -23,7 +23,7 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 | FR-6 | DB 이전 — 맥 Postgres → 관리형. 덤프 · 복원 리허설 1회 · 행 수 대조 · 판정 원장 불변 트리거 확인 | S0 |
 | FR-7 | CI/CD — 영향 그래프 빌드 · 레지스트리 · staging 자동 · prod 승인 · 되돌리기 명령 하나 | — |
 | FR-8 | 비밀 — KIS · DART · LLM · JWKS. 로그 마스킹 규칙 유지 | — |
-| FR-9 | 관측 · 경보 — 5xx · 수집 멈춤(마지막 봉 시각) · 데드레터 · 백업 실패 · 비용 상한 | — |
+| FR-9 | 관측 · 경보 — 5xx · 수집 멈춤(마지막 봉 시각) · 데드레터 · 백업 실패 · 비용 상한 | **넘겨받음 2026-11-19**(`WEB-perf-req-close-slice.md`) — 게이트 미렌더 · 블록 `unavailable` 카운터 · RUM · 대시보드 · 동시 스트림 수 · 메시지 행 수 추이: `FE-REQ-023` FR-16 · `FE-REQ-025` FR-40 · 41 · `FE-REQ-033` FR-60 · `BFF-REQ-019` FR-14 · `BFF-REQ-022` FR-40 · 41 · `BFF-REQ-030` FR-7 · 50 · `SRV-REQ-023` FR-60 · 62 · `SRV-REQ-027` FR-60 · 61 · 77 · `SRV-REQ-030` FR-73 · `SRV-REQ-031` FR-60 · `DB-REQ-024` FR-62 | — |
 | FR-10 | 백업 복구 리허설 — 분기 1회 PITR 복원 시간 기록 | — |
 | FR-12 | **zone 정적 파일 한 저장소**(2026-11-03 `ADR-005` 규칙 7 개정) — 운영 빌드는 모든 zone 이 공용 `/_next/static`. 배포가 zone 5 의 `.next/static` 을 한 CDN 경로에 합친다 — 같은 이름 · 다른 내용이면 배포 실패(`salt-microFe/scripts/merge-zone-static.mjs` 와 같은 규칙, CI 에서 그 스크립트를 `--check` 로). 이전 버전 파일은 한동안 남긴다(열린 탭이 옛 청크를 부른다). L7 은 `/_next/static/*` 를 이 저장소로, 페이지 경로는 zone 으로 | F2 캐시 공유 |
 | FR-11 | 이전 기간 — S7 전까지 맥 launchd 서버는 BFF 스위치 `legacy` 대상으로 남는다(관리형 환경에서 맥으로 사설 연결 또는 스테이징 한정). 방식은 FR-3 뒤 확정 | S1~S6 |
@@ -52,3 +52,4 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 - 2026-11-02: 배포 전 로컬 감독은 `OPS-002`(`ops/salt.sh`, launchd). 배포 때 프로세스 목록(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치)은 그 이름 표를 옮긴다
 | 2026-11-03 | MONEY-S1a — `8d05a006` — `ops/salt.sh` 머리가 이 REQ(배포)를 가리킨다: 로컬 상시 목록에 `platform` · `web-savings` 추가. 배포 쪽 변경 0 — Kotlin 이미지는 S0 `Dockerfile` 그대로 |
 | 2026-11-05 | FR-13 추가 — 세션 경로 라우팅 · `BFF_INTERNAL_URL` · `WEB_ORIGINS`(`FE-REQ-013` FR-80 2단계, 루트 `requirements/specs/done/F000-cookie-session-slice.md`) |
+| 2026-11-19 | FR-9 에 관측 항목 넘겨받음 — 배포하지 않는 동안 보낼 곳이 없어 성능 REQ 정리에서 범위 이동(루트 `WEB-perf-req-close-slice.md`) |

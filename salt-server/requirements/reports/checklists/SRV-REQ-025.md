@@ -570,3 +570,9 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `GetCoachDetail.ts`(머리 주인) — 추천 조립을 `application/lib/recommendationCard.ts` 로 옮겨 대화와 같이 쓴다(동작 변경 0 — 같은 함수 본문 · 기존 상세 시험 전부 통과). 주인 `SRV-REQ-028` — 영역 시험 전부 통과 · 2회차 실 저장 추천으로 main · 브랜치 상세 응답 바이트 동일
+
+## 2026-11-19 — `WEB-perf-req-close-slice.md` 짝(파일만 걸침)
+
+- `GetCoachDetail.ts`(머리 주인) — 변동성 · 추천 카드 `Promise.all`. 기존 상세 시험 통과 · 실측 쿼리 11 · 서버 p95 5.0ms · BFF p95 9.1ms
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절

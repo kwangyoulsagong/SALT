@@ -18,6 +18,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 홈은 **서버 컴포넌트가 블록별로 조회**하고 스트리밍한다. 대화는 **클라이언트가 SSE를 구독**한다. 이 둘의 경계가 이 REQ의 핵심이다.
@@ -172,6 +174,16 @@ created: 2026-09-09
 - `HydrationBoundary`로 첫 페이지를 이어받을지. 서버 컴포넌트가 준 데이터를 React Query가 다시 받으면 이중이다.
 - 거래 쓰기 후 홈(다른 라우트 서버 컴포넌트) 총자산 갱신: `revalidateTag`로 충분한지, 홈이 `no-store`라 필요 없는지 확인.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-1~6 | 대체 | 홈 F015 — 카드 응답 하나 |
+| FR-66 | 대체 | 설정 조립 없음 — 도메인 zone 으로 흩어짐 |
+| FR-67 | 대체 | 온보딩 은퇴 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -181,3 +193,4 @@ created: 2026-09-09
 | 2026-11-18 | **대화 API 층** — 목록 읽기 `entities/coach` `useCoachConversationHistory` · 묻기 mutation `features/ask-coach` · 429 문구 · 완료 뒤 캐시 낡음 표시. FR-10 · 12~17 · 40 · 41 · 50. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-21 `useInfiniteQuery`(쪽마다 역순 → 뒤집어 오래된 것이 위) · FR-51 `card` 이벤트 · FR-52 `CoachCard` = `ReportRecommendation` + `generatedAt`(`@repo/core/coach`). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-64 첫 쪽 서버 컴포넌트(`pages/alerts/api/serverAlerts.ts`) · 다음 쪽 `useInfiniteQuery` · FR-65 안 읽은 수 쿼리 · FR-68 `AlertViewModel` 을 `@repo/core/alerts` 에서. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

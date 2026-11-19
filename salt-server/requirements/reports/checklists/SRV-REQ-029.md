@@ -33,3 +33,8 @@
 - 실 DB: 동시 첫 저장 2 → 1행 · 덮어쓰기 · 40KB → DB CHECK 거절 · 조회 `EXPLAIN` 유니크 인덱스(버퍼 1)
 - body-parser 4xx — `errorMiddleware.test.ts` 3 · 변이 1 · 실측 200KB 413(전 500)
 - 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-9 — LLM 경로 결정 · 앱 착수 때

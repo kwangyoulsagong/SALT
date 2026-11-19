@@ -103,3 +103,8 @@
 - FR-56 `ssr:false`(`next/dynamic`) · FR-58 칸 내용은 페이지(`pages/coach-chat` `CoachChatGrid`)
 - axe: 새 요소 위반 0(남은 1건 등락 파랑 — `FE-REQ-047` FR-13 결정 대기)
 - 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-37, FR-41, 앱 하단 탭바(FR-1 모바일) — LLM 경로 결정 · 앱 착수 때

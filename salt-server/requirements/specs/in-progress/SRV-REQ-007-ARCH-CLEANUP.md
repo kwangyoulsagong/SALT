@@ -161,3 +161,4 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | 2026-11-10 | `market-price-update`(매분 · `market_assets` 의 유일한 정기 쓰기)의 쓰기를 한 문장으로 — 행마다 `updateMany` `Promise.all` 이 연결 풀을 잡아 장중 504(`DB-REQ-017` 4회차, `c602e97c`). 워커 · 주기 무변경 |
 | 2026-11-11 | `feat/f017-s1c-collection`: `market.worker` 에 5분봉 따라잡기(`2-59/5`) · 추적 목록 스냅샷(00:10 · 부팅 · 놓친 회차) · 깸 구독 둘(`SRV-REQ-057` FR-2 · 6 · 7). 정기 5분봉 요청 288 → 200 |
 | 2026-11-17 | F008 슬라이스 24 2단계 확인 3회차 — 기존 현상 둘 고침(장중 · 재기동 뒤 504, DART 014 재시도)(`feat/f008-slice24-s2-earnings-window`) — 짝 — 시장 워커 부팅 실행이 cron 과 같은 락 · 하나씩(가격 먼저) · 가격 이력 보관 지우기 매시 :37(`DB-REQ-017` 같은 날) |
+| 2026-11-19 | 피드백 결함 고침 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `coach/infrastructure/PrismaCoachInsightStore.ts` 에서 최신 추천 · 이력 · 점수 재료 조회가 피드백 행(`feedback:` 키 접두사)을 빼고(`EXCLUDE_FEEDBACK`) 접두사 없는 피드백 키를 거절한다. 주인 `DB-REQ-020` FR-1. 이 REQ 의 동작 변경 0. 루트 `WEB-perf-req-close-slice.md` |

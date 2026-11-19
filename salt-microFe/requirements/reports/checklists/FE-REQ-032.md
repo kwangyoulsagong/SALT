@@ -25,3 +25,8 @@
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
 - 확인 2회차 — 서버 첫 쪽이 없을 때 빈칸 → 자리표시(`aria-busy`) · 셸 안 복귀 시 캐시 대신 서버 첫 쪽
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: 이 REQ 몫 없음(LLM · 앱 FR 은 짝 REQ 쪽)

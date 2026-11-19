@@ -44,3 +44,8 @@
 
 - 마이그레이션 주석이 이 REQ 의 "값 목록은 제약으로" 태도를 가리킨다
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-5 · 22 — LLM 경로 결정 · 앱 착수 때

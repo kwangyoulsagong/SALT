@@ -18,6 +18,8 @@ source: pm/requirements/specs/in-progress/FEATURE-006-coach-conversation-ia.md
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫, 그리고 FR-11 아카이브(Should — 다른 F006 REQ 의 아카이브 FR 이 여기로 옮겨 왔다)다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 **대화가 제품의 핵심이 된다**(2026-09-09 결정). 그 대화를 저장할 모델이 필요하다. 그리고 PC 이동식 격자의 배치를 사용자별로 저장한다.
@@ -207,6 +209,19 @@ model User {
 - **`alertsEnabled`와 F004 `notificationLevel`이 겹치는가.** 합칠 수 있으면 `alertsEnabled`를 만들지 않는다 — F004와 함께 정한다.
 - 리스크 레이더 뉴스 리스크 축이 `NewsArticle.sentiment`에 기대는데, 감정 값 채움률이 낮으면 축이 비어 보인다. 축별 `null` 허용이 필요할 수 있다.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-7 | 남음(LLM) | `tokenCount` 컬럼 — LLM 경로가 켜질 때 |
+| FR-11 | 남음 | `archivedAt` 아카이브(Should) — 사용자 ≤10 · 대화 수십 줄이라 지금 이득 없음. `SRV-REQ-030` FR-71 · `DB-REQ-023` FR-20~23 · `DB-REQ-024` FR-31 · 60 · `SRV-REQ-031` FR-52 가 여기로 옮겨 왔다 |
+| FR-30~33 | 대체 | 홈 F015 |
+| FR-40~43 · 53 | 대체 | 알림은 Kotlin — 알림 켜짐은 `notification_pref`(행 없음 = 꺼짐) |
+| FR-54 · 58 | 대체 | 온보딩 은퇴 |
+| FR-55 | 충족(정정) | 레이더 정의는 도메인 정책 코드 — DB 에 없음 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -216,3 +231,4 @@ model User {
 | 2026-11-18 | **대화 표 둘 생김** — 마이그레이션 `20261118300000_coach_conversation`(`coach_conversations` · `coach_messages`, CHECK 셋 · 역순 인덱스 · 등급 주석 record). FR-1 · 2 · 6 · 8 · 10. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-4 · 5: `card_payload` JSONB · `insight_id` FK `ON DELETE SET NULL` + 인덱스 · 질문 줄엔 카드 0(CHECK). 마이그레이션 `20261118400000_coach_message_card`(추가만, 로컬 DB 적용 끝). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-19 | **FR-20~24 구현**(`feat/f006-pc-panel-grid`) — `panel_layouts`(`20261119100000_panel_layout`, 로컬 DB 적용). 정정: `User` 관계 없음 · CHECK 둘(서피스 · 크기 32KB 뒷문) · 등급 주석 · 계정 삭제 목록 |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱 · FR-11 아카이브. in-progress 유지 |

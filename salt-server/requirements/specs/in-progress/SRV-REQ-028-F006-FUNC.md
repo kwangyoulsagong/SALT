@@ -17,6 +17,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 **대화가 제품의 핵심이 된다.** 서버 도메인 작업은 ① 대화 유스케이스 ② **질문에 맞는 컨텍스트만 프롬프트에 넣는 라우팅** ③ `homebriefing` 조합 컨텍스트 셋이다.
@@ -238,6 +240,18 @@ created: 2026-09-09
 - **"내 포트폴리오 위험한가?" Chip** 교체는 FEATURE-006의 판단이다. 사용자 확인 전까지 라우팅 규칙은 이 문구로 둔다.
 - 알림 원인 "F004 추천 갱신"을 이벤트로 받을지 워커가 폴링할지. 기본안: `coach`가 insight를 만들 때 `notification` 공개 API를 호출(같은 프로세스).
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-5 · 6 · 26 · 30~34 · 44 · 46 · 62 · 63 | 남음(LLM) | 부분 저장 · LLM 취소 · 토큰 상한 · 프롬프트 가드 · 미국주식 되돌리기 · 검출 건수 · 합성 프롬프트 — A/B 먼저(루트 `F006-coach-conversation-slice.md` 판단 1) |
+| FR-70~78 | 대체 | `homebriefing` 없음 — F015 홈 카드 |
+| FR-83 | 충족(정정) | 레이더 정의는 설정 파일이 아니라 도메인 정책(`portfolio/domain/policy/riskRadar`) |
+| FR-90~95 | 대체 | 알림 생성 · 목록은 Kotlin(`SRV-REQ-048` FR-5) — 종류 셋(판단 변화 · 목표 달성 · 고정비) |
+| FR-110~112 | 대체 | 설정 조합 없음 — 도메인 zone 으로 흩어짐 · 밴드 쓰기 경로 0(`/plan` 읽기 전용) |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -249,3 +263,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — 카드 FR-50~54: 저장 추천 카드는 코치 상세와 같은 조립 · 게이트(`application/lib/recommendationCard.ts` — 상세도 이것을 쓴다) · 완성 객체를 메시지에 복사 · 팔기 · 이번 주 금액 질문에만(`ANSWER_MATERIALS`). **정정 FR-51**: 게이트 미충족이면 추천 내용(행동 · 종목 · 점수 · 근거)을 싣지 않고 게이트 칸 · 표본만 — 화면이 회색 사유 상자를 그린다(FEATURE-006 UX Blocked). 브리핑(FEATURE-006 FR-21) `GetCoachBriefing` — 저장 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-80 Hero(`GetPositionOverview`) · FR-82 레이더 4축(`domain/policy/riskRadar.ts`) · FR-83 축 정의 · 상한 `env.ts` `PORTFOLIO_RADAR_*` · `PORTFOLIO_*_DAYS` · FR-84 표본 부족 null(변동성 하루 수익률 < 20 · 뉴스 커버리지 < 50%) · FR-89. **정정 FR-81**: 옛 `/performance` 에 `1y` 를 더하지 않고 새 경로 `GET /api/portfolio/position/flow?range=1w|1m|3m|1y` — 그날 실제 수량 × 일봉 종가, MDD · 구간 수익률은 시간가중 지수(옛 계열은 지금 수량 × 과거 가격 · 주기 무필터라 그대로 둔다). 개요 `GET /api/portfolio/position` 은 원천(거래 · 일봉 · 뉴스)을 `allSettled` 로 읽어 실패한 축만 null + `flow_unavailable` · `news_unavailable`. 남은 것 FR-85~87(2단계) · FR-88 은 온보딩 은퇴로 소멸. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-85 `PreviewTransaction`(`POST /api/portfolio/transactions/preview`, 쓰지 않음) · FR-86 원장 규칙 `domain/LedgerChange.ts`(거래일 → 같은 시각 매수 먼저 → id 순서로 걸어 음수면 거부 · 이미 음수인 옛 원장은 더 나빠지지만 않으면 받음) · FR-87 PATCH `strict`(종목 · 매수/매도 400) · 거래일 수정. 생성 · 수정 · 삭제 셋이 `writeLedger` 한 길 — 한 트랜잭션(`runInTransaction` · 저장소는 그대로) + 종목 원장 advisory 잠금(동시 매도 둘 → 하나만 · 실측). **정정** FR-85 이동평균 → FIFO(사용자 결정 — 기존 평단 숫자 무변경) · 남의 거래 403 → 404(`DB-REQ-022` FR-74). FR-88 소멸(온보딩 은퇴). 루트 `requirements/specs/in-progress/F006-position-trades-slice.md` |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

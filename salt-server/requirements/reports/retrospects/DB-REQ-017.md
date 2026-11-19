@@ -216,3 +216,7 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 ## 2026-11-19 F003 v2 순서 2
 
 - 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음
+
+## 2026-11-19 — `WEB-perf-req-close-slice.md` 짝
+
+- 머리 주석 주인이라 걸렸다 — 이 REQ 의 계약은 그대로. Action 없음
