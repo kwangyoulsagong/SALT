@@ -9,6 +9,12 @@ labels: [api, rest, contract, plan, indicator]
 created: 2026-09-09
 ---
 
+> **2026-11-19 F003 v2 순서 2 — 실제 계약**(`feat/f003-v2-s2-plan-server`). 경로 다섯, 모두 `authMiddleware`:
+> `GET /api/plan/weekly` · `POST /api/plan/weekly/complete` · `GET · PATCH /api/plan/settings` · `GET /api/plan/monthly-summary`.
+> `kimchi-premium` · `streak` · `indicators` · `track-record` 경로는 **두지 않는다** — 김프 · 연속 · 지표 · 성적 · 실패 사례가 `weekly` 한 응답에 있다(화면 하나가 한 번 읽는다).
+> 응답 모양은 `salt-server/src/plan/application/api/views.ts` + Swagger(`plan.routes.ts`). 자산 `btc` · `kospi`, 금액 원 정수, 비율 소수.
+> 422: `PLAN_BASE_AMOUNT_INVALID`(field · min · max · unit) · `PLAN_BAND_READ_ONLY`(field — 밴드 키 + `allocation`) · `PLAN_EXECUTION_INVALID`(asset · min · max) · `PLAN_WEEK_NOT_CURRENT` · `PLAN_NOT_CONFIGURED`. BFF 짝은 순서 3(`BFF-REQ-019`~).
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
 
@@ -207,3 +213,4 @@ type TrackRecord = {
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. settings 계약 개정(D9 — 월 적립액만 편집, 밴드 읽기 전용) · 온보딩 저장 = `PATCH /settings`(B12) · `GET /monthly-summary` 신설(B20) · `complete` 수동 체크만(ADR-002). FR-20~29 추가, FR-11 개정 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 2 — 경로 다섯 구현 · 머리 블록(실제 계약). to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |

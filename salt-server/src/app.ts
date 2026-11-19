@@ -86,6 +86,7 @@ app.use("/api/investment/me/data", createMyDataRouter());
 app.use("/api/investment/me/data-classification", createDataClassificationRouter());
 app.use("/api/investment", contextRouters.investment);
 app.use("/api/portfolio", contextRouters.portfolio);
+app.use("/api/plan", contextRouters.plan);
 app.use("/api/news", contextRouters.news);
 app.use("/api/market-intelligence", contextRouters.marketIntelligence);
 app.use("/api/market/kr", contextRouters.krStock);

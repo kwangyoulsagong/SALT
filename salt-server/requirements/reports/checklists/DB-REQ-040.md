@@ -103,3 +103,9 @@
 
 - `schema.prisma` 에 `PanelLayout` 모델 추가(이 REQ 표 무변경)
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-19 F003 v2 순서 2
+
+- `salt-server/prisma/schema.prisma` 에 plan 모델 둘
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F003-v2-s2-plan-server.md`

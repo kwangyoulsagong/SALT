@@ -18,7 +18,7 @@
 | `content` | 신규(금융 팁 · 제도 파라미터) | 0 | S2 |
 | `notification` | `notification` | 587 | S2 |
 | `identity` | `auth` · `modules/user` · `onboarding` | 1,746 | S3 |
-| `portfolio` | `portfolio` | 1,966 | S4 |
+| `portfolio` | `portfolio` · `plan`(2026-11-19 F003 v2 — 적립 금액 · 사람 기록, 배수는 예측 뷰) | 1,966 | S4 |
 | `market` | `market` · `news` + 수집 워커 | 12,289 | S5 |
 | `coach` | `coach` · `modules/investment-insight` | 23,049 | S6 |
 | — | `modules/mission` · `dashboard` · `feed` (동면 410) | 990 | 옮기지 않는다 |

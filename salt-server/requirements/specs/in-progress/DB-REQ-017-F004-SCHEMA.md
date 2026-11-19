@@ -292,3 +292,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/market/infrastructure/PrismaPriceHistoryRepository.ts` 에 일봉 종가 읽기 `dailyClosesSince` 를 더했다(주기 `1d` · 종목 × 자산군 — 유니크 인덱스 비트맵 2.1ms, 봉 표 전체 스캔 0). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `salt-server/src/shared/infrastructure/prisma.ts` — 연결 고르기(`routedClient`)에 **열린 트랜잭션** 맥락을 더했다(`runInTransaction`). 화면 · 배치 풀 나눔은 그대로(시험 `prismaRouting.test.ts` 한 줄 더함) |
+| 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`, 파일만 걸침) — `salt-server/src/app.ts` 에 `/api/plan` 경로 한 줄. 이 REQ 의 동작 변경 0. 루트 `F003-v2-s2-plan-server-slice.md` |

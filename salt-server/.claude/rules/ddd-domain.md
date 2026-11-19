@@ -74,7 +74,7 @@ export class CostBasisLot {
 | 취득가액 lot 소진량 ≤ 보유량 | `CostBasisLot.consume` |
 | 솔버 매도 수량 ≤ 보유 수량 | `tax/domain/policy/harvest.ts` |
 | 원화 반올림은 응답 직전 1회만 | `Money` VO가 반올림 메서드를 분리 제공 |
-| 배수 0~3 범위 | `plan/domain/BandMultiplier` |
+| 배수 0~3 범위 · 관문 실패면 1.0 | `plan/domain/policy/weekPlan.ts` `resolveMultiplier` |
 | 추천 3종 세트가 없으면 렌더 불가 | `coachDetail.ts` `recommendationGate`(저장 추천). 종목 판단은 `symbolJudgment.ts` `judgmentCaveats` — 막지 않고 꼬리표, 3종은 과거 검산으로 채움(`ADR-010` v2, 2026-11-10) |
 
 **`Money` VO를 통과하지 않는 금액이 도메인에 없어야 한다.** `number`로 금액을 들고 다니면 이 불변식이 전부 무의미해진다.

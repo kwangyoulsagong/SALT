@@ -378,3 +378,9 @@
 - `salt-server/src/shared/infrastructure/prisma.ts` — 연결 고르기(`routedClient`)에 **열린 트랜잭션** 맥락을 더했다(`runInTransaction`). 화면 · 배치 풀 나눔은 그대로(시험 `prismaRouting.test.ts` 한 줄 더함)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-19 F003 v2 순서 2
+
+- `salt-server/src/app.ts` 에 `/api/plan` 경로 한 줄
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F003-v2-s2-plan-server.md`

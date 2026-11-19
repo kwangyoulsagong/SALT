@@ -168,3 +168,4 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다. 실패 이력 
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. INV-7·FR-13·FR-14·FR-40·FR-41 개정(ADR-002 · D9 · B20). INV-10·11, FR-44~46(환산 · 첫 저장 · 프리셋 읽기 전용), H절 FR-70~73(이번 달 적립 합계) 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | F003 v2 순서 2 — 불변식을 DB 제약으로: 주 · 자산 유일(넣기는 `ON CONFLICT DO NOTHING` — 처음 스냅샷을 지킨다) · 월요일 CHECK · 1,000원 단위 · 배수 0~3 · 상태와 값 한 덩어리(executed ⇔ 금액 · 시각). 지표 멱등 수집(FR-1~) 은 예측 몫. to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |

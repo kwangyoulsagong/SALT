@@ -106,9 +106,7 @@ class CostBasisAdapter implements CostBasisSource {
 | KIS (한국투자증권) | `market` | **시세 조회 TR 허용 목록만**(`KisClient` `KIS_QUERY_TR`). 잔고 · 매수가능 · 체결통보도 계좌 정보라 금지 — 주문 · 계좌 TR 문자열 0건을 테스트가 본다(F011, 2026-10-07 개정: 앞 문장 "잔고·체결내역 GET만" 은 계좌 연동 없음 결정과 어긋났다) |
 | logo.dev · DART 기업개황 | `market` | 국내 주식 로고(F011 FR-47). logo.dev 는 퍼블리셔블 키만(`pk_` — 주소에 실려 화면으로 나간다). DART 키는 서버 밖으로 나가지 않는다(선택 — 없으면 티커 조회만). 이미지는 판정에만 받고 저장하지 않는다 |
 | 환율 소스 | `fx` | 결제일 기준환율. 결측 시 `degraded` |
-| 온체인 지표 (MVRV Z · Puell) | `indicator` | 일 1회. carry-forward + `staleDays` |
-| CAPE | `indicator` | 동일 |
-| Binance | `plan` | 김프 계산용 가격만 |
+| ~~온체인 지표 · CAPE · Binance~~ | ~~`indicator` · `plan`~~ | **F003 v2(2026-11-19) — 서버가 받지 않는다.** MVRV Z · 코스피 PER · 김프는 예측이 받아 `forecast.v_accumulation_band` 로 준다 |
 | Gemini (LLM) | `coach` | **문장만 생성. 숫자는 주입한다.** 프롬프트·응답을 원문 로깅하지 않는다 |
 | 로컬 CLI (Claude Code · Codex) | `coach` | Gemini 와 같은 규칙 + **격리**: 프롬프트는 stdin(argv 금지) · 도구 0 · 빈 임시 폴더 · env 허용 목록(서버 비밀 0) · 프로세스 그룹째 종료(고아 0) · 45초 · 동시 2. ~~허용 사용자 · 웹만~~ ~~**LLM 배치만**~~ **배치 + 해설 스트림**(2026-11-13 `SRV-REQ-053` FR-9) — 해설 스냅샷(2026-11-11 FR-3) · 오늘 등락 한 줄(2026-11-12 `SRV-REQ-052`) · 사실 추출(2026-11-14 F017 v4 2c — 원문을 읽기만, 하루 상한은 순서 몫 `reservedCallsBehind`), 종목 · 모드 · 지문마다 한 번(스트림과 배치가 생성 하나를 같이 씀) · 모두 같은 문장 · 사람마다 다른 LLM 호출 0. 실패 · 쉬기 · 동시 상한은 둘이 한 `LocalCliGate`, 실패하면 Gemini(`SRV-REQ-050`). 검사 전 줄은 흘리지 않는다 |
 | 뉴스 소스 | `news` | 크롤링 주기 준수 |

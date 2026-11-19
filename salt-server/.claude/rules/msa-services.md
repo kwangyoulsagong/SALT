@@ -31,13 +31,13 @@ globs: salt-server/**, salt-platform/**
 | `content` | Kotlin `services/content`(2026-11-05 금융 팁 S2a — 새로 태어남 · 첫 서비스 간 구독자) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | ~~`notification`~~ Kotlin `services/notification`(2026-11-06 S2c — 첫 기존 컨텍스트 이전 · 옛 Express 삭제 `33e949e8`). 설정 주인 · 구독만 | `notification` | S2 | `SRV-REQ-048` |
 | `identity` | Kotlin `services/identity`(2026-11-06 S3a 셸 설정 · **2026-11-12 S3b 계정 · 초대 코드 · RS256 발급 · JWKS** — Express `auth` · `modules/user` 삭제. Express 는 검증만) | `identity` | S3 | `SRV-REQ-048` |
-| `portfolio` | `portfolio` | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
+| `portfolio` | `portfolio` · `plan`(2026-11-19 F003 v2 밴드 적립 — 금액 · 사람 기록만) | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
 | `market` | `market` · `news` + 수집 워커 | `market` | S5 | `SRV-REQ-049` FR-2 · 3 |
 | `coach` | `coach` · `modules/investment-insight` — 발행 창구만 Kotlin(`coach.outbox` Flyway · 행은 Express, 2026-11-06 S2c) | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
 | `forecast` | Python `salt-forecast` (이미 분리) | `forecast` | — | `ADR-004` · `ADR-007` |
 | — | `modules/mission` · `dashboard` · `feed` (동면 410) | — | 옮기지 않음 | `SRV-REQ-049` FR-6 |
 
-- 이 표에 없는 컨텍스트(`plan` · `indicator` · `fx` · `device` · `homebriefing` 등)를 건드리는 REQ 는 **착수 전에 `ADR-006` §1 표에 행을 더한다.** 여기서 먼저 정하지 않는다
+- 이 표에 없는 컨텍스트(`indicator` · `fx` · `device` · `homebriefing` 등)를 건드리는 REQ 는 **착수 전에 `ADR-006` §1 표에 행을 더한다.** 여기서 먼저 정하지 않는다
 - 서비스 이름 = 프론트 도메인 zone 이름 = BFF 경로 묶음(`ADR-005`). 새 이름을 지어내지 않는다
 
 ## 3. 어디에 쓰나 — 단계로 정한다

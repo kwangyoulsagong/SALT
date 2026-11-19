@@ -173,6 +173,59 @@ model PortfolioHolding {
   @@map("portfolio_holdings")
 }
 
+// ==================== Plan (F003 v2 밸류에이션 밴드 적립 · DB-REQ-013 개정 2026-11-19) ====================
+// portfolio 서비스의 plan 컨텍스트(ADR-006 §1). 배수 · 성적 · 실패 사례는 forecast.v_accumulation_band(_week) 에서 읽고
+// 여기는 사람 값만 — 월 적립액 하나와 주마다 스냅샷한 계획 · 수동 체크(ADR-002). 사용자 FK 없음(DB-REQ-036 B1)
+
+/// 사람마다 한 행. 사용자가 바꾸는 값은 월 적립액 하나(D9). 수정은 다음 주부터 — 이번 주까지는 previous 가 쓰인다(FR-75)
+model PlanSettings {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique @map("user_id")
+  /// 사용자가 마지막에 넣은 월 적립액(원, 1,000원 단위 정수)
+  monthlyBaseKrw         Decimal  @map("monthly_base_krw") @db.Decimal(20, 0)
+  /// effectiveWeek 전 주들에 쓰는 값 — 첫 저장이면 null
+  previousMonthlyBaseKrw Decimal? @map("previous_monthly_base_krw") @db.Decimal(20, 0)
+  /// monthlyBaseKrw 가 쓰이기 시작하는 주(KST 월요일)
+  effectiveWeek          DateTime @map("effective_week") @db.Date
+  /// 첫 저장 주(KST 월요일) — 이 주부터 마감 · 미실행을 센다
+  startedWeek            DateTime @map("started_week") @db.Date
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("plan_settings")
+}
+
+/// 사람 × 주(KST 월요일) × 자산 한 행 — 그 주 계획을 스냅샷한다(FR-23 "왜 그 배수였나"). 금액은 원 정수
+model WeeklyPlanExecution {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  weekOf         DateTime  @map("week_of") @db.Date
+  /// btc | kospi
+  asset          String
+  weeklyBaseKrw  Decimal   @map("weekly_base_krw") @db.Decimal(20, 0)
+  multiplier     Decimal   @db.Decimal(6, 3)
+  plannedKrw     Decimal   @map("planned_krw") @db.Decimal(20, 0)
+  /// 예측 밴드(관문과 무관) — 그 주 예측 행이 없으면 null
+  bandKey        String?   @map("band_key")
+  gatePassed     Boolean?  @map("gate_passed")
+  blockedReason  String?   @map("blocked_reason")
+  preregKey      String?   @map("prereg_key")
+  indicatorValue Float?    @map("indicator_value")
+  /// 그 주 예측 행이 없어 정액(1.0)으로 둔 주
+  fallback       Boolean   @default(false)
+  /// planned | executed | skipped
+  status         String    @default("planned")
+  executedKrw    Decimal?  @map("executed_krw") @db.Decimal(20, 0)
+  /// 수동 체크 시각(원장 매칭 없음 — ADR-002)
+  recordedAt     DateTime? @map("recorded_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, weekOf, asset])
+  @@index([userId, weekOf(sort: Desc)])
+  @@map("weekly_plan_executions")
+}
+
 // ==================== News ====================
 model NewsArticle {
   id          String   @id @default(uuid())

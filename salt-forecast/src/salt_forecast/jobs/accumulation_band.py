@@ -7,11 +7,12 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from salt_forecast.domain.accumulation import Kimchi, kimchi_premium
+from salt_forecast.domain.accumulation import BTC_BANDS, KOSPI_BANDS, Band, Kimchi, kimchi_premium
 from salt_forecast.domain.calendar import report_day
 from salt_forecast.ingest import coinmetrics, ecb, ecos
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
@@ -30,6 +31,18 @@ REPORTS = ROOT / "reports"
 
 def _ts(epoch: int | None) -> datetime | None:
     return None if epoch is None else datetime.fromtimestamp(epoch, tz=UTC)
+
+
+BANDS: dict[str, tuple[Band, ...]] = {"btc": BTC_BANDS, "kospi": KOSPI_BANDS}
+
+
+def bands_json(asset: str) -> str:
+    """사전등록 밴드 표 — 마지막 줄 `below` 는 무한이라 null(JSON 에 inf 가 없다)."""
+    rows = [
+        {"key": b.key, "below": None if math.isinf(b.below) else b.below, "multiplier": b.multiplier}
+        for b in BANDS[asset]
+    ]
+    return json.dumps(rows)
 
 
 def to_row(key: str, r: AssetResult, computed_at: datetime) -> dict[str, Any]:
@@ -73,6 +86,7 @@ def to_row(key: str, r: AssetResult, computed_at: datetime) -> dict[str, Any]:
         "kimchi_premium": None if r.kimchi is None else r.kimchi.premium,
         "kimchi_as_of": None if r.kimchi is None else _ts(r.kimchi.as_of),
         "computed_at": computed_at,
+        "bands": bands_json(r.asset),
     }
 
 

@@ -50,3 +50,9 @@
 
 - 예측 표 선언 파일(`store/tables.py`)에 `accumulation_band` 한 표
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 `salt-forecast/requirements/reports/checklists/FC-REQ-029.md`
+
+## 2026-11-19 F003 v2 순서 2
+
+- `salt-forecast/src/salt_forecast/store/tables.py` `accumulation_band` 에 `bands` 열
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 체크리스트 `requirements/reports/checklists/F003-v2-s2-plan-server.md`
