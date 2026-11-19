@@ -1,5 +1,6 @@
 import { logger } from "../config/logger";
 import { appAICoachService } from "./app-ai-coach.service";
+import { appPlanService } from "./app-plan.service";
 import { appPortfolioService } from "./app-portfolio.service";
 import { appHouseholdService } from "./app-household.service";
 import { appSavingsService } from "./app-savings.service";
@@ -20,6 +21,9 @@ import {
 } from "./home-card.viewmodel";
 
 export type { AppHomeVM, HomeSummaryCard } from "./home-card.viewmodel";
+
+/** 홈 투자 카드의 적립 한 줄 — 카드 예산(800ms) 안에서 끝나야 한다. 넘으면 그 줄만 빠진다 */
+const HOME_PLAN_LINE_TIMEOUT_MS = 600;
 
 /** 정해진 시간 안에 오지 않으면 실패로 본다 — 그 카드만 `degraded` (`BFF-REQ-046` FR-3) */
 const withinBudget = <T>(work: Promise<T>, ms: number): Promise<T> =>
@@ -90,15 +94,18 @@ const CARD_SOURCES: CardSource[] = [
     title: HOME_CARD_TEXT.invest.title,
     href: "/investments",
     load: async (token, now) => {
-      // 셋을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만 뺀다
-      const [summary, profile, stats] = await Promise.allSettled([
+      // 넷을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만, 적립 계획이 실패하면 그 줄만 뺀다
+      const [summary, profile, stats, plan] = await Promise.allSettled([
         appPortfolioService.getSummary(token),
         appAICoachService.getProfile(token),
         backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
+        // 카드 예산보다 짧게 — 적립 줄이 늦어 카드 전체가 degraded 가 되지 않게
+        appPlanService.getWeekly(token, HOME_PLAN_LINE_TIMEOUT_MS),
       ]);
       if (summary.status === "rejected") throw summary.reason;
       const hidden = profile.status === "fulfilled" && profile.value.hidePurchasePrice;
-      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats), hidden);
+      const planKrw = plan.status === "fulfilled" && plan.value.configured ? plan.value.totalKrw : null;
+      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats), hidden, planKrw);
     },
   },
 ];

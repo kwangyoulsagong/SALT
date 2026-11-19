@@ -58,6 +58,11 @@ export interface UpstreamClientError {
   retryAfterSeconds?: number;
   trackedCount?: number;
   trackedLimit?: number;
+  /**
+   * 입력 거부의 경계 — 화면이 필드 아래에 "얼마부터 얼마까지"를 쓸 근거(`BFF-REQ-019` FR-61 · 밴드 적립 422).
+   * 서버가 준 칸만 · 정해진 이름과 형식만 옮긴다(본문을 통째로 넘기지 않는다)
+   */
+  details?: { field?: string; min?: number; max?: number; unit?: number; asset?: string; currentWeek?: string };
 }
 
 const nonNegativeInteger = (value: unknown): value is number =>
@@ -77,6 +82,12 @@ export const toUpstreamClientError = (
           retryAfterSeconds?: unknown;
           trackedCount?: unknown;
           trackedLimit?: unknown;
+          field?: unknown;
+          min?: unknown;
+          max?: unknown;
+          unit?: unknown;
+          asset?: unknown;
+          currentWeek?: unknown;
         };
         headers?: Record<string, unknown>;
       };
@@ -92,6 +103,17 @@ export const toUpstreamClientError = (
   const retryAfterSeconds = response?.data?.retryAfterSeconds;
   const trackedCount = response?.data?.trackedCount;
   const trackedLimit = response?.data?.trackedLimit;
+  const body = response?.data;
+  const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+  const shortText = (v: unknown): v is string => typeof v === "string" && v.length > 0 && v.length <= 64;
+  const details: NonNullable<UpstreamClientError["details"]> = {
+    ...(shortText(body?.field) ? { field: body.field } : {}),
+    ...(finite(body?.min) ? { min: body.min } : {}),
+    ...(finite(body?.max) ? { max: body.max } : {}),
+    ...(finite(body?.unit) ? { unit: body.unit } : {}),
+    ...(shortText(body?.asset) ? { asset: body.asset } : {}),
+    ...(shortText(body?.currentWeek) ? { currentWeek: body.currentWeek } : {}),
+  };
 
   return {
     status,
@@ -108,6 +130,7 @@ export const toUpstreamClientError = (
       : {}),
     ...(nonNegativeInteger(trackedCount) ? { trackedCount } : {}),
     ...(nonNegativeInteger(trackedLimit) ? { trackedLimit } : {}),
+    ...(Object.keys(details).length > 0 ? { details } : {}),
   };
 };
 
