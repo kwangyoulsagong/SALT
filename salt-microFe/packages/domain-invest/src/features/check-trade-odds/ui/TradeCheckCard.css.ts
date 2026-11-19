@@ -49,7 +49,11 @@ export const summary = style({
   wordBreak: "keep-all",
 });
 
-/** 100칸 점 — 20 × 5, 분모 고정. 색은 방향을 뜻하지 않는다(칠함 · 빈칸 회색 두 단) */
+/**
+ * 100칸 점 — 20 × 5, 분모 고정. 칠한 칸 = 오른 횟수라 상승 빨강, 나머지 = 옅은 회색(2026-11-19 — 한 장 패널 시안 `pm/docs/2026-11-13-one-panel-research.html`
+ * `.dots i.on{background:var(--up)}` 대로. 전에는 검정 · 회색 두 단이었다). 뜻은 옆 문장("100번 중 n번 올랐어요")이 같이 말한다 — 색만으로 전하지 않는다.
+ * 안 오른 칸을 파랑으로 나누지 않는 이유: 응답(`dots`)은 오른 수만 준다 — 내림 · 그대로를 화면이 가를 수 없다
+ */
 export const dots = style({
   display: "grid",
   gridTemplateColumns: "repeat(20, 6px)",
@@ -60,10 +64,10 @@ export const dot = style({
   width: "6px",
   height: "6px",
   borderRadius: "50%",
-  background: vars.colors.neutral[200],
+  background: vars.colors.neutral[300],
 });
 
-export const dotOn = style({ background: vars.colors.neutral[700] });
+export const dotOn = style({ background: vars.colors.special.up });
 
 export const meta = style({
   margin: 0,

@@ -79,19 +79,22 @@ export const context = style({
 
 export const oddsRow = style({ margin: 0, display: "flex", alignItems: "baseline", gap: "4px", flexWrap: "wrap" });
 
-/** 큰 숫자 — 44/600 · 오른 횟수라 상승 색(뒤 글자 "번 올랐어요"가 뜻을 말한다) */
+/**
+ * 큰 숫자 — 오른 횟수라 상승 색(뒤 글자 "번 올랐어요"가 뜻을 말한다). 44 → 24/700(2026-11-19 사용자 "너무 크다" — 데스크톱 글자 단의 맨 위
+ * `deskType.price`, 시안 34 보다도 한 단 작게: 360 칸 안에서 가격 줄보다 크지 않게)
+ */
 export const oddsValue = style({
-  fontSize: "44px",
-  lineHeight: "48px",
-  fontWeight: vars.fontWeights.semibold,
+  fontSize: vars.deskType.price.fontSize,
+  lineHeight: vars.deskType.price.lineHeight,
+  fontWeight: vars.deskType.price.fontWeight,
   color: vars.colors.special.up,
   fontVariantNumeric: "tabular-nums",
 });
 
 export const oddsSuffix = style({
-  fontSize: "18px",
-  lineHeight: "26px",
-  fontWeight: vars.fontWeights.bold,
+  fontSize: vars.deskType.section.fontSize,
+  lineHeight: vars.deskType.section.lineHeight,
+  fontWeight: vars.deskType.section.fontWeight,
   color: vars.colors.text.primary,
 });
 
