@@ -5,7 +5,7 @@ import { vars } from "@repo/ui/tokens";
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /** 기분별 만족 거울 — 막대 색은 하나. 점수가 높다고 다른 색을 주지 않는다(평가 0) */
-export const box = style({ display: "flex", flexDirection: "column", gap: "8px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
+export const box = style({ display: "flex", flexDirection: "column", gap: "8px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
