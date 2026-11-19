@@ -14,6 +14,12 @@ export const SIDE_WIDTH = "312px";
 
 export const frame = style({ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 });
 
+/**
+ * 패널 면을 흰색으로 — 흰 표 · 흰 띠가 많은 화면(투자 시세 목록)에서 `#FBFCFD` 패널 위 흰 덩어리가 떠 보였다(2026-11-19 사용자
+ * "투자 페이지를 배경 자체를 흰색으로"). 틀이 패널을 가득 채우므로 모서리만 패널과 맞춘다
+ */
+export const whiteSurface = style({ background: vars.colors.background.white, borderRadius: vars.radius.medium });
+
 export const withSide = style({
   "@media": {
     [DESKTOP]: {

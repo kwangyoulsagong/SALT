@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { frame, head, main, side as sideClass, title as titleClass, withSide } from "./PageFrame.css";
+import { frame, head, main, side as sideClass, title as titleClass, whiteSurface, withSide } from "./PageFrame.css";
 
 export interface PageFrameProps {
   /** 화면 제목(h1 · 18/700) — 없으면 머리 줄을 그리지 않는다(제목을 본문 위젯이 그리는 화면) */
@@ -11,6 +11,8 @@ export interface PageFrameProps {
   side?: ReactNode;
   /** 사이드 이름(화면 리더 `aside` 라벨) — 문구는 부르는 쪽 몫 */
   sideLabel?: string;
+  /** 패널 면 — 기본은 공용 패널(`#FBFCFD`), 흰 표 · 흰 띠가 주인공인 화면은 `white` */
+  surface?: "panel" | "white";
   children: ReactNode;
 }
 
@@ -18,8 +20,8 @@ export interface PageFrameProps {
  * 데스크톱 화면 틀 — 제목 줄 · 본문 · (선택) 오른쪽 사이드(`FE-REQ-047` FR-2 · FR-7 · FR-12, `screen-desktop.md` §1).
  * 서버 컴포넌트. 본문 패널 면은 공용 `AppNavigation` 이 이미 칠했다 — 여기는 폭 · 여백 · 사이드 자리만. 페이지 최상위 `<div>`(`fsd-pages.md`)
  */
-export const PageFrame = ({ title, actions, side, sideLabel, children }: PageFrameProps) => (
-  <div className={side ? `${frame} ${withSide}` : frame}>
+export const PageFrame = ({ title, actions, side, sideLabel, surface = "panel", children }: PageFrameProps) => (
+  <div className={[frame, side ? withSide : "", surface === "white" ? whiteSurface : ""].filter(Boolean).join(" ")}>
     <div className={main}>
       {title || actions ? (
         <div className={head}>
