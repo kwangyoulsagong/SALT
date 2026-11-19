@@ -8,7 +8,7 @@ import { KR_STOCK_MESSAGES, useKrInvestors, useKrIntradayFlows } from "@/entitie
 import { formatKrwCompact } from "@repo/web-shared/lib";
 
 import { caption, heading, net, programLabel, programRow, programValue, scroller, table, td, th, totalRow } from "./KrInvestorFlows.css";
-import { krSideCard } from "./SymbolHeader.css";
+import { detailPanel } from "@repo/web-shared/ui/surface.css";
 
 const M = KR_STOCK_MESSAGES.investors;
 const P = KR_STOCK_MESSAGES.programToday;
@@ -70,7 +70,7 @@ export const KrInvestorFlows = ({ code }: { code: string }) => {
   if (isError || data?.status === "disabled") return null;
 
   return (
-    <section className={krSideCard} aria-labelledby="kr-investor-flows-heading">
+    <section className={detailPanel} aria-labelledby="kr-investor-flows-heading">
       <h2 id="kr-investor-flows-heading" className={heading}>
         {M.heading}
       </h2>

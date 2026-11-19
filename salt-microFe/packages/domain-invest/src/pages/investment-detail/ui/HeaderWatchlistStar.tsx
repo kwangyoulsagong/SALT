@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 
+import type { WatchlistAssetType } from "@/entities/market";
+
 /**
  * 머리의 관심 별 — **지연 로딩되는 클라이언트 잎.** 별은 관심 목록 조회(`entities/market`)와
  * 토글(`features/toggle-watchlist`)이 필요한데, 그것을 첫 로드에 싣지 않는다. 서버에는 별이 없고
@@ -12,7 +14,7 @@ const WatchlistStarLive = dynamic(
   { ssr: false, loading: () => null },
 );
 
-export const HeaderWatchlistStar = (props: { symbol: string; displayName: string }) => (
+export const HeaderWatchlistStar = (props: { symbol: string; displayName: string; assetType?: WatchlistAssetType }) => (
   <WatchlistStarLive {...props} />
 );
 

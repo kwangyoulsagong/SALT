@@ -16,3 +16,5 @@ export { BackNav } from "./BackNav/BackNav";
 export type { BackNavCrumb, BackNavProps } from "./BackNav/BackNav";
 export { SideBlock, SideRow } from "./SideRow/SideRow";
 export type { SideRowProps } from "./SideRow/SideRow";
+export { DETAIL_VIEW_PARAM, DetailTabs } from "./DetailTabs/DetailTabs";
+export type { DetailTab, DetailTabsProps } from "./DetailTabs/DetailTabs";

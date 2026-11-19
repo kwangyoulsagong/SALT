@@ -28,7 +28,7 @@ import { StreamedExplanation } from "@/features/stream-explanation";
 import { usePanelHorizonParam } from "@/features/switch-coach-mode";
 import { WHY_MOVED_ANCHOR_ID } from "@repo/web-shared/config";
 
-import { scenarioPanel, scenarioPanelLoading, scenarioPanelNote } from "./ScenarioPanel.css";
+import { explainWide, lead, leadMain, narrow, rows, scenarioPanel, scenarioPanelLoading, scenarioPanelNote } from "./ScenarioPanel.css";
 
 /** 과거 가격 선의 봉 수 — 시안 판 폭(지금 점 왼쪽 절반)에 30봉 */
 const PAST_BARS = 30;
@@ -117,33 +117,46 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
   return (
     <section className={shell} aria-label={M.heading}>
       <PanelHead view={view} horizon={horizon} onHorizon={setHorizon} />
-      {view ? <ScenarioHeadline view={view} /> : <p>{M.cellUnavailable}</p>}
-      {view && view.tier !== "defect" && view.range && <ScenarioFan closes={closes} range={view.range} />}
+      {/* 큰 숫자 · 막대 | 부채꼴 — 넓은 칸이면 한 줄 두 칸(`FE-REQ-049`) */}
+      <div className={lead}>
+        {/* 큰 숫자 묶음은 형제 여럿이라 한 칸으로 감싼다 */}
+        <div className={leadMain}>{view ? <ScenarioHeadline view={view} /> : <p>{M.cellUnavailable}</p>}</div>
+        {view && view.tier !== "defect" && view.range && <ScenarioFan closes={closes} range={view.range} />}
+      </div>
 
-      <PanelRow kind="usual">
-        <TradeCheckCard symbol={symbol} bare />
-      </PanelRow>
-      <PanelRow kind="cause">
-        {data.cause.cause ? <MoveCauseFlow view={data.cause.cause} /> : <StatusLine kind="error">{M.causeDefect}</StatusLine>}
-      </PanelRow>
-      <CompanyRow company={data.company} />
-      {/* 판단 카드(요약 · 상세 · 단타/장기 스위치)를 이 한 줄로(F017 v4 순서 6 · FR-12) — 이 기간 탭의 모드 판단 */}
-      <JudgmentRow
-        judgment={mode.judgment}
-        detail={coachMode ? coachMode.judgment : null}
-        staleSince={coach.data?.staleSince ?? null}
-      />
-      {view ? <InvalidationRow view={view} /> : null}
-      <TrackRow track={mode.track} />
+      {/* 줄 여섯 — 넓은 칸이면 두 단(`FE-REQ-049`) */}
+      <div className={rows}>
+        <PanelRow kind="usual">
+          <TradeCheckCard symbol={symbol} bare />
+        </PanelRow>
+        <PanelRow kind="cause">
+          {data.cause.cause ? <MoveCauseFlow view={data.cause.cause} /> : <StatusLine kind="error">{M.causeDefect}</StatusLine>}
+        </PanelRow>
+        <CompanyRow company={data.company} />
+        {/* 판단 카드(요약 · 상세 · 단타/장기 스위치)를 이 한 줄로(F017 v4 순서 6 · FR-12) — 이 기간 탭의 모드 판단 */}
+        <JudgmentRow
+          judgment={mode.judgment}
+          detail={coachMode ? coachMode.judgment : null}
+          staleSince={coach.data?.staleSince ?? null}
+        />
+        {view ? <InvalidationRow view={view} /> : null}
+        <TrackRow track={mode.track} />
+      </div>
 
       {mode.explanation.view ? (
         // 최신 AI 저장본이면 그대로, 아니면 스트림(F017 v4 1f) — 기간 탭이 모드를 바꾸면 새로 연다
-        <StreamedExplanation key={mode.mode} symbol={symbol} mode={mode.mode} stored={mode.explanation.view} />
+        <div className={explainWide}>
+          <StreamedExplanation key={mode.mode} symbol={symbol} mode={mode.mode} stored={mode.explanation.view} />
+        </div>
       ) : (
         <StatusLine kind="error">{M.explainDefect}</StatusLine>
       )}
-      {data.mine && <MineLine mine={data.mine} />}
-      {data.scenario.disclaimer && <p className={scenarioPanelNote}>{data.scenario.disclaimer}</p>}
+      {data.mine && (
+        <div className={narrow}>
+          <MineLine mine={data.mine} />
+        </div>
+      )}
+      {data.scenario.disclaimer && <p className={`${scenarioPanelNote} ${narrow}`}>{data.scenario.disclaimer}</p>}
     </section>
   );
 };

@@ -4,7 +4,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 
 import { EventsCard, useSymbolEvents } from "@/entities/coach";
 
-import { krCoachCard } from "./SymbolHeader.css";
+import { detailPanel } from "@repo/web-shared/ui/surface.css";
 
 /**
  * 국내 상세의 주요 사건(F008 슬라이스 24, `FE-REQ-046` FR-1 · FR-7) — 금통위 · 물가 · 수출입 · 동시만기 + 미국 거시와
@@ -18,12 +18,12 @@ export const KrEvents = ({ code }: { code: string }) => {
   if (events.isSignedOut || events.notOwner) return null;
   if (events.isPending) {
     return (
-      <section className={krCoachCard} aria-busy="true">
+      <section className={detailPanel} aria-busy="true">
         <Skeleton width={120} height={20} />
         <Skeleton lines={5} height={18} />
       </section>
     );
   }
   // 그 밖의 오류는 카드가 "지금 불러올 수 없어요" 한 줄로 그린다
-  return <EventsCard className={krCoachCard} result={events.data ?? { status: "unavailable" }} />;
+  return <EventsCard className={detailPanel} result={events.data ?? { status: "unavailable" }} />;
 };

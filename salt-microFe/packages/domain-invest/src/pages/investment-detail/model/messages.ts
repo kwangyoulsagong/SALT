@@ -11,13 +11,22 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   trailKr: "국내 주식",
   /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) */
   guestWhat: { preflight: "주문 전 체크", record: "거래 기록", scenario: "다음 시나리오" },
-  /** 4블록(F017 v4 순서 6) — 내 거래 블록 제목 · 펼침 */
+  /** 내 거래 패널 제목 — 오른쪽 고정 열(`FE-REQ-049` FR-3) */
   tradeHeading: "내 거래",
-  krMoreSummary: "더 보기 — 호가 · 투자자별 수급 · 소식 · 일정",
-  moreHint: "펼쳐 보기",
+  /** 알약 탭(`FE-REQ-049` FR-2 · 사용자 결정 2026-11-19 "합치기") — 개요 = 차트 + 한 장 패널, 나머지는 펼침에 있던 것 */
+  tabsLabel: "종목 상세 보기",
+  tabs: { overview: "개요", orderbook: "호가", investors: "투자자", newsEvents: "소식 · 일정", trade: "내 거래" },
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
   statRange: "24시간 범위",
+  /** 머리 시장 칩 · 범위 막대 · [더 보기](`FE-REQ-049` FR-1) */
+  marketCrypto: "코인",
+  statDayRange: "1일",
+  statWeek52Range: "52주",
+  rangeSr: (label: string, low: string, high: string) => `${label} 범위 ${low}에서 ${high}`,
+  statsMore: "더 보기",
+  statTickSize: "호가 단위",
+  chartHeading: "차트",
   statTradeValue: "거래대금",
   statUpdatedAt: "시세 기준",
   /** 머리의 주문 전 체크 링크(FR-131) — 계산 카드로 간다. 주문하지 않는다 */

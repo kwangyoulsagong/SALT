@@ -23,7 +23,7 @@ import {
   totalCell,
   totalRow,
 } from "./KrOrderbook.css";
-import { krSideCard } from "./SymbolHeader.css";
+import { detailPanel } from "@repo/web-shared/ui/surface.css";
 
 const M = KR_STOCK_MESSAGES.orderbook;
 
@@ -91,7 +91,7 @@ export const KrOrderbook = ({ code, session, basePrice, currentPrice }: KrOrderb
 
   if (data.status !== "ok" || !data.available) {
     return (
-      <section className={krSideCard} aria-labelledby="kr-orderbook-heading">
+      <section className={detailPanel} aria-labelledby="kr-orderbook-heading">
         <h2 id="kr-orderbook-heading" className={heading}>
           {M.heading}
         </h2>
@@ -107,7 +107,7 @@ export const KrOrderbook = ({ code, session, basePrice, currentPrice }: KrOrderb
   const { asks, bids } = data;
   const maxQuantity = [...asks, ...bids].reduce((max, l) => (BigInt(l.quantity) > max ? BigInt(l.quantity) : max), ZERO);
   return (
-    <section className={krSideCard} aria-labelledby="kr-orderbook-heading">
+    <section className={detailPanel} aria-labelledby="kr-orderbook-heading">
       <div className={headingRow}>
         <h2 id="kr-orderbook-heading" className={heading}>
           {M.heading}

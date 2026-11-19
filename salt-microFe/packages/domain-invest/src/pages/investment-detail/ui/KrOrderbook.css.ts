@@ -1,20 +1,25 @@
-import { style, styleVariants } from "@vanilla-extract/css";
+import { globalStyle, style, styleVariants } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+/** 상세 패널 머리 44(`FE-REQ-049` FR-3) — 제목 왼쪽 · 기준 시각 오른쪽 */
 export const headingRow = style({
   display: "flex",
-  alignItems: "baseline",
+  alignItems: "center",
   justifyContent: "space-between",
   gap: "8px",
+  minHeight: "44px",
 });
 
 export const heading = style({
+  display: "flex",
+  alignItems: "center",
+  minHeight: "44px",
   margin: 0,
-  fontSize: vars.typography.t5.fontSize,
-  lineHeight: vars.typography.t5.lineHeight,
-  fontWeight: vars.fontWeights.semibold,
-  color: vars.colors.text.primary,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text1,
 });
 
 /** 흰 카드 위 보조 글자 — tertiary(3.03)는 axe 미달이라 lightGray(4.6). 투자자 표와 같은 값 */
@@ -35,8 +40,10 @@ export const staleMark = style({
  * 3열 사다리 — 매도 잔량 | 호가 | 매수 잔량. 위 반은 매도(10 → 1단계), 아래 반은 매수(1 → 10단계).
  * 행 높이를 고정해 10초마다 값이 바뀌어도 칸이 흔들리지 않는다
  */
+/** 3열 고정 폭(FR-7) — 넓은 칸에서 늘어나지 않게 상한 520 */
 export const table = style({
   width: "100%",
+  maxWidth: "520px",
   borderCollapse: "collapse",
   tableLayout: "fixed",
   fontSize: vars.typography.t7.fontSize,
@@ -87,11 +94,13 @@ export const priceTone = styleVariants({
   flat: { color: vars.colors.text.primary },
 });
 
-/** 지금 체결가와 같은 호가 — 테두리 한 줄(깜빡임 없음 — 가격 깜빡임 금지) */
+/**
+ * 지금 체결가와 같은 호가 — 옅은 면 + 가격 진하게(FR-7 · B3: 검은 테두리 한 줄이 혼자 튀었다). 깜빡임 없음 — 가격 깜빡임 금지
+ */
 export const currentRow = style({
-  outline: `1px solid ${vars.colors.text.primary}`,
-  outlineOffset: "-1px",
+  background: vars.colors.desk.line,
 });
+globalStyle(`${currentRow} th`, { fontWeight: vars.fontWeights.bold });
 
 export const totalRow = style({
   fontWeight: vars.fontWeights.semibold,

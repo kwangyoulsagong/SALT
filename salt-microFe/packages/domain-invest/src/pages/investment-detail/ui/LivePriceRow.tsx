@@ -7,7 +7,7 @@ import { useLivePrice } from "@repo/web-shared/api";
 import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
 import { formatPrice } from "@repo/web-shared/lib";
 
-import { change as changeStyle, price as priceStyle, priceRow, tick } from "./SymbolHeader.css";
+import { change as changeStyle, changeText, price as priceStyle, priceRow, tick } from "./DetailHead.css";
 
 const MINUS = "−";
 
@@ -61,7 +61,7 @@ export const LivePriceRow = ({ symbol, name, logoUrl, initialPrice, initialChang
           {direction && <span key={`${price}`} className={tick[direction]} aria-hidden="true" />}
         </span>
       )}
-      {change && <span className={changeStyle[change.tone]}>{change.text}</span>}
+      {change && <span className={`${changeText} ${changeStyle[change.tone]}`}>{change.text}</span>}
     </div>
   );
 };

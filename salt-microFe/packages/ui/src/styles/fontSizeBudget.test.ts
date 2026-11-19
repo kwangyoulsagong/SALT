@@ -14,7 +14,7 @@ const REPO = join(__dirname, "../../../..");
 /** 2026-11-19 기준(이 시험을 만든 날) — 늘면 실패, 줄면 낮춘다 */
 const BUDGET: Record<string, number> = {
   "apps/web/src": 5,
-  "packages/domain-invest/src": 62,
+  "packages/domain-invest/src": 54, // 2026-11-19 `FE-REQ-049` 상세 재설계 −8
   "packages/domain-savings/src": 0,
   "packages/domain-household/src": 6,
   "packages/domain-tips/src": 8,
