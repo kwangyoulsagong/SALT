@@ -24,3 +24,7 @@
 
 - 답 링크 종류에 `plan`(밴드 적립 화면) · 빈 재료에 `weekly_plan` 더함(`feat/f006-coach-chat-redesign`) — Swagger 설명 갱신. 경로 · 모양 그대로
 - 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+- 숫자(100 · 90)를 화면 문구에 박지 않고 응답에 실었다 — 상한을 바꾸면 서버 상수 하나

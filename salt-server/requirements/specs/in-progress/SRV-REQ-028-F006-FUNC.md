@@ -252,6 +252,13 @@ created: 2026-09-09
 | FR-90~95 | 대체 | 알림 생성 · 목록은 Kotlin(`SRV-REQ-048` FR-5) — 종류 셋(판단 변화 · 목표 달성 · 고정비) |
 | FR-110~112 | 대체 | 설정 조합 없음 — 도메인 zone 으로 흩어짐 · 밴드 쓰기 경로 0(`/plan` 읽기 전용) |
 
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤
+
+| FR | 내용 | 우선 |
+|---|---|---|
+| FR-113 | **대화 보관 한도** — 사람마다 최근 질문 `COACH_HISTORY_KEEP_QUESTIONS`(100)개 · `COACH_HISTORY_KEEP_DAYS`(90)일 중 먼저 닿는 쪽까지. 질문을 저장할 때마다 그보다 앞을 지운다(cron 0). 경계는 남길 질문 하나의 시각(`coachHistoryCutoff`)이라 질문 · 답 짝이 갈라지지 않는다. `streaming` 답은 남긴다. 메시지가 0 이 된 대화는 지우고 남은 대화 수를 다시 센다. 지우기가 실패해도 질문은 저장된다 | Must |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -265,3 +272,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-85 `PreviewTransaction`(`POST /api/portfolio/transactions/preview`, 쓰지 않음) · FR-86 원장 규칙 `domain/LedgerChange.ts`(거래일 → 같은 시각 매수 먼저 → id 순서로 걸어 음수면 거부 · 이미 음수인 옛 원장은 더 나빠지지만 않으면 받음) · FR-87 PATCH `strict`(종목 · 매수/매도 400) · 거래일 수정. 생성 · 수정 · 삭제 셋이 `writeLedger` 한 길 — 한 트랜잭션(`runInTransaction` · 저장소는 그대로) + 종목 원장 advisory 잠금(동시 매도 둘 → 하나만 · 실측). **정정** FR-85 이동평균 → FIFO(사용자 결정 — 기존 평단 숫자 무변경) · 남의 거래 403 → 404(`DB-REQ-022` FR-74). FR-88 소멸(온보딩 은퇴). 루트 `requirements/specs/in-progress/F006-position-trades-slice.md` |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | **"이번 주 얼마 넣을까" 답을 밴드 적립 주간 계획으로**(`feat/f006-coach-chat-redesign`) — 전에는 `/plan` 이 생긴 뒤에도 "적립 계산은 아직 SALT에 없어요"라고 답했다. 재료 `weekly_plan`(plan 컨텍스트 주간 계획 — 코치는 import 하지 않고 조립이 끼운다) · 계획 있음 / 굳지 않음 / 안 정함 / 못 읽음 경계 시험 · 링크 `plan` · 빈 재료 `weekly_plan` |
+| 2026-11-19 | FR-113 신설 — 대화 보관 한도(질문 100 · 90일, 질문마다 정리 · 짝 보존). 사용자 2026-11-19 "무한 스크롤 해야한다 코치대화에 늘어나면 감당 안되니" · "대화도 어느정도 되면 날려버려야". `feat/f006-coach-chat-history` |

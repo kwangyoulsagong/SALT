@@ -49,3 +49,11 @@
 
 - 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
 - 남은 것: FR-5 · 22 — LLM 경로 결정 · 앱 착수 때
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-85 | 충족 | 실 DB 600 → 200 · 짝 잃은 답 0 · `EXPLAIN (ANALYZE, BUFFERS)` 최근 질문 100개 0.17ms(표 200행 — 보관 한도 덕에 사람당 약 200행) |
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트

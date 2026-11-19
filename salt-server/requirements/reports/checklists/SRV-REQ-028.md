@@ -60,3 +60,11 @@
 
 - **"이번 주 얼마 넣을까" 답을 밴드 적립 주간 계획으로**(`feat/f006-coach-chat-redesign`) — 전에는 `/plan` 이 생긴 뒤에도 "적립 계산은 아직 SALT에 없어요"라고 답했다. 재료 `weekly_plan`(plan 컨텍스트 주간 계획 — 코치는 import 하지 않고 조립이 끼운다) · 계획 있음 / 굳지 않음 / 안 정함 / 못 읽음 경계 시험 · 링크 `plan` · 빈 재료 `weekly_plan`
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-113 | 충족 | 경계 표 시험 8(`conversationHistory.test.ts`) · 유스케이스 6(101번째 · 90일 · streaming 남김 · 남의 대화 · 실패해도 질문 · keep) · 실 DB: 질문 300 · 메시지 600 → 질문 100 · 메시지 200, 대화 수 다시 셈, 짝 잃은 답 0 · `npm run build` · `lint` · `test` 2025 · `test:layer-check` |
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
