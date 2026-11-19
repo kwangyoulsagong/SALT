@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { BOARD_MESSAGES as B, EMOTION_LABEL, EXPENSE_MESSAGES as M, FIXED_COST_MESSAGES as F, WORK_MESSAGES as W, formatWon, formatWorkMinutes } from "../model/messages";
+import { groupExpensesByDay } from "../lib/board";
 import type { CalendarDay, HouseholdExpense } from "../model/types";
 import { useCategoryLabel } from "./CategoryNames";
 import * as s from "./board.css";
@@ -26,7 +27,10 @@ export const ExpenseRow = ({ expense: e, action }: { expense: HouseholdExpense; 
       </span>
       <span className={s.rowMain}>
         <span className={s.rowTitle}>{e.merchant ?? category}</span>
-        <span className={s.rowCaption}>{[category, ...extras].join(" · ")}</span>
+        {/* 쓴 곳이 없으면 이름이 이미 분류 — 보조 줄에 다시 쓰지 않는다(같은 글자 두 번) */}
+        {e.merchant || extras.length > 0 ? (
+          <span className={s.rowCaption}>{(e.merchant ? [category, ...extras] : extras).join(" · ")}</span>
+        ) : null}
       </span>
       <span className={s.rowSide}>
         {e.feeling ? <span className={s.badge}>{EMOTION_LABEL[e.feeling.emotion]}</span> : null}
@@ -54,18 +58,9 @@ export const DayExpenseGroups = ({
 }) => {
   if (expenses.length === 0) return <p className={s.note}>{M.listEmpty}</p>;
   const byDay = dayIndex(days);
-  const order: string[] = [];
-  const grouped = new Map<string, HouseholdExpense[]>();
-  for (const e of expenses) {
-    if (!grouped.has(e.spentOn)) {
-      grouped.set(e.spentOn, []);
-      order.push(e.spentOn);
-    }
-    grouped.get(e.spentOn)!.push(e);
-  }
   return (
     <div className={s.groups} aria-label={B.groupsLabel}>
-      {order.map((date) => {
+      {groupExpensesByDay(expenses).map(({ date, items }) => {
         const day = byDay.get(date);
         const head = B.dayHead(date, day ? B.weekday[day.weekday % 7] : "");
         return (
@@ -75,7 +70,7 @@ export const DayExpenseGroups = ({
               {day ? <span>{B.dayTotal(formatWon(day.spent))}</span> : null}
             </h3>
             <ul className={s.rows}>
-              {grouped.get(date)!.map((e) => (
+              {items.map((e) => (
                 <ExpenseRow key={e.id} expense={e} action={action?.(e)} />
               ))}
             </ul>

@@ -24,6 +24,7 @@ import {
   WORK_MESSAGES as W,
   formatWon,
   formatWorkMinutes,
+  resolveSelectedDay,
   useHouseholdMonth,
   type HouseholdMonth,
 } from "@/entities/household";
@@ -101,8 +102,7 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
   const m = month.data;
 
   const fromUrl = params?.get(DAY_PARAM) ?? null;
-  const inMonth = (date: string | null) => (date && m.calendar.days.some((d) => d.date === date && d.state !== "future") ? date : null);
-  const selected = inMonth(fromUrl) ?? (m.current ? inMonth(todayInKorea()) : null);
+  const selected = resolveSelectedDay(fromUrl, m.calendar.days, todayInKorea(), m.current);
   const selectedDay = selected ? m.calendar.days.find((d) => d.date === selected) ?? null : null;
   const selectedExpenses = selected ? m.expenses.filter((e) => e.spentOn === selected) : [];
   const dayHead = selectedDay ? B.dayHead(selectedDay.date, B.weekday[selectedDay.weekday % 7]) : "";
