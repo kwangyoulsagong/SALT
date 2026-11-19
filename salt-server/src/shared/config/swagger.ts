@@ -2,7 +2,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Application } from "express";
 
-const options = {
+export const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
     info: {
@@ -33,7 +33,7 @@ const options = {
   ],
 };
 
-const specs = swaggerJsdoc(options);
+const specs = swaggerJsdoc(swaggerOptions);
 
 export function setupSwagger(app: Application) {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
