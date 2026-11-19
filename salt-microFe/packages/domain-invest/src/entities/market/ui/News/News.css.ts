@@ -6,7 +6,7 @@ import { vars } from "@repo/ui/tokens";
  * 뉴스 행 · 모달(`FE-REQ-065`) — 참고 국내 증권 앱 웹 실측(2026-11-09, `research/2026-11-09-news-ui-measure.md`)을
  * 우리 데스크톱 글자 위계(`screen-desktop.md` §2: 14/600 · 13 · 12/500)로. 메타 색은 2단(.64 — 실측 .47 은 우리 규칙상 글자에 안 쓴다)
  */
-const META_COLOR = "rgba(22,31,46,.64)";
+const META_COLOR = vars.colors.desk.text2;
 
 /** 행 — 704 폭 기준 패딩 8×12 · 모서리 10 · 구분선 없음 · 호버 면(실측). 단추라 글자 정렬을 되돌린다 */
 export const row = style({
@@ -76,7 +76,7 @@ export const chip = style({
   height: "28px",
   padding: `0 ${vars.space.md}`,
   borderRadius: "999px",
-  background: "rgba(2,32,71,.05)",
+  background: vars.colors.desk.line,
   fontSize: vars.typography.t7.fontSize,
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.primary,
@@ -100,7 +100,7 @@ export const original = style({
   minHeight: "36px",
   padding: `0 ${vars.space.md}`,
   borderRadius: "8px",
-  background: "rgba(2,32,71,.05)",
+  background: vars.colors.desk.line,
   fontSize: vars.fontSizes.base,
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.primary,
@@ -136,7 +136,7 @@ export const tagChip = style({
   height: "20px",
   padding: "0 6px",
   borderRadius: "6px",
-  background: "rgba(2,32,71,.05)",
+  background: vars.colors.desk.line,
   fontSize: vars.fontSizes.sm,
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,

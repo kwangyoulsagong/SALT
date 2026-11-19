@@ -36,9 +36,9 @@ export const itemText = style({ display: "flex", flexDirection: "column", gap: "
 
 export const itemTitle = style({ fontSize: "14px", lineHeight: "20px", fontWeight: 600, wordBreak: "keep-all" });
 
-export const itemSummary = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 500, color: "rgba(22, 31, 46, 0.64)", wordBreak: "keep-all" });
+export const itemSummary = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 500, color: vars.colors.desk.text2, wordBreak: "keep-all" });
 
-export const itemMeta = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: "rgba(22, 31, 46, 0.64)" });
+export const itemMeta = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.desk.text2 });
 
 export const badge = style({ marginRight: "8px", fontWeight: 600, color: vars.colors.status.warningDark });
 

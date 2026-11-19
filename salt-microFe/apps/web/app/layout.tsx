@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppProviders, AppShell, EMBED_SCRIPT, FONT_VARIABLES, VIEW_TRANSITION_CSS } from "@/app";
+import { AppProviders, AppShell, EMBED_SCRIPT, VIEW_TRANSITION_CSS } from "@/app";
 import "@repo/web-shared/layout/globals.css";
 
 /**
@@ -17,7 +17,7 @@ export { rootMetadata as metadata } from "@/app/seo";
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(`src/app/embed.ts`)
-    <html lang="ko" className={FONT_VARIABLES} suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
         {/* zone 간 문서 이동을 전환으로 잇는다 — 탭 · 머리는 제자리(FE-REQ-054 FR-4) */}

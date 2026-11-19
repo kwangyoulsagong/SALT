@@ -17,7 +17,7 @@ export const meta = style({
   lineHeight: "16px",
 });
 
-export const metaName = style({ color: "rgba(22, 31, 46, 0.64)", fontWeight: 500 });
+export const metaName = style({ color: vars.colors.desk.text2, fontWeight: 500 });
 
 export const metaValue = style({ margin: 0, color: vars.colors.text.primary, fontWeight: 500, overflowWrap: "anywhere" });
 
@@ -35,16 +35,16 @@ export const revisions = style({ margin: 0, padding: 0, listStyle: "none", displ
 
 export const revision = style({ display: "flex", flexDirection: "column", gap: "6px" });
 
-export const revisionDate = style({ color: "rgba(22, 31, 46, 0.64)", marginRight: "8px", fontVariantNumeric: "tabular-nums" });
+export const revisionDate = style({ color: vars.colors.desk.text2, marginRight: "8px", fontVariantNumeric: "tabular-nums" });
 
 /** 바뀐 줄(FR-7) — 빨강 · 초록을 쓰지 않는다(이 앱에서 두 색은 오름 · 내림 뜻이 있다). 앞 글자 · 취소선 · 바탕으로 가른다 */
 export const changes = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "2px", maxWidth: "720px" });
 
 export const change = style({ display: "grid", gridTemplateColumns: "12px minmax(0, 1fr)", gap: "4px", fontSize: "13px", lineHeight: "20px", wordBreak: "keep-all" });
 
-export const changeMark = style({ color: "rgba(22, 31, 46, 0.64)", fontWeight: 600, textAlign: "center" });
+export const changeMark = style({ color: vars.colors.desk.text2, fontWeight: 600, textAlign: "center" });
 
-export const removed = style({ color: "rgba(22, 31, 46, 0.64)", textDecoration: "line-through" });
+export const removed = style({ color: vars.colors.desk.text2, textDecoration: "line-through" });
 
 export const added = style({ color: vars.colors.text.primary, textDecoration: "none", background: SURFACE.weakFill, borderRadius: "4px", padding: "0 4px" });
 

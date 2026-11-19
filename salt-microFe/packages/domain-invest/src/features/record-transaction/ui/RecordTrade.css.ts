@@ -47,7 +47,7 @@ export const label = style({
 export const inputWithAction = style({ display: "flex", gap: "6px", alignItems: "center", minWidth: 0 });
 
 export const unit = style({
-  color: "rgba(26, 31, 41, 0.89)",
+  color: vars.colors.desk.text1,
   fontSize: "13px",
   fontWeight: vars.fontWeights.medium,
 });
@@ -60,7 +60,7 @@ export const weakButton = style({
   border: "none",
   borderRadius: "7px",
   background: "rgba(7, 25, 76, 0.04)",
-  color: "rgba(26, 31, 41, 0.89)",
+  color: vars.colors.desk.text1,
   fontSize: "13px",
   fontWeight: vars.fontWeights.semibold,
   cursor: "pointer",

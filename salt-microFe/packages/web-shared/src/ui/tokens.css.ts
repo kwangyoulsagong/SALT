@@ -11,7 +11,8 @@ export const vars = createGlobalTheme(":root", {
   colors: {
     // 주요 배경색
     background: {
-      primary: "#F2F4F6",
+      /** `@repo/tokens` `background.primary` 와 같은 값(`FE-REQ-047` FR-14, 2026-11-19) */
+      primary: "#F4F5F8",
       third: "#F8F9FA",
     },
 

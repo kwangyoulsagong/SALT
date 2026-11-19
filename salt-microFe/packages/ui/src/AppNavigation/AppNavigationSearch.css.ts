@@ -6,7 +6,7 @@ import { vars } from "../styles/tokens.css";
  * 머리 검색칸(`FE-REQ-067` FR-2 — 참고 국내 증권 앱 웹 실측 2026-11-09): 200×32 · 모서리 8 · 옅은 면 + 1px 같은 색 선 · 안 글자 14/500.
  * 실측 글자색(안 글자 #6B7684 · `/` 키 #8B95A1)은 회색 바탕 + 이 면 위 4.5:1 아래였다(2026-11-09 axe) — 둘 다 회색 700 으로 둔다(`screen-desktop.md` §2)
  */
-const SURFACE = "rgba(2, 32, 71, 0.05)";
+const SURFACE = vars.colors.desk.line;
 
 export const searchBox = style({
   display: "inline-flex",

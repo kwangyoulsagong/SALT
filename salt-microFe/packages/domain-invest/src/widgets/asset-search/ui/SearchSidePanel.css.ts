@@ -9,7 +9,7 @@ export const panel = style({
   width: "232px",
   flexShrink: 0,
   padding: `0 ${vars.space.md} ${vars.space.md}`,
-  borderLeft: "1px solid rgba(2, 32, 71, 0.05)",
+  borderLeft: `1px solid ${vars.colors.desk.line}`,
   overflowY: "auto",
   "@media": { "screen and (max-width: 767px)": { display: "none" } },
 });
@@ -20,7 +20,7 @@ export const hint = style({
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
-  color: "rgba(22, 31, 46, 0.64)",
+  color: vars.colors.desk.text2,
 });
 
 export const heading = style({
@@ -48,7 +48,7 @@ export const row = style({
   color: vars.colors.text.primary,
   textDecoration: "none",
   selectors: {
-    "&:hover": { background: "rgba(2, 32, 71, 0.05)" },
+    "&:hover": { background: vars.colors.desk.line },
     "&:focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "-2px" },
   },
 });

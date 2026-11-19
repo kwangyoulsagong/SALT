@@ -28,7 +28,7 @@ export const field = style({ display: "flex", flexDirection: "column", alignItem
 /** 시간 칸은 세 자리면 충분하다 — 넓은 칸에 숫자 하나가 떠 있지 않게 */
 export const hoursField = style({ width: "140px", maxWidth: "100%" });
 
-export const unit = style({ color: "rgba(26, 31, 41, 0.89)", fontSize: "13px", fontWeight: vars.fontWeights.medium });
+export const unit = style({ color: vars.colors.desk.text1, fontSize: "13px", fontWeight: vars.fontWeights.medium });
 
 /** 단어 중간에서 꺾이지 않게(390 앱 웹뷰에서 "관/점은"으로 꺾였다) */
 export const hint = style({

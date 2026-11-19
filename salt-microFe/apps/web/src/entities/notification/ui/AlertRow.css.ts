@@ -39,10 +39,10 @@ export const iconPlate = style({
 export const text = style({ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 });
 
 /** 제목 — 본문 13. 안 읽음은 굵게(700), 읽음은 보통(500) — 굵기 + 점, 색만으로 가르지 않는다 */
-export const title = style({ fontSize: 13, lineHeight: "20px", fontWeight: 500, color: "rgba(26,31,41,.89)" });
+export const title = style({ fontSize: 13, lineHeight: "20px", fontWeight: 500, color: uiVars.colors.desk.text1 });
 export const titleUnread = style({ fontWeight: 700 });
 
-export const hint = style({ fontSize: 12, lineHeight: "16px", fontWeight: 500, color: "rgba(22,31,46,.64)" });
+export const hint = style({ fontSize: 12, lineHeight: "16px", fontWeight: 500, color: uiVars.colors.desk.text2 });
 
 export const meta = style({ display: "inline-flex", alignItems: "center", gap: 6 });
 
@@ -50,7 +50,7 @@ export const time = style({
   fontSize: 12,
   lineHeight: "16px",
   fontWeight: 500,
-  color: "rgba(22,31,46,.64)",
+  color: uiVars.colors.desk.text2,
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
 });

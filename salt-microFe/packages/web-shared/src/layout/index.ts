@@ -9,7 +9,6 @@
  */
 export { AppShell } from "./AppShell";
 export { EMBED_SCRIPT } from "./embed";
-export { FONT_VARIABLES } from "./fonts";
 export { NotFoundPage, notFoundMetadata } from "./NotFoundPage";
 export { ProfileMenu } from "./ProfileMenu";
 export { PublicShell } from "./PublicShell";

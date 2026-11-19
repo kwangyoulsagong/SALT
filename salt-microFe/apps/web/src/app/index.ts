@@ -8,7 +8,6 @@ export * from "./providers";
 export {
   AppShell,
   EMBED_SCRIPT,
-  FONT_VARIABLES,
   NotFoundPage,
   notFoundMetadata,
   VIEW_TRANSITION_CSS,

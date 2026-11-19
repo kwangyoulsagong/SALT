@@ -33,7 +33,7 @@ const ICON_ACTIVE = "rgba(24, 31, 43, 0.77)";
 const LABEL_COLOR = vars.colors.neutral[700];
 const BOTTOM_TAB_HEIGHT = "56px";
 /** 머리 메뉴 링크 미선택 — 2단(`screen-desktop.md` §2 — 바탕 위 4.5:1 이상) */
-const HEADER_IDLE = "rgba(22, 31, 46, 0.64)";
+const HEADER_IDLE = vars.colors.desk.text2;
 
 /** 문서 간 전환에서 제자리에 남는 조각 — 같은 이름이 zone 마다 같아야 크롬이 움직이지 않는다(`FE-REQ-054` FR-4) */
 export const VIEW_TRANSITION_NAMES = {
@@ -148,6 +148,18 @@ export const content = style({
   flexDirection: "column",
   flex: 1,
   minWidth: 0,
+});
+
+/**
+ * 본문 패널(`FE-REQ-047` FR-2 · `screen-desktop.md` §1 실측) — 바탕(`#F4F5F8`) 위 면 `#FBFCFD` · 모서리 12 · 안쪽 1px 선 · 바깥 여백 12.
+ * 머리 아래 · 레일 오른쪽 남은 자리를 가득 채운다(가운데 정렬 최대 폭 없음). 화면은 이 안에 그린다 — 페이지가 바탕을 따로 칠하지 않는다.
+ * `overflow` 를 걸지 않는다 — 걸면 안쪽 `position: sticky`(표 머리 · 미리보기 칸)가 패널에 갇힌다. 내비 없는 화면(`bare`)에는 없다
+ */
+export const contentPanel = style({
+  margin: `0 ${vars.space.md} ${vars.space.md}`,
+  borderRadius: vars.radius.medium,
+  background: vars.colors.desk.panel,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
 });
 
 /** 칸 — 판(`tile`) 위아래 상태를 이 클래스로 찾는다 */
