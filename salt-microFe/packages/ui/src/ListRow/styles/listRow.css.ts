@@ -104,3 +104,45 @@ export const chevronStyles = style({
   flexShrink: 0,
   color: vars.colors.neutral[400],
 });
+
+/* ── 데스크톱 밀도(`FE-REQ-060` FR-3 · `screen-desktop.md` §4 "날짜 묶음 목록") ─────────────────────
+ * 행 44(보조 줄 있으면 56) · 왼쪽 판 32 · 이름 13/600 1단 · 보조 12/500 2단 · 금액 13/600 오른쪽 `tabular-nums` · 호버 면 모서리 8.
+ * 바탕을 칠하지 않는다 — 놓는 패널 면을 그대로 쓴다 */
+export const deskRow = style({
+  minHeight: "44px",
+  padding: "6px 8px",
+  gap: "12px",
+  borderRadius: "8px",
+  background: "transparent",
+  selectors: {
+    "&:has(> span > span + span)": { minHeight: "56px" },
+  },
+});
+export const deskPressable = style({
+  selectors: { "&:hover": { background: vars.colors.desk.line }, "&:active": { background: vars.colors.desk.line } },
+});
+export const deskTitle = style({
+  color: vars.colors.desk.text1,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+});
+export const deskCaption = style({
+  color: vars.colors.desk.text2,
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+});
+export const deskTrailing = style({
+  color: vars.colors.desk.text1,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  fontVariantNumeric: "tabular-nums",
+});
+export const deskTrailingBottom = style({
+  color: vars.colors.desk.text2,
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+});

@@ -18,6 +18,8 @@ export const SURFACE = {
   panelRadius: "16px",
   hairline: `inset 0 0 0 1px ${vars.colors.desk.line}`,
   weakFill: "rgba(7, 25, 76, 0.04)",
+  /** 정보 상자 면(`screen-desktop.md` §3 실측 — 모서리 12 · 그림자 없음). 패널 위 회색 상자 대신(`FE-REQ-060` FR-1) */
+  infoFill: "rgba(13, 25, 74, 0.02)",
 } as const;
 
 const NARROW = "screen and (max-width: 640px)";

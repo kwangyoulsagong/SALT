@@ -44,6 +44,7 @@
     "./useDebounce": "./src/Utils/hooks/useDebounce.tsx",
     "./numberText": "./src/NumberText/NumberText.tsx",
     "./listRow": "./src/ListRow/ListRow.tsx",
+    "./summaryBand": "./src/SummaryBand/SummaryBand.tsx",
     "./listGroup": "./src/ListGroup/ListGroup.tsx",
     "./sectionBand": "./src/SectionBand/SectionBand.tsx",
     "./badge": "./src/Badge/Badge.tsx",
