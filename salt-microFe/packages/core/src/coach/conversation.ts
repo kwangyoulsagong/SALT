@@ -61,6 +61,14 @@ export interface CoachConversationItem {
 export interface CoachConversationPage<T> {
   items: T[];
   nextCursor: string | null;
+  /** 보관 한도 — 메시지 목록에만(서버 상수 · `SRV-REQ-029` FR-30). 없거나 모양이 틀리면 `null` — 화면은 그 줄을 안 그린다 */
+  keep?: CoachHistoryKeep | null;
+}
+
+/** 코치 대화 보관 한도 — 최근 질문 `questions` 개 · `days` 일 중 먼저 닿는 쪽까지(2026-11-19 사용자 "너무 쌓이면 안 되니까") */
+export interface CoachHistoryKeep {
+  questions: number;
+  days: number;
 }
 
 export interface CoachAskResult {
@@ -104,3 +112,21 @@ export interface PanelLayoutResult {
   updatedAt: string | null;
   degraded: boolean;
 }
+
+/**
+ * 지난 대화 다음 쪽 커서(`FE-REQ-031` FR-20 · 2026-11-19) — 이미 쓴 커서가 다시 오면 `null`(멈춤).
+ * 서버 · BFF 가 커서를 잃으면 첫 쪽이 되풀이돼 위로 끝없이 같은 쪽이 붙었다(실측 41쪽에 메시지 60개)
+ */
+export const nextHistoryCursor = (page: Pick<CoachConversationPage<unknown>, "nextCursor">, usedCursors: readonly (string | null)[]): string | null =>
+  page.nextCursor && !usedCursors.includes(page.nextCursor) ? page.nextCursor : null;
+
+/**
+ * 쪽들(최신 쪽이 앞 · 쪽 안도 최신이 앞)을 화면 순서(오래된 것이 위)로 펴고 같은 id 는 한 번만 — React 키가 겹치면 줄이 빠지거나 두 번 그려진다
+ */
+export const mergeHistoryPages = <T extends { id: string }>(pages: readonly Pick<CoachConversationPage<T>, "items">[]): T[] => {
+  const seen = new Set<string>();
+  return [...pages]
+    .reverse()
+    .flatMap((page) => [...page.items].reverse())
+    .filter((item) => (seen.has(item.id) ? false : (seen.add(item.id), true)));
+};

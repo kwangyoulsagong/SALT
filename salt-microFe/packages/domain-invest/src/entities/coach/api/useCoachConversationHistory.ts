@@ -1,6 +1,6 @@
 "use client";
 
-import type { CoachConversationPage, CoachMessage } from "@repo/core/coach";
+import { type CoachConversationPage, type CoachHistoryKeep, type CoachMessage, mergeHistoryPages, nextHistoryCursor } from "@repo/core/coach";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { retryWhileRetriable, useHasSession } from "@repo/web-shared/api";
@@ -31,16 +31,22 @@ export const useCoachConversationHistory = () => {
     queryKey: coachQueryKeys.messages(conversationId ?? "none"),
     queryFn: ({ signal, pageParam }) => coachApi.coachMessages(conversationId ?? "", HISTORY_PAGE_SIZE, pageParam, signal),
     initialPageParam: null as string | null,
-    getNextPageParam: (page: CoachConversationPage<CoachMessage>) => page.nextCursor,
+    // 같은 커서가 다시 오면 멈춘다 — 서버 · BFF 가 커서를 잃으면 첫 쪽이 되풀이돼 위로 끝없이 붙었다(2026-11-19 실측)
+    getNextPageParam: (page: CoachConversationPage<CoachMessage>, _pages, _last, params: (string | null)[]) => nextHistoryCursor(page, params),
     enabled: conversationId !== null,
     staleTime: HISTORY_STALE_TIME_MS,
     retry: retryWhileRetriable(1),
-    // 쪽마다 최신이 앞 — 쪽 순서를 뒤집고 쪽 안도 뒤집어 오래된 것이 위로
-    select: (data): CoachMessage[] => [...data.pages].reverse().flatMap((page) => [...page.items].reverse()),
+    // 쪽마다 최신이 앞 — 오래된 것이 위로 펴고, 쪽이 겹쳐도 같은 메시지는 한 번
+    select: (data): { messages: CoachMessage[]; keep: CoachHistoryKeep | null } => ({
+      messages: mergeHistoryPages(data.pages),
+      keep: data.pages[0]?.keep ?? null,
+    }),
   });
   return {
     conversationId,
-    messages: messages.data ?? [],
+    messages: messages.data?.messages ?? [],
+    /** 보관 한도 — 맨 위(더 없음)에 한 줄 */
+    keep: messages.data?.keep ?? null,
     isLoading: signedIn === null || latest.isLoading || (conversationId !== null && messages.isLoading),
     isError: latest.isError || messages.isError,
     isSignedOut: signedIn === false,

@@ -25,6 +25,7 @@ export const CoachChatBody = () => {
     hasOlder: history.hasOlder,
     isLoadingOlder: history.isLoadingOlder,
     onLoadOlder: history.loadOlder,
+    keep: history.keep,
   };
   // 브리핑을 못 읽어도 대화는 막지 않는다 — 그 자리만 한 줄(FR-14 와 같은 태도)
   const briefingState = briefing.isError ? null : briefing.data;

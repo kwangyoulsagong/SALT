@@ -1,6 +1,6 @@
 "use client";
 
-import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
+import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachHistoryKeep, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
@@ -20,6 +20,8 @@ import * as styles from "./CoachConversation.css";
 
 /** 아래 끝에서 이만큼 안이면 "맨 아래를 보고 있다" — 새 답이 오면 따라 내려간다(`FE-REQ-031` FR-21) */
 const FOLLOW_THRESHOLD_PX = 80;
+/** 지난 대화를 미리 부르는 거리 — 맨 위에 닿기 이만큼 전에 다음 쪽(30개)을 부른다 */
+const PREFETCH_OLDER_PX = 600;
 
 export interface CoachConversationProps {
   /** 지난 대화(서버 저장본, 오래된 것이 위) — 없으면 빈 배열 */
@@ -30,6 +32,8 @@ export interface CoachConversationProps {
   hasOlder?: boolean;
   isLoadingOlder?: boolean;
   onLoadOlder?: () => void;
+  /** 보관 한도 — 더 불러올 것이 없을 때 맨 위 한 줄. 없으면 그 줄을 안 그린다 */
+  keep?: CoachHistoryKeep | null;
   /** 오늘의 브리핑 — `undefined` 읽는 중 · `null` 못 읽음(FEATURE-006 FR-21) */
   briefing?: CoachBriefing | null;
   /**
@@ -57,6 +61,7 @@ export const CoachConversation = ({
   hasOlder = false,
   isLoadingOlder = false,
   onLoadOlder,
+  keep = null,
   briefing,
   asideCard = null,
 }: CoachConversationProps) => {
@@ -114,8 +119,10 @@ export const CoachConversation = ({
     const top = topRef.current;
     const log = logRef.current;
     if (!top || !log || !hasOlder) return;
+    // 맨 위에 닿기 전(600px 앞)에 미리 — 다음 쪽이 도착할 때까지 빈 위쪽을 보지 않게
     const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && loadOlder(), {
       root: log,
+      rootMargin: `${PREFETCH_OLDER_PX}px 0px 0px 0px`,
     });
     observer.observe(top);
     return () => observer.disconnect();
@@ -196,6 +203,8 @@ export const CoachConversation = ({
                 {isLoadingOlder ? ASK_COACH_MESSAGES.loadingOlder : ASK_COACH_MESSAGES.loadOlder}
               </Button>
             </div>
+          ) : keep && history.length > 0 ? (
+            <p className={styles.keepNote}>{ASK_COACH_MESSAGES.keepNote(keep.questions, keep.days)}</p>
           ) : null}
           {history.map((message) => (
             <Message key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />

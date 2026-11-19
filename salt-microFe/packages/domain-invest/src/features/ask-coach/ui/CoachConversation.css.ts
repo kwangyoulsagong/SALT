@@ -41,6 +41,17 @@ export const log = style({
 
 export const older = style({ display: "flex", justifyContent: "center" });
 
+/** 맨 위 보관 안내 — 12/500 2단 · 가운데(`FE-REQ-031` FR-25) */
+export const keepNote = style({
+  margin: 0,
+  textAlign: "center",
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+  wordBreak: "keep-all",
+});
+
 export const newMessage = style({
   position: "absolute",
   left: "50%",
