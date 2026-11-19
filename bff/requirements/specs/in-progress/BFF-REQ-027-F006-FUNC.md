@@ -72,6 +72,9 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | FR-51 | 크기 상한 16KB. 초과 시 413 | Must |
 | FR-52 | 저장 실패해도 **화면이 기본 배치로 동작**해야 한다. BFF가 오류를 강조하지 않는다 | Must |
 
+> **구현 2026-11-19**(`feat/f006-pc-panel-grid`) — FR-50~52. 읽기 실패(5xx · 시간 초과)는 200 + `{ tree: null, degraded: true }`, 401 · 403 만 그대로.
+> 객체 아님 400 `PANEL_LAYOUT_INVALID` · 16KB 초과 413 `PANEL_LAYOUT_TOO_LARGE`(서버를 부르지 않음). 본문 100kb 초과(`entity.too.large`)도 500 → 413
+
 ## 포지션 조립 (2026-09-21 추가, B13)
 
 | ID | 요구사항 | 우선순위 |
@@ -196,3 +199,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-70~72: `GET /api/app/portfolio/position`(개요 — 최대 비중 종목에만 이름 · 로고) · `/position/flow?range=1w|1m|3m|1y`(그대로 전달 · 모르는 기간 400 `INVALID_RANGE`). **정정 FR-70**: 서버 `overview` ∥ `risk` 두 경로 대신 개요 한 경로 — 섹션 격리는 서버가 원천별로 한다(레이더 원천이 실패해도 Hero 는 나온다, 실패 축은 null + degraded). 옛 `GET /api/app/portfolio` 는 그대로. 남은 것 거래 쓰기 중계 FR-80~83. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-80 `GET/POST /api/app/portfolio/transactions` · `PATCH/DELETE …/:id` · `POST …/preview`(`transactionController`) · FR-81 미리보기 서버 값 그대로 · FR-82 정정(4xx 코드 그대로 — error middleware) · FR-83 해당 없음 · FR-84 재시도 0(`backendApi` 재시도 없음 · 쓰기 5초) · FR-85 경로 · 주석 "주문이 아님". 목록은 그 쪽 종목만 이름 · 로고(실패면 심볼 · `namesDegraded`), 모르는 자산군 행은 싣지 않음. 수정에 종목 · 매수/매도 키가 오면 BFF 가 먼저 400(조용히 버리지 않음) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-90 목록 한 쪽(`?page=` · `nextPage` — 서버 total 기준) · FR-91 `unread-count` · `/:id/read` · `/read-all` 서버 1:1(204) · FR-92 `target` 코드(경로 0) · FR-93 만드는 경로 0. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — FR-50~52. 읽기 실패 → `degraded` 기본 배치 · 401/403 만 그대로 · 400/413. 같은 원인으로 본문 100kb 초과가 500 이던 것 413 |

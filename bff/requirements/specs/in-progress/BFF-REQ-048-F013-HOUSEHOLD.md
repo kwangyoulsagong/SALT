@@ -107,3 +107,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-household/src/entities/household/api/householdApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — 오류 미들웨어 테스트의 표본 코드 `explain_busy` → `busy`(그 코드를 내던 즉석 해설 경로가 사라짐 — 동작 변경 0) |
 | 2026-11-18 | FR-3 이어서(O4) — 월 화면 `coverage`(`HouseholdCoverageVM`) · `coverageReason`. 가공 0. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
+| 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 오류 미들웨어 시험 파일에 413 한 블록(본문 너무 큼). 이 REQ 동작 무변경 |

@@ -58,3 +58,7 @@
 ## 2026-11-18 — 돈 관리 O4 개인 재무 구간 채점(`feat/fc-req-024-personal-projection-scoring`)
 
 - 바뀐 것 없음 — 타입만
+
+## 2026-11-19 PC 격자 짝
+
+- 다른 기능이 이 파일을 지나갔다. Action 없음

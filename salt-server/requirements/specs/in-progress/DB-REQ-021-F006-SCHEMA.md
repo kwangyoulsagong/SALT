@@ -114,6 +114,10 @@ model PanelLayout {
 | FR-23 | 저장 실패해도 **기본 배치로 동작**해야 한다. 배치 저장은 편의 기능이다 | Must |
 | FR-24 | 서버가 트리 구조를 **검증하지 않는다.** 프론트 `layoutTree` 순수 모듈이 소유한 형식이다. 다만 크기 상한(예: 16KB)을 둔다 | Must |
 
+> **구현 2026-11-19**(`20261119100000_panel_layout`, 로컬 DB 적용) — FR-20~24. **정정**: `User` 관계 없음(사람 표는 identity — 코치 대화 표와 같다) ·
+> CHECK 둘(`surface IN ('pc')` · `octet_length(tree_json::text) <= 32768` — jsonb 글은 빈칸이 붙어 앱 문턱 16KB 의 두 배를 뒷문 잠금으로) ·
+> 등급 주석 `record` · 계정 삭제 목록(`coach/infrastructure/userRows.ts`). 첫 저장 경합은 `ON CONFLICT (user_id, surface) DO UPDATE` 한 문장(실 DB 동시 2건 → 1행)
+
 ## 홈 3블록 — 신규 모델 없음
 
 | 블록 | 소스 |
@@ -211,3 +215,4 @@ model User {
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-18 | **대화 표 둘 생김** — 마이그레이션 `20261118300000_coach_conversation`(`coach_conversations` · `coach_messages`, CHECK 셋 · 역순 인덱스 · 등급 주석 record). FR-1 · 2 · 6 · 8 · 10. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-4 · 5: `card_payload` JSONB · `insight_id` FK `ON DELETE SET NULL` + 인덱스 · 질문 줄엔 카드 0(CHECK). 마이그레이션 `20261118400000_coach_message_card`(추가만, 로컬 DB 적용 끝). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
+| 2026-11-19 | **FR-20~24 구현**(`feat/f006-pc-panel-grid`) — `panel_layouts`(`20261119100000_panel_layout`, 로컬 DB 적용). 정정: `User` 관계 없음 · CHECK 둘(서피스 · 크기 32KB 뒷문) · 등급 주석 · 계정 삭제 목록 |

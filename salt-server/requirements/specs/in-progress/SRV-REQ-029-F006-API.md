@@ -40,7 +40,7 @@ created: 2026-09-09
 
 | Method | Path | Auth | Request | Response |
 |---|---|---|---|---|
-| GET/PUT | `/api/panel-layout` | Y | `?surface=pc` / `{ surface, treeJson }` | `{ treeJson }` / `204` |
+| GET/PUT | ~~`/api/panel-layout`~~ **`/api/coach/panel-layout`**(정정 2026-11-19 — 컨텍스트 이름이 경로) | Y | `?surface=pc` / `{ surface, tree }` | `{ surface, tree, updatedAt }`(없으면 `tree: null`) / `204` — **구현 2026-11-19** |
 
 ## SSE 계약
 
@@ -123,7 +123,7 @@ type CardPayload = {
 | FR-27 | 블록별 응답이 집계 응답의 해당 필드와 **동일**하다 | Must |
 | FR-28 | 메시지 목록은 **역순 커서 페이징**이다 | Must |
 | FR-29 | `DELETE /conversations/:id`는 **사용자 요청 시에만**. 자동 삭제 경로가 없다 | Must |
-| FR-30 | `PUT /panel-layout`은 `treeJson` **크기 상한 16KB**. 초과 시 413 | Must |
+| FR-30 | `PUT /panel-layout`은 `treeJson` **크기 상한 16KB**. 초과 시 413 | Must | — **완료 2026-11-19**: 압축 JSON 바이트 기준(`PANEL_LAYOUT_MAX_BYTES`) · 본문 100kb 넘는 것도 413(body-parser 오류가 500 이던 것 같이 고침) · 객체 아님 400 · 분당 60 |
 | FR-31 | 홈을 캐시하지 않는다(`Cache-Control: no-store`) | Must |
 | FR-32 | Swagger에 SSE 이벤트 계약을 문서화한다 | Must |
 
@@ -248,3 +248,4 @@ type TransactionPreview = {
 | 2026-10-28 | **알림 목록 항목이 FR-24 · 45 모양에 가까워졌다**(F000 `3320883`). 지금 서버 항목 `{ id, kind, symbol, messageCode, params, isRead, createdAt }` — FR-45 와 다른 것: `target` 없음 · `kind` · `symbol` 추가 · `?cursor&limit` 대신 `?page&size`(상한 50). F006 이 커서 · `target` 을 붙인다 |
 | 2026-11-18 | **F006 대화 경로 다섯 구현** — POST `/api/coach/messages` · GET `/messages/:id/stream` · 목록 둘 · DELETE. SSE FR-1~11(ping 은 답이 곧 끝나 서버엔 없고 BFF 15초) · FR-28 · 29 · 32. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 `message.card` 완성 객체 한 번(이벤트 id = 문장 수 — 마지막 문장까지 받고 끊긴 재연결도 카드를 받는다) · 메시지 목록에 `card` · 새 경로 `GET /api/coach/briefing`(저장 0). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
+| 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — GET · PUT `/api/coach/panel-layout`(정정 — 컨텍스트 경로) · FR-30 16KB 413 · Swagger. 같은 원인 — body-parser 오류(본문 너무 큼 · 깨진 JSON)가 500 → 413 · 400(`errorMiddleware`) |

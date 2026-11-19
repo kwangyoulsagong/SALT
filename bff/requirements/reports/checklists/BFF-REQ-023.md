@@ -173,3 +173,8 @@ BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `coach.routes.ts`(머리 주인)에 대화 브리핑 경로 한 줄(주인 `BFF-REQ-028`). 리포트 계약 변경 0 — 영역 시험 전부 통과
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 코치 경로 파일(`coach.routes.ts`)에 패널 배치 두 줄
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

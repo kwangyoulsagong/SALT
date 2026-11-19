@@ -154,3 +154,8 @@
 ## 2026-11-18 F006 코치 대화 1단계 — 같은 파일
 
 - 이 REQ 항목 변경 0 · 영역 검증 전체 통과(루트 체크리스트 `F006-coach-conversation.md`)
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- `CoachBlock.css.ts` 막힌 카드 보조 글 색(`FE-REQ-047` FR-13)
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

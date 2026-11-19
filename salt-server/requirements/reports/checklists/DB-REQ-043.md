@@ -181,3 +181,8 @@
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `coach/application/api/index.ts`(머리 주인) 조립에 대화 재료 묶음 · `ReadConversationCard` · `GetCoachBriefing`(주인 `SRV-REQ-028`). 이 REQ 의 표 · 뷰 변경 0 — 영역 시험 전부 통과
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 코치 공개 API 조립 파일에 패널 배치 유스케이스 둘
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
