@@ -2,20 +2,20 @@
 
 import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
-import { Badge } from "@repo/ui/badge";
+import { ArrowUp } from "lucide-react";
+
 import { Button } from "@repo/ui/button";
-import { ChatBubble } from "@repo/ui/chatBubble";
-import { Chip } from "@repo/ui/chip";
-import { TextArea } from "@repo/ui/textArea";
+
+import { NavChevron } from "@repo/web-shared/ui";
 
 import { RecommendationCard } from "@/entities/coach";
 
 import { useAskCoach, type LiveCoachMessage } from "../api/useAskCoach";
 import { formatMessageTime } from "../lib/formatMessageTime";
 import { coachLinkTarget } from "../lib/linkHref";
-import { ASK_COACH_MESSAGES, COACH_CHIP_LABEL, COACH_CHIPS, COACH_QUESTION_MAX_LENGTH } from "../model/messages";
+import { ASK_COACH_MESSAGES, COACH_CHIP_LABEL, COACH_CHIPS, COACH_QUESTION_MAX_LENGTH, COACH_COUNTER_FROM, COACH_FOLLOW_UP_MAX } from "../model/messages";
 import * as styles from "./CoachConversation.css";
 
 /** 아래 끝에서 이만큼 안이면 "맨 아래를 보고 있다" — 새 답이 오면 따라 내려간다(`FE-REQ-031` FR-21) */
@@ -37,16 +37,18 @@ export interface CoachConversationProps {
    * 한 화면에 같은 숫자 두 번 금지(`screen-desktop.md` §5)
    */
   asideCard?: CoachCard | null;
-  /** 칸을 채운다(PC 격자) — 대화 칸이 남은 높이를 다 쓰고 칩 · 입력은 칸 아래에 붙는다. 기본은 화면 흐름 안 한 면 */
-  fill?: boolean;
 }
 
 /**
  * 코치 대화 한 면(F006 C절 FR-20~32 · `FE-REQ-030` · `031`) — 지난 대화 · 오늘의 브리핑 · 칩 넷 · 자유 질문 · 문장씩 오는 답 ·
  * 저장 추천 카드 · 출처 배지 · 생성 시각 · 이동 링크. 답 문장은 서버 규칙 문장 그대로다. 주문 버튼 · 링크는 없다(FR-29).
  *
- * 대화는 자기 스크롤 칸이다 — 칩 · 입력이 늘 보이고, 새 답이 오면 맨 아래를 보던 사람만 따라 내려간다.
+ * 대화는 자기 스크롤 칸이다 — 입력이 늘 보이고, 새 답이 오면 맨 아래를 보던 사람만 따라 내려간다.
  * 위를 읽던 사람은 자리를 지키고 "새 답 보기"를 받는다(`FE-REQ-031` FR-21).
+ *
+ * 2026-11-19 재설계(사용자 "챗 디자인 … 존나 이상해" · 딥리서치): 가운데 한 줄 · 답은 본문 · 내 질문만 말풍선 · 브리핑은 카드 ·
+ * 입력은 박스 하나 + 보내기 아이콘(Enter 보내기 · Shift+Enter 줄바꿈 · 한글 조합 중 Enter 무시) · 시작 질문은 대화 0 일 때 2×2,
+ * 대화 중에는 마지막 답 아래 이어 묻기 3 · 출처 · 시각은 답 아래 한 줄 · 면책은 입력 아래 한 번
  */
 export const CoachConversation = ({
   history,
@@ -57,9 +59,8 @@ export const CoachConversation = ({
   onLoadOlder,
   briefing,
   asideCard = null,
-  fill = false,
 }: CoachConversationProps) => {
-  const { messages, ask, retry, isSending, sendError } = useAskCoach(conversationId);
+  const { messages, ask, retry, isSending, sendError: sendErrorCode } = useAskCoach(conversationId);
   const [draft, setDraft] = useState("");
   const busy = isSending || messages.some((message) => message.status === "streaming");
   // 한 화면에 같은 카드는 한 번 — 화면 순서(지난 대화 → 브리핑 → 이번 답)로 처음 자리만 카드 전체
@@ -135,12 +136,30 @@ export const CoachConversation = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [growth]);
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  // 글 칸 높이 — 한 줄에서 여섯 줄까지 자라고 그 뒤로는 안에서 스크롤(CSS maxHeight)
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${input.scrollHeight}px`;
+  }, [draft]);
+
+  const send = async () => {
     if (!draft.trim() || busy) return;
     following.current = true;
     // 실패하면 입력을 그대로 둔다 — 다시 누르면 된다
     if (await ask({ content: draft })) setDraft("");
+  };
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    void send();
+  };
+  // Enter = 보내기 · Shift+Enter = 줄바꿈 · 한글 조합 중 Enter 는 글자 확정이라 보내지 않는다
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    void send();
   };
   const askChip = (chip: CoachQuestionChip) => {
     if (busy) return;
@@ -148,13 +167,29 @@ export const CoachConversation = ({
     void ask({ chip });
   };
 
+  // 대화가 시작됐나(내 질문이 하나라도) — 시작 질문 2×2 ↔ 이어 묻기
+  const started = history.some((message) => message.role === "user") || messages.length > 0;
+  const lastQuestion = [...history, ...messages].filter((message) => message.role === "user").at(-1)?.sentences.join(" ") ?? null;
+  const followUps = COACH_CHIPS.filter((chip) => COACH_CHIP_LABEL[chip] !== lastQuestion).slice(0, COACH_FOLLOW_UP_MAX);
+  const trimmed = draft.trim();
+  const sendError =
+    sendErrorCode === "busy" ? ASK_COACH_MESSAGES.sendBusy : sendErrorCode ? ASK_COACH_MESSAGES.sendFailed : null;
+
   return (
-    <div className={fill ? styles.rootFill : styles.root}>
-      <p className={styles.intro}>{ASK_COACH_MESSAGES.intro}</p>
+    <div className={styles.root}>
       {historyFailed ? <p className={styles.note}>{ASK_COACH_MESSAGES.historyFailed}</p> : null}
 
-      <div className={fill ? styles.logFrameFill : styles.logFrame}>
-        <div ref={logRef} className={fill ? styles.logFill : styles.log} role="log" aria-live="polite" aria-busy={busy} onScroll={onScroll} tabIndex={0}>
+      <div className={styles.logFrame}>
+        <div
+          ref={logRef}
+          className={styles.log}
+          role="log"
+          aria-label={ASK_COACH_MESSAGES.logLabel}
+          aria-live="polite"
+          aria-busy={busy}
+          onScroll={onScroll}
+          tabIndex={0}
+        >
           {hasOlder ? (
             <div ref={topRef} className={styles.older}>
               <Button type="button" variant="ghost" size="sm" onClick={loadOlder} loading={isLoadingOlder}>
@@ -163,12 +198,34 @@ export const CoachConversation = ({
             </div>
           ) : null}
           {history.map((message) => (
-            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
+            <Message key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
           ))}
-          <BriefingBubble briefing={briefing} fullCard={fullCards.has(BRIEFING_ID)} asideCard={asideCard} />
+          <Briefing briefing={briefing} fullCard={fullCards.has(BRIEFING_ID)} asideCard={asideCard} />
+          {!started ? (
+            <ul className={styles.starters} aria-label={ASK_COACH_MESSAGES.chipsLabel}>
+              {COACH_CHIPS.map((chip) => (
+                <li key={chip}>
+                  <button type="button" className={styles.starter} disabled={busy} onClick={() => askChip(chip)}>
+                    {COACH_CHIP_LABEL[chip]}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
+            <Message key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
           ))}
+          {started && !busy ? (
+            <ul className={styles.followUps} aria-label={ASK_COACH_MESSAGES.followUpsLabel}>
+              {followUps.map((chip) => (
+                <li key={chip}>
+                  <button type="button" className={styles.followUp} onClick={() => askChip(chip)}>
+                    {COACH_CHIP_LABEL[chip]}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         {unseen ? (
           <div className={styles.newMessage}>
@@ -179,46 +236,49 @@ export const CoachConversation = ({
         ) : null}
       </div>
 
-      <div className={styles.chips} role="group" aria-label={ASK_COACH_MESSAGES.chipsLabel}>
-        {COACH_CHIPS.map((chip) => (
-          <Chip key={chip} size="md" disabled={busy} onPress={() => askChip(chip)}>
-            {COACH_CHIP_LABEL[chip]}
-          </Chip>
-        ))}
-      </div>
-
       <form className={styles.composer} onSubmit={submit}>
-        <TextArea
-          label={ASK_COACH_MESSAGES.inputLabel}
+        <textarea
+          ref={inputRef}
+          className={styles.input}
+          rows={1}
           value={draft}
-          onChange={setDraft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={ASK_COACH_MESSAGES.placeholder}
           maxLength={COACH_QUESTION_MAX_LENGTH}
-          autoResize
-          error={sendError === "busy" ? ASK_COACH_MESSAGES.sendBusy : sendError ? ASK_COACH_MESSAGES.sendFailed : undefined}
+          aria-label={ASK_COACH_MESSAGES.inputLabel}
+          aria-describedby={sendError ? "coach-send-error" : undefined}
         />
-        <div className={styles.actions}>
-          <Button type="submit" variant="primary" disabled={!draft.trim() || busy} loading={isSending}>
-            {isSending ? ASK_COACH_MESSAGES.sending : ASK_COACH_MESSAGES.send}
-          </Button>
+        <div className={styles.composerSide}>
+          {draft.length >= COACH_COUNTER_FROM ? (
+            <span className={styles.counter}>{`${draft.length} / ${COACH_QUESTION_MAX_LENGTH}`}</span>
+          ) : null}
+          <button
+            type="submit"
+            className={styles.send}
+            disabled={!trimmed || busy}
+            aria-label={isSending ? ASK_COACH_MESSAGES.sending : ASK_COACH_MESSAGES.send}
+            title={ASK_COACH_MESSAGES.send}
+          >
+            <ArrowUp size={18} strokeWidth={2.4} aria-hidden="true" />
+          </button>
         </div>
       </form>
-      <p className={styles.note}>{ASK_COACH_MESSAGES.disclaimer}</p>
+      {sendError ? (
+        <p id="coach-send-error" className={styles.note} role="alert">
+          {sendError}
+        </p>
+      ) : null}
+      <p className={styles.disclaimer}>{ASK_COACH_MESSAGES.disclaimer}</p>
     </div>
   );
 };
 
-/** 출처 배지 + 생성 시각(FEATURE-006 FR-27) */
+/** 출처 · 계산 시각 — 답 아래 한 줄(FEATURE-006 FR-27). 배지 대신 글자 — 라벨은 출력 가까이, 짧게 */
 const SourceMeta = ({ source, at }: { source: "rule" | "llm" | null; at: string }) => {
   const time = formatMessageTime(at);
-  return (
-    <span className={styles.meta}>
-      <Badge tone={source === "llm" ? "ai" : "neutral"} size="sm">
-        {source === "llm" ? ASK_COACH_MESSAGES.sourceLlm : ASK_COACH_MESSAGES.sourceRule}
-      </Badge>
-      {time ? <span className={styles.time}>{ASK_COACH_MESSAGES.generatedAt(time)}</span> : null}
-    </span>
-  );
+  const label = source === "llm" ? ASK_COACH_MESSAGES.sourceLlm : ASK_COACH_MESSAGES.sourceRule;
+  return <p className={styles.meta}>{time ? `${label} · ${ASK_COACH_MESSAGES.generatedAt(time)}` : label}</p>;
 };
 
 const LinkList = ({ links }: { links: CoachAnswerLink[] }) => {
@@ -233,6 +293,7 @@ const LinkList = ({ links }: { links: CoachAnswerLink[] }) => {
         <li key={target.href}>
           <Link className={styles.link} href={target.href}>
             {target.label}
+            <NavChevron />
           </Link>
         </li>
       ))}
@@ -245,12 +306,12 @@ const AnswerCard = ({ card, full, asideCard }: { card: CoachCard; full: boolean;
   const judgedAt = formatMessageTime(card.generatedAt);
   if (!full) {
     const aside = asideCard !== null && isSameCard(card, asideCard);
-    return <p className={styles.time}>{aside ? ASK_COACH_MESSAGES.sameCardAside(judgedAt) : ASK_COACH_MESSAGES.sameCardAbove(judgedAt)}</p>;
+    return <p className={styles.meta}>{aside ? ASK_COACH_MESSAGES.sameCardAside(judgedAt) : ASK_COACH_MESSAGES.sameCardAbove(judgedAt)}</p>;
   }
   return (
     <div className={styles.card}>
       <RecommendationCard recommendation={card} />
-      {judgedAt ? <p className={styles.time}>{ASK_COACH_MESSAGES.cardJudgedAt(judgedAt)}</p> : null}
+      {judgedAt ? <p className={styles.meta}>{ASK_COACH_MESSAGES.cardJudgedAt(judgedAt)}</p> : null}
     </div>
   );
 };
@@ -264,8 +325,8 @@ const Sentences = ({ sentences }: { sentences: string[] }) =>
     </ul>
   ) : null;
 
-/** 오늘의 브리핑 — 지난 대화 다음, 이번에 묻는 것 앞. 저장되지 않는 첫 메시지(FEATURE-006 FR-21) */
-const BriefingBubble = ({
+/** 오늘의 브리핑 — 지난 대화 다음, 이번에 묻는 것 앞. 저장되지 않는 첫 메시지(FEATURE-006 FR-21). 말풍선이 아니라 카드 */
+const Briefing = ({
   briefing,
   fullCard,
   asideCard,
@@ -276,28 +337,25 @@ const BriefingBubble = ({
 }) => {
   if (briefing === undefined) {
     return (
-      <ChatBubble role="assistant" streaming meta={ASK_COACH_MESSAGES.briefingLoading}>
-        {null}
-      </ChatBubble>
+      <section className={styles.briefing} aria-busy="true">
+        <p className={styles.briefingTitle}>{ASK_COACH_MESSAGES.briefingTitle}</p>
+        <p className={styles.meta}>{ASK_COACH_MESSAGES.briefingLoading}</p>
+      </section>
     );
   }
-  if (briefing === null) {
-    return <ChatBubble role="assistant">{ASK_COACH_MESSAGES.briefingFailed}</ChatBubble>;
-  }
+  if (briefing === null) return <p className={styles.note}>{ASK_COACH_MESSAGES.briefingFailed}</p>;
   return (
-    <ChatBubble
-      role="assistant"
-      meta={<SourceMeta source={briefing.source} at={briefing.generatedAt} />}
-      footer={<LinkList links={briefing.links} />}
-    >
+    <section className={styles.briefing} aria-label={ASK_COACH_MESSAGES.briefingTitle}>
       <p className={styles.briefingTitle}>{ASK_COACH_MESSAGES.briefingTitle}</p>
       <Sentences sentences={briefing.sentences} />
       {briefing.card ? <AnswerCard card={briefing.card} full={fullCard} asideCard={asideCard} /> : null}
-    </ChatBubble>
+      <SourceMeta source={briefing.source} at={briefing.generatedAt} />
+      <LinkList links={briefing.links} />
+    </section>
   );
 };
 
-const MessageBubble = ({
+const Message = ({
   message,
   onRetry,
   fullCard,
@@ -308,41 +366,34 @@ const MessageBubble = ({
   fullCard: boolean;
   asideCard: CoachCard | null;
 }) => {
-  if (message.role === "user") {
-    return <ChatBubble role="user">{message.sentences.join(" ")}</ChatBubble>;
-  }
+  if (message.role === "user") return <p className={styles.question}>{message.sentences.join(" ")}</p>;
   if (message.status === "failed") {
     return (
-      <ChatBubble
-        role="assistant"
-        footer={
-          message.canRetry ? (
+      <div className={styles.answer}>
+        <p className={styles.note}>{message.canRetry ? ASK_COACH_MESSAGES.streamLost : message.fallbackText || ASK_COACH_MESSAGES.failed}</p>
+        {message.canRetry ? (
+          <div>
             <Button type="button" variant="secondary" size="sm" onClick={() => onRetry(message.id)}>
               {ASK_COACH_MESSAGES.retry}
             </Button>
-          ) : undefined
-        }
-      >
-        {message.canRetry ? ASK_COACH_MESSAGES.streamLost : message.fallbackText || ASK_COACH_MESSAGES.failed}
-      </ChatBubble>
+          </div>
+        ) : null}
+      </div>
     );
   }
   const streaming = message.status === "streaming";
   return (
-    <ChatBubble
-      role="assistant"
-      streaming={streaming}
-      meta={
-        streaming ? (
-          message.reconnecting ? ASK_COACH_MESSAGES.reconnecting : ASK_COACH_MESSAGES.answering
-        ) : (
-          <SourceMeta source={message.source} at={message.createdAt} />
-        )
-      }
-      footer={!streaming ? <LinkList links={message.links} /> : undefined}
-    >
+    <div className={styles.answer}>
       <Sentences sentences={message.sentences} />
       {message.card ? <AnswerCard card={message.card} full={fullCard} asideCard={asideCard} /> : null}
-    </ChatBubble>
+      {streaming ? (
+        <p className={styles.meta}>{message.reconnecting ? ASK_COACH_MESSAGES.reconnecting : ASK_COACH_MESSAGES.answering}</p>
+      ) : (
+        <>
+          <SourceMeta source={message.source} at={message.createdAt} />
+          <LinkList links={message.links} />
+        </>
+      )}
+    </div>
   );
 };

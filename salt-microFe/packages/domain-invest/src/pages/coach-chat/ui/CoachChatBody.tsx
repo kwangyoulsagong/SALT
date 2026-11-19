@@ -1,19 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-import { useWideViewport } from "@repo/web-shared/lib";
-
 import { useCoachBriefing, useCoachConversationHistory } from "@/entities/coach";
 import { ASK_COACH_MESSAGES, CoachConversation } from "@/features/ask-coach";
 
 import * as styles from "./CoachChatBody.css";
-
-/** PC 격자(1280 이상) — `MovableGrid` 는 SSR 이 안 되고(`FE-REQ-030` FR-56) 좁은 화면엔 필요 없는 코드라 따로 받는다 */
-const CoachChatGrid = dynamic(() => import("./CoachChatGrid").then((mod) => mod.CoachChatGrid), {
-  ssr: false,
-  loading: () => <div className={styles.gridPlaceholder} aria-busy="true" />,
-});
 
 /**
  * 코치 대화 본문 — 지난 대화를 읽은 뒤 대화 면을 놓는다. 오늘의 브리핑은 따로 와서 지난 대화 다음에 붙는다(F006 C절 · `FE-REQ-030`). 읽는 동안은 같은 높이 자리만.
@@ -24,9 +14,8 @@ const CoachChatGrid = dynamic(() => import("./CoachChatGrid").then((mod) => mod.
 export const CoachChatBody = () => {
   const history = useCoachConversationHistory();
   const briefing = useCoachBriefing();
-  const wide = useWideViewport();
   if (history.isSignedOut) return <p className={styles.note}>{ASK_COACH_MESSAGES.signedOut}</p>;
-  if (history.isLoading || wide === null) {
+  if (history.isLoading) {
     return <div className={styles.placeholder} aria-busy="true" />;
   }
   const conversation = {
@@ -39,6 +28,13 @@ export const CoachChatBody = () => {
   };
   // 브리핑을 못 읽어도 대화는 막지 않는다 — 그 자리만 한 줄(FR-14 와 같은 태도)
   const briefingState = briefing.isError ? null : briefing.data;
-  if (wide) return <CoachChatGrid {...conversation} briefing={briefingState} />;
-  return <CoachConversation key={history.conversationId ?? "new"} {...conversation} briefing={briefingState} />;
+  // 같은 추천이 옆 칸(오늘의 추천)에 펼쳐져 있다 — 대화 안 같은 카드는 한 줄로 접는다
+  return (
+    <CoachConversation
+      key={history.conversationId ?? "new"}
+      {...conversation}
+      briefing={briefingState}
+      asideCard={briefingState?.card ?? null}
+    />
+  );
 };
