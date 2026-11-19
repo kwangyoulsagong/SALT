@@ -1,9 +1,11 @@
 /**
  * 주 경계(`SRV-REQ-020` FR-30 · 31) — `weekOf` = 그 주의 **KST 월요일** 날짜(`YYYY-MM-DD`).
- * 일요일 23:59 KST 는 그 주, 월요일 00:00 KST 는 다음 주. 날짜 산술은 UTC 자정 기준 정수 일이라 서버 tz 와 무관하다.
+ * 일요일 23:59 KST 는 그 주, 월요일 00:00 KST 는 다음 주. KST 변환 · 일수 차는 공용 `KstDate`, 주 · 달 계산만 여기(plan 규칙).
+ * 날짜 산술은 UTC 자정 기준 정수 일이라 서버 tz 와 무관하다.
  */
+import { KstDate } from "../../../shared/domain";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 const toUtcMidnight = (isoDate: string): number => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) throw new Error(`날짜 형식이 아니다: ${isoDate}`);
@@ -11,8 +13,8 @@ const toUtcMidnight = (isoDate: string): number => {
 };
 const fromUtcMidnight = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
-/** KST 달력 날짜 */
-export const kstDate = (now: Date): string => fromUtcMidnight(Math.floor((now.getTime() + KST_OFFSET_MS) / DAY_MS) * DAY_MS);
+/** KST 달력 날짜 — 공용 `KstDate` 그대로(같은 계산을 컨텍스트마다 두지 않는다) */
+export const kstDate = (now: Date): string => KstDate.fromInstant(now).isoDate;
 
 export const addDays = (isoDate: string, days: number): string => fromUtcMidnight(toUtcMidnight(isoDate) + days * DAY_MS);
 
@@ -56,5 +58,5 @@ export const mondaysInMonth = (month: string): string[] => {
   return weeksBetween(firstMonday, addDays(last, 1));
 };
 
-/** 두 날짜 사이 일수(b − a) */
-export const daysBetween = (a: string, b: string): number => Math.round((toUtcMidnight(b) - toUtcMidnight(a)) / DAY_MS);
+/** 두 날짜 사이 일수(b − a) — 공용 `KstDate.daysUntil` */
+export const daysBetween = (a: string, b: string): number => KstDate.parse(a).daysUntil(KstDate.parse(b));
