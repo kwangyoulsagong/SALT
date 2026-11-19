@@ -188,6 +188,13 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | FR-61~63 | 충족 · 남음(LLM) | 규칙 답은 `languageGuard` 를 지난 문장뿐(충족). 프롬프트 가드 쪽은 LLM 경로가 켜질 때 |
 | FR-80~84 | 대체 | 알림은 Kotlin · 온보딩 은퇴 |
 
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤
+
+| FR | 내용 | 우선 |
+|---|---|---|
+| FR-85 | **대화 보관 한도로만 자동 삭제** — 사람 행만, `streaming` 제외, 빈 대화 삭제 · `message_count` 재계산(한 문장 UPDATE — 행마다 쓰기 0). 다시 불러도 같은 결과(트랜잭션 없이 셋) | Must |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -200,3 +207,4 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-70 미리보기 · 저장 같은 원장 함수(`LedgerChange.ts` · `recalculateHolding`) · FR-71 거래일 순서 음수 거부(생성 · 수정 · 삭제 · 미리보기) · FR-72 한 트랜잭션(`shared/infrastructure/prisma.ts` `runInTransaction` — 열린 트랜잭션 맥락이면 저장소의 `prisma.x` 가 그 트랜잭션으로) + `pg_advisory_xact_lock(사람 · 자산군 · 종목)` · FR-73 정정(FIFO) · FR-74 남의 id = 404(`findOwned`). 원장 조회 순서 `transaction_date, transaction_type, id`. 마이그레이션 0 |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 마이그레이션 주석이 이 REQ 의 "값 목록은 제약으로" 태도를 가리킨다. 이 REQ 동작 무변경 |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
+| 2026-11-19 | FR-85 신설 — 보관 한도 삭제(사람 행 · streaming 제외 · 빈 대화 · 수 재계산). EXPLAIN: 사람당 약 200행이라 순차 스캔 0.17ms. `feat/f006-coach-chat-history` |

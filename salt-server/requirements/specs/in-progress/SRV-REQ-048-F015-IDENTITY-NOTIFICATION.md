@@ -77,3 +77,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`, 파일만 걸침) — `salt-server/src/composition.mydata.ts` 내 데이터 목록에 plan 표 둘(`PLAN_USER_ROWS` — 내보내기 · 계정 삭제 실확인). 이 REQ 의 동작 변경 0. 루트 `F003-v2-s2-plan-server-slice.md` |
 | 2026-11-19 | 피드백 결함 · 보존 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `coach/domain/ports.ts` 에 `FEEDBACK_KEY_PREFIX`(피드백 키 접두사) · `CoachGenerationLogStore.pruneBefore` 포트. 주인 `DB-REQ-020` FR-1 · 41. 이 REQ 의 동작 변경 0. 루트 `WEB-perf-req-close-slice.md` |
 | 2026-11-19 | 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0 |
+| 2026-11-19 | 파일만 걸침 — `coach/domain/ports.ts`(머리가 이 REQ) 대화 저장 포트에 보관 한도 두 메서드(`SRV-REQ-028` FR-113). `feat/f006-coach-chat-history` |

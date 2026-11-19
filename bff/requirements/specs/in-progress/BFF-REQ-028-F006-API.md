@@ -212,6 +212,13 @@ type SettingsViewModel = {
 | FR-20~25 · 28 · 30 | 대체 | 홈 F015 |
 | FR-46 · 47 | 대체 | `SettingsViewModel` 없음 — 설정은 도메인 zone 으로 흩어짐 |
 
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤
+
+| FR | 내용 | 우선 |
+|---|---|---|
+| FR-49 | `CoachConversationPage.keep?: { questions, days } \| null`(메시지 목록만) · 에러 `INVALID_CURSOR`(400) | Must |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -225,3 +232,4 @@ type SettingsViewModel = {
 | 2026-11-19 | 패널 배치 경로 정정 `/api/app/panel-layout` → `/api/app/coach/panel-layout` · 응답 `PanelLayoutResult { tree, updatedAt, degraded }`(`@repo/core/coach`) — 구현(`feat/f006-pc-panel-grid`) |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | 프론트 계약 `CoachAnswerLinkKind` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 서버 · BFF · 화면 같은 PR |
+| 2026-11-19 | FR-49 신설 — 계약 `keep` · `INVALID_CURSOR`. 프론트 `@repo/core/coach` 같은 이름. `feat/f006-coach-chat-history` |

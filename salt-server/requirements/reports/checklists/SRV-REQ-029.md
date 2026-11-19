@@ -43,3 +43,11 @@
 
 - 답 링크 종류에 `plan`(밴드 적립 화면) · 빈 재료에 `weekly_plan` 더함(`feat/f006-coach-chat-redesign`) — Swagger 설명 갱신. 경로 · 모양 그대로
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-49 | 충족 | 유스케이스 시험(keep) · 실응답 `keep {questions:100, days:90}` · Swagger 400 · keep 설명 |
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트

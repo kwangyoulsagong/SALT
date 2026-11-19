@@ -36,3 +36,7 @@
 
 - 코치 답 링크 목록 `COACH_LINK_KINDS` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 모르는 종류는 여전히 거른다(시험)
 - 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+- 조용히 버리는 검증이 무한 반복을 만들었다 — 형식이 틀린 입력은 버리지 말고 거절한다

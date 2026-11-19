@@ -58,3 +58,11 @@
 
 - 코치 답 링크 목록 `COACH_LINK_KINDS` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 모르는 종류는 여전히 거른다(시험)
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-113 | 충족 | 시험 3(틀린 커서 셋 400 · 서버 호출 0 / 빈 · 맞는 커서 / keep 모양 여섯) · `npm run build` · `test` 592 · 실응답 400 `INVALID_CURSOR` |
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트

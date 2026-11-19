@@ -232,3 +232,4 @@ model User {
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-4 · 5: `card_payload` JSONB · `insight_id` FK `ON DELETE SET NULL` + 인덱스 · 질문 줄엔 카드 0(CHECK). 마이그레이션 `20261118400000_coach_message_card`(추가만, 로컬 DB 적용 끝). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-19 | **FR-20~24 구현**(`feat/f006-pc-panel-grid`) — `panel_layouts`(`20261119100000_panel_layout`, 로컬 DB 적용). 정정: `User` 관계 없음 · CHECK 둘(서피스 · 크기 32KB 뒷문) · 등급 주석 · 계정 삭제 목록 |
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱 · FR-11 아카이브. in-progress 유지 |
+| 2026-11-19 | 파일만 걸침 — `PrismaCoachConversationStore` 에 보관 한도 두 메서드(`DB-REQ-022` FR-85). 스키마 변경 0. `feat/f006-coach-chat-history` |

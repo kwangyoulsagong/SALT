@@ -225,3 +225,9 @@
 
 - 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+- 파일만 걸침 — 본문 `SRV-REQ-028` FR-113
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트

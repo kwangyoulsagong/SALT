@@ -1,6 +1,9 @@
 import {
   ANSWER_MATERIALS,
   COACH_CHIP_QUESTION,
+  COACH_HISTORY_KEEP_DAYS,
+  COACH_HISTORY_KEEP_QUESTIONS,
+  coachHistoryCutoff,
   composeCoachAnswer,
   composeCoachBriefing,
   type CoachBriefing,
@@ -153,11 +156,19 @@ export class AskCoach {
       at: this.now(),
     });
     if (!saved) throw new CoachConversationNotFoundError();
+    // 보관 한도 — 대화는 질문할 때만 늘어나므로 질문마다 오래된 것을 지운다(cron 0, `SRV-REQ-028` FR-30). 실패해도 질문은 그대로
+    await this.pruneHistory(userId).catch(() => undefined);
     return {
       conversationId: saved.conversationId,
       questionId: saved.questionId,
       messageId: saved.answerId,
     };
+  }
+
+  private async pruneHistory(userId: string): Promise<void> {
+    const times = await this.store.recentQuestionTimes(userId, COACH_HISTORY_KEEP_QUESTIONS);
+    const cutoff = coachHistoryCutoff(times, this.now());
+    if (cutoff) await this.store.deleteHistoryBefore(userId, cutoff);
   }
 }
 
@@ -434,6 +445,8 @@ export class ListCoachMessages {
           item.role === "user" ? visibleQuestion(item.content) : item.content,
       })),
       nextCursor: items.length === limit ? items[items.length - 1].id : null,
+      /** 보관 한도(화면 맨 위 한 줄 — 숫자는 서버 한 곳, `SRV-REQ-029` FR-30) */
+      keep: { questions: COACH_HISTORY_KEEP_QUESTIONS, days: COACH_HISTORY_KEEP_DAYS },
     };
   }
 }

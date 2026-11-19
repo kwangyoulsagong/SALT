@@ -141,9 +141,22 @@ const page = (query: { limit?: unknown; cursor?: unknown }) => {
   const params = new URLSearchParams();
   const limit = Number(query.limit);
   if (Number.isInteger(limit) && limit >= 1 && limit <= 50) params.set("limit", String(limit));
-  if (typeof query.cursor === "string" && UUID.test(query.cursor)) params.set("cursor", query.cursor);
+  // 틀린 커서는 버리지 않고 400 — 버리면 서버가 첫 쪽을 다시 주고 화면은 같은 쪽을 끝없이 붙인다(2026-11-19 실측: 41쪽에 메시지 60개)
+  if (query.cursor !== undefined && query.cursor !== "") {
+    if (typeof query.cursor !== "string" || !UUID.test(query.cursor)) throw new AppError("커서 형식이 다릅니다", 400, true, "INVALID_CURSOR");
+    params.set("cursor", query.cursor);
+  }
   const text = params.toString();
   return text ? `?${text}` : "";
+};
+
+/** 보관 한도(`BFF-REQ-028` · 서버 `SRV-REQ-029` FR-30) — 숫자 둘이 양의 정수일 때만, 아니면 `null`(화면은 그 줄을 안 그린다) */
+const toKeep = (raw: unknown): { questions: number; days: number } | null => {
+  if (!isPlainObject(raw)) return null;
+  const { questions, days } = raw as { questions?: unknown; days?: unknown };
+  return Number.isInteger(questions) && Number.isInteger(days) && (questions as number) > 0 && (days as number) > 0
+    ? { questions: questions as number, days: days as number }
+    : null;
 };
 
 const requireId = (value: unknown, code: string): string => {
@@ -237,10 +250,11 @@ export const coachConversationService = {
   async listMessages(token: string, conversationId: unknown, query: { limit?: unknown; cursor?: unknown }) {
     const id = requireId(conversationId, "INVALID_CONVERSATION_ID");
     const response = await backendApi.proxyAuthRequest("GET", `/coach/conversations/${id}/messages${page(query)}`, token);
-    const data = (response.data as BackendEnvelope<{ items?: unknown; nextCursor?: unknown }>).data;
+    const data = (response.data as BackendEnvelope<{ items?: unknown; nextCursor?: unknown; keep?: unknown }>).data;
     return {
       items: keepValid(data?.items, toCoachMessage),
       nextCursor: typeof data?.nextCursor === "string" ? data.nextCursor : null,
+      keep: toKeep(data?.keep),
     };
   },
 

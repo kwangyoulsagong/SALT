@@ -48,3 +48,11 @@
 
 - 프론트 계약 `CoachAnswerLinkKind` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 서버 · BFF · 화면 같은 PR
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-49 | 충족 | `@repo/core` 타입 · BFF 시험 · 프론트 타입 검사 |
+
+루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트

@@ -175,4 +175,31 @@ export class PrismaCoachConversationStore implements CoachConversationStore {
     const result = await prisma.coachConversation.deleteMany({ where: { id: conversationId, userId } });
     return result.count > 0;
   }
+
+  async recentQuestionTimes(userId: string, limit: number) {
+    const rows = await prisma.coachMessage.findMany({
+      where: { userId, role: "user" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit,
+      select: { createdAt: true },
+    });
+    return rows.map((row) => row.createdAt);
+  }
+
+  /**
+   * 세 문장 — 메시지 지우기 → 빈 대화 지우기 → 남은 대화 수 다시 세기. 트랜잭션을 열지 않는다(`ddd-infrastructure.md` §7):
+   * 셋 다 다시 불러도 같은 결과라 중간에 끊겨도 다음 질문이 마저 한다. 한 사람 행만 — 행마다 쓰기 0(`noParallelRowWrites`)
+   */
+  async deleteHistoryBefore(userId: string, before: Date) {
+    const removed = await prisma.coachMessage.deleteMany({
+      where: { userId, createdAt: { lt: before }, status: { not: "streaming" } },
+    });
+    if (removed.count === 0) return 0;
+    await prisma.coachConversation.deleteMany({ where: { userId, messages: { none: {} } } });
+    await prisma.$executeRaw`
+      UPDATE coach_conversations c
+         SET message_count = (SELECT count(*)::int FROM coach_messages m WHERE m.conversation_id = c.id)
+       WHERE c.user_id = ${userId}`;
+    return removed.count;
+  }
 }

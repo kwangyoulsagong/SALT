@@ -32,3 +32,7 @@
 
 - 프론트 계약 `CoachAnswerLinkKind` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 서버 · BFF · 화면 같은 PR
 - 판단은 `FE-REQ-030` 회고 같은 날 절 · 루트 `F006-coach-chat-redesign-slice.md`
+
+## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
+
+- 계약을 더하기만(선택 필드) — 옛 화면은 그대로 돈다

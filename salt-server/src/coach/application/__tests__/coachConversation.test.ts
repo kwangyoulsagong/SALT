@@ -5,7 +5,7 @@ import Decimal from "decimal.js";
 
 import { Money } from "../../../shared/domain";
 import type { CoachConversationRecord, CoachConversationStore, CoachMessageRecord } from "../../domain";
-import { CoachConversationNotFoundError } from "../../domain";
+import { COACH_HISTORY_KEEP_DAYS, COACH_HISTORY_KEEP_QUESTIONS, CoachConversationNotFoundError } from "../../domain";
 import type { BehaviorCoachView } from "../AnalyzeTradingBehavior";
 import {
   AnswerCoachMessage,
@@ -83,6 +83,23 @@ class MemoryStore implements CoachConversationStore {
   }
   async deleteConversation() {
     return false;
+  }
+  pruneFails = false;
+  async recentQuestionTimes(userId: string, limit: number) {
+    if (this.pruneFails) throw new Error("db down");
+    return this.messages
+      .filter((m) => m.userId === userId && m.role === "user")
+      .map((m) => m.createdAt)
+      .sort((a, b) => b.getTime() - a.getTime())
+      .slice(0, limit);
+  }
+  async deleteHistoryBefore(userId: string, before: Date) {
+    const keep = (m: CoachMessageRecord & { userId: string }) => m.userId !== userId || m.createdAt >= before || m.status === "streaming";
+    const removed = this.messages.filter((m) => !keep(m)).length;
+    this.messages = this.messages.filter(keep);
+    this.conversations = this.conversations.filter((c) => c.userId !== userId || this.messages.some((m) => m.conversationId === c.id));
+    for (const c of this.conversations) c.messageCount = this.messages.filter((m) => m.conversationId === c.id).length;
+    return removed;
   }
 }
 
@@ -358,5 +375,65 @@ describe("오늘의 브리핑(FR-21)", () => {
     assert.match(text, /코인 보유 점검은 지금 불러올 수 없어요/);
     assert.match(text, /아직 만든 코치 판단이 없어요/);
     assert.ok(!/0개/.test(text));
+  });
+});
+
+describe("대화 보관 한도(SRV-REQ-028 FR-30 — 사용자 2026-11-19 \"너무 쌓이면 안 되니까\")", () => {
+  // 답이 끝난 뒤의 상태로 — `streaming` 인 답은 지우지 않는다(지금 쓰이는 중일 수 있다)
+  const ask = async (store: MemoryStore, at: Date, conversationId: string | null) => {
+    const asked = await new AskCoach(store, () => at).execute("u1", { conversationId, content: `질문 ${at.toISOString()}`, chip: null });
+    const answer = store.messages.find((m) => m.id === asked.messageId);
+    if (answer) answer.status = "complete";
+    return asked;
+  };
+
+  it("질문이 101번째가 되면 가장 오래된 질문과 그 답이 같이 지워진다 — 짝은 갈라지지 않는다", async () => {
+    const store = new MemoryStore();
+    let conversationId: string | null = null;
+    for (let i = 0; i < COACH_HISTORY_KEEP_QUESTIONS + 1; i += 1) {
+      conversationId = (await ask(store, new Date(T0.getTime() + i * 60_000), conversationId)).conversationId;
+    }
+    const mine = store.messages.filter((m) => m.userId === "u1");
+    assert.equal(mine.filter((m) => m.role === "user").length, COACH_HISTORY_KEEP_QUESTIONS);
+    assert.equal(mine.length, COACH_HISTORY_KEEP_QUESTIONS * 2, "답도 질문 수만큼 — 홀로 남은 답 0");
+    assert.equal(mine.some((m) => m.createdAt.getTime() === T0.getTime()), false, "첫 질문은 지워졌다");
+    assert.equal(store.conversations[0]?.messageCount, COACH_HISTORY_KEEP_QUESTIONS * 2);
+  });
+
+  it("90일보다 오래된 질문은 수가 적어도 지워지고, 그 대화가 비면 대화도 지운다", async () => {
+    const store = new MemoryStore();
+    const old = await ask(store, T0, null);
+    const later = new Date(T0.getTime() + (COACH_HISTORY_KEEP_DAYS + 1) * 86_400_000);
+    await ask(store, later, null);
+    assert.equal(store.conversations.some((c) => c.id === old.conversationId), false);
+    assert.equal(store.messages.filter((m) => m.userId === "u1").length, 2);
+  });
+
+  it("아직 답하는 중(streaming)인 답은 경계 앞이어도 남긴다", async () => {
+    const store = new MemoryStore();
+    const first = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: "멈춘 질문", chip: null });
+    await ask(store, new Date(T0.getTime() + (COACH_HISTORY_KEEP_DAYS + 1) * 86_400_000), null);
+    assert.ok(store.messages.some((m) => m.id === first.messageId));
+  });
+
+  it("다른 사람 대화는 건드리지 않는다", async () => {
+    const store = new MemoryStore();
+    await new AskCoach(store, () => T0).execute("u2", { conversationId: null, content: "남의 질문", chip: null });
+    await ask(store, new Date(T0.getTime() + (COACH_HISTORY_KEEP_DAYS + 1) * 86_400_000), null);
+    assert.equal(store.messages.filter((m) => m.userId === "u2").length, 2);
+  });
+
+  it("지우기가 실패해도 질문은 저장된다", async () => {
+    const store = new MemoryStore();
+    store.pruneFails = true;
+    const asked = await ask(store, T0, null);
+    assert.ok(asked.messageId);
+  });
+
+  it("메시지 목록이 보관 한도를 같이 준다 — 화면 문구의 숫자는 서버 값", async () => {
+    const store = new MemoryStore();
+    const asked = await ask(store, T0, null);
+    const page = await new ListCoachMessages(store, new FailStaleCoachAnswers(store, () => T0)).execute("u1", asked.conversationId, 30, null);
+    assert.deepEqual(page.keep, { questions: COACH_HISTORY_KEEP_QUESTIONS, days: COACH_HISTORY_KEEP_DAYS });
   });
 });

@@ -31,6 +31,11 @@ export const ASK_COACH_MESSAGES = {
   briefingFailed: "오늘의 브리핑을 불러오지 못했어요. 아래 질문으로 바로 물어볼 수 있어요.",
   loadOlder: "이전 대화 더 보기",
   loadingOlder: "이전 대화를 불러오는 중",
+  /** 지난 쪽 실패 — 저절로 다시 부르지 않는다(버튼만) */
+  olderFailed: "이전 대화를 불러오지 못했어요.",
+  retryOlder: "다시 불러오기",
+  /** 맨 위(더 없음) 한 줄 — 숫자는 서버 보관 한도(`SRV-REQ-029` FR-30) */
+  keepNote: (questions: number, days: number) => `대화는 최근 질문 ${questions}개 · ${days}일까지만 보관해요. 그보다 오래된 대화는 지워져요.`,
   newMessage: "새 답 보기",
   /** 생성 시각(FEATURE-006 FR-27) — 서울 시각 */
   generatedAt: (time: string) => `${time} 계산`,
