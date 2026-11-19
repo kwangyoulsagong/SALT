@@ -1,6 +1,7 @@
 "use client";
 
 // 클라이언트 잎: 포지션 · 기간 · 코치 설정(매입가 숨김)을 브라우저에서 읽는다(보유 패널과 같은 이유).
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -15,7 +16,7 @@ import { NavChevron } from "@repo/web-shared/ui";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { usePurchasePriceVisibility } from "@/entities/coach";
-import { LEDGER_SHEET_MESSAGES, TransactionSheet } from "@/features/record-transaction";
+import { LEDGER_SHEET_MESSAGES } from "@/features/record-transaction";
 import {
   DEFAULT_FLOW_RANGE,
   POSITION_MESSAGES,
@@ -28,6 +29,12 @@ import {
 } from "@/entities/portfolio";
 
 import { emptyLink, footLinks, headAction, stack } from "./PositionOverview.css";
+
+/** 거래 시트는 누를 때만 받는다 — 첫 화면은 Hero · 흐름 · 레이더(`FE-REQ-033` FR-74). 열기 전엔 그리지 않으므로 대체 화면이 필요 없다 */
+const TransactionSheet = dynamic(
+  () => import("@/features/record-transaction").then((mod) => mod.TransactionSheet),
+  { ssr: false }
+);
 
 /**
  * 포지션(F006 G절 — `/portfolio` 위쪽) — Hero · 평가금 흐름 · 리스크 레이더(FR-70 · 71 · 73). 보유 0 이면 첫 기록 안내만(FR-78).
@@ -42,7 +49,13 @@ export const PositionOverview = () => {
   const hasHoldings = overview.isSuccess && !overview.data.empty;
   const flow = usePositionFlow(range, hasHoldings);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const sheet = <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />;
+  // 한 번 연 뒤로는 붙여 둔다 — 닫힘 움직임이 끝까지 돈다
+  const [sheetMounted, setSheetMounted] = useState(false);
+  const openSheet = () => {
+    setSheetMounted(true);
+    setSheetOpen(true);
+  };
+  const sheet = sheetMounted ? <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} /> : null;
 
   if (overview.isSignedOut) return null; // 페이지가 유리막을 그린다
   if (overview.isPending) {
@@ -69,7 +82,7 @@ export const PositionOverview = () => {
           icon={<StatusGraphic kind="empty" />}
           title={POSITION_MESSAGES.emptyTitle}
           description={POSITION_MESSAGES.emptyBody}
-          action={<Button onClick={() => setSheetOpen(true)}>{LEDGER_SHEET_MESSAGES.openButton}</Button>}
+          action={<Button onClick={openSheet}>{LEDGER_SHEET_MESSAGES.openButton}</Button>}
         />
         {sheet}
       </section>
@@ -83,7 +96,7 @@ export const PositionOverview = () => {
       <section className={panel} aria-labelledby="position-hero">
         <div className={panelHead}>
           <h2 id="position-hero" className={panelTitle}>{POSITION_MESSAGES.heading}</h2>
-          <Button size="sm" variant="weak" className={headAction} onClick={() => setSheetOpen(true)}>
+          <Button size="sm" variant="weak" className={headAction} onClick={openSheet}>
             {LEDGER_SHEET_MESSAGES.openButton}
           </Button>
         </div>
