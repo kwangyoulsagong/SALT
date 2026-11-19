@@ -24,6 +24,7 @@ export const CoachChatBody = () => {
     historyFailed: history.isError,
     hasOlder: history.hasOlder,
     isLoadingOlder: history.isLoadingOlder,
+    olderFailed: history.olderFailed,
     onLoadOlder: history.loadOlder,
     keep: history.keep,
   };

@@ -31,6 +31,8 @@ export interface CoachConversationProps {
   /** 더 오래된 쪽이 있다 — 위로 올리면 불러온다(`FE-REQ-031` FR-20) */
   hasOlder?: boolean;
   isLoadingOlder?: boolean;
+  /** 지난 쪽을 못 받았다 — 저절로 다시 부르지 않고 버튼만(요청 폭주 방지) */
+  olderFailed?: boolean;
   onLoadOlder?: () => void;
   /** 보관 한도 — 더 불러올 것이 없을 때 맨 위 한 줄. 없으면 그 줄을 안 그린다 */
   keep?: CoachHistoryKeep | null;
@@ -60,6 +62,7 @@ export const CoachConversation = ({
   historyFailed = false,
   hasOlder = false,
   isLoadingOlder = false,
+  olderFailed = false,
   onLoadOlder,
   keep = null,
   briefing,
@@ -114,19 +117,23 @@ export const CoachConversation = ({
     onLoadOlder();
   }, [hasOlder, isLoadingOlder, onLoadOlder]);
 
-  // 맨 위에 닿으면 저절로 더 — 버튼도 같이 둔다(키보드 · 화면 읽기 프로그램)
+  // 맨 위에 닿으면 저절로 더 — 버튼도 같이 둔다(키보드 · 화면 읽기 프로그램).
+  // 관찰자는 "한 쪽을 다 받았을 때"만 다시 붙인다(붙는 순간 보이면 다음 쪽 — 이어 받기). 실패하면 저절로 다시 부르지 않는다:
+  // 전엔 실패마다 함수가 바뀌어 관찰자가 다시 붙고 또 불러 1.5초에 요청 60번이 나갔다(2026-11-19 실측). 다시는 버튼으로만
+  const loadOlderRef = useRef(loadOlder);
+  loadOlderRef.current = loadOlder;
   useEffect(() => {
     const top = topRef.current;
     const log = logRef.current;
-    if (!top || !log || !hasOlder) return;
+    if (!top || !log || !hasOlder || olderFailed || isLoadingOlder) return;
     // 맨 위에 닿기 전(600px 앞)에 미리 — 다음 쪽이 도착할 때까지 빈 위쪽을 보지 않게
-    const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && loadOlder(), {
+    const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && loadOlderRef.current(), {
       root: log,
       rootMargin: `${PREFETCH_OLDER_PX}px 0px 0px 0px`,
     });
     observer.observe(top);
     return () => observer.disconnect();
-  }, [hasOlder, loadOlder]);
+  }, [hasOlder, olderFailed, isLoadingOlder]);
 
   // 처음 그릴 때 맨 아래(가장 최근)
   useLayoutEffect(() => {
@@ -199,8 +206,13 @@ export const CoachConversation = ({
         >
           {hasOlder ? (
             <div ref={topRef} className={styles.older}>
+              {olderFailed && !isLoadingOlder ? <p className={styles.keepNote}>{ASK_COACH_MESSAGES.olderFailed}</p> : null}
               <Button type="button" variant="ghost" size="sm" onClick={loadOlder} loading={isLoadingOlder}>
-                {isLoadingOlder ? ASK_COACH_MESSAGES.loadingOlder : ASK_COACH_MESSAGES.loadOlder}
+                {isLoadingOlder
+                  ? ASK_COACH_MESSAGES.loadingOlder
+                  : olderFailed
+                    ? ASK_COACH_MESSAGES.retryOlder
+                    : ASK_COACH_MESSAGES.loadOlder}
               </Button>
             </div>
           ) : keep && history.length > 0 ? (

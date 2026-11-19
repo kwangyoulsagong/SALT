@@ -39,7 +39,7 @@ export const log = style({
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px", borderRadius: "8px" },
 });
 
-export const older = style({ display: "flex", justifyContent: "center" });
+export const older = style({ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" });
 
 /** 맨 위 보관 안내 — 12/500 2단 · 가운데(`FE-REQ-031` FR-25) */
 export const keepNote = style({

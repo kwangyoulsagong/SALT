@@ -48,10 +48,13 @@ export const useCoachConversationHistory = () => {
     /** 보관 한도 — 맨 위(더 없음)에 한 줄 */
     keep: messages.data?.keep ?? null,
     isLoading: signedIn === null || latest.isLoading || (conversationId !== null && messages.isLoading),
-    isError: latest.isError || messages.isError,
+    // 첫 쪽 실패만 — 지난 쪽 실패는 `olderFailed`(위쪽 버튼 옆 한 줄). 둘을 섞으면 실패 문구가 두 번 나왔다
+    isError: latest.isError || (messages.isError && !messages.isFetchNextPageError),
     isSignedOut: signedIn === false,
     hasOlder: messages.hasNextPage,
     isLoadingOlder: messages.isFetchingNextPage,
+    /** 지난 쪽을 못 받았다 — 화면은 저절로 다시 부르지 않는다 */
+    olderFailed: messages.isFetchNextPageError,
     loadOlder: () => {
       if (messages.hasNextPage && !messages.isFetchingNextPage) void messages.fetchNextPage();
     },
