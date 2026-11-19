@@ -1,31 +1,40 @@
 import { recipe } from "@vanilla-extract/recipes";
-import { globalStyle, keyframes, style } from "@vanilla-extract/css";
+import { keyframes, style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
 import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
+/**
+ * 섹션 탭(`FE-REQ-047` FR-4 · `screen-desktop.md` §3 실측) — 글자 진하기로만 가른다: 14/600, 선택 = 1단 · 나머지 = 2단(바탕 위 4.5 이상).
+ * 밑줄 · 바닥 선 없음. 전에는 18px 제목 글자 + 3px 검은 밑줄(FE-REQ-044 P-31 미끄러지는 밑줄)이었다
+ */
 export const tabsContainerStyles = style({
   display: "flex",
   alignItems: "center",
-  borderBottom: `1px solid ${vars.colors.border.light}`,
   width: "100%",
   position: "relative",
 });
 
 export const tabStyles = recipe({
   base: {
-    padding: `${vars.space.md} ${vars.space.lg}`,
+    height: "36px",
+    padding: `0 ${vars.space.md}`,
     background: "transparent",
     border: "none",
+    borderRadius: "9px",
     cursor: "pointer",
     position: "relative",
-    transition: `color ${vars.transitions.base}, ${PRESS_TRANSITION}`,
+    fontFamily: "inherit",
+    fontSize: vars.deskType.section.fontSize,
+    lineHeight: vars.deskType.section.lineHeight,
+    fontWeight: vars.deskType.section.fontWeight,
+    transition: `color ${vars.motion.duration.instant}, ${PRESS_TRANSITION}`,
     whiteSpace: "nowrap",
     ...pressReducedMotion,
 
     selectors: {
       [PRESS_SELECTOR]: pressActive,
       "&:hover": {
-        color: vars.colors.brand.primary,
+        color: vars.colors.desk.text1,
       },
       "&:focus": {
         outline: "none",
@@ -33,51 +42,14 @@ export const tabStyles = recipe({
       "&:focus-visible": {
         outline: `2px solid ${vars.colors.border.focus}`,
         outlineOffset: "-2px",
-        borderRadius: vars.radius.small,
       },
     },
   },
 
   variants: {
     active: {
-      true: {
-        color: vars.colors.text.primary,
-        fontWeight: vars.fontWeights.semibold,
-
-        "::after": {
-          content: '""',
-          position: "absolute",
-          bottom: "-1px",
-          left: 0,
-          right: 0,
-          height: "3px",
-          background: vars.colors.border.black,
-          transition: vars.transitions.base,
-        },
-      },
-      false: {
-        color: vars.colors.text.tertiary,
-        fontWeight: vars.fontWeights.regular,
-
-        "::after": {
-          content: '""',
-          position: "absolute",
-          bottom: "-1px",
-          left: "50%",
-          right: "50%",
-          height: "2px",
-          background: "transparent",
-          transition: vars.transitions.base,
-        },
-
-        selectors: {
-          "&:hover::after": {
-            left: 0,
-            right: 0,
-            background: vars.colors.border.lightDark,
-          },
-        },
-      },
+      true: { color: vars.colors.desk.text1 },
+      false: { color: vars.colors.desk.text2 },
     },
 
     disabled: {
@@ -124,7 +96,7 @@ export const tabPanelStyles = style({
 export const tabListStyles = style({
   position: "relative",
   display: "flex",
-  gap: vars.space.lg,
+  gap: vars.space.xs,
   margin: 0,
   padding: 0,
   listStyle: "none",
@@ -136,32 +108,4 @@ export const tabListStyles = style({
       display: "none",
     },
   },
-});
-
-/**
- * 미끄러지는 밑줄 (FE-REQ-044 P-31) — 탭마다의 `::after` 대신 하나가 옮겨 간다.
- * 측정 전(서버 HTML)에는 탭 자신의 `::after` 가 보이고, 측정 뒤에는 그것을 숨긴다.
- */
-export const tabIndicatorStyles = recipe({
-  base: {
-    position: "absolute",
-    left: 0,
-    bottom: 0,
-    height: "3px",
-    background: vars.colors.border.black,
-    pointerEvents: "none",
-  },
-  variants: {
-    animated: {
-      true: {
-        transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.move}`,
-        "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
-      },
-      false: {},
-    },
-  },
-});
-
-globalStyle(`${tabListStyles}[data-sliding="true"] [role="tab"]::after`, {
-  visibility: "hidden",
 });
