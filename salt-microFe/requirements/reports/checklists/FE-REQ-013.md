@@ -204,3 +204,7 @@
 - `FE-REQ-049` 상세 재설계가 이 REQ 머리 파일(`InvestmentDetailBody`)을 걸침 — 한 장 패널에 상세 패널 면(`detailPanel`)을 끼워 줌. 토큰 · 조회 동작 변화 없음
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-19 `FE-REQ-060` 2단계 저축이 걸침
+
+- 확인은 `FE-REQ-060` 체크리스트 2단계 절. 이 REQ 몫 동작 변경 0
