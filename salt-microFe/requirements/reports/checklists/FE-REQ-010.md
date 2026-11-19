@@ -387,3 +387,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 필터 탭 미선택 글자 `text.tertiary` — axe 위반 0(사람 장부 · 코치 설정)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`
+
+## 2026-11-19 파일만 걸침(`WEB-perf-req-close-slice.md`)
+
+- 청크 차단 실측: 거래 시트 · 뉴스 창 — 실패해도 화면 그대로 · 한 줄 · 다시 누르면 다시 받음(pass)

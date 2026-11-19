@@ -262,6 +262,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `MARKET_ENDPOINTS` 본문 경로 둘 · `marketQueryKeys.articleBody` |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 보유 목록(`HoldingSummaryList`) 행을 `wrap` 으로: 390 앱 웹뷰에서 이름이 한 글자씩 꺾이던 결함(금액 묶음이 아랫줄로). 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | 파일만 걸침(`feat/f006-alerts-screen`) — `@repo/ui` 필터 탭 미선택 글자색 `neutral.500` → `text.tertiary`(대비, `FE-REQ-047` FR-13). 탭 동작 무변경 |
+| 2026-11-19 | 파일만 걸침 — 뉴스 창 · 거래 시트를 나중에 받는 공용 훅 `useLazyComponent`(청크 실패면 화면 그대로 · 한 줄 `BOUNDARY_MESSAGES.lazyFailed`). 루트 `WEB-perf-req-close-slice.md` 판단 12 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

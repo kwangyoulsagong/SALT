@@ -50,6 +50,10 @@ status: done
 
 10. **`SRV-REQ-021` FR-29 "미래 달이면 400" 이 빠져 있었다** — DTO 는 `YYYY-MM` 형식만 봐서 다음 달을 물으면 200(계획 0)이었다. "오늘"이 필요한 판정이라
     DTO 가 아니라 시계를 가진 유스케이스에서 KST 오늘 달과 비교한다(월말 15:00Z 경계 시험). 웹은 `month` 없이 불러 영향 0
+12. **나중에 받는 잎은 청크 실패에도 화면을 지우지 않는다(2회차 확인에서 찾은 결함)** — 첫 판의 거래 시트 `next/dynamic` 은 청크를 못 받으면
+    렌더 오류로 섹션 경계까지 올라가 포트폴리오 페이지가 통째로 "불러오지 못했습니다"였다(390 앱 웹뷰 · 청크 요청 차단 실측). 바꾸기 전엔 시트가 이미
+    받은 청크 안이라 없던 실패 경로다. 공용 훅 `@repo/web-shared/lib` `useLazyComponent`(누를 때 `import()` · 실패는 상태 · 다시 부르면 다시 받음)로
+    바꿨고, 같은 꼴인 뉴스 창(`?news=` 가 생길 때 받는 청크 — 원래 있던 같은 결함)도 같이. 첫 화면에 필요한 `next/dynamic` 은 그대로(섹션이 못 그리면 섹션 오류가 맞다)
 11. **넘긴 FR 은 받는 쪽에도 적었다** — 관측 항목 → `OPS-001` FR-9, 웹 zod 런타임 파싱(`FE-REQ-024` FR-2) → `RN-REQ-018` FR-1
 
 ## 실측 (2026-11-19, 브랜치 코드 · 임시 계정 · 측정 뒤 계정 · 초대 코드 지움)
@@ -96,7 +100,8 @@ status: done
 | 서버 | `coach/application/GetCoachDetail.ts` | 변동성 · 추천 카드 두 await 병렬 |
 | 서버 | `plan/application/GetMonthlySummary.ts` · `plan/domain/errors.ts` · `plan.routes.ts` | 오지 않은 달 400 `PLAN_MONTH_IN_FUTURE`(`SRV-REQ-021` FR-29 — 대조에서 찾은 빠진 구현) |
 | BFF | `rest/controllers/plan.controller.ts` | plan 다섯 경로 `no-store` |
-| 웹 | `widgets/position-overview/ui/PositionOverview.tsx` | 거래 시트 지연 로딩 |
+| 웹 | `widgets/position-overview/ui/PositionOverview.tsx` | 거래 시트 지연 로딩(`useLazyComponent` — 청크 실패면 한 줄 · 다시 누르면 다시 받음) |
+| 웹 | `@repo/web-shared/lib` `useLazyComponent` · `i18n` `BOUNDARY_MESSAGES.lazyFailed` · `widgets/market-board/ui/MarketBoard.tsx` | 나중에 받는 잎 공용 훅 · 뉴스 창도 같은 훅 |
 
 ## 검증
 
@@ -105,6 +110,10 @@ status: done
 - BFF `npm run build` · `npm test` 588 통과(plan 다섯 경로 `no-store` 시험 포함)
 - 웹 `pnpm check-types` · `lint` · `test`(core 309 · ui 76 · web 10) · `test:layer-check` · 투자 zone 운영 빌드
 - 실화면: `/plan` · `/coach/chat` 실데이터 스크린샷 · `/portfolio` 시트 열고 Esc 닫힘
+- 2회차 확인(사용자 "파이프라인 및 버그 검증 다 함?"): ① 피드백 결함을 경로 단위로 main(4000) · 브랜치(4020) 나란히 — 같은 임시 사용자에 추천 생성 →
+  피드백 한 건 → main 은 상세 추천 `null` · 최신 추천 = 피드백 행 · 브리핑 카드 `null` · 대화 팔기 답 카드 0, 브랜치는 넷 다 남음(피드백 전엔 둘 다 남음)
+  ② 390 앱 웹뷰 시트 — 바텀시트 폭 390 · 가로 넘침 0 · 닫기 · 다시 열기 ③ 청크 실패 — 시트: Hero 남음 · 섹션 오류 0 · 한 줄 → 다시 누르면 열림 · 한 줄 사라짐,
+  뉴스 창: 보드 남음 · 한 줄 / 정상: 주소로 열기 · Esc · 주소 바꿔 다시 열기. 측정 계정 지움(사람 표 0)
 
 ## 미검증 · 범위 밖
 
@@ -121,3 +130,4 @@ status: done
 |---|---|
 | 2026-11-19 | 신규 — 성능 REQ 18개 FR 대조 · 피드백 결함 · 보존 · 상세 병렬 · plan `no-store` · 거래 시트 지연 로딩 · 실측 |
 | 2026-11-19 | 2회차 실측(종목 판단 · 판정 성적 · 성적표) · 쿼리 상한 정정 · `SRV-REQ-021` FR-29 고침 · 넘긴 FR 받는 쪽 기록. 영역 REQ — done 30 · 진행 중 남김 13(F006 LLM 경로 · 앱 · F004 파일만 걸침) → done |
+| 2026-11-19 | 2회차 확인 — 피드백 결함 main · 브랜치 경로 대조 · 390 앱 웹뷰 · 청크 실패 시험에서 결함(시트 실패가 페이지를 지움) 찾아 `useLazyComponent` 로 고침(뉴스 창 같이) · `done-checklist.md` §3-2 한 줄 |

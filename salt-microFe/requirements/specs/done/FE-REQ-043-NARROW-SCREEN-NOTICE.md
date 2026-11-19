@@ -53,5 +53,6 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `f193c6aa` |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — `@repo/core/embed` 에 `IN_APP_WEBVIEW` 선택자 — 앱 웹뷰에서만 패널 글자 13 · 누름 칸 44(`RN-REQ-032` FR-7). 좁은 화면 안내 규칙은 그대로 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `AppShell` 머리 오른쪽에 벨. 좁은 화면 안내 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | 파일만 걸침 — 뉴스 창 · 거래 시트를 나중에 받는 공용 훅 `useLazyComponent`(청크 실패면 화면 그대로 · 한 줄 `BOUNDARY_MESSAGES.lazyFailed`). 루트 `WEB-perf-req-close-slice.md` 판단 12 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/web-shared/src/i18n/messages.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"

@@ -13,6 +13,9 @@
 | 코치 상세 두 호출 병렬(`SRV-REQ-027` FR-30) | `GetCoachDetail` `Promise.all` | 코치 테스트 1114 통과 · 상세 쿼리 11 · 서버 p95 5.0ms | pass |
 | plan 응답 `no-store`(`BFF-REQ-022` FR-34 · `FE-REQ-025` FR-34) | `bff/src/rest/controllers/plan.controller.ts` | 시험(다섯 경로 성공 응답 헤더) · BFF 588 통과 | pass |
 | 거래 시트 지연 로딩(`FE-REQ-033` FR-74) | `widgets/position-overview/ui/PositionOverview.tsx` | 운영 빌드 두 판 실로그인 — 첫 진입 309.9 → 301.3 kB · 시트 17.7 kB 누를 때 · 열림 · Esc 닫힘 · 오류 0 | pass |
+| 피드백 결함 — 경로 단위 main · 브랜치 대조(2회차) | 위와 같음 | 같은 임시 사용자 · 추천 생성 → 피드백 1건 → main(4000): 상세 추천 `null` · 최신 = 피드백 행 · 브리핑 카드 `null` · 대화 카드 0 / 브랜치(4020): 넷 다 남음 | pass |
+| 거래 시트 390 앱 웹뷰(2회차) | 같음 | 바텀시트 폭 390 · 높이 709 · 가로 넘침 0 · 닫기 · 다시 열기 | pass |
+| 나중에 받는 잎 청크 실패 — 화면을 지우지 않는다(2회차에 찾은 결함) | `@repo/web-shared/lib` `useLazyComponent` · 시트 · 뉴스 창 | 청크 요청 차단: 첫 판은 포트폴리오 전체가 섹션 오류(fail) → 고친 뒤 Hero 남음 · 섹션 오류 0 · 한 줄 · 다시 누르면 열림 / 뉴스 창 보드 남음 · 한 줄 · 정상 열기 · 닫기 · 주소로 다시 열기 | pass |
 | 대화 말풍선 리렌더(`FE-REQ-033` FR-10 · 12) | 바꾸지 않음(memo 넣었다 뺌 — `performance-frontend.md` §0) | memo 없이 칩 질문 → 답 2말풍선 동안 긴 프레임 0 | pass(대체) |
 | 격자 구분선 끌기(`FE-REQ-033` FR-20) | 바꾸지 않음 | 138프레임 p50 · p95 · 최대 16.7 · 16.7 · 16.8ms · 긴 프레임 0(2회) | pass(측정 충족) |
 | `/plan` CLS · LCP · 라우트 JS(`FE-REQ-025` FR-7 · 예산) | 바꾸지 않음 | CLS 0.0006(3회) · LCP 404~660ms · 라우트 전용 11.5 kB | pass |

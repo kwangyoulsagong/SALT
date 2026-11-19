@@ -114,3 +114,7 @@
 - 390 앱 웹뷰 가로 넘침 0
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 파일만 걸침(`WEB-perf-req-close-slice.md`)
+
+- 청크 차단 실측: 거래 시트 · 뉴스 창 — 실패해도 화면 그대로 · 한 줄 · 다시 누르면 다시 받음(pass)
