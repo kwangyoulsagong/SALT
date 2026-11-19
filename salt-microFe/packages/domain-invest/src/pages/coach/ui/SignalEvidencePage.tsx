@@ -1,9 +1,6 @@
-import { Container } from "@repo/ui/container";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { InvestSide, INVEST_SIDE_LABEL } from "@/widgets/judgment-overview";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import { SIGNAL_EVIDENCE_PAGE } from "../model";
 import { SignalEvidenceBody } from "./SignalEvidenceBody";
@@ -22,17 +19,11 @@ interface SignalEvidencePageProps {
 export const SignalEvidencePage = async ({ params }: SignalEvidencePageProps) => {
   const { signalType } = await params;
   return (
-    <Root background="transparent">
-      <Section containerSize="full" padding="sm">
-        <Container size="2xl" padding="none">
-          <Padding paddingX="xl">
-            <BlockBoundary name={SIGNAL_EVIDENCE_PAGE.blockName} minHeight={SIGNAL_EVIDENCE_PAGE.blockMinHeight}>
-              <SignalEvidenceBody signalType={signalType} />
-            </BlockBoundary>
-          </Padding>
-        </Container>
-      </Section>
-    </Root>
+    <PageFrame side={<InvestSide />} sideLabel={INVEST_SIDE_LABEL}>
+      <BlockBoundary name={SIGNAL_EVIDENCE_PAGE.blockName} minHeight={SIGNAL_EVIDENCE_PAGE.blockMinHeight}>
+        <SignalEvidenceBody signalType={signalType} />
+      </BlockBoundary>
+    </PageFrame>
   );
 };
 

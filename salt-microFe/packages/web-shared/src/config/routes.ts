@@ -18,6 +18,8 @@ export type CoachReportSection = (typeof COACH_REPORT_SECTIONS)[keyof typeof COA
 export const INVESTMENTS_ASSET_PARAM = "asset";
 /** 시세 화면 뉴스 모달을 주소로 여는 쿼리(`?news=<id>` — `FE-REQ-065`). 위젯이 엔티티 barrel 없이 읽도록 여기 둔다(번들, 2026-11-10) */
 export const INVESTMENTS_NEWS_PARAM = "news";
+/** 시세 화면 표 탭(`?tab=watchList` — 관심 종목, 없으면 실시간). 상세에서 뒤로 오면 같은 탭(`FE-REQ-047` FR-11) */
+export const INVESTMENTS_TAB_PARAM = "tab";
 
 export const ROUTES = {
   login: "/",
@@ -25,6 +27,8 @@ export const ROUTES = {
   investments: "/investments",
   /** 투자 화면 국내 탭 — 검색 모달 업종 · 지수 줄이 여기로 간다(`FE-REQ-066` FR-8). 쿼리 이름은 `INVESTMENTS_ASSET_PARAM` */
   investmentsKr: "/investments?asset=kr_stock",
+  /** 시세 화면 관심 종목 탭(`?tab=watchList` — `INVESTMENTS_TAB_PARAM`, `FE-REQ-047` FR-11) */
+  investmentsWatchlist: "/investments?tab=watchList",
   /** 종목 검색 — 투자 화면 머리 · 관심 종목 빈 상태에서 들어온다(`FE-REQ-010` FR-70) */
   search: "/search",
   /** 설정 — 헤더 프로필 메뉴에서 들어온다(F004 FR-12) */

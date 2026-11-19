@@ -1,11 +1,6 @@
-import { Container } from "@repo/ui/container";
-import { Heading } from "@repo/ui/heading";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { NavChevron, ZoneLink } from "@repo/web-shared/ui";
+import { NavChevron, PageFrame, ZoneLink } from "@repo/web-shared/ui";
 import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { HomeLayoutPanel } from "@/features/arrange-home";
@@ -27,37 +22,28 @@ import { navRow, stack } from "./SettingsPage.css";
  * (FR-5, 서버 S3c 2026-11-12 — 투자 링크 아래, 지우기가 맨 끝).
  */
 export const SettingsPage = () => (
-  <Root background="transparent">
-    <Section containerSize="full" padding="sm">
-      <Container size="2xl" padding="none">
-        <Padding paddingX="xl">
-          <Heading level={1} size="lg">
-            {SETTINGS_PAGE.title}
-          </Heading>
-          <div className={stack}>
-            {/* 패널째 기능이 그린다 — 로그아웃이면 패널이 없다(빈 제목만 남지 않게) */}
-            <HomeLayoutPanel />
-            <AlertPrefsPanel />
-            <section className={panel}>
-              <div className={panelHead}>
-                <h2 className={panelTitle}>{SETTINGS_PAGE.investHeading}</h2>
-              </div>
-              <p className={panelDescription}>
-                {SETTINGS_PAGE.investDescription}
-              </p>
-              <ZoneLink href={ROUTES.coachSettings} className={navRow}>
-                <span>{SETTINGS_PAGE.investLink}</span>
-                <NavChevron />
-              </ZoneLink>
-            </section>
-            <PrivacyPanel />
-            <ExportMyDataPanel />
-            <DeleteAccountPanel />
-          </div>
-        </Padding>
-      </Container>
-    </Section>
-  </Root>
+  <PageFrame title={SETTINGS_PAGE.title}>
+    <div className={stack}>
+      {/* 패널째 기능이 그린다 — 로그아웃이면 패널이 없다(빈 제목만 남지 않게) */}
+      <HomeLayoutPanel />
+      <AlertPrefsPanel />
+      <section className={panel}>
+        <div className={panelHead}>
+          <h2 className={panelTitle}>{SETTINGS_PAGE.investHeading}</h2>
+        </div>
+        <p className={panelDescription}>
+          {SETTINGS_PAGE.investDescription}
+        </p>
+        <ZoneLink href={ROUTES.coachSettings} className={navRow}>
+          <span>{SETTINGS_PAGE.investLink}</span>
+          <NavChevron />
+        </ZoneLink>
+      </section>
+      <PrivacyPanel />
+      <ExportMyDataPanel />
+      <DeleteAccountPanel />
+    </div>
+  </PageFrame>
 );
 
 export default SettingsPage;

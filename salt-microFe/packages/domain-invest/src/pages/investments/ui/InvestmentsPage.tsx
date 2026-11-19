@@ -1,9 +1,5 @@
-import { Container } from "@repo/ui/container";
-import { Padding } from "@repo/ui/padding";
-import { Root } from "@repo/ui/root";
-import { Section } from "@repo/ui/section";
 
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { BlockBoundary, PageFrame } from "@repo/web-shared/ui";
 
 import {
   INVESTMENTS_BLOCK_MIN_HEIGHT,
@@ -28,20 +24,14 @@ import { InvestmentsBoard } from "./InvestmentsBoard";
  */
 export const InvestmentsPage = () => {
   return (
-    <Root background="white">
-      <Section containerSize="full" padding="sm">
-        <Container size="2xl" padding="none">
-          <Padding paddingX="xl">
-            <BlockBoundary
-              name={INVESTMENTS_PAGE_MESSAGES.blockName}
-              minHeight={INVESTMENTS_BLOCK_MIN_HEIGHT}
-            >
-              <InvestmentsBoard />
-            </BlockBoundary>
-          </Padding>
-        </Container>
-      </Section>
-    </Root>
+    <PageFrame>
+      <BlockBoundary
+        name={INVESTMENTS_PAGE_MESSAGES.blockName}
+        minHeight={INVESTMENTS_BLOCK_MIN_HEIGHT}
+      >
+        <InvestmentsBoard />
+      </BlockBoundary>
+    </PageFrame>
   );
 };
 

@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -21,6 +21,11 @@ export const strip = style({
   overflow: "hidden",
   "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
 });
+
+/** 사이드 판 — 칸 둘을 세로로(선은 위에), 띠의 위 여백 없음(`FE-REQ-047` FR-7) */
+export const sideStrip = style([strip, { gridTemplateColumns: "minmax(0, 1fr)", marginTop: 0 }]);
+
+globalStyle(`${sideStrip} > * + *`, { borderLeft: "none", borderTop: `1px solid ${vars.colors.neutral[100]}` });
 
 /** 수화 전 자리 — 띠와 같은 높이(로그아웃이면 수화 뒤 사라진다) */
 export const stripPending = style({ minHeight: "1px" });
