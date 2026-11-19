@@ -17,7 +17,8 @@ export const button = style({
   textDecoration: "none",
   transition: `background ${vars.motion.duration.instant}`,
   ":hover": { background: vars.colors.desk.line },
-  ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
+  // 안쪽으로 — 바깥(2px)이면 바로 옆 이동 경로 첫 글자를 덮었다(2026-11-19 키보드 확인)
+  ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-2px" },
 });
 
 export const trail = style({
