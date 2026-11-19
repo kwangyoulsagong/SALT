@@ -43,6 +43,12 @@ export const errorMiddleware = (
     return res.status(400).json({ success: false, code: "INVALID_JSON", message: "Malformed JSON body" });
   }
 
+  // 본문이 너무 크다(body-parser 100kb) — 기본 500 으로 떨어지던 것(2026-11-19 F006 패널 배치 413 계약을 붙이다 발견)
+  if ((err as { type?: string }).type === "entity.too.large") {
+    logFailure(413, "PAYLOAD_TOO_LARGE", new Error("request body too large"), req);
+    return res.status(413).json({ success: false, code: "PAYLOAD_TOO_LARGE", message: "Payload too large" });
+  }
+
   if (err instanceof AppError) {
     logFailure(err.statusCode, err.code ?? err.constructor.name, err, req);
     return res.status(err.statusCode).json({
