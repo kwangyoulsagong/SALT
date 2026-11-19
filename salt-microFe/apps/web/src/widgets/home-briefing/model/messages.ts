@@ -1,12 +1,21 @@
+/** ~~오늘의 저축 팁(코드에 박힌 문장 하나)~~ 2026-11-19 뺐다 — 진짜 팁이 아니었다(사용자 결정 · `FE-REQ-048`). 팁은 팁 도메인이 공개될 때 */
 export const HOME_BRIEFING_MESSAGES = {
-  tipHeading: "오늘의 저축 팁",
-  tipTitle: "커피값 아끼기로 월 5만원 저축하기",
-  tipBody: "하루 2잔, 연 60만원 절약 가능!",
   cardsBlockName: "요약",
+} as const;
+
+/** 오른쪽 칸 "바로 적기"(`FE-REQ-048` FR-8) — 해요체 · 재촉 0 */
+export const QUICK_ACTION_MESSAGES = {
+  title: "바로 적기",
+  expense: "지출 적기",
+  expenseHint: "금액부터 적어도 돼요",
+  goal: "새 목표 만들기",
+  goalHint: "금액과 기한을 정해요",
 } as const;
 
 /** 홈 블록 높이 — 스켈레톤이 실제 블록과 같아야 한다 (`streaming-ssr.md`). */
 export const HOME_BLOCK_MIN_HEIGHT = {
-  /** 카드 2장(저축 · 투자) — 서비스가 없는 도메인은 카드가 없다 */
-  cards: 260,
+  /** 카드 격자 두 줄(152 × 2 + 간격 16) — 데스크톱 2열(`FE-REQ-048` FR-8) */
+  cards: 320,
+  /** 카드 하나 — `HomeSummaryCardView` 최소 높이와 같다 */
+  card: 152,
 } as const;

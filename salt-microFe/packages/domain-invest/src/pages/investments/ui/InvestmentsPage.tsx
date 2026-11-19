@@ -24,7 +24,8 @@ import { InvestmentsBoard } from "./InvestmentsBoard";
  */
 export const InvestmentsPage = () => {
   return (
-    <PageFrame>
+    // 흰 표 · 흰 띠가 주인공이라 패널 면을 흰색으로(2026-11-19 사용자 — 패널 위에 흰 표가 떠 보였다)
+    <PageFrame surface="white">
       <BlockBoundary
         name={INVESTMENTS_PAGE_MESSAGES.blockName}
         minHeight={INVESTMENTS_BLOCK_MIN_HEIGHT}

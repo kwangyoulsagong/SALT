@@ -429,6 +429,7 @@ PC                                                   모바일(세로 스택)
 | 2026-11-11 | F017 v2 단계 5 — 종목 상세 '자세히' 문구 `변동 범위 · …` → `시나리오 · …`(카드 교체 `FE-REQ-064` FR-4) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `COACH_MESSAGES.modes` 가 `@repo/core/labels` `COACH_MODE_LABEL` 을 가리킨다(글자 같음 · 셸 알림이 같이 읽는다). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 코치 리포트 · 판정 근거 · 코치 설정 페이지 틀을 `PageFrame` 으로(가운데 1536 → 가득 찬 폭) + 투자 오른쪽 사이드 |
+| 2026-11-19 | `FE-REQ-048` 홈 브랜치(`feat/fe-req-048-home-desktop`)가 이 REQ 파일을 걸침 — 시세 목록(`/investments`) 패널 면을 흰색으로(`PageFrame surface="white"`) — 사용자 "투자 테이블은 흰색인데 … 붕 떠 보이자나 · 투자페이지 배경 자체를 흰색으로". 흰 표 · 흰 띠가 `#FBFCFD` 패널 위에 떠 보였다. 다른 투자 화면은 패널 그대로 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc` · `a65d6abf` · `41447893`) — FR-114 판단 늘 · 꼬리표 문장 · FR-135 해설 막지 않음 · 빈 사례 사실 줄
   - `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리

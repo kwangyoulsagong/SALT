@@ -10,7 +10,7 @@ import { countUsage } from "@repo/web-shared/api";
 import { HOME_CARD_MESSAGES, HomeSummaryCardView, useHomeCards } from "@/entities/home";
 
 import { HOME_BLOCK_MIN_HEIGHT } from "../model/messages";
-import { cardList } from "./HomeCards.css";
+import { cardList, skeletonCell } from "./HomeCards.css";
 
 /**
  * 도메인 요약 카드 목록 (`FE-REQ-055` FR-2). 순서는 BFF `order` 그대로, `hidden` 은 그리지 않는다.
@@ -23,8 +23,13 @@ export const HomeCards = () => {
 
   if (home.isPending) {
     return (
-      <div role="status" aria-busy="true" aria-label={HOME_CARD_MESSAGES.loading}>
-        <Skeleton height={HOME_BLOCK_MIN_HEIGHT.cards} radius="medium" />
+      <div role="status" aria-busy="true" aria-label={HOME_CARD_MESSAGES.loading} className={cardList}>
+        {/* 카드 자리 넷 — 2열 격자 그대로(도착할 때 자리가 튀지 않게) */}
+        {[0, 1, 2, 3].map((index) => (
+          <div key={index} className={skeletonCell}>
+            <Skeleton height={HOME_BLOCK_MIN_HEIGHT.card} radius="medium" />
+          </div>
+        ))}
       </div>
     );
   }
