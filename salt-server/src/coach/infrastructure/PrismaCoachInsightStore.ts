@@ -1,10 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
-import type {
-  CoachInsight,
-  CoachInsightDraft,
-  CoachInsightStore,
+import {
+  type CoachInsight,
+  type CoachInsightDraft,
+  type CoachInsightStore,
+  FEEDBACK_KEY_PREFIX,
 } from "../domain";
 
 /**
@@ -54,6 +55,17 @@ const toDomain = (row: InsightRow): CoachInsight => ({
   expiresAt: row.expiresAt,
 });
 
+/**
+ * **추천 · 점수 재료를 읽는 조회는 피드백 행을 돌려주지 않는다.**
+ *
+ * 피드백도 같은 표 · 같은 `ai_coach` 타입에 쌓인다(`InsightType` 은 enum 이라 타입을 늘리면 `ALTER TYPE` — 키로 가른다).
+ * 가르지 않으면 피드백 한 건 뒤로 "가장 최근 `ai_coach`" 가 피드백 행이 되어 저장 추천 카드가 계속 `null` 이었다
+ * (2026-11-19 성능 REQ 정리 중 발견 — `DB-REQ-020` FR-1 이 막으려던 경우). 키는 `dedupe_key`(유니크 인덱스 열)라 JSON 조건이 아니다.
+ */
+export const EXCLUDE_FEEDBACK = {
+  NOT: { dedupeKey: { startsWith: FEEDBACK_KEY_PREFIX } },
+} satisfies Prisma.InvestmentInsightWhereInput;
+
 const toJson = (payload: Record<string, unknown>): Prisma.InputJsonValue =>
   payload as Prisma.InputJsonValue;
 
@@ -71,7 +83,7 @@ export class PrismaCoachInsightStore implements CoachInsightStore {
     const rows = await prisma.investmentInsight.findMany({
       where: {
         OR: [{ userId }, { userId: "global" }],
-        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }],
+        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }, EXCLUDE_FEEDBACK],
       },
       orderBy: [{ severity: "desc" }, { createdAt: "desc" }],
       take: limit,
@@ -82,7 +94,7 @@ export class PrismaCoachInsightStore implements CoachInsightStore {
 
   async findLatestRecommendation(userId: string): Promise<CoachInsight | null> {
     const row = await prisma.investmentInsight.findFirst({
-      where: { userId, type: "ai_coach" },
+      where: { userId, type: "ai_coach", ...EXCLUDE_FEEDBACK },
       orderBy: { createdAt: "desc" },
     });
 
@@ -139,6 +151,10 @@ export class PrismaCoachInsightStore implements CoachInsightStore {
    * 매번 다르다 — 같은 종목에 대한 피드백 두 건은 서로를 지우지 않아야 한다.
    */
   async saveFeedback(draft: CoachInsightDraft): Promise<CoachInsight> {
+    if (!draft.dedupeKey.startsWith(FEEDBACK_KEY_PREFIX)) {
+      // 접두사가 없으면 위 조회들이 이 행을 추천으로 읽는다 — 저장하지 않는다
+      throw new Error(`피드백 키는 "${FEEDBACK_KEY_PREFIX}" 로 시작해야 한다`);
+    }
     const row = await prisma.investmentInsight.create({
       data: {
         userId: draft.userId,
@@ -167,7 +183,8 @@ export class PrismaCoachInsightStore implements CoachInsightStore {
       where: {
         userId,
         type: "ai_coach",
-        ...(symbol ? { symbol: symbol.toUpperCase() } : {}),
+        ...EXCLUDE_FEEDBACK,
+        ...(symbol ?{ symbol: symbol.toUpperCase() } : {}),
       },
       orderBy: { createdAt: "desc" },
       take: limit,
