@@ -15,7 +15,15 @@ export const SIDE_WIDTH = "312px";
 export const frame = style({ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 });
 
 export const withSide = style({
-  "@media": { [DESKTOP]: { display: "grid", gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`, alignItems: "stretch" } },
+  "@media": {
+    [DESKTOP]: {
+      display: "grid",
+      gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`,
+      alignItems: "stretch",
+      // 사이드 내용이 아무것도 안 그리면(예: 홈 시작하기를 다 끝낸 사람) 칸째 접는다 — 빈 312 칸과 선을 남기지 않는다
+      selectors: { "&:has(> aside:empty)": { gridTemplateColumns: "minmax(0, 1fr)" } },
+    },
+  },
 });
 
 export const main = style({
@@ -53,5 +61,5 @@ export const side = style({
   boxShadow: `inset 0 0.75px 0 ${vars.colors.desk.line}`,
   "@media": { [DESKTOP]: { boxShadow: `inset 0.75px 0 0 ${vars.colors.desk.line}` } },
   // 앱 웹뷰는 데스크톱 틀이 아니다(FR-17) — 사이드는 데스크톱 · 태블릿 웹에만. 앱 화면은 본문 한 열 그대로
-  selectors: { [IN_APP_WEBVIEW]: { display: "none" } },
+  selectors: { [IN_APP_WEBVIEW]: { display: "none" }, "&:empty": { display: "none" } },
 });

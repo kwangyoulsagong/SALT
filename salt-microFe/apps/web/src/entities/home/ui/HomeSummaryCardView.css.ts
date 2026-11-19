@@ -1,39 +1,94 @@
 import { style } from "@vanilla-extract/css";
 
-import { vars } from "@repo/web-shared/ui/tokens.css";
+import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { vars } from "@repo/ui/tokens";
 
-/** 카드 전체가 링크다 — 밑줄 · 색만 걷는다. 누를 수 있다는 것은 셰브론 · 포커스 링으로 알린다 */
+import { SURFACE } from "@repo/web-shared/ui/surface.css";
+
+/**
+ * 홈 요약 카드(`FE-REQ-048` FR-8 · 리서치 `2026-11-19-home-desktop.md`) — 아이콘 + 제목 14/600 + 셰브론 · 주인공 값 18/700 · 보조 값 한 줄 · 노트 12/500.
+ * 카드 전체가 링크. 폭은 격자가 정한다(최대 560 — 패널 폭으로 늘리지 않는다). 그림자 없이 흰 면 + 안쪽 선(`screen-desktop.md` §3)
+ */
 export const cardLink = style({
-  display: "block",
-  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.md,
+  height: "100%",
+  minHeight: "152px",
+  padding: vars.space.lg2,
+  borderRadius: SURFACE.panelRadius,
+  background: vars.colors.background.white,
+  boxShadow: SURFACE.hairline,
   color: "inherit",
   textDecoration: "none",
-  borderRadius: "16px",
+  transition: `background ${vars.motion.duration.instant}`,
   selectors: {
+    "&:hover": { background: SURFACE.weakFill },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
+    // 앱 웹뷰는 목록 행(FR-9) — 높이를 내용에 맡긴다
+    [IN_APP_WEBVIEW]: { minHeight: 0 },
   },
 });
 
-export const head = style({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "8px",
-});
+export const head = style({ display: "flex", alignItems: "center", gap: vars.space.sm });
 
-export const values = style({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: "12px",
-  marginTop: "12px",
-});
-
-/** 값 — 고정폭 숫자 · 굵게(`screen-desktop.md` §2). dd 기본 들여쓰기를 걷는다 */
-export const value = style({
+export const title = style({
+  flex: 1,
   margin: 0,
-  fontVariantNumeric: "tabular-nums",
-  fontWeight: 600,
+  fontSize: vars.deskType.section.fontSize,
+  lineHeight: vars.deskType.section.lineHeight,
+  fontWeight: vars.deskType.section.fontWeight,
+  color: vars.colors.desk.text1,
 });
 
-/** 값 아래 한 줄(`note`) — 서버가 붙인 문장 */
-export const note = style({ marginTop: "8px" });
+export const values = style({ display: "flex", flexDirection: "column", gap: vars.space.sm, margin: 0 });
+
+/** 주인공 값 — 라벨(12/500 · 2단) 위, 값 18/700 아래 */
+export const hero = style({ display: "flex", flexDirection: "column", gap: "2px" });
+
+/** 보조 값 — 라벨 · 값을 한 줄에 붙인다(13/600) */
+export const sub = style({ display: "flex", alignItems: "baseline", gap: vars.space.sm });
+
+export const label = style({
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});
+
+export const heroValue = style({
+  margin: 0,
+  fontSize: vars.deskType.title.fontSize,
+  lineHeight: vars.deskType.title.lineHeight,
+  fontWeight: vars.deskType.title.fontWeight,
+  color: vars.colors.desk.text1,
+  fontVariantNumeric: "tabular-nums",
+});
+
+/** 비어 있는 카드(`state: "empty"`)의 값 — "아직 없어요"를 주인공 숫자처럼 크게 쓰지 않는다(`FE-REQ-048` FR-2 · 0 과 없음 구분) */
+export const emptyValue = style({
+  margin: 0,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text2,
+});
+
+export const subValue = style({
+  margin: 0,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text1,
+  fontVariantNumeric: "tabular-nums",
+});
+
+/** 값 아래 한 줄 — 서버가 붙인 문장 · 받지 못한 카드의 안내 */
+export const note = style({
+  margin: 0,
+  marginTop: "auto",
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});
