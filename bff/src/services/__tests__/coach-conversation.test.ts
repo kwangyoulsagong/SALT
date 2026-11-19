@@ -168,3 +168,42 @@ describe("추천 카드(2단계 · BFF-REQ-027 FR-3 · 42 · BFF-REQ-028 FR-3 ·
     assert.equal(view.card?.renderable, true);
   });
 });
+
+describe("메시지 목록 — 커서 · 보관 한도(BFF-REQ-028 · 2026-11-19)", () => {
+  const CONV = "3ebf1065-81c3-466d-867a-49c3b445d3a9";
+  afterEach(() => mock.restoreAll());
+
+  it("틀린 커서는 버리지 않고 400 — 버리면 첫 쪽이 다시 와 화면이 같은 쪽을 끝없이 붙였다", async () => {
+    const call = mock.method(backendApi, "proxyAuthRequest", async () => ({ data: { data: { items: [], nextCursor: null } } }) as never);
+    for (const cursor of ["qa049-1-abc", "not-a-uuid", 42]) {
+      await assert.rejects(coachConversationService.listMessages("t", CONV, { cursor }), (error: { statusCode?: number; code?: string }) =>
+        error.statusCode === 400 && error.code === "INVALID_CURSOR");
+    }
+    assert.equal(call.mock.callCount(), 0);
+  });
+
+  it("커서가 없거나 비면 첫 쪽 · 맞는 커서는 그대로 서버로", async () => {
+    const call = mock.method(backendApi, "proxyAuthRequest", async () => ({ data: { data: { items: [], nextCursor: null } } }) as never);
+    await coachConversationService.listMessages("t", CONV, {});
+    await coachConversationService.listMessages("t", CONV, { cursor: "" });
+    await coachConversationService.listMessages("t", CONV, { cursor: CONV });
+    const paths = call.mock.calls.map((c) => c.arguments[1]);
+    assert.deepEqual(paths, [
+      `/coach/conversations/${CONV}/messages`,
+      `/coach/conversations/${CONV}/messages`,
+      `/coach/conversations/${CONV}/messages?cursor=${CONV}`,
+    ]);
+  });
+
+  it("보관 한도는 양의 정수 둘일 때만 옮기고, 아니면 null", async () => {
+    const reply = (keep: unknown) =>
+      mock.method(backendApi, "proxyAuthRequest", async () => ({ data: { data: { items: [], nextCursor: null, keep } } }) as never);
+    reply({ questions: 100, days: 90 });
+    assert.deepEqual((await coachConversationService.listMessages("t", CONV, {})).keep, { questions: 100, days: 90 });
+    for (const bad of [undefined, null, { questions: 0, days: 90 }, { questions: "100", days: 90 }, { questions: 1.5, days: 90 }, []]) {
+      mock.restoreAll();
+      reply(bad);
+      assert.equal((await coachConversationService.listMessages("t", CONV, {})).keep, null);
+    }
+  });
+});
