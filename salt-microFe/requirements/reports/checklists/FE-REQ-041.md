@@ -531,3 +531,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 실기기 | 설치 Chrome · 앱 웹뷰 UA 까지 | 앱 착수(`RN-REQ-001`) |
+
+## 2026-11-19 — `FE-REQ-049` 상세 재설계 걸침
+
+- `FE-REQ-049` 상세 재설계가 걸침 — 국내 상세가 알약 탭(개요 · 호가 · 투자자 · 소식 · 일정) + 오른쪽 고정 열(내 거래)로. 호가 현재가 행 = 옅은 면 + 가격 굵게 · 3열 상한 520, 패널 면 `detailPanel`
+- 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
+- 미검증: 없음(이 REQ 몫)

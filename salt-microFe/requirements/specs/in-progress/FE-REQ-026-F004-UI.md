@@ -444,3 +444,4 @@ PC                                                   모바일(세로 스택)
 | 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — `JudgmentDetail.tsx`(머리 주인) `showTrack`(기본 켬) — 패널이 성적을 그리는 자리에서 끈다(같은 숫자 두 번 금지). 동작 변경은 그 자리뿐 |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 상세 분석 4블록 + 펼침으로 다시 짬 — 판단 카드 · 단타/장기 스위치(`?mode=`) · 구간 선 · 띠 · 범례 · 하단 고정 면책을 뺐고, 차트 위 선은 틀리는 선 하나(`invalidationToPriceLines`). 미리보기도 원인 · 틀리는 선 · 시나리오 한 칸으로(F017 v4 순서 6 · `FE-REQ-064` FR-12). FR-111 의 모드 주소는 기간 탭 `?horizon=` 이 대신 |
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `run-preflight` `PreflightCard.tsx` — 좁은 화면 훅 `useNarrowViewport` 를 `@repo/web-shared/lib` 로 내림(거래 시트가 두 번째 소비처). 동작 무변경 — 390 상세에서 시트 열림 실측 |
+| 2026-11-19 | `FE-REQ-049` 상세 재설계가 걸침 — 상세 머리(`SymbolHeader`)를 2줄(88px)로 · 범위 막대 컴포넌트 · 주문 전 체크 해시 링크는 그대로(1280 미만은 "내 거래" 탭을 연 뒤 같은 카드) |

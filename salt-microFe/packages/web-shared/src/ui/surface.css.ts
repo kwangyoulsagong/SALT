@@ -83,3 +83,54 @@ export const backLink = style({
   textDecoration: "none",
   ":hover": { color: vars.colors.neutral[800] },
 });
+
+/* ── 종목 상세 패널(`FE-REQ-049` FR-3, `screen-desktop.md` §1 "상세 패널") ─────────────── */
+
+/**
+ * 상세 패널 — 흰 면 · 모서리 16 · 안쪽 1px 선. 머리 줄이 위 여백을 대신한다(머리 44 + 본문 · 아래 20).
+ * 코인 · 국내 상세 · 호가 · 투자자 · 소식 · 내 거래가 같은 패널이다 — 두 상세가 다른 화면처럼 보이지 않게(B5)
+ */
+export const detailPanel = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  padding: "0 20px 20px",
+  borderRadius: SURFACE.panelRadius,
+  background: vars.colors.background.white,
+  boxShadow: SURFACE.hairline,
+  minWidth: 0,
+  ...enterReveal,
+  "@media": { [NARROW]: { padding: "0 16px 16px" }, ...enterReveal["@media"] },
+});
+
+/** 패널 머리 — 높이 44 · 제목 왼쪽 · 메타 오른쪽 */
+export const detailPanelHead = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: vars.space.sm,
+  minHeight: "44px",
+  margin: 0,
+});
+
+/** 패널 제목 13/600 1단 */
+export const detailPanelTitle = style({
+  margin: 0,
+  color: vars.colors.desk.text1,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+});
+
+/** 패널 메타(기준 시각 · 출처) 12/500 2단(3단은 글자에 쓰지 않는다 — `screen-desktop.md` §2) */
+export const detailPanelMeta = style({
+  margin: 0,
+  color: vars.colors.desk.text2,
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  fontVariantNumeric: "tabular-nums",
+});
+
+/** 머리 줄 없이 내용이 맨 위에서 시작하는 상세 패널(한 장 패널 — 자기 머리를 갖는다) — 위 여백 16 */
+export const detailPanelTop = style({ paddingTop: "16px" });

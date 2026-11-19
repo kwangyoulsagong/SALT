@@ -184,3 +184,4 @@ in-progress 로 남긴 사유는 수용 기준 마지막 한 줄(병합 · 파�
 | 2026-10-30 | F004 슬라이스 19 차트 1주 탭 — 기간 표에 `1w`(서버 주봉). 엔진 · 정규화 무변경(일봉과 같은 `date` 키 · `intraday=false`). 1주는 실시간 봉 없음 → FR-64 "실시간 아님". Open Questions 주봉 줄 갱신. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 마지막 수용 기준(병합 · 파싱 상시 테스트)은 `candleTime.test.ts` vitest 11 로 이미 충족 · 체크리스트 §5 첫 페인트는 `FE-REQ-029` 로 범위 이동 · 판단 화면 조건은 v2 로 대체. 코드 변경 0. 남은 FR 없음 → in-progress → **done** |
+| 2026-11-19 | `FE-REQ-049` 상세 재설계가 걸침 — 차트 확대 · 축소 · 되돌리기 버튼 폭 30 → 32(FR-10). 높이 28 은 기간 칩과 한 줄 |

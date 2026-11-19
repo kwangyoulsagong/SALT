@@ -52,7 +52,8 @@ export const asOf = style([label, { marginLeft: "auto", fontVariantNumeric: "tab
 
 // ==================== 부채꼴 ====================
 
-export const fan = style({ display: "block", width: "100%", height: "auto" });
+/** 부채꼴 — 그림 판 360 이 글자 12 의 원래 크기다. 넓은 칸에서 늘리면 글자까지 커진다(`FE-REQ-049` — 패널이 왼쪽 넓은 칸으로 옮겨 오며) */
+export const fan = style({ display: "block", width: "100%", maxWidth: "360px", height: "auto" });
 export const fanText = style({ fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } }, fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums" });
 
 // ==================== 줄 ====================

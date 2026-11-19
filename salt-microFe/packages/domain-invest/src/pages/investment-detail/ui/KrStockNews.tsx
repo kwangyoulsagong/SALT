@@ -15,7 +15,7 @@ import {
 
 import { caption, heading } from "./KrInvestorFlows.css";
 import { newsList } from "./KrStockNews.css";
-import { krSideCard } from "./SymbolHeader.css";
+import { detailPanel } from "@repo/web-shared/ui/surface.css";
 
 const M = KR_STOCK_MESSAGES.news;
 
@@ -35,7 +35,7 @@ export const KrStockNews = ({ code }: { code: string }) => {
   const open = views.find((v) => v.id === modal.openId) ?? null;
 
   return (
-    <section className={krSideCard} aria-labelledby="kr-stock-news-heading">
+    <section className={detailPanel} aria-labelledby="kr-stock-news-heading">
       <h2 id="kr-stock-news-heading" className={heading}>
         {data.status === "ok" && data.scope === "recent" ? M.recentHeading : M.heading}
       </h2>

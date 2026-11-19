@@ -6,34 +6,10 @@ import { PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@repo/web-shared/lib";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
+import { actions, chip, code, head, headButton, headRow, name as nameStyle, nameRow, side, stat, statLabel, stats, statValue } from "./DetailHead.css";
 import { HeaderWatchlistStar } from "./HeaderWatchlistStar";
 import { LivePriceRow } from "./LivePriceRow";
-import {
-  headerCard,
-  identity,
-  name as nameStyle,
-  nameRow,
-  preflightLink,
-  rangeDot,
-  rangeTrack,
-  stat,
-  statLabel,
-  stats,
-  statsRow,
-  statValue,
-  ticker,
-} from "./SymbolHeader.css";
-
-/**
- * 저가~고가 사이에서 현재가가 앉는 위치(%). 폭이 0 이면(고가 = 저가) 가운데 둔다 —
- * 0 으로 나누지 않는다. 금액이 아니라 표시 기하다.
- */
-const rangePosition = (listing: MarketOverviewItem): number => {
-  const span = listing.high24h - listing.low24h;
-  if (span <= 0) return 50;
-  const ratio = (listing.currentPrice - listing.low24h) / span;
-  return Math.min(Math.max(ratio, 0), 1) * 100;
-};
+import { RangeBar } from "./RangeBar";
 
 interface SymbolHeaderProps {
   symbol: string;
@@ -42,64 +18,58 @@ interface SymbolHeaderProps {
 }
 
 /**
- * 종목 머리 (`FE-REQ-026` FR-131) — **서버 컴포넌트다. 브라우저 JS 가 0 이다.**
+ * 코인 상세 머리 2줄(`FE-REQ-049` FR-1 · `FE-REQ-026` FR-131) — **서버 컴포넌트다. 브라우저 JS 가 0 이다.**
  *
- * ## 왜 서버인가
+ * 1줄 로고 · 이름 · 코드 · 시장 칩 · 관심 별 / 2줄 가격 · 24시간 등락. 오른쪽 범위 막대(24시간) · 거래대금 · 시세 기준 · [주문 전 체크].
+ * 코인 응답엔 52주 고저가 없어 범위 막대는 하나다(계약 변경 없음 — FR-1 · 체크리스트). 통계가 넷보다 적어 [더 보기] 도 없다.
  *
- * 1. SEO — 크롤러가 받는 HTML 에 종목 이름 · 가격 · 지표가 있어야 한다. 본문(차트 · 판단)은 토큰 ·
- *    캔버스 때문에 브라우저 전용이다.
- * 2. 번들 — 클라이언트로 두었더니 `entities/market` 배럴을 따라 미리보기 패널(visx) · 차트 로더가
- *    첫 로드에 딸려 와 110 → 161 kB 가 됐다(2026-09-23 빌드 실측).
- *
- * 잃은 것: 코치 판단에서 오던 "심리 온도" 칸. 클라이언트 잎은 둘이다 — 가격 줄(`LivePriceRow`, WS 실시간.
- * 서버 값으로 먼저 그린다)과 관심 별(`HeaderWatchlistStar`, 지연 로딩). 24시간 고저 · 거래대금은 서버 값 그대로다.
- *
- * 이름은 한 줄 위 작게, 가격은 그 아래 크게 — 이 화면에서 사람이 먼저 찾는 것은 가격이다.
+ * 왜 서버인가: SEO(크롤러가 받는 HTML 에 이름 · 가격 · 지표) · 번들(클라이언트로 두면 `entities/market` 배럴이 미리보기 · 차트 로더를
+ * 끌고 와 110 → 161 kB, 2026-09-23 실측). 클라이언트 잎은 가격 줄(`LivePriceRow`, WS)과 관심 별(`HeaderWatchlistStar`, 지연 로딩)뿐.
  * 시세 기준 시각은 서울 시각으로 고정한다 — 서버 타임존이 무엇이든 같은 글자가 나온다.
  */
 export const SymbolHeader = ({ symbol, listing }: SymbolHeaderProps) => {
   const displayName = listing?.koreanName ?? symbol;
 
   return (
-    <>
-      <header className={headerCard}>
-        <div className={identity}>
-          <div className={nameRow}>
-            <AssetIcon
-              symbol={symbol}
-              src={listing?.logoUrl || undefined}
-              name={displayName}
-              size="md"
-            />
-            <h1 className={nameStyle}>{displayName}</h1>
-            <span className={ticker}>{symbol.toUpperCase()}</span>
-          </div>
-
-          <LivePriceRow
-            symbol={symbol}
-            name={displayName}
-            logoUrl={listing?.logoUrl || null}
-            initialPrice={listing?.currentPrice ?? null}
-            initialChange24h={listing?.change24h ?? null}
-          />
+    <header className={head}>
+      <div className={headRow}>
+        <div className={nameRow}>
+          <AssetIcon symbol={symbol} src={listing?.logoUrl || undefined} name={displayName} size="sm" />
+          <h1 className={nameStyle}>{displayName}</h1>
+          <span className={code}>{symbol.toUpperCase()}</span>
+          <span className={chip}>{MESSAGES.marketCrypto}</span>
+          <HeaderWatchlistStar symbol={symbol} displayName={displayName} />
         </div>
+        <div className={actions}>
+          {/*
+            주문 전 체크(FR-131 · FR-155) — 해시 링크 하나라 머리에 JS 가 늘지 않는다. 넓은 화면은 오른쪽 고정 열의 카드로 스크롤 + 포커스,
+            1280 미만은 "내 거래" 탭을 연 뒤 같은 카드로(`DetailTabs`), 좁은 폭은 시트(`features/run-preflight`). 주문 버튼이 아니다
+          */}
+          <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={headButton}>
+            <ShieldCheck size={16} aria-hidden="true" />
+            {MESSAGES.preflight}
+          </a>
+        </div>
+      </div>
 
-        <div className={statsRow}>
-          {listing && (
+      <div className={headRow}>
+        <LivePriceRow
+          symbol={symbol}
+          name={displayName}
+          logoUrl={listing?.logoUrl || null}
+          initialPrice={listing?.currentPrice ?? null}
+          initialChange24h={listing?.change24h ?? null}
+        />
+        {listing && (
+          <div className={side}>
+            <RangeBar
+              label={MESSAGES.statRange}
+              low={listing.low24h}
+              high={listing.high24h}
+              current={listing.currentPrice}
+              srText={MESSAGES.rangeSr(MESSAGES.statRange, formatPrice(listing.low24h), formatPrice(listing.high24h))}
+            />
             <dl className={stats}>
-              <div className={stat}>
-                <dt className={statLabel}>{MESSAGES.statRange}</dt>
-                <dd className={statValue}>
-                  {`${formatPrice(listing.low24h)} ~ ${formatPrice(listing.high24h)}`}
-                  <div className={rangeTrack}>
-                    <span
-                      className={rangeDot}
-                      style={{ left: `${rangePosition(listing)}%` }}
-                      aria-hidden
-                    />
-                  </div>
-                </dd>
-              </div>
               <div className={stat}>
                 <dt className={statLabel}>{MESSAGES.statTradeValue}</dt>
                 <dd className={statValue}>{formatKrwCompact(listing.tradeValue24h)}</dd>
@@ -107,25 +77,14 @@ export const SymbolHeader = ({ symbol, listing }: SymbolHeaderProps) => {
               {listing.priceUpdatedAt && (
                 <div className={stat}>
                   <dt className={statLabel}>{MESSAGES.statUpdatedAt}</dt>
-                  <dd className={statValue}>
-                    {formatSeoulClockTime(new Date(listing.priceUpdatedAt))}
-                  </dd>
+                  <dd className={statValue}>{formatSeoulClockTime(new Date(listing.priceUpdatedAt))}</dd>
                 </div>
               )}
             </dl>
-          )}
-          <HeaderWatchlistStar symbol={symbol} displayName={displayName} />
-          {/*
-            주문 전 체크(FR-131 · FR-155) — 해시 링크 하나라 머리에 JS 가 늘지 않는다. 넓은 화면은 카드로 스크롤 + 포커스,
-            좁은 폭은 본문의 카드가 누름을 받아 바텀시트를 연다(`features/run-preflight`). 주문 버튼이 아니다
-          */}
-          <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={preflightLink}>
-            <ShieldCheck size={16} aria-hidden="true" />
-            {MESSAGES.preflight}
-          </a>
-        </div>
-      </header>
-    </>
+          </div>
+        )}
+      </div>
+    </header>
   );
 };
 

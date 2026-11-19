@@ -102,3 +102,9 @@
 ## 2026-11-19 `PageFrame surface`
 
 - 첫 소비처 시세 목록 — 1440 실화면 확인(`FE-REQ-026` 같은 날 절)
+
+## 2026-11-19 — `FE-REQ-049` 상세 재설계 걸침
+
+- `FE-REQ-049` 가 이 REQ 틀 위에 상세를 놓음 — `Tabs variant="pill"`(FR 표 "알약 탭(상세)" 값) · `PageFrame` `headMaxWidth`(가운데 단 화면 제목 맞춤) · 글자 크기 래칫 투자 62 → 54
+- 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
+- 미검증: 없음(이 REQ 몫)

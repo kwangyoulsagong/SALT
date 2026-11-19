@@ -1,177 +1,28 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
-
 /**
- * 상세 분석 화면.
- *
- * ## 무엇을 참고했고 무엇을 따르지 않았나 (2026-09-23)
- *
- * 사용자가 준 증권 상세 화면의 **층 구조**를 따랐다: 종목 줄 → **큰 가격 + 등락** →
- * 요약 지표 묶음 → 카드 패널 격자 → 하단 고정 유의사항. 전에는 이름과 가격이 같은 줄에서
- * 같은 크기로 경쟁했고(`Heading level=2` 옆에 가격), 지표가 아예 없었다.
- *
- * **따르지 않은 것은 섹션 탭이다.** 참고 화면은 패널이 열 개 가까워 탭으로 나눈다. 우리는
- * 블록이 넷(차트 · 판단 · 해설 · 수익 플랜)이라 탭을 두면 스크롤 대신 클릭이 늘고, 판단과
- * 근거가 다른 탭으로 갈라진다 — **근거 3종이 판단과 같은 화면에 있어야 한다**(공통 수용 기준 1).
- *
- * 카드는 테두리 대신 **흰 면 + 옅은 그림자**다. 회색 배경 위에서 테두리까지 그으면 선이
- * 두 겹으로 보인다.
+ * 코인 상세 본문(`FE-REQ-049`) — 틀(알약 탭 · 고정 열)은 `@repo/web-shared/ui` `DetailTabs`, 패널 면은 `detailPanel`.
+ * 여기는 내 거래 패널 안 칸 가르기만 둔다
  */
 
-/** 이 폭 이하는 세로 한 줄이다 (`FE-REQ-026` FR-120 과 같은 경계). */
-const STACK_BREAKPOINT = "1024px";
-const NARROW = "screen and (max-width: 640px)";
-const SIDE_WIDTH = "380px";
-const CARD_RADIUS = SURFACE.panelRadius;
-/**
- * 카드 그림자. 토큰의 `elevation.sm` 은 흰 배경을 전제해서 옅은 회색 배경 위에서는
- * 거의 보이지 않았다 — 카드 경계가 사라져 화면이 한 장처럼 보였다. 가까운 그림자로 윤곽을
- * 만들고 먼 그림자로 살짝 띄운다.
- */
-const CARD_SHADOW = SURFACE.hairline;
-
-export const layout = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  minWidth: 0,
-  paddingTop: "8px",
-  paddingBottom: "24px",
-});
-
-/* ── 패널 격자 ──────────────────────────────────────────────── */
-
-/**
- * 4블록(F017 v4 순서 6 · `FE-REQ-064` FR-12 · 시안 "PC · 종목 상세"): 왼쪽 차트 → 내 거래 → 펼침, 오른쪽 한 장 패널(세 줄을 걸친다).
- * 한 열(1024 이하 · 앱 웹뷰)에서는 차트 → 패널 → 내 거래 → 펼침 — 패널이 내 거래보다 먼저 읽힌다
- */
-export const grid = style({
-  display: "grid",
-  gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`,
-  gridTemplateRows: "auto auto 1fr",
-  gridTemplateAreas: `"chart panel" "trade panel" "more panel"`,
-  gap: "16px",
-  alignItems: "start",
-  "@media": {
-    [`screen and (max-width: ${STACK_BREAKPOINT})`]: {
-      gridTemplateColumns: "minmax(0, 1fr)",
-      gridTemplateRows: "auto",
-      gridTemplateAreas: `"chart" "panel" "trade" "more"`,
-    },
-  },
-});
-
-export const area = {
-  chart: style({ gridArea: "chart", minWidth: 0 }),
-  panel: style({ gridArea: "panel", minWidth: 0 }),
-  trade: style({ gridArea: "trade", minWidth: 0 }),
-  more: style({ gridArea: "more", minWidth: 0 }),
-};
-
-export const column = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  minWidth: 0,
-});
-
-export const card = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  padding: "20px 24px 24px",
-  borderRadius: CARD_RADIUS,
-  background: vars.colors.background.white,
-  boxShadow: CARD_SHADOW,
-  minWidth: 0,
-  "@media": {
-    [NARROW]: { padding: "16px 16px 20px" },
-  },
-});
-
-/** 패널 제목 줄. 제목 18/24 bold — 카드 안에서 내용보다 크지 않게 */
-export const cardHead = style({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: vars.space.sm,
-  minHeight: "28px",
-});
-
-export const cardTitle = style({
-  fontSize: "18px",
-  lineHeight: "24px",
-  fontWeight: vars.fontWeights.bold,
-  color: vars.colors.text.primary,
-  margin: 0,
-});
-
-/* ── 자세히(소유자 카드 접기, F010 슬라이스 3) ────────────────── */
-
-/**
- * 시나리오 · 주요 사건 · 쏠림을 접는 자리(리서치 §9-4 ⑤). 네이티브 `<details>` 다 — 키보드 · 스크린리더가 펼침 상태를
- * 그대로 안다. 펼치면 안의 카드들이 원래 카드 모양 그대로 이어진다
- */
-export const more = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  minWidth: 0,
-});
-
-export const moreSummary = style([
-  card,
-  {
-    flexDirection: "row",
-    alignItems: "center",
-    cursor: "pointer",
-    fontSize: "15px",
-    lineHeight: "22px",
-    fontWeight: vars.fontWeights.semibold,
-    color: vars.colors.text.primary,
-    ":hover": { background: vars.colors.neutral[50] },
-    selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
-  },
-]);
-
-/** neutral 600 은 4.41:1 로 AA 미달(2026-09-29 axe) — 700 */
-export const moreHint = style({
-  marginLeft: "auto",
-  flexShrink: 0,
-  whiteSpace: "nowrap",
-  color: vars.colors.neutral[700],
-  fontSize: "13px",
-  lineHeight: "20px",
-  fontWeight: vars.fontWeights.medium,
-});
-
-export const moreBody = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  marginTop: "16px",
-});
-
-/* ── 내 거래 한 칸(F017 v4 순서 6) ─────────────────────────────── */
-
-/** 내 거래 블록 안의 칸 — 계획(내 선) · 주문 전 체크 · 거래 기록이 카드 셋이 아니라 한 카드 안 칸이 된다(선으로 가른다) */
+/** 내 거래 패널 안의 칸 — 주문 전 체크 · 계획(내 선) · 거래 기록이 카드 셋이 아니라 한 패널 안 칸이 된다(선으로 가른다) */
 export const tradeCell = style({
   display: "flex",
   flexDirection: "column",
   gap: "12px",
   minWidth: 0,
-  paddingTop: "16px",
-  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+  selectors: {
+    "& + &": { paddingTop: "16px", borderTop: `1px solid ${vars.colors.neutral[100]}` },
+  },
 });
 
 /** 칸 안 접힘(익절 플랜) — 제목 줄만 누름 */
 export const foldSummary = style({
   cursor: "pointer",
-  fontSize: "14px",
-  lineHeight: "20px",
-  fontWeight: vars.fontWeights.semibold,
-  color: vars.colors.text.primary,
-  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text1,
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px" } },
 });

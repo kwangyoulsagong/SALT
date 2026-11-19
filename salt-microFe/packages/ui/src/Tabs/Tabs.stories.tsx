@@ -572,3 +572,18 @@ export const EmptyTabs: Story = {
     tabs: [],
   },
 };
+
+/** 종목 상세 알약 탭 — 모서리 999 · 8×12 · 선택 = 옅은 면(`screen-desktop.md` §3). 화살표 · Home · End 로 옮긴다 */
+export const Pill: Story = {
+  args: {
+    variant: "pill",
+    label: "상세 보기",
+    tabs: [
+      { id: "overview", label: "개요" },
+      { id: "orderbook", label: "호가" },
+      { id: "investors", label: "투자자" },
+      { id: "news", label: "소식 · 일정" },
+    ],
+    defaultActiveTab: "overview",
+  },
+};

@@ -16,48 +16,49 @@ import {
   KrStockChart,
   useKrDetail,
   useKrDetailRealtime,
+  WatchlistAssetType,
 } from "@/entities/market";
 import { invalidationToPriceLines, useCoachPanel } from "@/entities/coach";
 import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
 import { usePanelHorizonParam } from "@/features/switch-coach-mode";
-
-import { KrEvents } from "./KrEvents";
-import { KrScenario } from "./KrScenario";
-import { KrInvestorFlows } from "./KrInvestorFlows";
-import { KrOrderbook } from "./KrOrderbook";
-import { KrStockNews } from "./KrStockNews";
-import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
 import { hasApiStatus } from "@repo/web-shared/api";
-import { SignInRequired } from "@repo/web-shared/ui";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
+import { type DetailTab, DetailTabs, SignInRequired } from "@repo/web-shared/ui";
+import { detailPanel, detailPanelHead, detailPanelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT, INVESTMENT_DETAIL_PAGE_MESSAGES } from "../model";
+import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
+import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT, INVESTMENT_DETAIL_PAGE_MESSAGES as P } from "../model";
 import {
-  afterHoursLine,
-  headerCard,
-  identity,
-  krArea,
-  krBlockTitle,
-  krGrid,
-  krMoreBody,
-  krMoreHint,
-  krMoreSummary,
-  krSideCard,
-  krTradeCell,
+  changeText,
+  chip,
+  code as codeStyle,
+  actions,
+  head,
+  headButton,
+  headRow,
   name as nameStyle,
   nameRow,
-  preflightLink,
+  noteLine,
+  notes,
   price as priceStyle,
   priceRow,
-  gridStat,
+  side,
+  stat,
   statLabel,
-  statsGrid,
-  statsRow,
+  stats,
   statValue,
-  ticker,
-} from "./SymbolHeader.css";
+} from "./DetailHead.css";
+import { HeaderWatchlistStar } from "./HeaderWatchlistStar";
+import { KrEvents } from "./KrEvents";
+import { KrInvestorFlows } from "./KrInvestorFlows";
+import { KrOrderbook } from "./KrOrderbook";
+import { KrScenario } from "./KrScenario";
+import { KrStockNews } from "./KrStockNews";
+import { RangeBar } from "./RangeBar";
+import { StatsMore } from "./StatsMore";
+import { tradeCell } from "./KrStockDetail.css";
 
 const won = (value: number | null) => (value === null ? M.priceUnknown : `${formatPrice(value)}원`);
 const ratio = (value: number | null, suffix = "") =>
@@ -70,15 +71,15 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
 };
 
 /**
- * 국내 주식 상세(F011 `FE-REQ-041` FR-42 · 43 · 44 · 46) — **클라이언트 잎.** 코인 상세와 달리 머리를 서버에서 그리지 않는다:
- * ~~시세가 소유자 전용이라~~(2026-11-10 공개 — `ADR-011`) 클라이언트 조회 그대로 — 서버 렌더 · 색인은 `FEATURE-018` OQ2(색인이 필요할 때)
- * (KRX 재배포 약관 — F011 §정책).
- * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 그래도 국내 시세는 약관상 서버 HTML 에 넣지 않으므로 클라이언트에 남는다 — FR-81 대상 아님)
+ * 국내 주식 상세(F011 `FE-REQ-041` FR-42 · 43 · 44 · 46 · `FE-REQ-049`) — **클라이언트 잎.** 국내 시세는 약관상 서버 HTML 에 넣지 않는다
+ * (KRX 재배포 약관 — F011 §정책 · 2026-11-10 공개 뒤에도 서버 렌더 · 색인은 `FEATURE-018` OQ2). 머리도 마찬가지.
  *
- * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
- * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4).
- * **4블록 + 펼침**(F017 v4 순서 6 · `FE-REQ-064` FR-12): 가격 줄(머리) · 차트(틀리는 선) · 한 장 패널(`KrScenario` — 판단 · 왜 움직였나 · 성적 · 해설) ·
- * 내 거래(주문 전 체크 · 거래 기록). 호가 · 투자자별 수급 · 소식 목록 · 일정은 펼침. 판단 카드 · 왜 움직였나 카드는 화면에서 뺐다(계산은 서버에 남는다).
+ * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 마지막 체결 일시를 정지 줄로 쓴다(FR-44).
+ *
+ * 배치(`FE-REQ-049`, 사용자 결정 2026-11-19 "합치기"):
+ * - 머리 2줄(코인과 같은 머리) — 핵심 통계 4칸(거래대금 · 시총 · PER · 외국인) + 범위 막대 1일 · 52주 + [더 보기] 에 나머지
+ * - 알약 탭: **개요**(차트 · 한 장 패널 — F017 v4 순서 6 의 4블록 그대로) · 호가 · 투자자 · 소식 · 일정(펼침에 있던 것)
+ * - 오른쪽 고정 열 = 내 거래(주문 전 체크 → 거래 기록). 1280 미만이면 탭 "내 거래"
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const { data, isPending, error } = useKrDetail(code);
@@ -115,125 +116,177 @@ export const KrStockDetail = ({ code }: { code: string }) => {
 
   const { quote, detail, session } = ok;
   const updated = `${kstMonthDay(quote.priceUpdatedAt)} ${kstClock(quote.priceUpdatedAt)}`;
-  const statItems: { label: string; value: string }[] = [
+  // 핵심 4칸(FR-1) — 나머지는 [더 보기]. 고가 · 저가 · 52주 고저는 범위 막대 양 끝이 말하므로 [더 보기] 에 다시 두지 않는다(같은 숫자 두 번 — `screen-desktop.md` §5).
+  // 범위 막대는 값이 없으면 빠진다 — 그때만 [더 보기] 에 남긴다
+  const keyStats = [
+    { label: M.detail.stats.tradeValue, value: formatKrwCompact(quote.tradeValue) },
+    { label: M.detail.stats.marketCap, value: quote.marketCap === null ? M.priceUnknown : formatKrwCompact(quote.marketCap) },
+    { label: M.detail.stats.per, value: ratio(detail.per) },
+    { label: M.detail.stats.foreignRate, value: ratio(detail.foreignRate, "%") },
+  ];
+  const dayRange = quote.lowPrice !== null && quote.highPrice !== null;
+  const week52Range = detail.week52Low !== null && detail.week52High !== null;
+  const moreStats = [
     { label: M.detail.stats.open, value: won(quote.openPrice) },
-    { label: M.detail.stats.high, value: won(quote.highPrice) },
-    { label: M.detail.stats.low, value: won(quote.lowPrice) },
+    ...(dayRange
+      ? []
+      : [
+          { label: M.detail.stats.high, value: won(quote.highPrice) },
+          { label: M.detail.stats.low, value: won(quote.lowPrice) },
+        ]),
+    ...(week52Range
+      ? []
+      : [
+          { label: M.detail.stats.week52High, value: won(detail.week52High) },
+          { label: M.detail.stats.week52Low, value: won(detail.week52Low) },
+        ]),
     { label: M.detail.stats.basePrice, value: won(quote.basePrice) },
     { label: M.detail.stats.upperLimit, value: won(quote.upperLimit) },
     { label: M.detail.stats.lowerLimit, value: won(quote.lowerLimit) },
-    { label: M.detail.stats.tradeValue, value: formatKrwCompact(quote.tradeValue) },
     { label: M.detail.stats.volume, value: BigInt(quote.volume).toLocaleString("ko-KR") },
-    { label: M.detail.stats.marketCap, value: quote.marketCap === null ? M.priceUnknown : formatKrwCompact(quote.marketCap) },
-    { label: M.detail.stats.week52High, value: won(detail.week52High) },
-    { label: M.detail.stats.week52Low, value: won(detail.week52Low) },
-    { label: M.detail.stats.per, value: ratio(detail.per) },
     { label: M.detail.stats.pbr, value: ratio(detail.pbr) },
-    { label: M.detail.stats.foreignRate, value: ratio(detail.foreignRate, "%") },
+    { label: P.statTickSize, value: won(detail.tickSize) },
     { label: M.detail.stats.updatedAt, value: updated },
   ];
+  const stopLine = quote.lastTradeAt
+    ? M.detail.stopped(stopReasonOf(quote), kstClockSeconds(quote.lastTradeAt))
+    : quote.isHalted
+      ? M.detail.haltedNoTrade
+      : null;
+
+  const overview = (
+    <>
+      <section className={detailPanel} aria-labelledby="kr-chart-heading">
+        <div className={detailPanelHead}>
+          <h2 id="kr-chart-heading" className={detailPanelTitle}>
+            {P.chartHeading}
+          </h2>
+        </div>
+        {/* 차트 위 선은 틀리는 선 하나 — 패널 ④ 줄과 같은 기간 탭(관찰 구간 · 범례는 뺐다, F017 v4 순서 6) */}
+        <KrStockChart code={quote.code} displayName={quote.name} priceLines={priceLines} />
+      </section>
+      {/* 한 장 패널 — 판단 · 왜 움직였나 · 성적 · 해설이 이 안(F017 v4 순서 6) */}
+      <KrScenario code={quote.code} />
+    </>
+  );
+
+  const tabs: DetailTab[] = [{ id: "overview", label: P.tabs.overview, content: overview }];
+  // 거래정지면 호가가 없다 — 탭도 없다
+  if (!quote.isHalted) {
+    tabs.push({
+      id: "orderbook",
+      label: P.tabs.orderbook,
+      content: <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />,
+    });
+  }
+  tabs.push(
+    { id: "investors", label: P.tabs.investors, content: <KrInvestorFlows code={quote.code} /> },
+    {
+      id: "news",
+      label: P.tabs.newsEvents,
+      content: (
+        <>
+          <KrStockNews code={quote.code} />
+          <KrEvents code={quote.code} />
+        </>
+      ),
+    },
+  );
+
+  // 내 거래 — 주문 전 체크 → 거래 기록(국내 판단은 기간 탭이 고른 모드)
+  const trade = (
+    <section className={detailPanel} aria-labelledby="kr-my-trade-heading">
+      <div className={detailPanelHead}>
+        <h2 id="kr-my-trade-heading" className={detailPanelTitle}>
+          {P.tradeHeading}
+        </h2>
+      </div>
+      <SignInRequired what={P.guestWhat.preflight} minHeight={120}>
+        <PreflightCard className={tradeCell} symbol={quote.code} mode={preflightMode} livePrice={quote.price} />
+      </SignInRequired>
+      {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
+      <SignInRequired what={P.guestWhat.record} minHeight={120}>
+        <RecordTradeCard className={tradeCell} symbol={quote.code} assetType="kr_stock" tickSize={detail.tickSize} livePrice={quote.price} />
+      </SignInRequired>
+    </section>
+  );
 
   return (
     <>
-      <header className={headerCard}>
-        <div className={identity}>
+      <header className={head}>
+        <div className={headRow}>
           <div className={nameRow}>
-            {/* 로고는 서버가 판정한 logo.dev 주소, 없으면 이름 이니셜(FR-47) */}
-            <AssetIcon symbol={quote.name} src={quote.logoUrl ?? undefined} name={quote.name} size="md" />
+            {/* 로고는 서버가 판정한 주소, 없으면 이름 이니셜(FR-47) */}
+            <AssetIcon symbol={quote.name} src={quote.logoUrl ?? undefined} name={quote.name} size="sm" />
             <h1 className={nameStyle}>{quote.name}</h1>
-            <span className={ticker}>
-              {quote.code} · {M.markets[quote.market]}
-            </span>
-          </div>
-          <div className={priceRow}>
-            <span className={priceStyle}>{`${formatPrice(quote.price)}원`}</span>
-            <KrChangeText rate={quote.changeRate} amount={quote.change} />
+            <span className={codeStyle}>{quote.code}</span>
+            <span className={chip}>{M.markets[quote.market]}</span>
+            <HeaderWatchlistStar symbol={quote.code} displayName={quote.name} assetType={WatchlistAssetType.KrStock} />
             {/* 마지막 체결은 아래 정지 줄이 말한다 — 칩에서 두 번 쓰지 않는다 */}
             <KrQuoteBadges quote={quote} session={session} showLastTrade={false} />
           </div>
-          {/* 시간외 단일가(슬라이스 6b) — 정규장 현재가와 섞지 않고 따로 한 줄. 정규장이 열리면 서버가 null 로 준다 */}
+          <div className={actions}>
+            <StatsMore label={P.statsMore} items={moreStats} />
+            {/* 주문 전 체크 — 코인 머리와 같은 해시 링크(FR-131). 카드가 누름을 받아 스크롤 · 포커스 또는 시트, 좁으면 탭이 먼저 열린다 */}
+            <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={headButton}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              {P.preflight}
+            </a>
+          </div>
+        </div>
+        <div className={headRow}>
+          <div className={priceRow}>
+            <span className={priceStyle}>{`${formatPrice(quote.price)}원`}</span>
+            <span className={changeText}>
+              <KrChangeText rate={quote.changeRate} amount={quote.change} />
+            </span>
+            <KrSessionLine session={session} />
+          </div>
+          <div className={side}>
+            {dayRange && quote.lowPrice !== null && quote.highPrice !== null && (
+              <RangeBar
+                label={P.statDayRange}
+                low={quote.lowPrice}
+                high={quote.highPrice}
+                current={quote.price}
+                srText={P.rangeSr(P.statDayRange, formatPrice(quote.lowPrice), formatPrice(quote.highPrice))}
+              />
+            )}
+            {week52Range && detail.week52Low !== null && detail.week52High !== null && (
+              <RangeBar
+                label={P.statWeek52Range}
+                low={detail.week52Low}
+                high={detail.week52High}
+                current={quote.price}
+                srText={P.rangeSr(P.statWeek52Range, formatPrice(detail.week52Low), formatPrice(detail.week52High))}
+              />
+            )}
+            <dl className={stats}>
+              {keyStats.map((item) => (
+                <div key={item.label} className={stat}>
+                  <dt className={statLabel}>{item.label}</dt>
+                  <dd className={statValue}>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </header>
+      {/* 덧줄 — 시간외 단일가(정규장 현재가와 섞지 않는다) · 시장 조치 띠 · 정지 줄. 있을 때만 */}
+      {(quote.afterHours || ok.marketActions.length > 0 || stopLine) && (
+        <div className={notes}>
           {quote.afterHours && (
-            <p className={afterHoursLine}>
+            <p className={noteLine}>
               {`${M.afterHours.label} ${formatPrice(quote.afterHours.price)}원 `}
               <KrChangeText rate={quote.afterHours.changeRate} amount={quote.afterHours.change} strong />
               {` · ${M.afterHours.asOf(kstClock(quote.afterHours.at))}`}
             </p>
           )}
-          {/* 시장 조치(서킷브레이커 · 사이드카) 띠 — F016 단계 A · FE-REQ-063 FR-2 */}
           <KrMarketActionBanner actions={ok.marketActions} />
-          {quote.lastTradeAt ? (
-            <StatusLine kind="blocked">
-              {M.detail.stopped(stopReasonOf(quote), kstClockSeconds(quote.lastTradeAt))}
-            </StatusLine>
-          ) : (
-            quote.isHalted && <StatusLine kind="blocked">{M.detail.haltedNoTrade}</StatusLine>
-          )}
-          <KrSessionLine session={session} />
-          <p className={statLabel}>{M.detail.tickSize(formatPrice(detail.tickSize))}</p>
+          {stopLine && <StatusLine kind="blocked">{stopLine}</StatusLine>}
         </div>
-        <div className={statsRow}>
-          <dl className={statsGrid}>
-            {statItems.map((item) => (
-              <div key={item.label} className={gridStat}>
-                <dt className={statLabel}>{item.label}</dt>
-                <dd className={statValue}>{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-          {/* 주문 전 체크 — 코인 머리와 같은 해시 링크(FR-131). 카드가 누름을 받아 스크롤 · 포커스 또는 시트를 연다 */}
-          <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={preflightLink}>
-            <ShieldCheck size={16} aria-hidden="true" />
-            {INVESTMENT_DETAIL_PAGE_MESSAGES.preflight}
-          </a>
-        </div>
-      </header>
-      <div className={krGrid}>
-        <section className={`${krSideCard} ${krArea.chart}`}>
-          {/* 차트 위 선은 틀리는 선 하나 — 패널 ④ 줄과 같은 기간 탭(관찰 구간 · 범례는 뺐다, F017 v4 순서 6) */}
-          <KrStockChart code={quote.code} displayName={quote.name} priceLines={priceLines} />
-        </section>
-        {/* 한 장 패널 — 판단 · 왜 움직였나 · 성적 · 해설이 이 안(F017 v4 순서 6 — 판단 카드 · 왜 움직였나 카드는 화면에서 뺐다) */}
-        <div className={krArea.panel}>
-          <KrScenario code={quote.code} />
-        </div>
-        {/* 내 거래 — 주문 전 체크 · 거래 기록을 한 칸으로(국내 판단은 기간 탭이 고른 모드) */}
-        <section className={`${krSideCard} ${krArea.trade}`} aria-labelledby="kr-my-trade-heading">
-          <h2 id="kr-my-trade-heading" className={krBlockTitle}>
-            {INVESTMENT_DETAIL_PAGE_MESSAGES.tradeHeading}
-          </h2>
-          <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.preflight} minHeight={120}>
-            <PreflightCard className={krTradeCell} symbol={quote.code} mode={preflightMode} livePrice={quote.price} />
-          </SignInRequired>
-          {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
-          <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.record} minHeight={120}>
-            <RecordTradeCard
-              className={krTradeCell}
-              symbol={quote.code}
-              assetType="kr_stock"
-              tickSize={detail.tickSize}
-              livePrice={quote.price}
-            />
-          </SignInRequired>
-        </section>
-        {/*
-          펼침 — 호가 · 투자자별 수급 표 · 소식 목록 · 일정(F017 v4 순서 6 · FR-12 "필요할 때만"). 요점(수급 · 소식)은 패널의 원인 칸이 말한다.
-          접힌 동안에도 마운트한다(조회는 그대로) — 펼치는 순간 비어 보이지 않게. 거래정지면 호가가 없다
-        */}
-        <details className={krArea.more}>
-          <summary className={krMoreSummary}>
-            {INVESTMENT_DETAIL_PAGE_MESSAGES.krMoreSummary}
-            <span className={krMoreHint}>{INVESTMENT_DETAIL_PAGE_MESSAGES.moreHint}</span>
-          </summary>
-          <div className={krMoreBody}>
-            {!quote.isHalted && (
-              <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />
-            )}
-            <KrInvestorFlows code={quote.code} />
-            <KrStockNews code={quote.code} />
-            <KrEvents code={quote.code} />
-          </div>
-        </details>
-      </div>
+      )}
+      <DetailTabs label={P.tabsLabel} tabs={tabs} aside={{ id: "trade", label: P.tabs.trade, content: trade }} />
     </>
   );
 };

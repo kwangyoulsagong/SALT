@@ -131,3 +131,8 @@
 ## 2026-11-19 `FE-REQ-048` 데스크톱 홈이 걸침
 
 - 판단은 `FE-REQ-048` 회고 2026-11-19 절 · 루트 `F000-home-desktop-slice.md`
+
+## 2026-11-19 — `FE-REQ-049` 걸침
+
+- `FE-REQ-049` 상세 재설계가 이 REQ 머리 파일(`InvestmentDetailBody`)을 걸침 — 한 장 패널에 상세 패널 면(`detailPanel`)을 끼워 줌. 토큰 · 조회 동작 변화 없음
+- 판단은 `FE-REQ-049` 회고 같은 날 절

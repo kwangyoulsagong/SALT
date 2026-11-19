@@ -77,3 +77,9 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - `/plan` 본문도 유리막(`SignInRequired`) — 적립은 사람 칸 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-19 — `FE-REQ-049` 상세 재설계 걸침
+
+- `FE-REQ-049` 상세 재설계가 걸침 — 유리막 자리(한 장 패널 · 주문 전 체크 · 거래 기록)는 그대로, 놓이는 칸만 바뀜(패널 = 개요 탭 · 거래 = 고정 열)
+- 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
+- 미검증: 없음(이 REQ 몫)

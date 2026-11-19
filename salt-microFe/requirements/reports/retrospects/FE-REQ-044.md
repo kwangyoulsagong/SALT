@@ -89,3 +89,8 @@
 
 - 섹션 탭의 미끄러지는 밑줄(P-31)을 지웠다 — 탭은 글자 진하기로만(`FE-REQ-047` FR-4). 세그먼트의 미끄러지는 알약은 그대로
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-19 — `FE-REQ-049` 걸침
+
+- `FE-REQ-049` 상세 재설계가 걸침 — `Tabs` 알약 변형이 세그먼트와 같은 미끄러지는 선택 면(`useSlidingIndicator`)을 씀 · 누름 피드백을 `@repo/ui/press` 로 공개(머리 버튼이 씀) · 상세 패널 면(`detailPanel`)에 블록 등장(`enterReveal`)
+- 판단은 `FE-REQ-049` 회고 같은 날 절

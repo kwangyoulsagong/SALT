@@ -13,9 +13,12 @@ import { WatchlistStarButton } from "@/features/toggle-watchlist";
 export const WatchlistStarLive = ({
   symbol,
   displayName,
+  assetType = WatchlistAssetType.Crypto,
 }: {
   symbol: string;
   displayName: string;
+  /** 코인(기본) · 국내 주식(`FE-REQ-049` FR-1 — 국내 머리에도 별) */
+  assetType?: WatchlistAssetType;
 }) => {
   const watchlist = useWatchlist();
   const watched = useMemo(
@@ -28,7 +31,7 @@ export const WatchlistStarLive = ({
     <WatchlistStarButton
       entry={watched.get(symbol.toUpperCase())}
       displayName={displayName}
-      request={{ assetType: WatchlistAssetType.Crypto, symbol, name: displayName }}
+      request={{ assetType, symbol, name: displayName }}
     />
   );
 };
