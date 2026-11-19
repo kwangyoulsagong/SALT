@@ -1,4 +1,4 @@
-import { kstDate, monthlyForWeek, monthlySummary, monthOf, weekOfKst } from "../domain";
+import { kstDate, monthlyForWeek, monthlySummary, monthOf, PlanMonthInFutureError, weekOfKst } from "../domain";
 import type { MonthlySummaryView } from "./api/views";
 import type { PlanReadDeps } from "./GetWeeklyPlan";
 import { syncWeeks } from "./lib/syncWeeks";
@@ -11,6 +11,8 @@ export class GetMonthlySummary {
     const now = this.deps.now();
     const currentWeek = weekOfKst(now);
     const today = kstDate(now);
+    // 오지 않은 달은 묻지 않는다(`SRV-REQ-021` FR-29) — `YYYY-MM` 문자열은 사전순 = 시간순. 읽기 전에 거절
+    if (month && month > monthOf(today)) throw new PlanMonthInFutureError(monthOf(today));
     const settings = await this.deps.settings.get(userId);
     const rows = settings ? await syncWeeks(this.deps, userId, settings, currentWeek) : [];
     const summary = monthlySummary({ month: month ?? monthOf(today), today, startedWeek: settings?.startedWeek ?? null, rows });

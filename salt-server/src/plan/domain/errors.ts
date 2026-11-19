@@ -37,6 +37,13 @@ export class PlanWeekNotCurrentError extends DomainError {
 }
 
 /** 월 적립액을 정하기 전에 체크하려 했다 → 422 */
+/** 아직 오지 않은 달의 합계를 물었다(`SRV-REQ-021` FR-29) → 400. "오늘"은 KST — 형식은 DTO 가, 미래 판정은 시계를 가진 유스케이스가 */
+export class PlanMonthInFutureError extends DomainError {
+  constructor(currentMonth: string) {
+    super("PLAN_MONTH_IN_FUTURE", ErrorKind.Invalid, "Month is in the future", { field: "month", currentMonth });
+  }
+}
+
 export class PlanNotConfiguredError extends DomainError {
   constructor() {
     super("PLAN_NOT_CONFIGURED", ErrorKind.Blocked, "Plan settings are not configured");
