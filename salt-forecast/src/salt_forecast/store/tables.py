@@ -1055,4 +1055,7 @@ accumulation_band = Table(
     Column("kimchi_premium", Float),
     Column("kimchi_as_of", DateTime(timezone=True)),
     Column("computed_at", DateTime(timezone=True), nullable=False),
+    # 그 자산의 사전등록 밴드 표 [{key, below(null = 끝), multiplier}]
+    # — 화면 밴드 표가 판정과 같은 줄을 그린다(SRV-REQ-020 FR-74)
+    Column("bands", JSONB, nullable=False),
 )
