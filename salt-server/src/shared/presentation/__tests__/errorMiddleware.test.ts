@@ -91,3 +91,26 @@ describe("errorMiddleware — 4xx 는 warn, 5xx 만 error", () => {
     assert.equal(toErrorResponse(zodError()).body.message, "Validation error");
   });
 });
+
+describe("본문 읽기 오류(body-parser) — 4xx 로 옮긴다", () => {
+  const parserError = (status: number, type: string) => Object.assign(new Error(type), { status, statusCode: status, type, expose: true });
+
+  it("너무 큰 본문 → 413 PAYLOAD_TOO_LARGE · warn", () => {
+    assert.deepEqual(toErrorResponse(parserError(413, "entity.too.large")).status, 413);
+    assert.equal(toErrorResponse(parserError(413, "entity.too.large")).code, "PAYLOAD_TOO_LARGE");
+    const { status, calls } = run(parserError(413, "entity.too.large"));
+    assert.equal(status, 413);
+    assert.equal(calls[0]?.level, "warn");
+  });
+
+  it("깨진 JSON → 400 INVALID_BODY", () => {
+    const response = toErrorResponse(parserError(400, "entity.parse.failed"));
+    assert.equal(response.status, 400);
+    assert.equal(response.code, "INVALID_BODY");
+  });
+
+  it("type 이 없거나 5xx 면 옮기지 않는다(모르는 예외는 500 그대로)", () => {
+    assert.equal(toErrorResponse(Object.assign(new Error("x"), { status: 413 })).status, 500);
+    assert.equal(toErrorResponse(parserError(500, "entity.verify.failed")).status, 500);
+  });
+});

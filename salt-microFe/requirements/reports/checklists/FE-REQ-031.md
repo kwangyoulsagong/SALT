@@ -46,3 +46,8 @@
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
 - 확인 2회차 — FR-72 같은 zone 안 이동(`/alerts` → `/settings`)에서 배지가 안 바뀌던 결함 고침: 주소가 바뀔 때 한 번 다시 조회(폴링 0). 실측 3 → 4
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`)
+
+- 격자 칸 안 질문 → 답 · 맨 아래 따라가기(1280×720 실화면) · 옆 칸 카드와 같은 판단 한 줄(route 통과 카드)
+- 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

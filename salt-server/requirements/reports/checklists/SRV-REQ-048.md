@@ -203,3 +203,8 @@
 - 서버 경로는 S2c 그대로 — 실호출(임시 계정 · 알림 25건)로 켠 도메인만 · 끄면 목록 0 · 읽음 반영 확인
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 계정 삭제 · 내보내기 목록(`coach/infrastructure/userRows.ts`)에 `panel_layouts`
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

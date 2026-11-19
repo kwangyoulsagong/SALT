@@ -54,4 +54,5 @@ export const coachQueryKeys = {
   messages: (conversationId: string) => ["coach", "conversations", conversationId, "messages"] as const,
   /** 오늘의 브리핑 — 보유 · 위험 · 저장 추천에서. 묻기가 끝나도 그대로(브리핑은 화면을 연 때의 것) */
   briefing: () => ["coach", "briefing"] as const,
+  panelLayout: () => ["coach", "panel-layout"] as const,
 } as const;

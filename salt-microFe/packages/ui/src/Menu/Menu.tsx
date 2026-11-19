@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { itemStyles, listStyles, wrapperStyles } from "./styles/menu.css";
 
@@ -45,11 +45,19 @@ export const Menu = ({
   className,
 }: MenuProps) => {
   const [open, setOpen] = useState(false);
+  const [side, setSide] = useState<"bottom" | "top">("bottom");
+  const listRef = useRef<HTMLUListElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const close = useCallback(() => setOpen(false), []);
+  // 키보드로 닫으면(고르기 · Esc) 여는 버튼으로 포커스를 돌려준다 — 고른 항목이 사라져 포커스가 문서 맨 앞으로 가지 않게.
+  // 바깥 누름은 사용자가 이미 다른 곳을 골랐으니 그대로 둔다
+  const closeToTrigger = useCallback(() => {
+    setOpen(false);
+    wrapperRef.current?.querySelector<HTMLElement>('[aria-haspopup="menu"]')?.focus();
+  }, []);
 
   // 바깥을 누르면 닫는다.
   useEffect(() => {
@@ -65,11 +73,25 @@ export const Menu = ({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [open, close]);
 
+  // 열린 뒤 그리기 전에 잰다 — 아래로 열어 화면 밖으로 나가는데 위에 자리가 있으면 위로(렌더 중에 창 크기를 읽지 않는다)
+  useLayoutEffect(() => {
+    if (!open) {
+      setSide("bottom");
+      return;
+    }
+    const list = listRef.current;
+    const wrapper = wrapperRef.current;
+    if (!list || !wrapper) return;
+    const listRect = list.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    if (listRect.bottom > window.innerHeight && wrapperRect.top - listRect.height - 4 >= 0) setSide("top");
+  }, [open]);
+
   useEffect(() => {
     if (open) {
       itemRefs.current[activeIndex]?.focus();
     }
-  }, [open, activeIndex]);
+  }, [open, activeIndex, side]);
 
   const step = (delta: number) => {
     const enabled = items
@@ -92,7 +114,7 @@ export const Menu = ({
     switch (event.key) {
       case "Escape":
         event.preventDefault();
-        close();
+        closeToTrigger();
         break;
       case "ArrowDown":
         event.preventDefault();
@@ -123,7 +145,7 @@ export const Menu = ({
   const select = (item: MenuItem) => {
     if (item.disabled) return;
     onSelect(item.id);
-    close();
+    closeToTrigger();
   };
 
   return (
@@ -142,7 +164,7 @@ export const Menu = ({
       })}
 
       {open ? (
-        <ul role="menu" aria-label={label} className={listStyles({ align })}>
+        <ul ref={listRef} role="menu" aria-label={label} className={listStyles({ align, side })}>
           {items.map((item, index) => (
             <li key={item.id} role="none">
               <button

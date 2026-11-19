@@ -61,7 +61,8 @@ export const blockedReason = style({
 });
 
 export const blockedMeta = style({
-  color: ds.colors.neutral[500],
+  // 글자 — `neutral[500]`(회색 바탕 2.9:1)이 아니라 부가 정보 글자 토큰(FE-REQ-047 FR-13). PR #205 는 `vars.` 이름만 훑어 `ds.` 로 들여온 이 줄을 놓쳤다
+  color: ds.colors.text.tertiary,
   fontSize: "13px",
   lineHeight: "19px",
 });

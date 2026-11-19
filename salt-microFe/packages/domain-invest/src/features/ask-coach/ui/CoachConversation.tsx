@@ -1,6 +1,6 @@
 "use client";
 
-import { firstCardHolders, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
+import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 
@@ -32,6 +32,13 @@ export interface CoachConversationProps {
   onLoadOlder?: () => void;
   /** 오늘의 브리핑 — `undefined` 읽는 중 · `null` 못 읽음(FEATURE-006 FR-21) */
   briefing?: CoachBriefing | null;
+  /**
+   * 옆 칸에 이미 펼친 카드(PC 격자 — `FE-REQ-030` FR-51). 대화 안의 같은 판단 카드는 모두 한 줄로 접는다 —
+   * 한 화면에 같은 숫자 두 번 금지(`screen-desktop.md` §5)
+   */
+  asideCard?: CoachCard | null;
+  /** 칸을 채운다(PC 격자) — 대화 칸이 남은 높이를 다 쓰고 칩 · 입력은 칸 아래에 붙는다. 기본은 화면 흐름 안 한 면 */
+  fill?: boolean;
 }
 
 /**
@@ -49,13 +56,17 @@ export const CoachConversation = ({
   isLoadingOlder = false,
   onLoadOlder,
   briefing,
+  asideCard = null,
+  fill = false,
 }: CoachConversationProps) => {
   const { messages, ask, retry, isSending, sendError } = useAskCoach(conversationId);
   const [draft, setDraft] = useState("");
   const busy = isSending || messages.some((message) => message.status === "streaming");
   // 한 화면에 같은 카드는 한 번 — 화면 순서(지난 대화 → 브리핑 → 이번 답)로 처음 자리만 카드 전체
   const BRIEFING_ID = "briefing";
+  const ASIDE_ID = "aside";
   const fullCards = firstCardHolders([
+    { id: ASIDE_ID, card: asideCard },
     ...history,
     { id: BRIEFING_ID, card: briefing?.card ?? null },
     ...messages,
@@ -138,12 +149,12 @@ export const CoachConversation = ({
   };
 
   return (
-    <div className={styles.root}>
+    <div className={fill ? styles.rootFill : styles.root}>
       <p className={styles.intro}>{ASK_COACH_MESSAGES.intro}</p>
       {historyFailed ? <p className={styles.note}>{ASK_COACH_MESSAGES.historyFailed}</p> : null}
 
-      <div className={styles.logFrame}>
-        <div ref={logRef} className={styles.log} role="log" aria-live="polite" aria-busy={busy} onScroll={onScroll} tabIndex={0}>
+      <div className={fill ? styles.logFrameFill : styles.logFrame}>
+        <div ref={logRef} className={fill ? styles.logFill : styles.log} role="log" aria-live="polite" aria-busy={busy} onScroll={onScroll} tabIndex={0}>
           {hasOlder ? (
             <div ref={topRef} className={styles.older}>
               <Button type="button" variant="ghost" size="sm" onClick={loadOlder} loading={isLoadingOlder}>
@@ -152,11 +163,11 @@ export const CoachConversation = ({
             </div>
           ) : null}
           {history.map((message) => (
-            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} />
+            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
           ))}
-          <BriefingBubble briefing={briefing} fullCard={fullCards.has(BRIEFING_ID)} />
+          <BriefingBubble briefing={briefing} fullCard={fullCards.has(BRIEFING_ID)} asideCard={asideCard} />
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} />
+            <MessageBubble key={message.id} message={message} onRetry={retry} fullCard={fullCards.has(message.id)} asideCard={asideCard} />
           ))}
         </div>
         {unseen ? (
@@ -230,9 +241,12 @@ const LinkList = ({ links }: { links: CoachAnswerLink[] }) => {
 };
 
 /** 답에 붙은 저장 추천 카드 — 게이트는 카드 자신이 한다(막혔으면 회색 사유 상자, `FE-REQ-030` FR-35 · 36) */
-const AnswerCard = ({ card, full }: { card: CoachCard; full: boolean }) => {
+const AnswerCard = ({ card, full, asideCard }: { card: CoachCard; full: boolean; asideCard: CoachCard | null }) => {
   const judgedAt = formatMessageTime(card.generatedAt);
-  if (!full) return <p className={styles.time}>{ASK_COACH_MESSAGES.sameCardAbove(judgedAt)}</p>;
+  if (!full) {
+    const aside = asideCard !== null && isSameCard(card, asideCard);
+    return <p className={styles.time}>{aside ? ASK_COACH_MESSAGES.sameCardAside(judgedAt) : ASK_COACH_MESSAGES.sameCardAbove(judgedAt)}</p>;
+  }
   return (
     <div className={styles.card}>
       <RecommendationCard recommendation={card} />
@@ -251,7 +265,15 @@ const Sentences = ({ sentences }: { sentences: string[] }) =>
   ) : null;
 
 /** 오늘의 브리핑 — 지난 대화 다음, 이번에 묻는 것 앞. 저장되지 않는 첫 메시지(FEATURE-006 FR-21) */
-const BriefingBubble = ({ briefing, fullCard }: { briefing: CoachBriefing | null | undefined; fullCard: boolean }) => {
+const BriefingBubble = ({
+  briefing,
+  fullCard,
+  asideCard,
+}: {
+  briefing: CoachBriefing | null | undefined;
+  fullCard: boolean;
+  asideCard: CoachCard | null;
+}) => {
   if (briefing === undefined) {
     return (
       <ChatBubble role="assistant" streaming meta={ASK_COACH_MESSAGES.briefingLoading}>
@@ -270,7 +292,7 @@ const BriefingBubble = ({ briefing, fullCard }: { briefing: CoachBriefing | null
     >
       <p className={styles.briefingTitle}>{ASK_COACH_MESSAGES.briefingTitle}</p>
       <Sentences sentences={briefing.sentences} />
-      {briefing.card ? <AnswerCard card={briefing.card} full={fullCard} /> : null}
+      {briefing.card ? <AnswerCard card={briefing.card} full={fullCard} asideCard={asideCard} /> : null}
     </ChatBubble>
   );
 };
@@ -279,10 +301,12 @@ const MessageBubble = ({
   message,
   onRetry,
   fullCard,
+  asideCard,
 }: {
   message: LiveCoachMessage;
   onRetry: (answerId: string) => void;
   fullCard: boolean;
+  asideCard: CoachCard | null;
 }) => {
   if (message.role === "user") {
     return <ChatBubble role="user">{message.sentences.join(" ")}</ChatBubble>;
@@ -318,7 +342,7 @@ const MessageBubble = ({
       footer={!streaming ? <LinkList links={message.links} /> : undefined}
     >
       <Sentences sentences={message.sentences} />
-      {message.card ? <AnswerCard card={message.card} full={fullCard} /> : null}
+      {message.card ? <AnswerCard card={message.card} full={fullCard} asideCard={asideCard} /> : null}
     </ChatBubble>
   );
 };

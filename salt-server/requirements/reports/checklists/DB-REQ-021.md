@@ -16,3 +16,9 @@
 - FR-4 · 5 — 마이그레이션 적용 · 스키마 ↔ DB 차이 0 · 실호출 뒤 `insight_id` 연결 · 질문 줄에 카드 넣기 → CHECK 위반 — pass
 - 계정 삭제 — 임시 계정 메시지 44 · insight 7 지움(FK 충돌 0) — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-19 패널 배치(`feat/f006-pc-panel-grid`)
+
+- FR-20 표 · FR-21 조건 0(조회는 `(user_id, surface)` 유니크만) · FR-22 유니크 · FR-23 화면 기본 배치(실화면) · FR-24 모양 안 봄 · 크기 CHECK
+- 등급 주석 · `userRows` — `userRows.test.ts` 통과
+- 미충족: 없음

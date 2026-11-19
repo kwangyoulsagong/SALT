@@ -28,8 +28,8 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/divider` | `Divider` | `orientation`, `tone`, `inset` | `packages/ui/src/Divider/Divider.tsx` |
 | `@repo/ui/listGroup` | `ListGroup` | `title`, `count`, `action`, `children` | `packages/ui/src/ListGroup/ListGroup.tsx` |
 | `@repo/ui/listFooter` | `ListFooter` | `caption`, `children` | `packages/ui/src/ListFooter/ListFooter.tsx` |
-| `@repo/ui/movableGrid` | `MovableGrid` | `layout`, `onLayoutChange`, `renderPanel`, `renderPanelTitle`, `renderPanelActions`, `gap` | `packages/ui/src/MovableGrid/MovableGrid.tsx` |
-| `@repo/ui/layoutTree` | `panel`, `split`, `movePanel`, `removePanel`, `insertPanel`, `setRatio`, `layoutRects`, `dropZoneAt` | `packages/ui/src/MovableGrid/layoutTree.ts` |
+| `@repo/ui/movableGrid` | `MovableGrid` | `layout`, `onLayoutChange`, `renderPanel`, `renderPanelTitle`, `panelLabel`, `renderPanelActions`, `gap` | `packages/ui/src/MovableGrid/MovableGrid.tsx` |
+| `@repo/ui/layoutTree` | `panel`, `split`, `movePanel`, `removePanel`, `insertPanel`, `setRatio`, `layoutRects`, `dropZoneAt`, `parseLayout`(저장 배치 되살리기 — 칸 목록과 맞을 때만), `freshSplitId` | `packages/ui/src/MovableGrid/layoutTree.ts` |
 | `@repo/ui/wrapper` | `Wrapper` | `children` | `packages/ui/src/Wrapper/Wrapper.tsx` |
 | `@repo/ui/servicewrapper` | `ServiceWrapper` | `children` | `packages/ui/src/ServiceWrapper/ServiceWrapper.tsx` |
 

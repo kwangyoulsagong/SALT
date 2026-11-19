@@ -698,6 +698,20 @@ model CoachMessage {
   @@map("coach_messages")
 }
 
+// PC 패널 배치(F006 A절 · DB-REQ-021 FR-20~24) — 코치 대화 화면을 격자로 볼 때 사용자가 바꾼 배치. 사람당 서피스당 한 줄.
+// `treeJson` 은 표시용 스냅샷 — 형식은 프론트 `@repo/ui/layoutTree` 가 주인이고 서버는 크기(16KB)만 본다. 조건으로 쓰지 않는다
+model PanelLayout {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  /// pc — 지금은 하나
+  surface   String
+  treeJson  Json     @map("tree_json")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, surface])
+  @@map("panel_layouts")
+}
+
 // 해설 스냅샷 (F017 v2 단계 3 · DB-REQ-043 FR-1 · SRV-REQ-053 FR-3). 시장 층 — 사용자 열 0.
 // 배치가 종목 지문이 바뀐 것만 만들고 요청 경로는 읽기만 한다. 불변(UPDATE 트리거 차단) · 보존 종목 · 모드당 최근 N
 model ExplanationSnapshot {

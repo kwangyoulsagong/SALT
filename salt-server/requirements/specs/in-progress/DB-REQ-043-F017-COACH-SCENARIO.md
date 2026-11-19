@@ -80,3 +80,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 coach `application/api/index.ts` 에 측정 유스케이스 `compareAgentExplanation` 조립만 더했다(주인 `SRV-REQ-059`). 스냅샷 표 · 뷰 변경 0. 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `coach/application/api/index.ts`(머리 주인) 조립에 대화 재료 묶음 · `ReadConversationCard` · `GetCoachBriefing`(주인 `SRV-REQ-028`). 이 REQ 의 표 · 뷰 변경 0 |
+| 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 코치 공개 API 조립 파일에 패널 배치 유스케이스 둘. 이 REQ 동작 무변경 |

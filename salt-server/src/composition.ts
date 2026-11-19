@@ -44,6 +44,7 @@ import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
 import { createCoachReportRouter } from "./coach/presentation/coachReport.routes";
 import { createCoachConversationRouter } from "./coach/presentation/coachConversation.routes";
 import { PrismaCoachConversationStore } from "./coach/infrastructure/PrismaCoachConversationStore";
+import { PrismaPanelLayoutStore } from "./coach/infrastructure/PrismaPanelLayoutStore";
 import {
   createBehaviorCoachRouter,
   createProfitPlanRouter,
@@ -341,6 +342,8 @@ const moveCauseAdapter = new MoveCauseAdapter(market.api);
 const coach = createCoachApplication({
   // 코치 대화(F006 C절)
   conversations: new PrismaCoachConversationStore(),
+  // PC 패널 배치(F006 A절)
+  panelLayouts: new PrismaPanelLayoutStore(),
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
   // 판단 변화 = 이벤트 `coach.DecisionChanged`(coach.outbox → 플랫폼 릴레이 → notification, `SRV-REQ-048` FR-5)

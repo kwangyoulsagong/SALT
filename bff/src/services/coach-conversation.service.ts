@@ -1,4 +1,5 @@
-import { AppError } from "../utils/error.util";
+import { logger } from "../config/logger";
+import { AppError, toUpstreamClientError } from "../utils/error.util";
 import { createSseParser } from "../utils/sse.util";
 import { backendApi } from "./backend-api.service";
 import { toReportRecommendation, type ReportRecommendation } from "./coach-report.viewmodel";
@@ -152,7 +153,50 @@ const requireId = (value: unknown, code: string): string => {
 /** 답 스트림이 조용해도 되는 시간 — 서버는 규칙 답이라 곧 끝난다. 재료 셋을 읽는 몇 초 + 여유 */
 const ANSWER_STREAM_IDLE_MS = 30_000;
 
+/**
+ * PC 패널 배치(F006 A절 · `BFF-REQ-027` FR-50~52 · `BFF-REQ-028`). 트리 모양은 프론트 `@repo/ui/layoutTree` 가 주인 — BFF 는
+ * 객체인지 · 크기만 본다(FR-50 · 51). 읽기가 실패해도 화면은 기본 배치로 돈다 — 오류를 앞세우지 않고 `degraded` 로 알린다(FR-52)
+ */
+export interface PanelLayoutViewModel {
+  tree: Record<string, unknown> | null;
+  updatedAt: string | null;
+  /** 서버에서 못 읽었다 — 화면은 기본 배치(저장된 배치가 있을 수 있으니 이때는 다시 저장하지 않는다) */
+  degraded: boolean;
+}
+
+/** 압축 JSON 바이트 상한 — 서버 `PANEL_LAYOUT_MAX_BYTES` 와 같은 값(`SRV-REQ-029` FR-30) */
+export const PANEL_LAYOUT_MAX_BYTES = 16 * 1024;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> => isRecord(value) && !Array.isArray(value);
+
 export const coachConversationService = {
+  async getPanelLayout(token: string): Promise<PanelLayoutViewModel> {
+    try {
+      const response = await backendApi.proxyAuthRequest("GET", "/coach/panel-layout?surface=pc", token);
+      const data = (response.data as BackendEnvelope<{ tree?: unknown; updatedAt?: unknown }>).data;
+      return {
+        tree: isPlainObject(data?.tree) ? data.tree : null,
+        updatedAt: typeof data?.updatedAt === "string" ? data.updatedAt : null,
+        degraded: false,
+      };
+    } catch (error) {
+      // 로그인 문제는 그대로 — 화면이 로그인으로 보낸다. 그 밖(5xx · 시간 초과)은 기본 배치로(FR-52)
+      const upstream = toUpstreamClientError(error);
+      if (upstream && (upstream.status === 401 || upstream.status === 403)) throw error;
+      logger.warn(`패널 배치 읽기 실패 — 기본 배치로 (${(error as Error).name})`);
+      return { tree: null, updatedAt: null, degraded: true };
+    }
+  },
+
+  async savePanelLayout(token: string, body: unknown): Promise<void> {
+    const tree = isRecord(body) ? body.tree : undefined;
+    if (!isPlainObject(tree)) throw new AppError("배치 형식이 아닙니다", 400, true, "PANEL_LAYOUT_INVALID");
+    if (Buffer.byteLength(JSON.stringify(tree), "utf8") > PANEL_LAYOUT_MAX_BYTES) {
+      throw new AppError("배치가 너무 큽니다", 413, true, "PANEL_LAYOUT_TOO_LARGE");
+    }
+    await backendApi.proxyAuthRequest("PUT", "/coach/panel-layout", token, { surface: "pc", tree });
+  },
+
   async ask(token: string, body: unknown) {
     const input = isRecord(body) ? body : {};
     const content = typeof input.content === "string" ? input.content : null;

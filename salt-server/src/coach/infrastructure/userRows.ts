@@ -7,6 +7,8 @@ import type { UserRowSet } from "../../shared/infrastructure/userRows";
 export const COACH_USER_ROWS: readonly UserRowSet[] = [
   // 코치 대화(F006) — 메시지가 대화의 자식
   { table: "coach_messages" },
+  // PC 패널 배치(F006 A절) — 자식 없음
+  { table: "panel_layouts" },
   { table: "coach_conversations" },
   { table: "decision_outcomes" },
   { table: "trade_plans" },

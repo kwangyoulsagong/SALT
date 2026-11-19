@@ -2,10 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
 import { logger } from "../../shared/config/logger";
-import { TooManyRequestsError } from "../../shared/presentation/httpErrors";
+import { PayloadTooLargeError, TooManyRequestsError } from "../../shared/presentation/httpErrors";
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
-import { COACH_QUESTION_CHIPS, COACH_QUESTION_MAX_LENGTH, type CoachMessageRecord } from "../domain";
+import {
+  COACH_QUESTION_CHIPS,
+  COACH_QUESTION_MAX_LENGTH,
+  PANEL_LAYOUT_MAX_BYTES,
+  PANEL_LAYOUT_SURFACES,
+  panelLayoutBytes,
+  type CoachMessageRecord,
+} from "../domain";
 
 /**
  * 코치 대화(F006 C절 · `SRV-REQ-029`) — 2단계: `POST /messages` 는 바로 201, `GET /messages/:id/stream` 이 답을 흘린다.
@@ -23,6 +30,12 @@ export const askCoachSchema = z
   .refine((body) => Boolean(body.content) || Boolean(body.chip), { message: "content 또는 chip 이 필요합니다" });
 
 const idSchema = z.object({ id: z.string().uuid() });
+const surfaceSchema = z.object({ surface: z.enum(PANEL_LAYOUT_SURFACES).default("pc") });
+/** 트리 모양은 보지 않는다(`DB-REQ-021` FR-24) — 객체인지만. 배열 · 원시값은 배치가 아니다 */
+export const savePanelLayoutSchema = z.object({
+  surface: z.enum(PANEL_LAYOUT_SURFACES).default("pc"),
+  tree: z.record(z.string(), z.unknown()),
+});
 const pageSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().uuid().optional(),
@@ -185,6 +198,33 @@ export class CoachConversationController {
     try {
       const { id } = idSchema.parse(req.params);
       await this.useCases.deleteCoachConversation.execute(req.user!.userId, id);
+      return res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** PC 패널 배치(F006 A절) — 없으면 `tree: null` */
+  getPanelLayout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { surface } = surfaceSchema.parse(req.query);
+      const record = await this.useCases.getPanelLayout.execute(req.user!.userId, surface);
+      return ResponseUtil.success(res, {
+        surface,
+        tree: record?.tree ?? null,
+        updatedAt: record ? record.updatedAt.toISOString() : null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** PC 패널 배치 저장 — 16KB 를 넘으면 413(`SRV-REQ-029` FR-30). 모양은 보지 않는다 */
+  savePanelLayout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = savePanelLayoutSchema.parse(req.body);
+      if (panelLayoutBytes(body.tree) > PANEL_LAYOUT_MAX_BYTES) throw new PayloadTooLargeError("panel layout too large");
+      await this.useCases.savePanelLayout.execute(req.user!.userId, body.surface, body.tree);
       return res.status(204).end();
     } catch (error) {
       next(error);

@@ -18,6 +18,7 @@ import type {
   CoachConversationItem,
   CoachConversationPage,
   CoachMessage,
+  PanelLayoutResult,
 } from "@repo/core/coach";
 
 import { apiFetch, readApiError } from "@repo/web-shared/api";
@@ -250,5 +251,12 @@ export const coachApi = {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.coachBriefing}`, { signal });
     if (!response.ok) throw await readApiError(response, "coach briefing");
     return ((await response.json()) as AppEnvelope<CoachBriefing>).data;
+  },
+
+  /** PC 패널 배치(F006 A절) — 저장한 적 없거나 서버에서 못 읽으면 `tree: null`(기본 배치) */
+  panelLayout: async (signal?: AbortSignal): Promise<PanelLayoutResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.panelLayout}`, { signal });
+    if (!response.ok) throw await readApiError(response, "panel layout");
+    return ((await response.json()) as AppEnvelope<PanelLayoutResult>).data;
   },
 };

@@ -98,3 +98,8 @@
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `schema.prisma`(머리 주인)에 `CoachMessage.cardPayload` · `insightId` · `InvestmentInsight.coachMessages` 관계(주인 `DB-REQ-021`). identity 표 변경 0 — 영역 시험 전부 통과
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- `schema.prisma` 에 `PanelLayout` 모델 추가(이 REQ 표 무변경)
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

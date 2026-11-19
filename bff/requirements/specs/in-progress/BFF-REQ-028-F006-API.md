@@ -39,7 +39,7 @@ created: 2026-09-09
 | GET | `/api/app/settings` | 설정 한 화면 *(2026-09-21)* | 웹·모바일 |
 | PATCH | `/api/app/settings/alerts` | 알림 켜기/끄기 *(2026-09-21)* | 웹·모바일 |
 | POST | `/api/app/onboarding/steps/first-holding/skip` | 온보딩 2단계 건너뛰기 *(2026-09-21)* | 웹·모바일 |
-| GET/PUT | `/api/app/panel-layout` | PC 배치 | 웹 |
+| GET/PUT | ~~`/api/app/panel-layout`~~ **`/api/app/coach/panel-layout`**(정정 2026-11-19 — 코치 경로 묶음) | PC 배치 — `PanelLayoutResult { tree, updatedAt, degraded }` · PUT `{ tree }` → 204(`@repo/core/coach`) — **구현 2026-11-19** | 웹 |
 
 ## SSE 계약
 
@@ -210,3 +210,4 @@ type SettingsViewModel = {
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-40 포지션 계약 `PositionOverviewVM` · `PositionFlowVM` · `PositionRadarAxis` — `@repo/core/position` 과 글자 대조(`position-contract.test.ts`, 홈 카드와 같은 방법). **정정**: 경로 `/api/app/portfolio/position` · `/position/flow`(표의 `/api/app/portfolio` · `/performance` 는 옛 모양 그대로 둠). 실패 섹션 금액 null — 개요 실패는 화면 블록 실패, 레이더 원천 실패는 축 null. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — 거래 계약을 `PositionView` CONTRACT 블록에 더함: `PositionTransactionVM` · `PositionTransactionPageVM` · `LedgerFigures` · `TransactionPreviewVM` · `TransactionCreateInput` · `TransactionPatchInput` · `TransactionPreviewInput` · `INSUFFICIENT_QUANTITY_CODE` — `@repo/core/position` 과 글자 대조(`position-contract.test.ts` 통과) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 엔드포인트 표 셋(목록 · 읽음 · 안 읽은 수) 구현 · FR-26 갈 곳 코드 넷으로 정정 · FR-45 경로 0 · FR-48 `@repo/core/alerts` 글자 대조(`alerts-contract.test.ts`). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | 패널 배치 경로 정정 `/api/app/panel-layout` → `/api/app/coach/panel-layout` · 응답 `PanelLayoutResult { tree, updatedAt, degraded }`(`@repo/core/coach`) — 구현(`feat/f006-pc-panel-grid`) |

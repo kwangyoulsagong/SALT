@@ -42,7 +42,9 @@ import type {
   PanelUniverseProbe,
   CauseSnapshotReader,
   CauseSnapshotStore,
+  PanelLayoutStore,
 } from "../../domain";
+import { GetPanelLayout, SavePanelLayout } from "../ManagePanelLayout";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
   AnalyzeTradingBehavior,
@@ -204,6 +206,8 @@ export interface CoachDependencies {
   causeSnapshotStore: CauseSnapshotStore;
   /** 코치 대화(F006 C절) — `coach_conversations` · `coach_messages` */
   conversations: CoachConversationStore;
+  /** PC 패널 배치(F006 A절) — `panel_layouts` */
+  panelLayouts: PanelLayoutStore;
 }
 
 export interface CoachUseCases {
@@ -287,6 +291,8 @@ export interface CoachUseCases {
   listCoachMessages: ListCoachMessages;
   deleteCoachConversation: DeleteCoachConversation;
   failStaleCoachAnswers: FailStaleCoachAnswers;
+  getPanelLayout: GetPanelLayout;
+  savePanelLayout: SavePanelLayout;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -575,6 +581,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     listCoachMessages: new ListCoachMessages(deps.conversations, failStaleCoachAnswers),
     deleteCoachConversation: new DeleteCoachConversation(deps.conversations),
     failStaleCoachAnswers,
+    getPanelLayout: new GetPanelLayout(deps.panelLayouts),
+    savePanelLayout: new SavePanelLayout(deps.panelLayouts),
   };
 
   return { useCases };

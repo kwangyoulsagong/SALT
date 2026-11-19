@@ -33,3 +33,8 @@
 - FR-48 — `bff/src/services/__tests__/alerts-contract.test.ts` 가 BFF · `salt-microFe/packages/core/src/notification/alerts.ts` 블록을 글자 대조
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 패널 배치 계약(`feat/f006-pc-panel-grid`)
+
+- GET `{ tree, updatedAt, degraded }` · PUT `{ tree }` → 204 — 화면 타입 `@repo/core/coach` `PanelLayoutResult` 와 같은 모양(실호출)
+- 미충족: 없음

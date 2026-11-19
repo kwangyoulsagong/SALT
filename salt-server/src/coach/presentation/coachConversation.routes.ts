@@ -189,5 +189,65 @@ export const createCoachConversationRouter = (useCases: CoachUseCases): Router =
    */
   router.delete("/conversations/:id", controller.deleteConversation);
 
+  /**
+   * @swagger
+   * /api/coach/panel-layout:
+   *   get:
+   *     summary: PC 패널 배치 읽기(F006 A절 · `SRV-REQ-029`)
+   *     description: |
+   *       코치 대화 화면을 PC 격자로 볼 때 사용자가 옮겨 둔 배치. 저장한 적이 없으면 `tree: null` — 화면이 기본 배치를 쓴다.
+   *       `tree` 의 모양은 프론트 `@repo/ui/layoutTree` 가 정한다 — 서버는 검사하지 않는다(`DB-REQ-021` FR-24).
+   *     tags: [Coach Conversation]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: surface
+   *         required: false
+   *         schema: { type: string, enum: [pc], default: pc }
+   *     responses:
+   *       200:
+   *         description: 배치(없으면 null)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     surface: { type: string, enum: [pc] }
+   *                     tree: { type: object, nullable: true, description: 배치 트리 스냅샷 }
+   *                     updatedAt: { type: string, format: date-time, nullable: true }
+   *       401: { description: 인증 실패 }
+   *   put:
+   *     summary: PC 패널 배치 저장(덮어쓰기 — F006 A절 · `SRV-REQ-029` FR-30)
+   *     description: 모양은 검사하지 않는다. 압축한 JSON 이 16KB 를 넘으면 413.
+   *     tags: [Coach Conversation]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [tree]
+   *             properties:
+   *               surface: { type: string, enum: [pc], default: pc }
+   *               tree: { type: object, description: 배치 트리 스냅샷 }
+   *     responses:
+   *       204: { description: 저장됨 }
+   *       400: { description: tree 가 객체가 아님 }
+   *       401: { description: 인증 실패 }
+   *       413: { description: 16KB 초과 }
+   *       429: { description: 너무 잦은 저장 }
+   */
+  router.get("/panel-layout", controller.getPanelLayout);
+  // 끌기 · 화살표 키 조절은 화면이 멈춘 뒤 한 번만 보낸다 — 분당 60 은 고장 난 클라이언트만 막는 문턱
+  router.put("/panel-layout", rateLimit({ windowMs: 60_000, max: 60 }), controller.savePanelLayout);
+
   return router;
 };

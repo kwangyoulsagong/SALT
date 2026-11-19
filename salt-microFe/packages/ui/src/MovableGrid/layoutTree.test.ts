@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   collectPanelIds,
+  collectSplitIds,
+  freshSplitId,
+  MAX_RATIO,
+  parseLayout,
   dropIndicatorRect,
   dropZoneAt,
   insertPanel,
@@ -198,5 +202,83 @@ describe("panelAt / dropIndicatorRect", () => {
       width: 200,
       height: 50,
     });
+  });
+});
+
+describe("저장 배치 되살리기 — parseLayout", () => {
+  const IDS = ["chat", "card", "position"] as const;
+  const saved = () =>
+    JSON.parse(
+      JSON.stringify(
+        split("row", panel("chat"), split("column", panel("card"), panel("position"), 0.5, "split-2"), 0.6, "split-1")
+      )
+    ) as unknown;
+
+  it("저장했던 트리를 그대로 되살린다", () => {
+    const tree = parseLayout(saved(), IDS);
+    expect(tree).not.toBeNull();
+    expect(collectPanelIds(tree!)).toEqual(["chat", "card", "position"]);
+    expect((tree as SplitNode).ratio).toBe(0.6);
+  });
+
+  it.each([
+    ["모르는 칸", { type: "panel", id: "news" }],
+    ["빠진 칸", split("row", panel("chat"), panel("card"), 0.5, "s1")],
+    [
+      "같은 칸 둘",
+      split("row", panel("chat"), split("column", panel("chat"), panel("position"), 0.5, "s2"), 0.5, "s1"),
+    ],
+    [
+      "같은 가지 id 둘",
+      split("row", panel("chat"), split("column", panel("card"), panel("position"), 0.5, "s1"), 0.5, "s1"),
+    ],
+    ["깨진 모양", { type: "split", id: "s1", orientation: "diagonal", ratio: 0.5 }],
+    ["비율이 숫자 아님", { type: "split", id: "s1", orientation: "row", ratio: "0.5", first: null, second: null }],
+    ["문자열", "chat"],
+    ["null", null],
+  ])("%s → null(기본 배치를 쓴다)", (_name, raw) => {
+    expect(parseLayout(JSON.parse(JSON.stringify(raw)) as unknown, IDS)).toBeNull();
+  });
+
+  it("범위 밖 비율은 당긴다", () => {
+    const raw = { ...(saved() as Record<string, unknown>), ratio: 5 };
+    expect((parseLayout(raw, IDS) as SplitNode).ratio).toBe(MAX_RATIO);
+  });
+
+  it("아주 깊은 트리도 스택을 넘기지 않고 거절한다(재귀 상한 — 마디 2n-1 개)", () => {
+    // 첫 가지로만 20만 겹 — 상한이 없으면 끝까지 내려가다 스택이 넘친다(RangeError)
+    let deep: unknown = { type: "panel", id: "chat" };
+    for (let i = 0; i < 200_000; i += 1) deep = { type: "split", id: `d${i}`, orientation: "row", ratio: 0.5, first: deep, second: { type: "panel", id: "card" } };
+    expect(parseLayout(deep, IDS)).toBeNull();
+  });
+});
+
+describe("새 가지 id 는 트리와 겹치지 않는다", () => {
+  it("되살린 트리의 가지 id 가 모듈 카운터의 다음 값과 같아도 칸을 옮기면 가지 id 가 모두 다르다", () => {
+    // 새로 고친 직후처럼 — 카운터가 다음에 낼 id 를 저장 트리가 이미 쓰고 있다(원래 결함: 같은 id 가지 둘 → 구분선 하나가 둘을 움직임)
+    const probe = Number(split("row", panel("x"), panel("y")).id.replace("split-", ""));
+    const saved = split(
+      "row",
+      panel("a"),
+      split("column", panel("b"), panel("c"), 0.5, `split-${probe + 2}`),
+      0.6,
+      `split-${probe + 1}`
+    );
+    let tree = parseLayout(JSON.parse(JSON.stringify(saved)) as unknown, ["a", "b", "c"])!;
+    for (const [from, to, zone] of [
+      ["c", "a", "left"],
+      ["a", "b", "top"],
+      ["b", "c", "right"],
+    ] as const) {
+      tree = movePanel(tree, from, to, zone);
+      const ids = collectSplitIds(tree);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+
+  it("freshSplitId 는 이미 있는 id 를 건너뛴다", () => {
+    const taken = split("row", panel("a"), panel("b"), 0.5, freshSplitId(panel("x")));
+    const next = freshSplitId(taken);
+    expect(collectSplitIds(taken)).not.toContain(next);
   });
 });

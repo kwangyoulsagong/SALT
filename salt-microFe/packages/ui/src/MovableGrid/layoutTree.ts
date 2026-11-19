@@ -120,13 +120,33 @@ export const removePanel = (
   return { ...node, first, second };
 };
 
-/** 목표 칸을 새 가지로 바꿔서 그 옆에 칸을 끼운다. */
+/** 트리에 있는 가지 id 를 모은다. */
+export const collectSplitIds = (node: LayoutNode): string[] =>
+  isPanel(node)
+    ? []
+    : [node.id, ...collectSplitIds(node.first), ...collectSplitIds(node.second)];
+
+/**
+ * 이 트리에 없는 새 가지 id.
+ *
+ * 모듈 카운터만 쓰면 저장했다 다시 불러온 트리(`split-1` …)와 겹친다 — 새로 고친 뒤 카운터는 0 부터라
+ * 칸을 옮기면 같은 id 가지가 둘이 되고, 구분선 하나를 움직이면 둘이 같이 움직였다(2026-11-19 F006 PC 격자).
+ */
+export const freshSplitId = (node: LayoutNode): string => {
+  const taken = new Set(collectSplitIds(node));
+  let id = nextSplitId();
+  while (taken.has(id)) id = nextSplitId();
+  return id;
+};
+
+/** 목표 칸을 새 가지로 바꿔서 그 옆에 칸을 끼운다. 새 가지 id 를 안 주면 트리에 없는 것으로 만든다. */
 export const insertPanel = (
   node: LayoutNode,
   targetPanelId: string,
   newPanelId: string,
   zone: DropZone,
-  ratio = 0.5
+  ratio = 0.5,
+  splitId: string = freshSplitId(node)
 ): LayoutNode => {
   if (isPanel(node)) {
     if (node.id !== targetPanelId) return node;
@@ -137,17 +157,18 @@ export const insertPanel = (
     const incomingFirst = zone === "left" || zone === "top";
 
     return incomingFirst
-      ? split(orientation, incoming, node, ratio)
-      : split(orientation, node, incoming, 1 - ratio);
+      ? split(orientation, incoming, node, ratio, splitId)
+      : split(orientation, node, incoming, 1 - ratio, splitId);
   }
 
-  const first = insertPanel(node.first, targetPanelId, newPanelId, zone, ratio);
+  const first = insertPanel(node.first, targetPanelId, newPanelId, zone, ratio, splitId);
   const second = insertPanel(
     node.second,
     targetPanelId,
     newPanelId,
     zone,
-    ratio
+    ratio,
+    splitId
   );
 
   if (first === node.first && second === node.second) return node;
@@ -172,7 +193,8 @@ export const movePanel = (
   // 떼어내면서 목표 칸이 접혀 사라졌다면 되돌린다.
   if (!hasPanel(detached, targetPanelId)) return node;
 
-  return insertPanel(detached, targetPanelId, panelId, zone);
+  // 새 가지 id 는 원래 트리 전체와 겹치지 않게(떼어낸 쪽에서 사라진 id 를 다시 쓰지 않는다)
+  return insertPanel(detached, targetPanelId, panelId, zone, 0.5, freshSplitId(node));
 };
 
 /** 구분선 하나의 비율만 바꾼다. */
@@ -318,4 +340,51 @@ export const dropIndicatorRect = (rect: PanelRect, zone: DropZone): Rect => {
         height: halfHeight,
       };
   }
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * 저장해 둔 배치(JSON)를 트리로 되살린다. 이 모듈이 형식의 주인이다 — 서버는 크기만 본다(`DB-REQ-021` FR-24).
+ *
+ * `panelIds` 의 칸이 **꼭 한 번씩** 있어야 한다. 모르는 칸 · 빠진 칸 · 같은 칸 둘 · 같은 가지 id 둘 · 깨진 모양이면 `null` —
+ * 부르는 쪽이 기본 배치를 쓴다(저장 배치는 편의 기능이라 화면을 막지 않는다, FR-23). 비율은 범위 안으로 당긴다.
+ */
+export const parseLayout = (
+  raw: unknown,
+  panelIds: readonly string[]
+): LayoutNode | null => {
+  const expected = new Set(panelIds);
+  const seenPanels = new Set<string>();
+  const seenSplits = new Set<string>();
+  // 칸 n 개짜리 이진 트리의 마디는 2n-1 개다 — 그보다 많으면 깨진 값(깊은 재귀를 막는다)
+  let budget = Math.max(1, panelIds.length * 2 - 1);
+
+  const walk = (value: unknown): LayoutNode | null => {
+    budget -= 1;
+    if (budget < 0 || !isRecord(value) || typeof value.id !== "string" || value.id === "") return null;
+
+    if (value.type === "panel") {
+      if (!expected.has(value.id) || seenPanels.has(value.id)) return null;
+      seenPanels.add(value.id);
+      return panel(value.id);
+    }
+
+    if (value.type !== "split") return null;
+    if (value.orientation !== "row" && value.orientation !== "column") return null;
+    if (typeof value.ratio !== "number" || !Number.isFinite(value.ratio)) return null;
+    if (seenSplits.has(value.id)) return null;
+    seenSplits.add(value.id);
+
+    const first = walk(value.first);
+    if (!first) return null;
+    const second = walk(value.second);
+    if (!second) return null;
+    return split(value.orientation, first, second, value.ratio, value.id);
+  };
+
+  const tree = walk(raw);
+  if (!tree || seenPanels.size !== expected.size) return null;
+  return tree;
 };

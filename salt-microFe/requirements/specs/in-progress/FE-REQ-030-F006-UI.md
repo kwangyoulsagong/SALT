@@ -115,6 +115,11 @@ created: 2026-09-09
 | FR-57 | 1280px 미만에서는 격자를 쓰지 않고 3탭으로 동작한다 | Must |
 | FR-58 | 격자 안에 들어가는 것은 **위젯**이다. `pc-panel-grid`가 위젯을 import하면 cross-slice이므로 **`pages`가 children으로 주입**한다 | Must |
 
+> **구현 2026-11-19**(`feat/f006-pc-panel-grid`, 루트 `requirements/specs/in-progress/F006-pc-panel-grid-slice.md`) — FR-50~58 전부.
+> **정정**: 격자 자리는 `/coach/chat`(3탭 `/coach` 를 만들지 않았다 — 투자 머리 메뉴 "코치 대화"), FR-51 "추천 카드" 칸 = **"오늘의 추천"**(브리핑의 저장 추천 카드 — 대화 안 같은 카드는 한 줄로 접힘),
+> FR-55 경로 `PUT /api/app/panel-layout` → **`/api/app/coach/panel-layout`**. 저장은 바꾼 뒤 멈추면 한 번(800ms) · 실패는 알리지 않음. 폭은 `useWideViewport`(첫 렌더 `null`),
+> 칸 = `widgets/pc-panel-grid` · 메뉴 · 저장 = `features/arrange-panels` · 저장 형식 판정 `@repo/ui/layoutTree` `parseLayout`
+
 ## 온보딩 3스텝 (2026-09-21 개정) — **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 | ID | 요구사항 | 우선순위 |
@@ -284,3 +289,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 포지션 1단계**(`feat/f006-position-overview`) — FR-100~103 · 107 + 보유 행 → 상세 링크: `/portfolio` 위쪽 `widgets/position-overview` — Hero(`PositionHero`) · 평가금 흐름(기간 4 · MDD · 구간 수익률, `ValueFlow`) · 리스크 레이더(`@repo/ui/radarChart` 새 컴포넌트 + 축별 표 · 사유 문장) · 보유 0 이면 첫 기록 안내 + 종목 찾기. 상한 넘음은 경고 노랑(되돌릴 수 있는 상태 — `danger` 아님). **정정 FR-2**: 3탭 세그먼트가 아니라 포트폴리오 페이지(`FE-REQ-069`). 남은 것 FR-104~106 · 109(거래 시트 · 목록). 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-104 `features/record-transaction` `TransactionSheet`(좁으면 바텀시트 · 넓으면 모달 — `useNarrowViewport` 를 `run-preflight` 에서 `@repo/web-shared/lib` 로 내림) · 미리보기 카드 `LedgerPreviewCard` · 종목 찾기 `LedgerSymbolPicker`(기존 `useAssetSearch`) · FR-105 과매도 = 저장 막음 + 서버 사유 · 입력 보존 · FR-106 정정(경로 · 확인) `widgets/transaction-list` · `pages/portfolio-transactions` · FR-107 빈 상태 [거래 기록 추가] · FR-108 주문 링크 0 · FR-109 포지션 아래 보유 기록 관리 · 설정(코치 설정) 링크. 실화면 1440 · 390 앱 웹뷰 · 실패 둘(목록 · 미리보기) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-80 벨 자리(모든 zone 머리 · 프로필 앞) · FR-81 배지(0 숨김 · 99+ · `aria-label`) · FR-110~113 `/alerts`(행 · 읽음 + 이동 · 모두 읽음 · 만드는 칸 0) · 빈 상태 문구 해요체로 정정. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | **PC 이동식 격자 구현**(`feat/f006-pc-panel-grid`) — FR-50~58. 격자 자리 `/coach/chat`(정정 — 3탭 없음) · 칸 "오늘의 추천"(정정) · 저장 경로 `/api/app/coach/panel-layout`(정정). 루트 `F006-pc-panel-grid-slice.md` |

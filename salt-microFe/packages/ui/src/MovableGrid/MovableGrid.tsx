@@ -32,6 +32,8 @@ export interface MovableGridProps {
   renderPanel: (id: string) => ReactNode;
   /** 칸 머리말. 여기를 잡아 끌면 칸이 움직인다. */
   renderPanelTitle?: (id: string) => ReactNode;
+  /** 칸 이름(글자) — 옮기기 손잡이의 접근성 이름이 된다. 없으면 칸 id */
+  panelLabel?: (id: string) => string;
   /** 칸 머리말 오른쪽 슬롯. 닫기 버튼 같은 것을 넣는다. */
   renderPanelActions?: (id: string) => ReactNode;
   /** 칸 사이 간격 겸 구분선 두께(px) */
@@ -59,6 +61,7 @@ export const MovableGrid = ({
   onLayoutChange,
   renderPanel,
   renderPanelTitle,
+  panelLabel,
   renderPanelActions,
   gap = 6,
   className,
@@ -212,7 +215,7 @@ export const MovableGrid = ({
                 <button
                   type="button"
                   className={dragHandleStyles}
-                  aria-label={`${rect.id} 칸 옮기기`}
+                  aria-label={`${panelLabel ? panelLabel(rect.id) : rect.id} 칸 옮기기`}
                   onPointerDown={(event) =>
                     handleDragPointerDown(event, rect.id)
                   }

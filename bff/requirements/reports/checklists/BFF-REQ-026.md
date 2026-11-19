@@ -119,3 +119,8 @@
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `coachApi.ts`(머리 주인)에 브리핑 조회 · 메시지 조회 커서 인자(주인 `FE-REQ-032`). 이 REQ 의 성능 계약(신호 · 끊기) 그대로 — `signal` 을 넘긴다 — 영역 시험 전부 통과
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 코치 API 파일에 패널 배치 읽기 함수
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

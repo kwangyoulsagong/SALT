@@ -191,3 +191,12 @@ describe("errorMiddleware — 깨진 JSON 본문", () => {
     assert.ok(!logged.some((l) => l.includes("9876")));
   });
 });
+
+describe("본문이 너무 크다(body-parser) — 413", () => {
+  it("entity.too.large → 413 PAYLOAD_TOO_LARGE(전에는 500)", () => {
+    const { res, out } = fakeRes();
+    errorMiddleware(Object.assign(new Error("request entity too large"), { type: "entity.too.large", status: 413 }), { url: "/x", method: "PUT" } as Request, res, next);
+    assert.equal(out.status, 413);
+    assert.deepEqual(out.body, { success: false, code: "PAYLOAD_TOO_LARGE", message: "Payload too large" });
+  });
+});

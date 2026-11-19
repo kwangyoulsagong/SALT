@@ -43,7 +43,7 @@ widgets/{slice}/
 | `alert-list` | notification + `mark-alert-read` | 셸 `/alerts` — 알림 목록 · 누르면 읽음 + 갈 곳 · 모두 읽음 · 더 보기(F006 `FE-REQ-030` FR-110~113, 2026-11-18). 벨은 위젯이 아니라 공용 레이아웃(`AlertBell`) |
 | `settings-panel` | coach + `edit-coach-profile` + `toggle-purchase-price` | 투자 코치 설정 `/coach/settings` — 코치 설정 · 보기 · 내 기준 링크 (F004 FR-12, 2026-11-02 셸에서 옮김) |
 | `onboarding-flow` | auth + `choose-domains` + `accept-invite` | 초대 → 쓸 것 고르기 → 첫 기록 → 끝(~~초대→첫 보유 기록→적립 3스텝~~ 2026-11-06 S3a `FE-REQ-055` FR-4 — 다음 단계는 서버 값) |
-| `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |
+| `pc-panel-grid` | `MovableGrid` + `arrange-panels` — 칸 내용은 페이지가 넣는다 | PC 이진분할 배치 — `/coach/chat` 1280 이상(대화 · 오늘의 추천 · 포지션 요약, F006 2026-11-19) |
 
 ## 부분 실패는 위젯이 격리한다
 

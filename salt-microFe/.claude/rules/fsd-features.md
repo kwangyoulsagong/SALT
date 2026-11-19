@@ -61,7 +61,7 @@ features/{slice}/
 | `read-my-numbers` | 내 숫자로 다시 읽기 — 저축 목표 · 가계부 급여로 서버가 다시 계산한 숫자 · 요건(맞아요 · 아니에요 · 모름). 로그인일 때만 부름 · 실패면 글의 예시 그대로 | F014 (2026-11-05 S2d) |
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
-| `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
+| `arrange-panels` | PC 격자 칸 옮기기 메뉴(키보드 대체) · 배치 저장(멈춘 뒤 한 번 · 저장 형식 판정은 `@repo/ui/layoutTree` `parseLayout`) | F006 (2026-11-19) |
 | `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
 | ~~`sign-out`~~ | ~~헤더 프로필 메뉴~~ **2026-11-02 삭제** — zone 이 같이 쓰므로 `@repo/web-shared/layout` `ProfileMenu`(설정 · 로그아웃은 문서 이동, `FE-REQ-053`) | — |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |

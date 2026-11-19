@@ -39,3 +39,8 @@
 - 마이그레이션 0
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 마이그레이션 주석이 이 REQ 의 "값 목록은 제약으로" 태도를 가리킨다
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

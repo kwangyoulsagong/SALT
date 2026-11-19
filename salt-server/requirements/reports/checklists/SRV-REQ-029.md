@@ -26,3 +26,10 @@
 - `GET /api/coach/briefing` — Swagger · `authMiddleware` · 실호출(임시 계정) — pass
 - 목록 `card` — 실호출 assistant 행에만 — pass
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-coach-conversation.md` §2단계
+
+## 2026-11-19 패널 배치(`feat/f006-pc-panel-grid`)
+
+- FR-30 경계(16KB 정확히 204 · +1 413 · 한글 바이트) · 객체 아님 400 · 모르는 서피스 400 · 없음 → `tree: null` — `panelLayout.test.ts` 9 · 변이 1
+- 실 DB: 동시 첫 저장 2 → 1행 · 덮어쓰기 · 40KB → DB CHECK 거절 · 조회 `EXPLAIN` 유니크 인덱스(버퍼 1)
+- body-parser 4xx — `errorMiddleware.test.ts` 3 · 변이 1 · 실측 200KB 413(전 500)
+- 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

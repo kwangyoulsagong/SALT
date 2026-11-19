@@ -32,6 +32,25 @@ class CoachConversationController {
     }
   };
 
+  /** PC 패널 배치(F006 A절) — 못 읽으면 200 + `degraded`(기본 배치, `BFF-REQ-027` FR-52) */
+  getPanelLayout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await coachConversationService.getPanelLayout(req.token!);
+      return res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  savePanelLayout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await coachConversationService.savePanelLayout(req.token!, req.body);
+      return res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  };
+
   briefing = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await coachConversationService.briefing(req.token!);

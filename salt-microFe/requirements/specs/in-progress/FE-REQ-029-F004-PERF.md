@@ -198,3 +198,4 @@ created: 2026-09-09
 | 2026-11-10 | F017 v2 단계 1(`f7ce96dc`) — 꼬리표 줄 스타일 `caveatLines`(AA 진한 회색). 지표 이름(미렌더율 → 꼬리표 비율)은 계측 붙일 때 |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 판단 카드와 같이 죽은 스타일(점수 줄 · 요약 줄 · 구간 머리 · 거래소 줄 · 꼬리표 줄) 지움(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
+| 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — `CoachBlock.css.ts` 막힌 카드 보조 글 색(`FE-REQ-047` FR-13). 이 REQ 동작 무변경 |

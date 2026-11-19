@@ -92,3 +92,14 @@
 - 미충족: 없음
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
 - 확인 2회차 — 목록을 본문 패널 위로(§1) · axe 위반 0(링크 · 설명 대비 고침) · 배지 대비 4.99:1
+
+## 2026-11-19 PC 이동식 격자(`feat/f006-pc-panel-grid`)
+
+- FR-50 1280 이상 격자 · FR-57 1279 · 1024 는 격자 없음(구분선 0 · 격자 청크 안 받음) — 실화면
+- FR-51 기본 배치 좌 대화 · 우상 오늘의 추천 · 우하 포지션 요약 — 1440 · 1280×720 스크린샷
+- FR-52 끌기(오늘의 추천 → 대화 아래) · FR-53 구분선 `role=separator` + 화살표 5번 → 저장 1번
+- FR-54 칸 메뉴(옆 칸 × 4쪽 + 기본 배치로) · 키보드로 옮김 · 고른 뒤 포커스 메뉴 버튼 · 메뉴가 아래 칸에선 위로 열림
+- FR-55 저장 · 새로 고침 유지 · GET 500 / PUT 500 / 깨진 저장(모르는 칸) → 기본 배치 · 오류 문구 0
+- FR-56 `ssr:false`(`next/dynamic`) · FR-58 칸 내용은 페이지(`pages/coach-chat` `CoachChatGrid`)
+- axe: 새 요소 위반 0(남은 1건 등락 파랑 — `FE-REQ-047` FR-13 결정 대기)
+- 미충족: 없음 · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

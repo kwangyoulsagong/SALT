@@ -199,3 +199,8 @@
 ## 2026-11-18 — F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`)
 
 - `endpoints.ts`(머리 주인)에 브리핑 경로 · 메시지 커서(주인 `FE-REQ-032`). 종목 판단 경로 변경 0 — 영역 시험 전부 통과
+
+## 2026-11-19 PC 격자 짝(`feat/f006-pc-panel-grid`, 파일만 걸침)
+
+- 코치 경로 표에 `panelLayout` 한 줄 · 쿼리 키 한 줄
+- 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`

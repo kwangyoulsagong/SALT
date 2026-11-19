@@ -23,6 +23,9 @@ router.get("/briefing", appCoachConversationController.briefing);
 router.get("/conversations", appCoachConversationController.listConversations);
 router.get("/conversations/:id/messages", appCoachConversationController.listMessages);
 router.delete("/conversations/:id", appCoachConversationController.deleteConversation);
+// PC 패널 배치(F006 A절 · `BFF-REQ-027` FR-50~52) — 서버 `/api/coach/panel-layout`
+router.get("/panel-layout", appCoachConversationController.getPanelLayout);
+router.put("/panel-layout", appCoachConversationController.savePanelLayout);
 router.get("/generation-status", appCoachController.generationStatus);
 router.get("/events", appCoachController.events);
 router.get("/positioning", appCoachController.positioning);

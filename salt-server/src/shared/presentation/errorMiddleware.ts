@@ -62,6 +62,25 @@ export const toErrorResponse = (err: Error): ErrorResponse => {
     };
   }
 
+  // 본문 읽기 오류(body-parser) — 너무 큰 본문 413 · 깨진 JSON 400 은 요청이 틀린 것이다. 전에는 기본 500 으로 떨어졌다
+  // (2026-11-19 F006 패널 배치 413 계약을 붙이다 발견). 그 라이브러리가 단 `type`(`entity.*`) · 4xx `status` 만 믿는다
+  const parserError = err as Error & { type?: unknown; status?: unknown };
+  if (
+    typeof parserError.type === "string" &&
+    parserError.type.startsWith("entity.") &&
+    typeof parserError.status === "number" &&
+    parserError.status >= 400 &&
+    parserError.status < 500
+  ) {
+    const tooLarge = parserError.status === 413;
+    return {
+      status: parserError.status,
+      code: tooLarge ? "PAYLOAD_TOO_LARGE" : "INVALID_BODY",
+      reason: parserError.type,
+      body: { success: false, code: tooLarge ? "PAYLOAD_TOO_LARGE" : "INVALID_BODY", message: tooLarge ? "Payload too large" : "Invalid request body" },
+    };
+  }
+
   // 커스텀 에러 (이관 전 모듈)
   if (err instanceof AppError) {
     return {

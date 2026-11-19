@@ -225,3 +225,4 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-11-13 | F017 v4 1d 짝(`BFF-REQ-052` FR-6) — `symbol-coach.viewmodel.ts`(머리 주인) `toCaveats` 를 내보냄(패널 뷰모델이 같은 꼬리표 규칙을 쓴다). 동작 변경 0 |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `coach.routes.ts`(머리 주인)에 대화 브리핑 경로 한 줄(주인 `BFF-REQ-028`). 리포트 계약 변경 0 |
+| 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 코치 경로 파일(`coach.routes.ts`)에 패널 배치 두 줄. 이 REQ 동작 무변경 |
