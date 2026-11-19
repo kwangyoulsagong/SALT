@@ -74,3 +74,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `@repo/web-shared/config` `routes.ts` — `portfolioTransactions` 경로 한 줄. 이 REQ 범위 동작 무변경 |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `ROUTES.alerts` 한 줄. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — `ROUTES.plan` 한 줄. 이 REQ 의 FR 은 그대로 |

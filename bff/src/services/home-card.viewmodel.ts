@@ -82,6 +82,8 @@ export const HOME_CARD_TEXT = {
     emptyValue: "기록이 없어요",
     /** 매입가 숨김을 켠 사람에게 — 산 값 대신 지금 값으로 보게 하는 질문(F009 FR-27, 전에 홈 보유 요약 아래 있던 줄) */
     firstLookQuestion: "오늘 처음 본다면, 지금 값으로 이만큼 담을까요?",
+    /** 밴드 적립 이번 주 계획(F003 v2 · `BFF-REQ-019` 개정) — 금액은 서버 값, 계획이라는 사실만(지시형 0) */
+    weeklyPlan: (amount: string) => `이번 주 적립 계획 ${amount}`,
   },
   count: (n: number) => `${n}개`,
 } as const;
@@ -176,20 +178,22 @@ export const toInvestCard = (
   profitRate: number | null = null,
   /** 매입가 숨김을 켰다고 **확인된** 사람 — "오늘 처음 본다면" 줄을 단다 */
   purchasePriceHidden = false,
+  /** 이번 주 적립 계획 총액(서버 값) — 설정 전 · 못 받음이면 null(줄 없음). 숨김 질문이 있으면 그 줄이 먼저다(F009 FR-27 결정 유지) */
+  weeklyPlanKrw: number | null = null,
 ): HomeSummaryCard => {
-  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: INVEST_HREF, updatedAt: now, note: null };
+  const planNote = weeklyPlanKrw === null ? null : HOME_CARD_TEXT.invest.weeklyPlan(formatKrw(weeklyPlanKrw));
+  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: INVEST_HREF, updatedAt: now, note: planNote };
   if (summary.items.length === 0) {
     return {
       ...base,
       primary: { label: HOME_CARD_TEXT.invest.emptyLabel, value: HOME_CARD_TEXT.invest.emptyValue },
       secondary: null,
       state: "empty",
-      note: null,
     };
   }
   return {
     ...base,
-    note: purchasePriceHidden ? HOME_CARD_TEXT.invest.firstLookQuestion : null,
+    note: purchasePriceHidden ? HOME_CARD_TEXT.invest.firstLookQuestion : planNote,
     primary: { label: HOME_CARD_TEXT.invest.total, value: formatKrw(summary.totalKrw) },
     secondary:
       profitRate === null

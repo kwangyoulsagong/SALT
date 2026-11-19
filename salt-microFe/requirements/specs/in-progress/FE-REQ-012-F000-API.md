@@ -191,3 +191,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-11-09 | `MarketOverviewItem.moveCard?` — 서버 판정 칸(F016 단계 C) |
 | 2026-11-10 | 타입 — `SearchSector` · `SearchIndex` · `SearchNews` · `SearchGroups` · `RisingSectors` · `SearchRelatedTarget` · `SearchRelated`(BFF `BFF-REQ-054` 계약) · `marketApi` 세 조회 · 쿼리 키 셋 · 훅 `useSearchExtras.ts`(`19539c95`) |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 심리 · 스마트 머니 응답 타입을 지움(소비처 0 — F017 v4 순서 6 · `FE-REQ-064` FR-12) |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — BFF 오류 봉투에 입력 경계 칸이 붙는다(더하기만) — 웹 `ApiError` 는 그대로 `code` 만 읽는다. 이 REQ 의 FR 은 그대로 |

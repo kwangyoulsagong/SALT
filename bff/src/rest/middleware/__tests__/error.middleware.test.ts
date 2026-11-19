@@ -74,6 +74,36 @@ describe("errorMiddleware", () => {
     assert.deepEqual(out.body, { success: false, message: "Validation error", errors });
   });
 
+  it("입력 거부 경계(field · min · max · unit)를 옮긴다 — 정해진 이름 · 형식만, 나머지 본문은 버린다(밴드 적립 422)", () => {
+    const { res, out } = fakeRes();
+    errorMiddleware(
+      upstream(422, {
+        success: false,
+        code: "PLAN_BASE_AMOUNT_INVALID",
+        message: "Monthly base amount is invalid",
+        field: "monthlyBaseKrw",
+        min: 10_000,
+        max: 100_000_000,
+        unit: 1_000,
+        secret: "x",
+        currentWeek: { nested: true },
+      }),
+      req,
+      res,
+      next,
+    );
+    assert.equal(out.status, 422);
+    assert.deepEqual(out.body, {
+      success: false,
+      code: "PLAN_BASE_AMOUNT_INVALID",
+      message: "Monthly base amount is invalid",
+      field: "monthlyBaseKrw",
+      min: 10_000,
+      max: 100_000_000,
+      unit: 1_000,
+    });
+  });
+
   it("본문이 비어도 status 는 보존한다", () => {
     const { res, out } = fakeRes();
     errorMiddleware(upstream(403, undefined), req, res, next);

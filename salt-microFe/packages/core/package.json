@@ -19,6 +19,7 @@
     "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",
     "./position": "./src/portfolio/position.ts",
+    "./plan": "./src/plan/plan.ts",
     "./alerts": "./src/notification/alerts.ts",
     "./labels": "./src/labels/index.ts",
     "./navigation": "./src/navigation/index.ts",

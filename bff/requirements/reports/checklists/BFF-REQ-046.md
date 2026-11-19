@@ -108,3 +108,7 @@
 - `getPrefs` · `setPref` 무변경 — `app-alerts.test.ts` 설정 시험 둘 그대로 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-19 F003 v2 순서 3(파일 걸침)
+
+- 홈 투자 카드 `note` 에 적립 한 줄(서버 `totalKrw`, 600ms · 매입가 숨김 질문 우선) — 카드 계약 모양 무변경 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)

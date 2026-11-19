@@ -74,6 +74,8 @@ export const errorMiddleware = (
       // 추적 상한 409 — 화면 카운터 `n / 상한`(`BFF-REQ-007` FR-73)
       ...(upstream.trackedCount !== undefined ? { trackedCount: upstream.trackedCount } : {}),
       ...(upstream.trackedLimit !== undefined ? { trackedLimit: upstream.trackedLimit } : {}),
+      // 입력 거부 경계(필드 · 하한 · 상한 · 단위) — 서버 본문과 같은 자리(최상위). 이름이 정해진 칸뿐이라 봉투 키(success · code · message)와 겹치지 않는다
+      ...(upstream.details ?? {}),
     });
   }
 

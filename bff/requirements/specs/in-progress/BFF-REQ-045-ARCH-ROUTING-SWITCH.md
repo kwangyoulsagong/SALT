@@ -54,3 +54,4 @@ BFF 는 Node 로 남고(`ADR-006`), 서버 이전의 **안전장치**가 된다.
 | 2026-11-12 | 서버 S3b(`MONEY-S3b-identity-accounts`): FR-5 — 라우팅 표 `/auth` · `/users/profile` → platform · 표 시험에 일곱 경로 · 웹 세션 갱신(쿠키)이 새 RS 를 받는 것 실화면 확인 |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 라우팅 표에 platform 경로 셋(`/coach/me/data` · `/ping/me/data` · `/notification/me/data` — 가장 긴 머리가 이긴다, `/coach` 는 legacy 그대로). 이 REQ 몫 기능 변경 0 |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — 라우팅 표 한 줄 — `/notification/me/data-classification` → platform(`/notifications` 와 머리가 달라 따로). 나머지 등급 경로는 기존 머리(`/savings` · `/household` · `/content` · `/identity` → platform, 투자 → legacy)로 간다 |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — `rest/app.ts` 에 `/api/app/plan` 한 줄 — 라우팅 스위치 무변경(서버 `/plan` 은 legacy). 이 REQ 의 FR 은 그대로 |

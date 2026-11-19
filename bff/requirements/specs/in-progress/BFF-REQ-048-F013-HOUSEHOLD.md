@@ -108,3 +108,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — 오류 미들웨어 테스트의 표본 코드 `explain_busy` → `busy`(그 코드를 내던 즉석 해설 경로가 사라짐 — 동작 변경 0) |
 | 2026-11-18 | FR-3 이어서(O4) — 월 화면 `coverage`(`HouseholdCoverageVM`) · `coverageReason`. 가공 0. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 오류 미들웨어 시험 파일에 413 한 블록(본문 너무 큼). 이 REQ 동작 무변경 |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — error middleware 가 서버 4xx 의 `field` · `min` · `max` · `unit` · `asset` · `currentWeek` 를 정해진 이름 · 형식만 옮긴다(시험 1 더함). 이 REQ 의 FR 은 그대로 |

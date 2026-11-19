@@ -39,6 +39,8 @@ export const ROUTES = {
   coachChat: "/coach/chat",
   /** 익절 · 손절 계획이 있는 곳 — 포트폴리오(보유마다 점검 가격) */
   portfolio: "/portfolio",
+  /** 밴드 적립 — 이번 주 얼마(F003 v2, 투자 머리 메뉴 "적립") */
+  plan: "/plan",
   /** 보유 기록 관리 — 거래 목록 · 고치기 · 지우기(F006 G절 2단계) */
   portfolioTransactions: "/portfolio/transactions",
   /** 코치 리포트의 한 섹션 — 투자 화면 요약 띠가 여기로 간다 */

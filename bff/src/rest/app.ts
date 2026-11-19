@@ -29,6 +29,7 @@ import tradePreflightRoutes from "./routes/trade-preflight.routes";
 import behaviorCoachRoutes from "./routes/behavior-coach.routes";
 import profitPlanRoutes from "./routes/profit-plan.routes";
 import signalPerformanceRoutes from "./routes/signal-performance.routes";
+import planRoutes from "./routes/plan.routes";
 
 const app: Application = express();
 
@@ -79,6 +80,8 @@ app.use("/api/app/trade-preflight", tradePreflightRoutes);
 app.use("/api/app/behavior-coach", behaviorCoachRoutes);
 app.use("/api/app/profit-plan", profitPlanRoutes);
 app.use("/api/app/signal-performance", signalPerformanceRoutes);
+// 밴드 적립(F003 v2 순서 3) — 투자 zone `/plan`
+app.use("/api/app/plan", planRoutes);
 
 // 동면 경로 — 404 가 아니라 410 (`BFF-REQ-007` A절). `feed.routes` 는 파일만 남아 있다
 app.use([...DORMANT_PATHS], goneMiddleware);

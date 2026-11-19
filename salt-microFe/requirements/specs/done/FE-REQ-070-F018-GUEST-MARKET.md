@@ -46,3 +46,4 @@ source: "`FEATURE-018` · `ADR-011` · 짝 `BFF-REQ-055` · `SRV-REQ-056`"
 - 2026-11-18 F006 포지션 2단계(`feat/f006-position-trades`, 파일만 걸침) — 새 페이지 본문 `PortfolioTransactionsBody` 도 유리막(`SignInRequired`) 뒤 — 거래는 사람 칸
 
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — 공용 레이아웃 문구에 벨 문구. 로그인 없이 보는 화면은 벨을 그리지 않는다(프로필 자리 "로그인"만). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — `/plan` 본문도 유리막(`SignInRequired`) — 적립은 사람 칸. 이 REQ 의 FR 은 그대로 |
