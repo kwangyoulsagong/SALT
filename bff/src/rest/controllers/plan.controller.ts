@@ -32,12 +32,13 @@ const parseComplete = (body: unknown): CompleteWeeklyPlanInput | AppError => {
 
 /**
  * 밴드 적립(F003 v2 순서 3 · `BFF-REQ-019`~`021`) — 응답은 `{ success, data }` 봉투(거래 기록과 같은 모양).
- * 계산 · 게이트 판정 0 · 쓰기 재시도 0 · 서버 4xx 는 error middleware 가 코드 그대로
+ * 계산 · 게이트 판정 0 · 쓰기 재시도 0 · 서버 4xx 는 error middleware 가 코드 그대로.
+ * 개인 금액 응답이라 `no-store`(`BFF-REQ-022` FR-34 · `FE-REQ-025` FR-34)
  */
 export const planController = {
   async getWeekly(req: Request, res: Response, next: NextFunction) {
     try {
-      res.json({ success: true, data: await appPlanService.getWeekly(req.token!) });
+      res.set("Cache-Control", "no-store").json({ success: true, data: await appPlanService.getWeekly(req.token!) });
     } catch (error) {
       next(error);
     }
@@ -46,14 +47,14 @@ export const planController = {
     const input = parseComplete(req.body);
     if (input instanceof AppError) return next(input);
     try {
-      res.json({ success: true, data: await appPlanService.complete(req.token!, input) });
+      res.set("Cache-Control", "no-store").json({ success: true, data: await appPlanService.complete(req.token!, input) });
     } catch (error) {
       next(error);
     }
   },
   async getSettings(req: Request, res: Response, next: NextFunction) {
     try {
-      res.json({ success: true, data: await appPlanService.getSettings(req.token!) });
+      res.set("Cache-Control", "no-store").json({ success: true, data: await appPlanService.getSettings(req.token!) });
     } catch (error) {
       next(error);
     }
@@ -62,7 +63,7 @@ export const planController = {
   async updateSettings(req: Request, res: Response, next: NextFunction) {
     if (!isObject(req.body)) return next(invalid("본문이 객체가 아닙니다"));
     try {
-      res.json({ success: true, data: await appPlanService.updateSettings(req.token!, req.body) });
+      res.set("Cache-Control", "no-store").json({ success: true, data: await appPlanService.updateSettings(req.token!, req.body) });
     } catch (error) {
       next(error);
     }
@@ -71,7 +72,7 @@ export const planController = {
     const month = req.query.month;
     if (month !== undefined && (typeof month !== "string" || !MONTH.test(month))) return next(invalid("month 는 YYYY-MM 입니다"));
     try {
-      res.json({ success: true, data: await appPlanService.getMonthlySummary(req.token!, typeof month === "string" ? month : null) });
+      res.set("Cache-Control", "no-store").json({ success: true, data: await appPlanService.getMonthlySummary(req.token!, typeof month === "string" ? month : null) });
     } catch (error) {
       next(error);
     }

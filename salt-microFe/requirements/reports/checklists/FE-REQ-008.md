@@ -392,3 +392,7 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/MarketBoard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-19 파일만 걸침(`WEB-perf-req-close-slice.md`)
+
+- 청크 차단 실측: 거래 시트 · 뉴스 창 — 실패해도 화면 그대로 · 한 줄 · 다시 누르면 다시 받음(pass)

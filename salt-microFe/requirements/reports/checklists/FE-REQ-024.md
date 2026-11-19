@@ -25,3 +25,23 @@
 - 2회차("버그 검증 다함?"): 변이 9 — 8 잡힘 · "계획 실패를 빈 200 으로" 1 삶 → 시험 더해 잡힘 / main BFF(worktree 4012) 대조 10경로 — 차이는 홈 적립 줄 · 새 경로뿐(저축 · 가계부 검증 오류 순서는 main 도 매번 바뀜) / zone 다섯 운영 빌드 / 로그아웃 유리막(적립 호출 0) / 화면 §5 대조: 큰 숫자 아래 자산 목록이 카드 분해와 같은 숫자 → 뺌 · 비트코인 종목 아이콘(BFF 가 시세 목록 로고, 400ms · 실패면 글자)
 - 정리: 임시 계정(앱 삭제 경로) · 초대 코드 · 셸 3001 — 남은 사람 행 0(적립 표 둘 포함)
 - 미충족: 관측성 계측(게이트 차단 이벤트 · 카운터 — 보낼 곳 없음, 배포 환경 확정 시) · 앱(RN-REQ-016~019, 웹 계약 확정 뒤)
+
+## 2026-11-19 FR 대조 정리(`WEB-perf-req-close-slice.md`)
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-1 | 충족 | `packages/core/src/plan/plan.ts:10`(BFF 와 글자 대조) |
+| FR-2 | 범위 이동 | zod 런타임 파싱 — `RN-REQ-018` FR-1(앱 착수 때 web 과 공유). 웹은 BFF fail-closed 가 모양을 지킨다 |
+| FR-3 | 충족 | BFF 가 `renderable` 없으면 `false`(`bff/src/services/plan.viewmodel.ts:5`) |
+| FR-4 · 5 · 7 | 충족 | `multiplier: 0` · `kimchiPremium: null` 정상 · 반올림 0 |
+| FR-6 | 대체 | LLM 0 — `narrative` 없음 |
+| FR-8 | 대체 | `Idempotency-Key` 대신 서버 주 단위 멱등 + ref 막기 |
+| FR-9 | 충족 | 쿠키 — `packages/web-shared/src/api/apiFetch.ts:50`(`credentials: same-origin`) |
+| FR-10 | 대체 · 충족 | RSC fetch 가 없다(클라이언트 잎) — BFF 응답이 `no-store`(`bff/src/rest/controllers/plan.controller.ts:41~75`) |
+| FR-11 | 대체 | 실패 이력 경로가 없다 |
+| FR-12~15 | 충족 | 패치 타입에 밴드 키 0 · `editable: false` 리터럴 · `configured: false` 정상 · `progressPct: null` 정상 · `matched*` 0 |
+| FR-20~24 | 충족 | 서버 · 외부 직접 호출 0 · 키 · 주문 문자열 0 · 응답 통째 로깅 0(grep) |
+
+| 남은 것 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-2 zod 런타임 파싱 | 데스크톱 먼저 — 웹은 BFF fail-closed | `RN-REQ-018` FR-1(RN 착수) |

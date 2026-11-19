@@ -38,3 +38,8 @@
 
 - GET `{ tree, updatedAt, degraded }` · PUT `{ tree }` → 204 — 화면 타입 `@repo/core/coach` `PanelLayoutResult` 와 같은 모양(실호출)
 - 미충족: 없음
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-6 — LLM 경로 결정 · 앱 착수 때

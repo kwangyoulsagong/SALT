@@ -11,11 +11,13 @@ import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
 import { ROUTES } from "@repo/web-shared/config";
+import { BOUNDARY_MESSAGES } from "@repo/web-shared/i18n";
+import { useLazyComponent } from "@repo/web-shared/lib";
 import { NavChevron } from "@repo/web-shared/ui";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { usePurchasePriceVisibility } from "@/entities/coach";
-import { LEDGER_SHEET_MESSAGES, TransactionSheet } from "@/features/record-transaction";
+import { LEDGER_SHEET_MESSAGES } from "@/features/record-transaction";
 import {
   DEFAULT_FLOW_RANGE,
   POSITION_MESSAGES,
@@ -30,6 +32,12 @@ import {
 import { emptyLink, footLinks, headAction, stack } from "./PositionOverview.css";
 
 /**
+ * 거래 시트는 누를 때만 받는다 — 첫 화면은 Hero · 흐름 · 레이더(`FE-REQ-033` FR-74). 청크를 못 받으면 화면은 그대로 두고 한 줄만
+ * (`next/dynamic` 이면 실패가 섹션 경계까지 올라가 페이지가 통째로 오류였다 — `useLazyComponent`)
+ */
+const loadTransactionSheet = () => import("@/features/record-transaction").then((mod) => mod.TransactionSheet);
+
+/**
  * 포지션(F006 G절 — `/portfolio` 위쪽) — Hero · 평가금 흐름 · 리스크 레이더(FR-70 · 71 · 73). 보유 0 이면 첫 기록 안내만(FR-78).
  * 개요 · 흐름은 따로 부른다 — 기간 버튼은 흐름만 다시 부르고(FE-REQ-031 FR-91), 흐름 실패가 Hero 를 가리지 않는다(FR-90).
  * [거래 기록 추가] 시트(2단계 FR-104)는 Hero 머리 · 빈 상태에서 연다. 아래에 보유 기록 관리 · 설정 링크(FR-109).
@@ -42,7 +50,17 @@ export const PositionOverview = () => {
   const hasHoldings = overview.isSuccess && !overview.data.empty;
   const flow = usePositionFlow(range, hasHoldings);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const sheet = <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />;
+  const { Component: TransactionSheet, failed: sheetFailed, ensure: ensureSheet } = useLazyComponent(loadTransactionSheet);
+  const openSheet = async () => {
+    if (await ensureSheet()) setSheetOpen(true);
+  };
+  // 한 번 받은 뒤로는 붙여 둔다 — 닫힘 움직임이 끝까지 돈다
+  const sheet = (
+    <>
+      {TransactionSheet ? <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} /> : null}
+      {sheetFailed ? <StatusLine kind="error">{BOUNDARY_MESSAGES.lazyFailed(LEDGER_SHEET_MESSAGES.createTitle)}</StatusLine> : null}
+    </>
+  );
 
   if (overview.isSignedOut) return null; // 페이지가 유리막을 그린다
   if (overview.isPending) {
@@ -69,7 +87,7 @@ export const PositionOverview = () => {
           icon={<StatusGraphic kind="empty" />}
           title={POSITION_MESSAGES.emptyTitle}
           description={POSITION_MESSAGES.emptyBody}
-          action={<Button onClick={() => setSheetOpen(true)}>{LEDGER_SHEET_MESSAGES.openButton}</Button>}
+          action={<Button onClick={openSheet}>{LEDGER_SHEET_MESSAGES.openButton}</Button>}
         />
         {sheet}
       </section>
@@ -83,7 +101,7 @@ export const PositionOverview = () => {
       <section className={panel} aria-labelledby="position-hero">
         <div className={panelHead}>
           <h2 id="position-hero" className={panelTitle}>{POSITION_MESSAGES.heading}</h2>
-          <Button size="sm" variant="weak" className={headAction} onClick={() => setSheetOpen(true)}>
+          <Button size="sm" variant="weak" className={headAction} onClick={openSheet}>
             {LEDGER_SHEET_MESSAGES.openButton}
           </Button>
         </div>

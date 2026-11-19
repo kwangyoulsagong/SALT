@@ -50,3 +50,8 @@
 - 미충족: 없음(FR-88 은 온보딩 은퇴로 소멸)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
 - 확인 2회차: main(4000) · 브랜치(4020) 나란히 — 같은 쓰기 순서 결과 같음 · 읽기 14경로 같음(거래 목록 같은 시각 순서만 의도한 차이) — pass
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-5 · 6 · 26 · 30~34 · 44 · 46 · 62 · 63 — LLM 경로 결정 · 앱 착수 때

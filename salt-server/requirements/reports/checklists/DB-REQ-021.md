@@ -22,3 +22,8 @@
 - FR-20 표 · FR-21 조건 0(조회는 `(user_id, surface)` 유니크만) · FR-22 유니크 · FR-23 화면 기본 배치(실화면) · FR-24 모양 안 봄 · 크기 CHECK
 - 등급 주석 · `userRows` — `userRows.test.ts` 통과
 - 미충족: 없음
+
+## 2026-11-19 — 남은 FR 대조 (루트 `requirements/specs/done/WEB-perf-req-close-slice.md`)
+
+- 미구현 FR 에 대체 근거(스펙 `## 정리 2026-11-19` 절) — 코드 무변경
+- 남은 것: FR-7, FR-11 — LLM 경로 결정 · 앱 착수 때

@@ -98,6 +98,12 @@ export interface CoachProfileStore {
   ): Promise<CoachProfile>;
 }
 
+/**
+ * 피드백 행의 `dedupeKey` 접두사. 추천 · 점수 재료 조회는 이 접두사의 행을 읽지 않는다 —
+ * 피드백도 같은 `ai_coach` 타입에 쌓이기 때문이다(`PrismaCoachInsightStore` `EXCLUDE_FEEDBACK`).
+ */
+export const FEEDBACK_KEY_PREFIX = "feedback:";
+
 export interface CoachInsightDraft {
   userId: string;
   symbol?: string | null;
@@ -757,6 +763,8 @@ export interface CoachGenerationLogStore {
     }
   ): Promise<void>;
   recordRejected(userId: string, requestedAt: Date): Promise<void>;
+  /** `requestedAt` 이 이 시각보다 앞인 기록을 지운다(보존 — `SRV-REQ-027` FR-24 · `DB-REQ-020` FR-41). 지운 행 수 */
+  pruneBefore(before: Date): Promise<number>;
   /** 받아들인(거부 아닌) 마지막 **수동** 요청 시각 */
   lastAcceptedManualAt(userId: string): Promise<Date | null>;
   /** 최신순 */

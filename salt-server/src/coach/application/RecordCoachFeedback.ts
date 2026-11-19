@@ -1,4 +1,9 @@
-import type { CoachInsight, CoachInsightStore, CoachMode } from "../domain";
+import {
+  type CoachInsight,
+  type CoachInsightStore,
+  type CoachMode,
+  FEEDBACK_KEY_PREFIX,
+} from "../domain";
 
 export interface RecordCoachFeedbackCommand {
   insightId?: string;
@@ -36,7 +41,7 @@ export class RecordCoachFeedback {
       summary: `사용자가 ${symbol} ${command.mode} 코치 판단을 ${command.action} 처리했습니다.`,
       severity: 0,
       confidence: null,
-      dedupeKey: `feedback:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      dedupeKey: `${FEEDBACK_KEY_PREFIX}${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
       payload: {
         kind: "coach_feedback",
         insightId: command.insightId ?? null,

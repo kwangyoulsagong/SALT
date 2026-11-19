@@ -214,3 +214,9 @@
 - `salt-server/src/composition.mydata.ts` 내 데이터 목록에 plan 표 둘(`PLAN_USER_ROWS` — 내보내기 · 계정 삭제 실확인)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F003-v2-s2-plan-server.md`
+
+## 2026-11-19 — `WEB-perf-req-close-slice.md` 짝(파일만 걸침)
+
+- `coach/domain/ports.ts`(머리 주인) — `FEEDBACK_KEY_PREFIX` · `pruneBefore` 포트 선언. 시험 `feedbackRowsExcluded.test.ts` · `recordCoachFeedbackKey.test.ts` · `generateCoachLogging.test.ts`
+- 미충족: 없음(이 REQ 몫 변경 0)
+- 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절

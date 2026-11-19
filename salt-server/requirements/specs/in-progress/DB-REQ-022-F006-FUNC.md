@@ -11,6 +11,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈은 3블록, 총자산 환율의 "세금 기준과 구분"(INV-7)은 대상이 사라져 개정. 포지션 거래 기록 · 알림 읽음 · 온보딩 건너뛰기 불변식(INV-10~15)을 추가했다. 근거: 스토리보드 갭 감사 D5 · D6 · B12 · B13 · B14.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 재연결하고, **재연결 시 같은 답변을 두 번 생성하면 비용이 두 배가 되고 답이 달라진다.**
@@ -174,6 +176,18 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 - 후처리 검사(FR-62)가 정상 문장을 잘못 잡을 수 있다. "체결"은 "체결 내역"처럼 정당하게 쓰인다 → **문맥 검사가 필요**할 수 있다.
 - 과거 날짜 거래 재계산(FR-73)이 거래 수가 많을 때 느려질 수 있다. 사용자 ≤10명 · 수기 입력이면 수백 건 이하라 전체 재계산이 기본안.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-5 · 22 | 남음(LLM) | 부분 저장 · LLM 취소 — 답은 계산 뒤 한 번에 쓴다 |
+| FR-32 | 대체 | 메시지 수 · 마지막 시각은 질문 쓰기와 같은 중첩 쓰기 한 문장(FR-30 · 31)이고 삭제는 대화째 Cascade — 어긋날 경로가 없어 검증 쿼리를 두지 않는다 |
+| FR-50~54 | 대체 | 홈 F015 |
+| FR-61~63 | 충족 · 남음(LLM) | 규칙 답은 `languageGuard` 를 지난 문장뿐(충족). 프롬프트 가드 쪽은 LLM 경로가 켜질 때 |
+| FR-80~84 | 대체 | 알림은 Kotlin · 온보딩 은퇴 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -185,3 +199,4 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 거래 타임라인 읽기 Port `findTimeline`(`(user_id, transaction_date)` 인덱스 · 상한 5000 · 넘으면 `timeline_truncated`). 쓰기 불변식 FR-70~74 는 바뀌지 않음 — FR-71(수정 · 삭제 뒤 음수 거부)은 아직 원문 동작(재계산 · 행 삭제)이라 2단계. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-70 미리보기 · 저장 같은 원장 함수(`LedgerChange.ts` · `recalculateHolding`) · FR-71 거래일 순서 음수 거부(생성 · 수정 · 삭제 · 미리보기) · FR-72 한 트랜잭션(`shared/infrastructure/prisma.ts` `runInTransaction` — 열린 트랜잭션 맥락이면 저장소의 `prisma.x` 가 그 트랜잭션으로) + `pg_advisory_xact_lock(사람 · 자산군 · 종목)` · FR-73 정정(FIFO) · FR-74 남의 id = 404(`findOwned`). 원장 조회 순서 `transaction_date, transaction_type, id`. 마이그레이션 0 |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 마이그레이션 주석이 이 REQ 의 "값 목록은 제약으로" 태도를 가리킨다. 이 REQ 동작 무변경 |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

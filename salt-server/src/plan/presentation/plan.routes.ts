@@ -265,7 +265,7 @@ export const createPlanRouter = (useCases: PlanUseCases): Router => {
    *         name: month
    *         required: false
    *         schema: { type: string, pattern: '^\d{4}-(0[1-9]|1[0-2])$' }
-   *         description: 생략하면 이번 달(KST)
+   *         description: 생략하면 이번 달(KST). 오지 않은 달은 400 `PLAN_MONTH_IN_FUTURE`(`currentMonth` 를 같이 준다)
    *     responses:
    *       200:
    *         description: 합계
@@ -287,7 +287,7 @@ export const createPlanRouter = (useCases: PlanUseCases): Router => {
    *                     executedWeeks: { type: integer }
    *                     totalWeeks: { type: integer }
    *                     daysLeft: { type: integer }
-   *       400: { description: 형식 오류 }
+   *       400: { description: "형식 오류 · 오지 않은 달(PLAN_MONTH_IN_FUTURE)" }
    *       401: { description: 인증 실패 }
    */
   router.get("/monthly-summary", controller.getMonthlySummary);

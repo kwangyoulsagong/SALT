@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   PlanExecutionInvalidError,
+  PlanMonthInFutureError,
   PlanNotConfiguredError,
   PlanWeekNotCurrentError,
   type BandReader,
@@ -222,6 +223,21 @@ describe("plan 유스케이스", () => {
       3, // 11-16 · 11-23 · 11-30
       1_300_000,
     ]);
+  });
+
+  it("월 합계 — 이번 달 · 지난 달은 되고 오지 않은 달은 400(FR-29) · 경계는 KST", async () => {
+    const w = world([]);
+    assert.equal((await w.app.getMonthlySummary.execute("u1", "2026-11")).month, "2026-11");
+    assert.equal((await w.app.getMonthlySummary.execute("u1", "2026-10")).month, "2026-10");
+    await assert.rejects(w.app.getMonthlySummary.execute("u1", "2026-12"), (e: unknown) =>
+      e instanceof PlanMonthInFutureError && e.details?.currentMonth === "2026-11"
+    );
+    await assert.rejects(w.app.getMonthlySummary.execute("u1", "2027-01"), PlanMonthInFutureError);
+    // UTC 로는 아직 11월 30일, KST 로는 12월 1일 00:00 — 12월은 이제 이번 달
+    w.setNow("2026-11-30T15:00:00Z");
+    assert.equal((await w.app.getMonthlySummary.execute("u1", "2026-12")).month, "2026-12");
+    w.setNow("2026-11-30T14:59:59Z");
+    await assert.rejects(w.app.getMonthlySummary.execute("u1", "2026-12"), PlanMonthInFutureError);
   });
 
   it("예측 회차 전에 체크하면 그때 정액으로 굳힌다(근거가 남는다)", async () => {

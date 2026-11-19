@@ -17,6 +17,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 **IA를 3탭으로 확정하고 대화를 제품의 중심에 놓는다.** PC는 탭이 아니라 `MovableGrid`로 여러 패널을 동시에 본다.
@@ -272,6 +274,21 @@ created: 2026-09-09
 - **Q2 — 자산군.** 거래 시트 첫 단계(자산군)는 자산군 3종 유지 여부에 달려 있다. 크립토 하나면 단계를 없앤다.
 - 공통 헤더가 홈 `ProfileHeader`의 시각을 바꾸는가. "홈 변경 금지"(FEATURE-000)와 부딪히지 않게 **프로필 영역 시각은 그대로 두고 우측에 아이콘 두 개만** 더하는 것이 기본안.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-1 · 2 · 4 · 5 · 57 · 90~93 | 대체 | 3탭 · 세그먼트 없음 — 웹은 도메인 zone + 투자 머리 메뉴(`FE-REQ-069`). 시장은 `/investments` 그대로 |
+| FR-10~24 | 대체 | 홈 F015 카드 |
+| FR-33 | 대체 | 토큰이 아니라 문장 단위(규칙 답) |
+| FR-37 | 남음(LLM) | `규칙 기반 설명` 배지는 LLM 경로가 켜질 때 — 지금은 전부 규칙 |
+| FR-41 | 남음(LLM) | 취소 버튼 — 스트림이 밀리초에 끝나 누를 틈이 없다(질문 → 끝 p95 38ms) · 종료 전파는 있다. LLM 경로가 켜질 때 |
+| FR-60 · 61 | 대체 | 온보딩 은퇴 |
+| FR-120~125 | 대체 | 설정 그룹이 도메인 zone 으로 흩어짐(위 머리글) |
+| 앱 하단 탭바(FR-1 모바일) | 남음(앱) | RN — 마스터 인덱스 §4-1 순위 6 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -290,3 +307,4 @@ created: 2026-09-09
 | 2026-11-18 | **F006 포지션 2단계**(`feat/f006-position-trades`) — FR-104 `features/record-transaction` `TransactionSheet`(좁으면 바텀시트 · 넓으면 모달 — `useNarrowViewport` 를 `run-preflight` 에서 `@repo/web-shared/lib` 로 내림) · 미리보기 카드 `LedgerPreviewCard` · 종목 찾기 `LedgerSymbolPicker`(기존 `useAssetSearch`) · FR-105 과매도 = 저장 막음 + 서버 사유 · 입력 보존 · FR-106 정정(경로 · 확인) `widgets/transaction-list` · `pages/portfolio-transactions` · FR-107 빈 상태 [거래 기록 추가] · FR-108 주문 링크 0 · FR-109 포지션 아래 보유 기록 관리 · 설정(코치 설정) 링크. 실화면 1440 · 390 앱 웹뷰 · 실패 둘(목록 · 미리보기) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — FR-80 벨 자리(모든 zone 머리 · 프로필 앞) · FR-81 배지(0 숨김 · 99+ · `aria-label`) · FR-110~113 `/alerts`(행 · 읽음 + 이동 · 모두 읽음 · 만드는 칸 0) · 빈 상태 문구 해요체로 정정. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | **PC 이동식 격자 구현**(`feat/f006-pc-panel-grid`) — FR-50~58. 격자 자리 `/coach/chat`(정정 — 3탭 없음) · 칸 "오늘의 추천"(정정) · 저장 경로 `/api/app/coach/panel-layout`(정정). 루트 `F006-pc-panel-grid-slice.md` |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

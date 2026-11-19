@@ -13,6 +13,8 @@ created: 2026-09-09
 
 > **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
 
+> **2026-11-19 정리** — 남은 FR 은 LLM 경로(A/B 를 먼저 거쳐야 켠다)와 앱(RN) 몫뿐이다. 나머지 미구현 FR 은 대체 근거를 달았다(`## 정리 2026-11-19` 절).
+
 ## Summary
 
 대화는 **2단계**다: `POST`로 메시지를 만들고 `GET`으로 SSE를 연다. 그래야 재연결이 단순해진다. 홈은 `homebriefing` 조합 컨텍스트가 `GET /api/home`으로 낸다.
@@ -240,6 +242,15 @@ type TransactionPreview = {
 - `overview`를 기존 `/holdings` · `/stats` 확장으로 할지 신규로 할지. 기존 두 경로의 응답을 바꾸면 F000 화면이 흔들린다 → **신규가 기본안**, 기존은 그대로 둔다.
 - 알림 목록을 `page`에서 `cursor`로 바꾸는 것이 기존 소비처를 깨는지 확인 필요.
 
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 루트 `requirements/specs/done/WEB-perf-req-close-slice.md` 에서 남은 FR 을 대조했다. 대체 근거만 단다 — 홈 3블록은 F015 홈 요약 카드(`FE-REQ-055` FR-2), 3탭 IA 는 만들지 않음(`FE-REQ-069` · 앱 하단 탭은 `FE-REQ-054`), 알림은 Kotlin `notification`(`SRV-REQ-048` FR-5), 온보딩 3스텝은 은퇴(S3a), 설정 한 화면은 도메인 zone 으로 흩어졌다 — ① 월 적립액 · ② 배분 · 밴드 읽기 전용은 `/plan`(`features/edit-plan-settings`, `FE-REQ-022` G절 · `FE-REQ-023` E절) · ③ 코치는 `/coach/settings` · ④ 알림 켜기/끄기는 셸 `/settings` 도메인별(`features/toggle-alerts`, `FE-REQ-055` · `BFF-REQ-046` FR-8) · ⑤ 보유 기록 관리는 `/portfolio` 하단 링크(`FE-REQ-030` FR-109). **남은 것은 LLM 경로(A/B 먼저)와 앱 몫뿐**이다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-9 | 남음(LLM) | 끊을 LLM 이 없다 — 연결 종료는 스트림 자리 해제(`release`) |
+| FR-20~27 · 31 | 대체 | 홈 F015 — 서버 `/api/home` 없음 |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -249,3 +260,4 @@ type TransactionPreview = {
 | 2026-11-18 | **F006 대화 경로 다섯 구현** — POST `/api/coach/messages` · GET `/messages/:id/stream` · 목록 둘 · DELETE. SSE FR-1~11(ping 은 답이 곧 끝나 서버엔 없고 BFF 15초) · FR-28 · 29 · 32. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-18 | **F006 대화 2단계**(`feat/f006-coach-conversation-s2`) — FR-5 `message.card` 완성 객체 한 번(이벤트 id = 문장 수 — 마지막 문장까지 받고 끊긴 재연결도 카드를 받는다) · 메시지 목록에 `card` · 새 경로 `GET /api/coach/briefing`(저장 0). 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` 2단계 |
 | 2026-11-19 | **패널 배치 구현**(`feat/f006-pc-panel-grid`) — GET · PUT `/api/coach/panel-layout`(정정 — 컨텍스트 경로) · FR-30 16KB 413 · Swagger. 같은 원인 — body-parser 오류(본문 너무 큼 · 깨진 JSON)가 500 → 413 · 400(`errorMiddleware`) |
+| 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |

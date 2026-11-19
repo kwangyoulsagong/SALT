@@ -105,22 +105,23 @@ export class GetCoachDetail {
     const stored = latest
       ? readStoredRecommendation(latest.payload, latest.createdAt)
       : null;
-    // 변동성 실패는 상세를 막지 않는다 — 익절 계획만 고정 비율로
-    const risk =
+    // 둘은 서로 모른다 — 차례로 기다리면 상세 지연이 두 호출의 합이 된다(`SRV-REQ-027` FR-30)
+    const [risk, recommendation] = await Promise.all([
+      // 변동성 실패는 상세를 막지 않는다 — 익절 계획만 고정 비율로
       this.forecasts && holdings.length
-        ? await this.forecasts
+        ? this.forecasts
             .symbolRisk(holdings.map((holding) => holding.symbol))
             .catch(() => null)
-        : null;
-
-    const recommendation = stored
-      ? await assembleRecommendationCard(
-          { market: this.market, recommendations: this.recommendations },
-          userId,
-          latest!,
-          stored
-        )
-      : null;
+        : Promise.resolve(null),
+      stored
+        ? assembleRecommendationCard(
+            { market: this.market, recommendations: this.recommendations },
+            userId,
+            latest!,
+            stored
+          )
+        : Promise.resolve(null),
+    ]);
 
     return {
       generatedAt: stored?.generatedAt.toISOString() ?? null,

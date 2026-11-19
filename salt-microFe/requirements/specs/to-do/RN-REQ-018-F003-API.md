@@ -38,7 +38,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-1 | 타입·zod 스키마·파서를 `packages/core`에서 **web과 공유**한다 | Must |
+| FR-1 | 타입·zod 스키마·파서를 `packages/core`에서 **web과 공유**한다 — **넘겨받음 2026-11-19**: 웹의 런타임 파싱(`FE-REQ-024` FR-2)도 이 FR 이 같이 만든다(웹은 지금 BFF 계약 글자 대조 · 타입만) | Must |
 | FR-2 | 모바일 전용 응답 변형을 BFF에 요구하지 않는다 | Must |
 | FR-3 | `renderable` 누락 → `false` 파싱 (fail-closed) | Must |
 | FR-4 | `multiplier: 0`을 `null`과 구분한다 | Must |
@@ -138,3 +138,4 @@ created: 2026-09-09
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 엔드포인트 개정(설정 PATCH · 월 적립액만 — D9 · B12, `monthly-summary` 신설 — B20). FR-8·9 추가, FR-21·에러 매핑 개정 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-19 | FR-1 에 `FE-REQ-024` FR-2(웹 zod 런타임 파싱) 넘겨받음 — 앱 착수 때 같이(루트 `WEB-perf-req-close-slice.md`) |

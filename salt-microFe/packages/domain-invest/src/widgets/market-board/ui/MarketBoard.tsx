@@ -11,7 +11,10 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React, { type ReactNode, Suspense, useEffect, useState } from "react";
 
+import { StatusLine } from "@repo/ui/statusLine";
 import { INVESTMENTS_ASSET_PARAM, INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
+import { BOUNDARY_MESSAGES } from "@repo/web-shared/i18n";
+import { useLazyComponent } from "@repo/web-shared/lib";
 
 
 import {
@@ -68,10 +71,20 @@ const MarketSummaryStrip = dynamic(
  * 시세 화면 뉴스 모달 하나(`FE-REQ-065`) — 엔티티 barrel 을 쓰므로 늦게 온다. 정적으로 부르면 모달 · 본문 조회가 첫 로드에 실려
  * `/investments` 가 153 → 165 kB 였다(2026-11-10 운영 빌드 대조, `87eb8083`). 주소에 `?news=` 가 있을 때만 그린다
  */
-const NewsModalHost = dynamic(() => import("@/entities/market").then((mod) => mod.NewsModalHost), {
-  ssr: false,
-  loading: () => null,
-});
+const loadNewsModalHost = () => import("@/entities/market").then((mod) => mod.NewsModalHost);
+
+/**
+ * 뉴스를 눌러 주소가 바뀐 뒤 받는 잎 — 청크를 못 받으면 보드는 그대로 두고 한 줄만(`useLazyComponent`, 2026-11-19).
+ * `next/dynamic` 이면 실패가 섹션 경계까지 올라가 시세 보드가 통째로 오류였다. 다른 뉴스를 누르면(주소가 바뀌면) 다시 받는다
+ */
+const LazyNewsModal = ({ newsKey }: { newsKey: string }) => {
+  const { Component, failed, ensure } = useLazyComponent(loadNewsModalHost);
+  useEffect(() => {
+    void ensure();
+  }, [ensure, newsKey]);
+  if (Component) return <Component />;
+  return failed ? <StatusLine kind="error">{BOUNDARY_MESSAGES.lazyFailed(MARKET_BOARD_MESSAGES.newsModalName)}</StatusLine> : null;
+};
 
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
 const KrStockAvailability = dynamic(
@@ -102,7 +115,8 @@ const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
     onAsset(asset && ASSET_CLASS_TABS.some((tab) => tab.id === asset) ? asset : DEFAULT_ASSET_CLASS_TAB);
   }, [asset, onAsset]);
   // 뉴스 모달은 주소에 `?news=` 가 있을 때만 싣는다 — 없는 동안 그 청크를 받지 않는다
-  return params?.get(INVESTMENTS_NEWS_PARAM) ? <NewsModalHost /> : null;
+  const news = params?.get(INVESTMENTS_NEWS_PARAM);
+  return news ? <LazyNewsModal newsKey={news} /> : null;
 };
 
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */

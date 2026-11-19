@@ -28,6 +28,8 @@ export const BOUNDARY_MESSAGES = {
   failedTitle: (name: string) =>
     `${withObjectParticle(name)} 불러오지 못했습니다.`,
   failedDescription: "잠시 후 다시 시도해주세요.",
+  /** 누를 때 받는 잎(`useLazyComponent`)을 못 받았다 — 화면은 그대로, 이 한 줄만 */
+  lazyFailed: (name: string) => `${withObjectParticle(name)} 불러오지 못했어요. 다시 누르면 다시 불러와요.`,
 } as const;
 
 /**

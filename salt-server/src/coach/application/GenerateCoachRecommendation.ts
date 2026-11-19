@@ -71,6 +71,9 @@ type Generated = CoachInsight | SymbolCoachView | null;
  * 남아야 하며(다음 회차가 다시 비교한다) 판단이 실패하면 알릴 것이 없다.
  * 묶으면 얻는 것 없이 트랜잭션이 외부 조회 시간만큼 길어진다.
  */
+/** 생성 기록 보존 일수(`SRV-REQ-027` FR-24 · `DB-REQ-020` FR-41 — 90일) */
+export const COACH_GENERATION_LOG_KEEP_DAYS = 90;
+
 export class GenerateCoachRecommendation {
   constructor(
     private readonly profiles: CoachProfileStore,
@@ -107,17 +110,22 @@ export class GenerateCoachRecommendation {
         .start(userId, options.source ?? "worker", startedAt)
         .catch(() => null));
 
-    const finish = (status: "succeeded" | "failed", errorCode: string | null) =>
-      logId
-        ? this.logs
-            .finish(logId, {
-              status,
-              llmSource: status === "succeeded" ? "rule" : null,
-              durationMs: this.clock().getTime() - startedAt.getTime(),
-              errorCode,
-            })
-            .catch(() => undefined)
-        : undefined;
+    const finish = async (status: "succeeded" | "failed", errorCode: string | null) => {
+      if (logId) {
+        await this.logs
+          .finish(logId, {
+            status,
+            llmSource: status === "succeeded" ? "rule" : null,
+            durationMs: this.clock().getTime() - startedAt.getTime(),
+            errorCode,
+          })
+          .catch(() => undefined);
+      }
+      // 보존 — 기록은 생성 때만 늘어나므로 생성마다 오래된 것을 지운다(cron 0). 실패해도 생성은 그대로
+      await Promise.resolve()
+        .then(() => this.logs.pruneBefore(new Date(startedAt.getTime() - COACH_GENERATION_LOG_KEEP_DAYS * 86_400_000)))
+        .catch(() => undefined);
+    };
 
     try {
       const result = await this.generate(userId, command);

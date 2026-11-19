@@ -10,7 +10,7 @@ import type {
   PortfolioProbe,
 } from "../../domain";
 import type { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
-import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
+import { COACH_GENERATION_LOG_KEEP_DAYS, GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import type { GetSymbolCoach } from "../GetSymbolCoach";
 
 /**
@@ -26,6 +26,7 @@ const logs = () => {
   const store = {
     start: async (...args: unknown[]) => (events.push(["start", ...args]), "log-1"),
     finish: async (...args: unknown[]) => void events.push(["finish", ...args]),
+    pruneBefore: async (before: Date) => (events.push(["prune", before]), 0),
   } as unknown as CoachGenerationLogStore;
   return { events, store };
 };
@@ -93,6 +94,35 @@ describe("GenerateCoachRecommendation — 생성 기록", () => {
       durationMs: 250,
       errorCode: "TypeError",
     });
+  });
+
+  it("생성마다 보존 기한(90일) 앞 기록을 지운다 — 성공 · 실패 모두", async () => {
+    const ok = logs();
+    await build(ok.store, async () => new Map()).execute("u1");
+    const failed = logs();
+    await assert.rejects(
+      build(failed.store, async () => {
+        throw new Error("x");
+      }).execute("u1")
+    );
+
+    const cutoff = new Date(T0.getTime() - COACH_GENERATION_LOG_KEEP_DAYS * 86_400_000);
+    for (const { events } of [ok, failed]) {
+      assert.deepEqual(events.filter(([kind]) => kind === "prune"), [["prune", cutoff]]);
+    }
+    assert.equal(cutoff.toISOString(), "2026-06-25T00:00:00.000Z");
+  });
+
+  it("지우기가 실패해도 생성은 그대로 끝난다", async () => {
+    const store = {
+      start: async () => "log-1",
+      finish: async () => undefined,
+      pruneBefore: async () => {
+        throw new Error("db down");
+      },
+    } as unknown as CoachGenerationLogStore;
+
+    assert.deepEqual(await build(store, async () => new Map()).execute("u1"), { symbol: "BTC" });
   });
 
   it("기록이 실패해도 생성은 계속한다", async () => {

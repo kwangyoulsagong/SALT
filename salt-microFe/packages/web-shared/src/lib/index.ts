@@ -12,3 +12,4 @@ export * from "./labelOr";
 export * from "./useZoneNavigate";
 export * from "./useNarrowViewport";
 export * from "./useWideViewport";
+export * from "./useLazyComponent";

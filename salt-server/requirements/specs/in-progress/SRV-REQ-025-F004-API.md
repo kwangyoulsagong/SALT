@@ -358,3 +358,4 @@ type ExplainResult =
 | 2026-11-18 | 변경 없음 기록 — 이 REQ 가 머리 주인인 `explanationPrompt.ts` 에 도구 사실 블록 · 쓰는 조건 한 줄을 더했다(입력에 `tools` 가 있을 때만 — 없으면 프롬프트 바이트 같음, 주인 `SRV-REQ-059`). 루트 `requirements/specs/done/F008-O3-agent-tools-slice.md` |
 | 2026-11-18 | `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`) — `explanationPrompt.ts`(머리 주인): 원인 단계 '없음'이면 두 프롬프트(줄 형식 · JSON) 모두 원인 줄을 쓰지 않게 — 원인 줄은 서버 문장(`fixedCauseLine`). 프롬프트 @4 |
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `GetCoachDetail.ts`(머리 주인) — 추천 조립을 `application/lib/recommendationCard.ts` 로 옮겨 대화와 같이 쓴다(동작 변경 0 — 같은 함수 본문 · 기존 상세 시험 전부 통과). 주인 `SRV-REQ-028` |
+| 2026-11-19 | 상세 병렬 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `GetCoachDetail.ts` 에서 변동성 · 추천 카드 두 await 를 `Promise.all` 로. 응답 계약 변경 0. 실측 coach detail 쿼리 11 · 서버 p95 5.0ms. 주인 `SRV-REQ-027` FR-30. 루트 `WEB-perf-req-close-slice.md` |

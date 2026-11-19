@@ -1,0 +1,131 @@
+---
+id: BFF-REQ-021
+feature: F003
+area: bff
+kind: UPSTREAM
+title: "F003 밸류에이션 밴드 적립 — 서버 호출 계약 정의"
+priority: high
+labels: [bff, upstream, backend-integration, kimchi]
+created: 2026-09-09
+---
+
+> **2026-11-19 F003 v2 순서 3 — 이 블록이 아래 본문보다 우선한다**(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`).
+> - 자산 BTC · 코스피(`us_stock` · `excluded[]` 폐기) · 경로 넷 `/api/app/plan/{weekly, weekly/complete, settings, monthly-summary}` — 김프 · 과거 성적 · 실패 사례는 서버 `weekly` 한 응답이라 `/indicators` · `/kimchi-premium` · `track-record` 호출은 **만들지 않는다**(FR-1 · 2 · 5 의 "병렬 김프"는 서버 몫)
+> - 계약은 서버 v2 모양 그대로: `trackRecordId` 대신 `renderable` + `blockedReason` + `trackRecord` · `failureCases` · `basis.bands`. 정의 `bff/src/services/plan.viewmodel.ts` `CONTRACT` = `@repo/core/plan`(글자 대조 테스트)
+> - 게이트는 닫기만(fail-closed): `renderable` 이 `true` 일 때만 `true`, 없으면 `false` + `blockedReason: gate_missing` + `degradedReasons`. 모르는 자산 · 배수 없는 행은 싣지 않는다(`item_dropped`)
+> - 실패는 상태 코드 그대로(화면 블록이 다시 부른다) — `status: 'unavailable'` 봉투는 두지 않는다. 서버 422 의 `field` · `min` · `max` · `unit` · `currentWeek` 는 error middleware 가 정해진 이름만 옮긴다
+> - 홈 투자 카드에 적립 한 줄(`note`, 600ms — 카드 800ms 안). 매입가 숨김 질문이 있으면 그 줄이 먼저
+> - 미충족: FR-14 게이트 미충족 카운터(관측성 — 보낼 곳이 없다, 배포 환경 확정 시) · 모바일 집계(RN 착수 시)
+
+## Summary
+
+BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐시 히트**다.
+
+## 호출 맵
+
+| BFF 함수 | 서버 호출 | 타임아웃 | 재시도 |
+|---|---|---|---|
+| `weeklyPlan` | `GET /api/plan/weekly` | 500ms | 1회 |
+| `kimchiPremium` | `GET /api/plan/kimchi-premium` | **1.5s** | **0회** |
+| `planSettings` GET/PATCH | `GET/PATCH /api/plan/settings` | 400ms | GET 1회 / PATCH 0회 |
+| `completePlan` | `POST /api/plan/weekly/complete` | 600ms | **0회** |
+| `monthlySummary` (2026-09-21 — B20) | `GET /api/plan/monthly-summary?month=` | 300ms | 1회 |
+| `indicators` | `GET /api/indicators?names=` | 400ms | 1회 |
+| `trackRecord` | `GET /api/indicators/:i/track-record` | 400ms | 1회 |
+| `streak` | (weekly 응답에 포함) | — | — |
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-1 | `weeklyPlan`과 `kimchiPremium`을 **병렬**로 부른다 | Must |
+| FR-2 | **김프 타임아웃 1.5s.** 외부 3곳(업비트·바이낸스·환율)을 부르므로 느리다 | Must |
+| FR-3 | **김프를 재시도하지 않는다.** 실패하면 `null`이고 적립 숫자는 유효하다 | Must |
+| FR-4 | mutation 재시도 0회 | Must |
+| FR-5 | 서버 에러 코드를 그대로 전달: `422` · `404`(track-record 없음) | Must |
+| FR-6 | **`track-record` 404가 정상 경로**다. 게이트가 차단하는 근거다 — 오류로 만들지 않는다 | Must |
+| FR-7 | **2026-09-21 추가 — D9.** `PATCH /settings`의 422 두 코드(`PLAN_BASE_AMOUNT_INVALID`·`PLAN_BAND_READ_ONLY`)와 본문(`field`·`min`·`max`)을 그대로 전달한다 | Must |
+| FR-8 | **2026-09-21 추가 — D9.** `GET /settings`의 `configured: false`는 200 정상 경로다. 404로 바꾸지 않는다 | Must |
+
+## 계약 의존
+
+| 서버 필드 | 변경 시 영향 |
+|---|---|
+| **`renderable`·`trackRecordId`** | **실패 이력 게이트.** 누락 시 화면이 게이트를 우회한다 |
+| `multiplier`·`amountKrw` | 화면의 핵심 숫자 |
+| `indicator.fallback`·`staleDays` | 지연·폴백 배지 |
+| `band.code`·`rangeCode` | 밴드 표 강조 위치 |
+| `secondaryIndicators` | Puell 표시(배수 미반영) |
+| `kimchiPremium.costKrwOnPlan` | 프리미엄 비용 |
+| `streak.skippedLast12` | 미실행 사실 표시 |
+| `excluded[]` | 국내주식 제외 문구 |
+| `settings.band.editable`·`readOnlyReason` (2026-09-21) | 설정 화면의 읽기 전용 밴드 표. 빠지면 화면이 편집 가능하다고 오해한다 |
+| `monthly-summary.executedKrw`·`plannedKrw`·`progressPct` (2026-09-21) | 목표 화면 상단 합계 |
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-10 | **`renderable`이 없으면 그 item을 전달하지 않고 `degraded`로 처리**한다. 게이트 없이 배수 카드를 내보내는 것이 가장 위험하다 | Must |
+| FR-11 | `trackRecordId`가 없으면 **기본값을 만들지 않는다** | Must |
+| FR-12 | `indicator` 필드가 없으면 그 item을 `unavailable`로 처리한다. **지표 없이 배수만 보여주면 근거가 없다** | Must |
+| FR-13 | 계약 스냅샷 테스트를 둔다. **게이트 필드를 특히 고정**한다 | Must |
+
+## 하지 않는 것
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-20 | **외부 지표 API를 BFF가 직접 부르지 않는다.** 서버를 경유한다 | Must |
+| FR-21 | **업비트·바이낸스를 김프 목적으로 직접 부르지 않는다.** 서버가 계산한다 — BFF가 가격 캐시를 갖고 있어도 환율이 없다 | Must |
+| FR-22 | 배수·금액을 계산하지 않는다 | Must |
+| FR-23 | 게이트를 판정하지 않는다 | Must |
+
+## Acceptance Criteria
+
+- [ ] 계획과 김프가 병렬로 호출된다
+- [ ] 김프 타임아웃이 1.5s이고 재시도가 0건이다
+- [ ] mutation 재시도가 0건이다
+- [ ] `track-record` 404가 정상 경로로 처리된다 (오류 0건)
+- [ ] **`renderable` 없는 item이 전달되지 않고 `degraded`로 처리된다**
+- [ ] `trackRecordId`가 기본값으로 채워지지 않는다
+- [ ] `indicator` 없는 item이 `unavailable`이다
+- [ ] 계약 스냅샷 테스트가 게이트 필드를 고정한다
+- [ ] **BFF가 외부 지표 API·업비트·바이낸스를 직접 부르지 않는다** (코드 검사)
+- [ ] BFF에 배수·금액 계산, 게이트 판정 코드가 0건이다
+- [ ] `monthly-summary` 호출이 있고 타임아웃 300ms다 (B20)
+- [ ] `PATCH /settings` 422 두 코드가 보존된다 (D9)
+- [ ] **F003 경로에서 `/api/portfolio/transactions`·원장 호출이 0건이다** (ADR-002)
+
+## Dependencies
+
+- **선행:** `SRV-REQ-021`(서버 계약)
+- **짝:** `BFF-REQ-019` · `020` · `022`
+- **규칙:** `backend-integration.md`
+
+## Open Questions
+
+- BFF가 이미 업비트 WS 가격 캐시를 갖고 있다. **김프를 BFF에서 계산하면 업비트 호출이 하나 준다** — 그러나 바이낸스와 환율이 없고, **계산은 서버의 일**이라는 원칙에 어긋난다 → 서버가 맞다.
+- `track-record` 404를 BFF가 어떻게 표현할지. `trackRecordId: null` + `renderable: false`가 이미 서버 응답에 있으므로 별도 처리가 불필요하다.
+
+## 정리 2026-11-19 — FR 대조 (`WEB-perf-req-close-slice.md`)
+
+> 머리 블록 — 경로 넷, 서버 `weekly` 한 응답. `/indicators` · `/kimchi-premium` · `track-record` 호출을 만들지 않는다.
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-1~3 | 대체 | 김프를 따로 부르지 않는다(머리 블록) |
+| FR-4 | 충족 | 쓰기 재시도 0 |
+| FR-5 | 충족 | 서버 422 코드 · 필드 그대로(`src/utils/error.util.ts`) |
+| FR-6 | 대체 | track-record 경로가 없다 |
+| FR-7 · 8 | 충족 | 422 두 코드 · `configured: false` 200 |
+| FR-10~12 | 충족 | 게이트 없으면 닫음 · 배수 없는 행 뺌 — `src/services/plan.viewmodel.ts:238-245`(`gate_missing` · `item_dropped`) |
+| FR-13 | 충족 | `plan-contract.test.ts` · `plan.viewmodel.test.ts`(게이트 fail-closed 7) |
+| FR-20~23 | 충족 | 외부 지표 · 거래소 직접 호출 0 · 계산 · 게이트 판정 0 |
+
+미충족 — 없음
+
+판정: **done**
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `monthlySummary` 호출 추가(B20), FR-7·8(설정 422 · `configured: false` 전달 — D9) 추가, 계약 의존 표에 설정·월 합계 필드 추가 |
+| 2026-11-19 | F003 v2 순서 3 구현(`feat/f003-v2-s3-plan-screen`) — 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s3-plan-screen-slice.md` |
+| 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 남은 FR 없음. in-progress → done |
