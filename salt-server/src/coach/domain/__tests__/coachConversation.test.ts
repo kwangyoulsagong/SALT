@@ -50,6 +50,7 @@ const facts = (over: Partial<CoachAnswerFacts> = {}): CoachAnswerFacts => ({
   plans: [plan("BTC", "hold_plan")],
   behavior: { status: "active", transactionCount: 12, minimumRequired: 3, warnings: [{ title: "잦은 매매", message: "한 주에 7번 거래했어요." }] },
   perTradeMaxLossKrw: new Decimal(50_000),
+  weeklyPlan: { configured: true, totalKrw: 300_000, items: [{ asset: "btc", amountKrw: 150_000 }, { asset: "kospi", amountKrw: 150_000 }], fixed: true },
   ...over,
 });
 
@@ -142,7 +143,7 @@ describe("composeCoachAnswer — 모든 갈래가 검사기를 지난다(FR-40~4
     ).sentences.join(" ");
     assert.match(text, /XRP가 71%로 정해 둔 상한 60%를 넘었어요/);
     assert.match(text, /1,747,350원으로 한도 500,000원을 넘었어요/);
-    assert.match(composeCoachAnswer("weekly_amount", facts()).sentences.join(" "), /50,000원이라서/);
+    assert.match(composeCoachAnswer("weekly_amount", facts()).sentences.join(" "), /300,000원이에요/);
   });
 
   it("손익률은 퍼센트 단위 그대로(12 = 12% — 100 을 곱하지 않는다, 2026-11-18 −1802.2% 결함)", () => {
@@ -248,3 +249,36 @@ describe("추천 카드 문장 · 오늘의 브리핑(2단계)", () => {
     assert.equal(n, 140);
   });
 });
+
+describe("이번 주 얼마 넣을까 — 밴드 적립 주간 계획(2026-11-19 — 전에는 '적립 계산은 아직 없어요')", () => {
+  const weekly = (weeklyPlan: CoachAnswerFacts["weeklyPlan"]) => composeCoachAnswer("weekly_amount", facts({ weeklyPlan }));
+  it("계획 있음 — 서버 금액 그대로 · 자산별 · 적립 화면 링크", () => {
+    const answer = weekly({ configured: true, totalKrw: 300_000, items: [{ asset: "btc", amountKrw: 180_000 }, { asset: "kospi", amountKrw: 120_000 }], fixed: true });
+    const text = answer.sentences.join(" ");
+    assert.match(text, /이번 주 적립 계획은 300,000원이에요 — 비트코인 180,000원 · 코스피 120,000원/);
+    assert.doesNotMatch(text, /아직 SALT에 없어요|바뀔 수 있어요/);
+    assert.deepEqual(answer.links, [{ kind: "plan" }]);
+    assert.deepEqual(answer.gaps, []);
+  });
+  it("굳지 않은 주 — 회차 뒤 바뀔 수 있다는 한 줄", () => {
+    const text = weekly({ configured: true, totalKrw: 300_000, items: [{ asset: "btc", amountKrw: 150_000 }, { asset: "kospi", amountKrw: 150_000 }], fixed: false }).sentences.join(" ");
+    assert.match(text, /예측 회차가 끝나면 금액이 바뀔 수 있어요/);
+  });
+  it("안 정함 — 정하는 곳으로 · 금액 0 을 쓰지 않는다", () => {
+    const answer = weekly({ configured: false, totalKrw: null, items: [{ asset: "btc", amountKrw: null }, { asset: "kospi", amountKrw: null }], fixed: false });
+    assert.match(answer.sentences.join(" "), /월 적립액을 정해 두면/);
+    assert.doesNotMatch(answer.sentences.join(" "), /0원/);
+    assert.deepEqual(answer.links, [{ kind: "plan" }]);
+  });
+  it("못 읽음 — 그 문장 대신 불러올 수 없어요 · 빈 재료 표시", () => {
+    const answer = weekly(undefined);
+    assert.match(answer.sentences.join(" "), /불러올 수 없어요/);
+    assert.deepEqual(answer.gaps, ["weekly_plan"]);
+  });
+  it("지시형 · 확신 표현 0(검사기 통과 — 뺀 문장 0)", () => {
+    const answer = weekly({ configured: true, totalKrw: 300_000, items: [{ asset: "btc", amountKrw: 150_000 }, { asset: "kospi", amountKrw: 150_000 }], fixed: false });
+    assert.equal(answer.dropped, 0);
+    assert.doesNotMatch(answer.sentences.join(" "), /사세요|넣으세요|반드시|확실/);
+  });
+});
+

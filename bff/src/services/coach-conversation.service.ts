@@ -13,7 +13,8 @@ import { toReportRecommendation, type ReportRecommendation } from "./coach-repor
 
 type BackendEnvelope<T> = { success: boolean; data: T };
 
-export const COACH_LINK_KINDS = ["risk_budget", "profit_plan", "behavior_mirror", "size_check", "symbol"] as const;
+/** `plan` — 밴드 적립 화면(2026-11-19, 이번 주 금액 답). 모르는 종류는 걸러진다 — 서버 · 코어 타입 · 화면과 같이 바꾼다 */
+export const COACH_LINK_KINDS = ["risk_budget", "profit_plan", "behavior_mirror", "size_check", "symbol", "plan"] as const;
 export type CoachLinkKind = (typeof COACH_LINK_KINDS)[number];
 export type CoachLink = { kind: CoachLinkKind; symbol?: string };
 export const COACH_CHIPS = ["sell_check", "weekly_amount", "risk_check", "mistake_review"] as const;

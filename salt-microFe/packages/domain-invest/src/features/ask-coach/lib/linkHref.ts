@@ -16,6 +16,8 @@ export const coachLinkTarget = (link: CoachAnswerLink): { href: string; label: s
       return { href: ROUTES.coachReport, label: COACH_LINK_LABEL.behavior_mirror };
     case "profit_plan":
       return { href: ROUTES.portfolio, label: COACH_LINK_LABEL.profit_plan };
+    case "plan":
+      return { href: ROUTES.plan, label: COACH_LINK_LABEL.plan };
     default:
       return null;
   }

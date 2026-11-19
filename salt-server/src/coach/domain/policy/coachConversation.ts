@@ -63,10 +63,11 @@ export const routeCoachQuestion = (content: string, chip: CoachQuestionChip | nu
 };
 
 /** 답 아래 붙는 화면 이동 — 코드만. 경로는 화면이 정한다 */
-export type CoachAnswerLink = "risk_budget" | "profit_plan" | "behavior_mirror" | "size_check" | "symbol";
+/** `plan` — 밴드 적립 화면(F003 v2, 2026-11-19 — 이번 주 금액 답이 거기로 잇는다) */
+export type CoachAnswerLink = "risk_budget" | "profit_plan" | "behavior_mirror" | "size_check" | "symbol" | "plan";
 
 /** 답이 읽은 재료 중 못 읽은 것 — 그 문장 대신 "불러올 수 없어요"가 나가고 0 을 쓰지 않는다(FEATURE-006 FR-15) */
-export type CoachAnswerGap = "risk" | "plans" | "behavior" | "recommendation";
+export type CoachAnswerGap = "risk" | "plans" | "behavior" | "recommendation" | "weekly_plan";
 
 export interface CoachAnswer {
   intent: CoachQuestionIntent;
@@ -134,6 +135,18 @@ export interface RecommendationCardFacts {
   staleHours: number;
 }
 
+/**
+ * 이번 주 적립 계획(밴드 적립 `plan` 컨텍스트의 주간 계획에서 옮겨 담음 — 금액은 서버가 이미 계산한 원 정수, 여기서 계산하지 않는다).
+ * `configured: false` = 월 적립액을 아직 안 정함
+ */
+export interface WeeklyPlanFacts {
+  configured: boolean;
+  totalKrw: number | null;
+  items: Array<{ asset: "btc" | "kospi"; amountKrw: number | null }>;
+  /** 이번 주 금액이 굳었나 — false 면 이번 주 예측 회차 뒤 바뀔 수 있다 */
+  fixed: boolean;
+}
+
 export interface CoachAnswerFacts {
   /** `null` = 저장 추천이 아직 없다 · `undefined` = 읽지 않았다 */
   recommendation?: RecommendationCardFacts | null | "unavailable";
@@ -142,17 +155,19 @@ export interface CoachAnswerFacts {
   behavior: BehaviorAnswerFacts | null | undefined;
   /** 한 번 거래 최대 손실(원) — 위험 예산 설정. 정하지 않았으면 `null` */
   perTradeMaxLossKrw: Decimal | null | undefined;
+  /** 이번 주 적립 계획 — 읽지 않았으면(재료 밖) 없음, 못 읽었으면 `undefined` */
+  weeklyPlan?: WeeklyPlanFacts | undefined;
 }
 
 /** 어떤 질문이 어떤 재료를 읽는가(FR-20 — 필요한 것만). 응용층이 이 표대로만 부른다 */
-export type CoachAnswerMaterial = "risk" | "plans" | "behavior" | "recommendation";
+export type CoachAnswerMaterial = "risk" | "plans" | "behavior" | "recommendation" | "weekly_plan";
 /**
- * 한 번 거래 손실 한도는 위험 예산 설정에서 오므로 `weekly_amount` 도 `risk` 를 읽는다.
+ * `weekly_amount` 는 밴드 적립의 이번 주 계획을 읽는다(2026-11-19 — 전에는 "적립 계산은 아직 없어요"라고 답했다, `/plan` 이 생긴 뒤에도).
  * 저장 추천 카드는 사고팔기를 묻는 둘에만 붙는다 — 위험 · 복기 답에 추천을 끼우면 묻지 않은 매매 얘기가 된다
  */
 export const ANSWER_MATERIALS: Record<CoachQuestionIntent, readonly CoachAnswerMaterial[]> = {
   sell_check: ["plans", "recommendation"],
-  weekly_amount: ["risk", "recommendation"],
+  weekly_amount: ["weekly_plan", "recommendation"],
   risk_check: ["risk"],
   mistake_review: ["behavior"],
   order_request: [],
@@ -293,21 +308,31 @@ const mistakeAnswer = (behavior: BehaviorAnswerFacts | null | undefined): Omit<C
   };
 };
 
-const weeklyAnswer = (perTradeMaxLossKrw: Decimal | null | undefined): Omit<CoachAnswer, "intent" | "dropped"> => {
-  const sentences = [
-    "이번 주에 얼마를 넣을지 정해 주는 적립 계산(밸류에이션 밴드)은 아직 SALT에 없어요.",
-  ];
-  const gaps: CoachAnswerGap[] = [];
-  if (perTradeMaxLossKrw === undefined) {
-    gaps.push("risk");
-  } else if (perTradeMaxLossKrw === null) {
-    sentences.push("대신 한 번 거래에 감수할 손실 한도를 정해 두면, 사려는 종목마다 그 한도에 맞는 금액을 계산해 드려요.");
-  } else {
-    sentences.push(
-      `정해 두신 한 번 거래 손실 한도가 ${won(perTradeMaxLossKrw)}이라서, 사려는 종목과 손절 가격을 넣으면 그 한도에 맞는 금액을 계산해 드려요.`
-    );
+const PLAN_ASSET_LABEL: Record<WeeklyPlanFacts["items"][number]["asset"], string> = { btc: "비트코인", kospi: "코스피" };
+
+/**
+ * 이번 주 얼마 넣을까 — 밴드 적립의 이번 주 계획(서버가 계산한 금액)을 그대로 말한다. 사라는 지시가 아니라 "계획이 이 금액"이라는 사실(지시형 0).
+ * 못 읽었으면 그 문장 대신 "불러올 수 없어요"(0 을 쓰지 않는다), 안 정했으면 정하는 곳으로
+ */
+const weeklyAnswer = (plan: WeeklyPlanFacts | undefined): Omit<CoachAnswer, "intent" | "dropped"> => {
+  if (plan === undefined) return { sentences: [UNAVAILABLE], links: [{ kind: "plan" }], gaps: ["weekly_plan"] };
+  if (!plan.configured || plan.totalKrw === null) {
+    return {
+      sentences: [
+        "월 적립액을 정해 두면 이번 주에 넣을 금액을 비트코인 · 코스피로 나눠 계산해 드려요.",
+        "금액은 지표 구간에 따라 바뀌고, 그 구간이 과거에 정액보다 나았는지도 같이 보여 드려요.",
+      ],
+      links: [{ kind: "plan" }],
+      gaps: [],
+    };
   }
-  return { sentences, links: [{ kind: "size_check" }], gaps };
+  const parts = plan.items
+    .filter((item): item is typeof item & { amountKrw: number } => item.amountKrw !== null)
+    .map((item) => `${PLAN_ASSET_LABEL[item.asset]} ${won(new Decimal(item.amountKrw))}`);
+  const sentences = [`이번 주 적립 계획은 ${j(won(new Decimal(plan.totalKrw)), "이에요/예요")}${parts.length ? ` — ${parts.join(" · ")}` : ""}.`];
+  if (!plan.fixed) sentences.push("이번 주 예측 회차가 끝나면 금액이 바뀔 수 있어요.");
+  sentences.push("왜 이 금액인지 · 이 방식의 과거 성적은 적립 화면에서 볼 수 있어요.");
+  return { sentences, links: [{ kind: "plan" }], gaps: [] };
 };
 
 const ORDER_ANSWER: Omit<CoachAnswer, "intent" | "dropped"> = {
@@ -351,7 +376,7 @@ export const composeCoachAnswer = (intent: CoachQuestionIntent, facts: CoachAnsw
         : intent === "mistake_review"
           ? mistakeAnswer(facts.behavior)
           : intent === "weekly_amount"
-            ? weeklyAnswer(facts.perTradeMaxLossKrw)
+            ? weeklyAnswer(facts.weeklyPlan)
             : intent === "order_request"
               ? ORDER_ANSWER
               : OTHER_ANSWER;
