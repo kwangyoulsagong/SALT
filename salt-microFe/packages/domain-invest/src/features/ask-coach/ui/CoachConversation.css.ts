@@ -2,6 +2,7 @@ import { style } from "@vanilla-extract/css";
 
 import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
+import { TEXT_MAX_WIDTH } from "@repo/web-shared/config";
 
 /**
  * 코치 대화 한 면 — 가운데 한 줄 대화(2026-11-19 재설계, 리서치 `salt-microFe/requirements/reports/research/2026-11-19-coach-chat.md`).
@@ -15,7 +16,7 @@ export const root = style({
   flexDirection: "column",
   gap: vars.space.md,
   width: "100%",
-  maxWidth: "720px",
+  maxWidth: `${TEXT_MAX_WIDTH}px`,
   margin: "0 auto",
   height: "calc(100dvh - 208px)",
   minHeight: "480px",
@@ -33,7 +34,8 @@ export const log = style({
   minHeight: 0,
   overflowY: "auto",
   overscrollBehavior: "contain",
-  padding: `${vars.space.xs} ${vars.space.xs} ${vars.space.lg}`,
+  // 좌우 여백 0 — 브리핑 카드 · 시작 질문 양 끝이 입력 상자와 같아야 한다(4px 안쪽으로 들어가 있었다, 2026-11-19 사용자 "정렬")
+  padding: `${vars.space.xs} 0 ${vars.space.lg}`,
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px", borderRadius: "8px" },
 });
 
