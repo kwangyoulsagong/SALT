@@ -406,6 +406,48 @@ open class HomeCard(private val reader: GoalReader) {
 }
 
 /**
+ * 목표 목록 머리 요약 띠(`SRV-REQ-045` FR-20 · `FE-REQ-060` FR-2) — 모은 돈 합 · 이번 달 넣은 돈 합 · 진행 중 수 · 가장 이른 도달.
+ * **합은 여기서 한다**(화면 합산 0). 목록과 같은 읽기(실물 단위 · 적중 이력 제외 — 쿼리 2회). 저장하지 않는다
+ */
+open class GoalsOverview(private val reader: GoalReader, private val clock: Clock) {
+    data class View(
+        /** 이번 달(한국 시간) — "이번 달 넣은 돈"의 달 */
+        val month: YearMonth,
+        val totalGoals: Int,
+        val activeGoals: Int,
+        /** 모든 목표(다 찬 목표 포함 — 홈 카드와 같은 정의)의 모은 돈 합. 목표가 없으면 null */
+        val totalSaved: Money?,
+        /** 이번 달 모든 목표에 넣은 돈 합 — 목표마다 이정표의 넣은 돈과 같은 집계 */
+        val monthDeposited: Money,
+        /** 도달이 가장 이른 진행 중 목표 — 구간이면 이른 끝, 아니면 계획 달로 비교. 어느 것도 없으면 null */
+        val nearestReach: GoalSummary?,
+    )
+
+    @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
+    open fun execute(userId: String): View {
+        val all = reader.summaries(userId, withUnits = false)
+        val active = all.filter { it.goal.status == GoalStatus.ACTIVE }
+        return View(
+            month = YearMonth.from(clock.todayKst()),
+            totalGoals = all.size,
+            activeGoals = active.size,
+            totalSaved = all.map { it.saved }.reduceOrNull(Money::plus),
+            monthDeposited = all.map { it.milestone.deposited }.fold(Money.zero(Currency.KRW), Money::plus),
+            nearestReach = nearestReach(active),
+        )
+    }
+
+    companion object {
+        /** 비교 달 — 구간의 이른 끝 → 계획 달. 둘 다 없으면 비교에서 빠진다. 같은 달이면 먼저 만든 목표 */
+        fun nearestReach(active: List<GoalSummary>): GoalSummary? =
+            active
+                .mapNotNull { s -> (s.projection.early ?: s.projection.plan)?.let { s to it } }
+                .minWithOrNull(compareBy<Pair<GoalSummary, YearMonth>> { it.second }.thenBy { it.first.goal.createdAt })
+                ?.first
+    }
+}
+
+/**
  * 목표 시계 조회(`SRV-REQ-045` FR-17 "가계부 응답용 조회 API") — 홈 카드와 같은 "가장 가까운 목표"(진척이 가장 큰 진행 중 목표)를 고른다.
  * 저장하지 않는다. 쿼리 3회(목록 읽기와 같다 — 실물 단위 제외)
  */

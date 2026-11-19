@@ -11,6 +11,8 @@ const router = Router();
 router.get("/templates", authMiddleware, appSavingsController.templates);
 router.post("/calculate", authMiddleware, appSavingsController.calculate);
 router.get("/goals", authMiddleware, appSavingsController.goals);
+// 목록 요약 띠(FE-REQ-060 FR-2) — 합은 서버
+router.get("/overview", authMiddleware, appSavingsController.overview);
 router.post("/goals", authMiddleware, appSavingsController.create);
 router.get("/goals/:id", authMiddleware, appSavingsController.goal);
 router.post("/goals/:id/deposits", authMiddleware, appSavingsController.deposit);

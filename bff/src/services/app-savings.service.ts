@@ -223,6 +223,23 @@ export interface SavingsHomeCardSource {
   nearest: { goalId: string; title: string; template: string; progressPercent: number; milestone: SavingsMilestoneVM } | null;
 }
 
+/** 목표 목록 요약 띠(`GET /savings/overview`, `SRV-REQ-045` FR-20) — 합은 서버. 목표가 없으면 totalSaved · nearestReach null */
+export interface SavingsOverviewVM {
+  /** "2026-11" — 이번 달 넣은 돈의 달(한국 시간) */
+  month: string;
+  totalGoals: number;
+  activeGoals: number;
+  totalSaved: number | null;
+  monthDeposited: number;
+  /** 도달이 가장 이른 진행 중 목표 — 구간 · 계획 달 그대로(한 점으로 접지 않는다) */
+  nearestReach: {
+    goalId: string;
+    title: string;
+    template: string;
+    projection: { method: string; earlyMonth: string | null; lateMonth: string | null; planMonth: string | null; reason: string | null };
+  } | null;
+}
+
 /** 목표 시계 서버 숫자(`GET /savings/goal-clock`) — 목표가 없거나 계획이 없으면 delayDays null + reason */
 export interface SavingsGoalClockSource {
   goalId: string | null;
@@ -246,6 +263,11 @@ class AppSavingsService {
 
   async goals(token: string): Promise<SavingsGoalVM[]> {
     return data(await backendApi.proxyAuthRequest("GET", "/savings/goals", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  /** 목록 요약 띠 — 가공 없이 그대로(`BFF-REQ-047` 수용 기준 1) */
+  async overview(token: string): Promise<SavingsOverviewVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/savings/overview", token, undefined, { timeout: READ_TIMEOUT_MS }));
   }
 
   async goal(token: string, id: string): Promise<SavingsGoalDetailVM> {

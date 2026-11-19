@@ -12,6 +12,7 @@ import com.salt.savings.application.GetGoal
 import com.salt.savings.application.GoalClockQuery
 import com.salt.savings.application.GoalDetail
 import com.salt.savings.application.GoalSummary
+import com.salt.savings.application.GoalsOverview
 import com.salt.savings.application.HomeCard
 import com.salt.savings.application.ListGoals
 import com.salt.savings.application.ListTemplates
@@ -73,6 +74,7 @@ class SavingsController(
     private val addItemUnit: AddItemUnit,
     private val deleteItemUnit: DeleteItemUnit,
     private val goalClockQuery: GoalClockQuery,
+    private val goalsOverview: GoalsOverview,
 ) {
     // ---------- 요청 ----------
 
@@ -296,6 +298,19 @@ class SavingsController(
 
     data class HomeCardView(val totalGoals: Int, val activeGoals: Int, val totalSaved: Long?, val nearest: NearestView?)
 
+    /** 가장 이른 도달 — 구간 · 계획 달 그대로(한 점으로 접지 않는다, `ADR-003`). 문장은 프론트 */
+    data class NearestReachView(val goalId: String, val title: String, val template: String, val projection: SimProjectionView)
+
+    /** 목표 목록 요약 띠(FR-20) — 합은 서버. 목표가 없으면 totalSaved · nearestReach null, monthDeposited 0 */
+    data class OverviewView(
+        val month: String,
+        val totalGoals: Int,
+        val activeGoals: Int,
+        val totalSaved: Long?,
+        val monthDeposited: Long,
+        val nearestReach: NearestReachView?,
+    )
+
     // ---------- 경로 ----------
 
     @Operation(summary = "목표 템플릿 7종", description = "기준선은 원문 대조 전이라 null + baselineReason(unverified_source)")
@@ -393,6 +408,22 @@ class SavingsController(
                 nearest = view.nearest?.let {
                     NearestView(it.goal.id.toString(), it.goal.title, it.goal.template.key, percent(it.progress), milestoneView(it))
                 },
+            ),
+        )
+    }
+
+    @Operation(summary = "목표 목록 요약 띠", description = "모은 돈 합 · 이번 달 넣은 돈 합 · 진행 중 수 · 가장 이른 도달(FE-REQ-060 FR-2). 화면이 합하지 않게 서버가 더한다. 쿼리 2회")
+    @GetMapping("/overview")
+    fun overview(user: AuthenticatedUser): ResponseEntity<ApiResponse<OverviewView>> {
+        val view = goalsOverview.execute(user.userId)
+        return ApiResponse.ok(
+            OverviewView(
+                month = view.month.toString(),
+                totalGoals = view.totalGoals,
+                activeGoals = view.activeGoals,
+                totalSaved = view.totalSaved?.toKrwInteger(),
+                monthDeposited = view.monthDeposited.toKrwInteger(),
+                nearestReach = view.nearestReach?.let { NearestReachView(it.goal.id.toString(), it.goal.title, it.goal.template.key, simProjection(it.projection)) },
             ),
         )
     }

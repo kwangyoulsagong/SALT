@@ -22,6 +22,7 @@ const id = (req: Request): string => String(req.params.id);
 export const appSavingsController = {
   templates: wrap(200, (req) => appSavingsService.templates(req.token!)),
   goals: wrap(200, (req) => appSavingsService.goals(req.token!)),
+  overview: wrap(200, (req) => appSavingsService.overview(req.token!)),
   goal: wrap(200, (req) => appSavingsService.goal(req.token!, id(req))),
   calculate: wrap(200, (req) => appSavingsService.calculate(req.token!, req.body ?? {})),
   create: wrap(201, (req) => appSavingsService.create(req.token!, req.body ?? {})),
