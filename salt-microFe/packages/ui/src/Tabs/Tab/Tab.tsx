@@ -8,6 +8,8 @@ export interface TabProps {
   onClick?: () => void;
   id?: string;
   panelId?: string;
+  /** 모양 — 섹션 탭(기본) · 상세 알약 탭(`screen-desktop.md` §3) */
+  variant?: "section" | "pill";
 }
 
 /**
@@ -21,6 +23,7 @@ export const Tab = ({
   onClick,
   id,
   panelId,
+  variant = "section",
 }: TabProps) => {
   const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -39,7 +42,7 @@ export const Tab = ({
       aria-controls={panelId}
       aria-disabled={disabled}
       tabIndex={isActive ? 0 : -1}
-      className={tabStyles({ active: isActive, disabled })}
+      className={tabStyles({ active: isActive, disabled, variant })}
       onClick={disabled ? undefined : onClick}
       onKeyDown={handleKeyDown}
       disabled={disabled}

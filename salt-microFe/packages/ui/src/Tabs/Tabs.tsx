@@ -1,5 +1,6 @@
 import { KeyboardEvent, ReactNode, useId, useState } from "react";
-import { tabListStyles, tabsContainerStyles } from "./style/tabs.css";
+import { useSlidingIndicator } from "../Motion/useSlidingIndicator";
+import { pillSliding, pillThumb, tabListStyles, tabsContainerStyles } from "./style/tabs.css";
 import { Tab } from "./Tab/Tab";
 import { TabPanel } from "./TabPanel/TabPanel";
 
@@ -17,6 +18,15 @@ export interface TabsProps {
   onTabChange?: (tabId: string) => void;
   tabPanel?: boolean;
   className?: string;
+  /** 모양 — 섹션 탭(기본) · 상세 알약 탭 */
+  variant?: "section" | "pill";
+  /** 탭 목록 이름(스크린리더). 없으면 "Tabs" */
+  label?: string;
+  /**
+   * 탭 · 패널 id 의 앞부분. 소비처가 패널을 직접 그릴 때 준다 — 그러면 탭은 `${idBase}-panel-${id}` 를 가리키고(`aria-controls`),
+   * 소비처는 그 id 로 `role="tabpanel"` 을 그려 `${idBase}-tab-${id}` 로 이름 붙인다
+   */
+  idBase?: string;
 }
 
 export const Tabs = ({
@@ -26,6 +36,9 @@ export const Tabs = ({
   onTabChange,
   tabPanel = false,
   className,
+  variant = "section",
+  label = "Tabs",
+  idBase,
 }: TabsProps) => {
   const [internalActiveTab, setInternalActiveTab] = useState(
     defaultActiveTab || tabs[0]?.id
@@ -33,7 +46,11 @@ export const Tabs = ({
 
   const isControlled = controlledActiveTab !== undefined;
   const activeTab = isControlled ? controlledActiveTab : internalActiveTab;
-  const baseId = useId();
+  // 알약 탭은 선택 면이 새 탭으로 미끄러진다(`FE-REQ-049` · 세그먼트와 같은 훅 — FE-REQ-044 FR-34). 섹션 탭은 진하기만이라 없다
+  const pill = variant === "pill";
+  const thumb = useSlidingIndicator<HTMLDivElement>(controlledActiveTab ?? internalActiveTab, '[role="tab"][aria-selected="true"]');
+  const generatedId = useId();
+  const baseId = idBase ?? generatedId;
 
   const handleTabClick = (tabId: string) => {
     if (!isControlled) {
@@ -150,20 +167,26 @@ export const Tabs = ({
     <div className={className}>
       <div className={tabsContainerStyles}>
         <div
+          ref={pill ? thumb.containerRef : undefined}
           role="tablist"
-          aria-label="Tabs"
-          className={tabListStyles}
+          aria-label={label}
+          className={pill ? `${tabListStyles} ${pillSliding}` : tabListStyles}
+          data-sliding={pill && thumb.sliding}
           onKeyDown={handleKeyDown}
         >
+          {pill && thumb.sliding ? (
+            <span aria-hidden="true" className={pillThumb({ animated: thumb.animated })} style={thumb.indicatorStyle} />
+          ) : null}
           {tabs.map((tab) => (
             <Tab
               key={tab.id}
               id={`${baseId}-tab-${tab.id}`}
               // 패널을 이 컴포넌트가 그릴 때만 가리킨다 — 소비처가 패널을 직접 그리면 없는 id 를 가리킨다(axe critical)
-              panelId={tabPanel ? `${baseId}-panel-${tab.id}` : undefined}
+              panelId={tabPanel || idBase ? `${baseId}-panel-${tab.id}` : undefined}
               isActive={validActiveTab === tab.id}
               disabled={tab.disabled}
               onClick={() => handleTabClick(tab.id)}
+              variant={variant}
             >
               {tab.label}
             </Tab>

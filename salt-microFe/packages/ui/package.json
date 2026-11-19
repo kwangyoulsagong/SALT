@@ -104,6 +104,7 @@
     "./statusLine": "./src/StatusLine/StatusLine.tsx",
     "./signInGlass": "./src/SignInGlass/SignInGlass.tsx",
     "./enterReveal": "./src/Motion/enterReveal.css.ts",
+    "./press": "./src/styles/press.ts",
     "./statusToast": "./src/StatusToast/StatusToast.tsx"
   },
   "scripts": {

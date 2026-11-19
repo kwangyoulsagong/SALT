@@ -1,5 +1,5 @@
 import { recipe } from "@vanilla-extract/recipes";
-import { keyframes, style } from "@vanilla-extract/css";
+import { globalStyle, keyframes, style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
 import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
@@ -47,6 +47,14 @@ export const tabStyles = recipe({
   },
 
   variants: {
+    /**
+     * `pill` — 종목 상세 알약 탭(`FE-REQ-049` FR-2 · `screen-desktop.md` §3 실측): 모서리 999 · 8×12 · 14/600, 선택 = 옅은 면.
+     * 섹션 탭과 글자 · 높이(36)가 같아 두 탭이 한 화면에 있어도 위계가 갈리지 않는다
+     */
+    variant: {
+      section: {},
+      pill: { padding: "8px 12px", borderRadius: "999px" },
+    },
     active: {
       true: { color: vars.colors.desk.text1 },
       false: { color: vars.colors.desk.text2 },
@@ -68,7 +76,10 @@ export const tabStyles = recipe({
     },
   },
 
+  compoundVariants: [{ variants: { variant: "pill", active: true }, style: { background: vars.colors.desk.line } }],
+
   defaultVariants: {
+    variant: "section",
     active: false,
     disabled: false,
   },
@@ -109,3 +120,33 @@ export const tabListStyles = style({
     },
   },
 });
+
+/* ── 알약 탭 선택 면 미끄러짐(`FE-REQ-049`) — 세그먼트 손잡이와 같은 방식(`useSlidingIndicator`) ─────────── */
+
+export const pillSliding = style({ position: "relative" });
+
+/** 선택 면 하나가 `transform` 으로 옮겨 간다. 폭은 즉시(레이아웃 속성은 움직이지 않는다) */
+export const pillThumb = recipe({
+  base: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: "999px",
+    background: vars.colors.desk.line,
+    pointerEvents: "none",
+  },
+  variants: {
+    animated: {
+      true: {
+        transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.move}`,
+        "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
+      },
+      false: {},
+    },
+  },
+});
+
+globalStyle(`${pillSliding}[data-sliding="true"] [role="tab"]`, { position: "relative", zIndex: 1 });
+/** 손잡이가 있으면 탭 자신의 선택 면은 끈다 — 첫 측정 전(서버 HTML · 수화)에는 탭 면이 보인다 */
+globalStyle(`${pillSliding}[data-sliding="true"] [role="tab"][aria-selected="true"]`, { background: "transparent" });

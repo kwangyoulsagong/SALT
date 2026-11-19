@@ -118,7 +118,8 @@ export const controlButton = style({
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  width: "30px",
+  // 32 — 상세 차트 툴바 아이콘 버튼(`FE-REQ-049` FR-10). 높이는 기간 칩 28 과 한 줄
+  width: "32px",
   height: "28px",
   padding: 0,
   border: 0,
