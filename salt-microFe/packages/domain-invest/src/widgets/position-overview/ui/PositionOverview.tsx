@@ -1,7 +1,6 @@
 "use client";
 
 // 클라이언트 잎: 포지션 · 기간 · 코치 설정(매입가 숨김)을 브라우저에서 읽는다(보유 패널과 같은 이유).
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -12,6 +11,8 @@ import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
 import { ROUTES } from "@repo/web-shared/config";
+import { BOUNDARY_MESSAGES } from "@repo/web-shared/i18n";
+import { useLazyComponent } from "@repo/web-shared/lib";
 import { NavChevron } from "@repo/web-shared/ui";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
@@ -30,11 +31,11 @@ import {
 
 import { emptyLink, footLinks, headAction, stack } from "./PositionOverview.css";
 
-/** 거래 시트는 누를 때만 받는다 — 첫 화면은 Hero · 흐름 · 레이더(`FE-REQ-033` FR-74). 열기 전엔 그리지 않으므로 대체 화면이 필요 없다 */
-const TransactionSheet = dynamic(
-  () => import("@/features/record-transaction").then((mod) => mod.TransactionSheet),
-  { ssr: false }
-);
+/**
+ * 거래 시트는 누를 때만 받는다 — 첫 화면은 Hero · 흐름 · 레이더(`FE-REQ-033` FR-74). 청크를 못 받으면 화면은 그대로 두고 한 줄만
+ * (`next/dynamic` 이면 실패가 섹션 경계까지 올라가 페이지가 통째로 오류였다 — `useLazyComponent`)
+ */
+const loadTransactionSheet = () => import("@/features/record-transaction").then((mod) => mod.TransactionSheet);
 
 /**
  * 포지션(F006 G절 — `/portfolio` 위쪽) — Hero · 평가금 흐름 · 리스크 레이더(FR-70 · 71 · 73). 보유 0 이면 첫 기록 안내만(FR-78).
@@ -49,13 +50,17 @@ export const PositionOverview = () => {
   const hasHoldings = overview.isSuccess && !overview.data.empty;
   const flow = usePositionFlow(range, hasHoldings);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // 한 번 연 뒤로는 붙여 둔다 — 닫힘 움직임이 끝까지 돈다
-  const [sheetMounted, setSheetMounted] = useState(false);
-  const openSheet = () => {
-    setSheetMounted(true);
-    setSheetOpen(true);
+  const { Component: TransactionSheet, failed: sheetFailed, ensure: ensureSheet } = useLazyComponent(loadTransactionSheet);
+  const openSheet = async () => {
+    if (await ensureSheet()) setSheetOpen(true);
   };
-  const sheet = sheetMounted ? <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} /> : null;
+  // 한 번 받은 뒤로는 붙여 둔다 — 닫힘 움직임이 끝까지 돈다
+  const sheet = (
+    <>
+      {TransactionSheet ? <TransactionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} /> : null}
+      {sheetFailed ? <StatusLine kind="error">{BOUNDARY_MESSAGES.lazyFailed(LEDGER_SHEET_MESSAGES.createTitle)}</StatusLine> : null}
+    </>
+  );
 
   if (overview.isSignedOut) return null; // 페이지가 유리막을 그린다
   if (overview.isPending) {
