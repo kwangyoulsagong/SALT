@@ -36,7 +36,11 @@ export const value = style({
 
 export const bigValue = style([value, { fontSize: "18px", lineHeight: "24px", fontWeight: 700 }]);
 
-export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
+/** 정보 상자(`FE-REQ-060` FR-1 — 면은 패널 · 정보 상자 둘뿐, 회색 상자 0) */
+export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: SURFACE.hairline });
+
+/** 제목 있는 패널 안 — 면 없이 같은 간격만 */
+export const bare = style({ display: "flex", flexDirection: "column", gap: "6px" });
 
 export const grid = style({ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" });
 
@@ -65,4 +69,4 @@ export const postcards = style({
   listStyle: "none",
 });
 
-export const postcard = style([box, { background: vars.colors.background.white, boxShadow: SURFACE.hairline }]);
+export const postcard = box;

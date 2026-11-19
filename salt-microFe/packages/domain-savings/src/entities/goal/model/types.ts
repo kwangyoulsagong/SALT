@@ -224,6 +224,18 @@ export interface SavingsGoalDetail {
   todayMoney: SavingsTodayMoney;
 }
 
+/** 목록 요약 띠(`GET /api/app/savings/overview`, 서버 `SRV-REQ-045` FR-20) — 합은 서버. 목표가 없으면 totalSaved · nearestReach null */
+export interface SavingsOverview {
+  /** "2026-11" — 이번 달 넣은 돈의 달 */
+  month: string;
+  totalGoals: number;
+  activeGoals: number;
+  totalSaved: number | null;
+  monthDeposited: number;
+  /** 도달이 가장 이른 진행 중 목표 — 구간 · 계획 달 그대로 */
+  nearestReach: { goalId: string; title: string; template: GoalTemplateKey; projection: SavingsSimProjection } | null;
+}
+
 /** 계산 요청 — 금액 + (기한 | 월 적립). 서버가 계산한다 */
 export interface CalculationRequest {
   targetAmount: number;

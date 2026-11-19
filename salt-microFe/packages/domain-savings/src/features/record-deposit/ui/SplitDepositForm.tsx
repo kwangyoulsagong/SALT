@@ -16,13 +16,16 @@ import * as s from "./deposit.css";
 
 export interface SplitDepositFormProps {
   goals: SavingsGoal[];
+  /** 데스크톱 사이드(`FE-REQ-060` FR-8) — 입력 32 · 저장 32 옅은 버튼(주 버튼은 화면당 하나 — 미리보기 칸 적립) */
+  compact?: boolean;
 }
 
 /**
  * 여러 목표에 나눠 넣기(`FE-REQ-056` FR-4 · 서버 `SRV-REQ-045` FR-4). 합계와 나눈 금액을 **사용자가 둘 다 적고 서버가 맞는지 본다** —
  * 화면이 나눈 금액을 더해 합계를 만들지 않는다(금액 계산 0). 어긋나면 서버 `SPLIT_SUM_MISMATCH` 를 문장으로.
  */
-export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
+export const SplitDepositForm = ({ goals, compact = false }: SplitDepositFormProps) => {
+  const field = compact ? "compact" : undefined;
   const split = useSplitDeposit();
   // 합계 · 목표마다 칸 — 모두 원 단위(없는 키는 기본 won). 값과 안내를 한 덩어리로(`useNumberFields`)
   const nums = useNumberFields({ total: "won" });
@@ -43,10 +46,11 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.split.title}>
-      <TextField label={M.split.total} value={total} onChange={(v) => nums.change("total", v)} inputMode="numeric" error={nums.message("total")} />
+      <TextField variant={field} label={M.split.total} value={total} onChange={(v) => nums.change("total", v)} inputMode="numeric" error={nums.message("total")} />
       {goals.map((g) => (
         <TextField
           key={g.id}
+          variant={field}
           label={M.split.part(g.title)}
           value={nums.value(g.id)}
           onChange={(v) => nums.change(g.id, v)}
@@ -58,7 +62,11 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
       <span className={s.hint} role="status">
         {split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
       </span>
-      <Button type="submit" disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
+      <Button
+        type="submit"
+        size={compact ? "desk" : undefined}
+        variant={compact ? "weak" : undefined}
+        disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
         {M.split.submit}
       </Button>
     </form>

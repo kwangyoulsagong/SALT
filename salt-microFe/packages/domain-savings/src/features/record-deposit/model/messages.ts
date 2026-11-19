@@ -5,6 +5,8 @@ export const RECORD_DEPOSIT_MESSAGES = {
   date: "날짜",
   note: "메모(선택)",
   submit: "기록하기",
+  /** 데스크톱 좁은 칸 — 날짜 · 메모는 접는다(`FE-REQ-060` FR-8) */
+  more: "날짜 · 메모",
   failed: "기록하지 못했어요. 다시 시도해 주세요",
   recorded: "기록했어요",
   split: {

@@ -1,1 +1,1 @@
-export { serverGoals } from "./serverGoals";
+export { serverGoals, serverOverview } from "./serverGoals";

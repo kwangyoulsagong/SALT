@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -16,7 +16,11 @@ export const inputs = style({
 /** 두 줄을 나란히 — 같은 무게(어느 쪽도 강조하지 않는다) */
 export const compare = style({ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" });
 
-export const side = style({ display: "flex", flexDirection: "column", gap: "4px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.weakFill });
+/** 상세 고정 열 360(`FE-REQ-060` FR-9) — 입력 · 비교를 한 열로 */
+export const compact = style({});
+globalStyle(`${compact} ${inputs}, ${compact} ${compare}`, { gridTemplateColumns: "1fr" });
+
+export const side = style({ display: "flex", flexDirection: "column", gap: "4px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: SURFACE.hairline });
 
 export const value = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 

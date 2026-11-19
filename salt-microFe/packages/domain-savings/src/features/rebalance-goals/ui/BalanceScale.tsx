@@ -7,9 +7,9 @@ import { numberToInputText } from "@repo/core/input";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
-import { parseAmountInput, useDebouncedValue, labelOr, useNumberFields } from "@repo/web-shared/lib";
+import { parseAmountInput, useDebouncedValue, useNumberFields } from "@repo/web-shared/lib";
 
-import { GOAL_MESSAGES, formatMonth, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
+import { GOAL_MESSAGES, formatMonth, reachText, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
 
 import { useUpdatePlans } from "../api";
 import { REBALANCE_MESSAGES as M } from "../model";
@@ -23,19 +23,20 @@ const SIMULATE_DEBOUNCE_MS = 300;
 const planTexts = (goals: SavingsGoal[]): Record<string, string> =>
   Object.fromEntries(goals.map((g) => [g.id, g.monthlyPlan === null ? "" : numberToInputText(g.monthlyPlan, "won")]));
 
-/** 구간 한 줄 — 경험 구간이 있으면 구간, 없으면 계획대로면 X월(한 점 날짜를 단정하지 않는다, FR-5) */
-const projectionText = (p: SavingsSimProjection): string => {
-  if (p.earlyMonth && p.lateMonth) return GOAL_MESSAGES.projection.range(p.earlyMonth, p.lateMonth);
-  if (p.earlyMonth) return GOAL_MESSAGES.projection.openLate(p.earlyMonth);
-  if (p.planMonth) return GOAL_MESSAGES.projection.plan(p.planMonth);
-  return labelOr(GOAL_MESSAGES.projectionReason, p.reason, "—");
-};
+/** 구간 한 줄 — 엔티티 `reachText`(목록 행 · 요약 띠와 같은 문장) */
+const projectionText = (p: SavingsSimProjection): string => reachText(p);
 
 /**
  * 목표 저울(`FE-REQ-056` FR-6) — 진행 중 목표마다 월 적립을 바꿔 보면 서버가 목표별 구간 변화를 돌려준다. **[확정]만 저장한다.**
  * 숫자(합계 · 구간 · 이동 달 수)는 전부 서버 응답 — 화면은 입력을 보내고 보여 줄 뿐이다(FE 계산 0).
  */
-export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
+export interface BalanceScaleProps {
+  goals: SavingsGoal[];
+  /** 데스크톱 사이드(`FE-REQ-060` FR-8) — 한 줄 = 입력 위 · 결과 아래(사이드 312), 입력 32 · 확정 32 옅은 버튼 */
+  compact?: boolean;
+}
+
+export const BalanceScale = ({ goals, compact = false }: BalanceScaleProps) => {
   // 목표마다 칸(원 단위) — 값과 안내를 한 덩어리로. 계획을 칸에 넣는 것도(처음 · 확정 뒤 · 되돌리기) 같은 규칙(`setNumber`)을 지난다
   const nums = useNumberFields({}, planTexts(goals), "won");
   const loadPlans = (list: SavingsGoal[]) => list.forEach((g) => nums.setNumber(g.id, g.monthlyPlan));
@@ -61,7 +62,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
   };
 
   return (
-    <form className={s.form} onSubmit={onSubmit} aria-label={M.title}>
+    <form className={compact ? `${s.form} ${s.compact}` : s.form} onSubmit={onSubmit} aria-label={M.title}>
       <ul className={s.rows}>
         {goals.map((g) => {
           const row = rows?.get(g.id);
@@ -69,6 +70,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
           return (
             <li key={g.id} className={s.row}>
               <TextField
+                variant={compact ? "compact" : undefined}
                 label={M.monthly(g.title)}
                 value={nums.value(g.id)}
                 onChange={(v) => nums.change(g.id, v)}
@@ -102,10 +104,16 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
         {sim.isError ? M.calcFailed : update.isError ? M.failed : update.isSuccess && !request ? M.saved : ""}
       </span>
       <div className={s.actions}>
-        <Button type="submit" disabled={!request || update.isPending} loading={update.isPending}>
+        <Button
+          type="submit"
+          size={compact ? "desk" : undefined}
+          variant={compact ? "weak" : undefined}
+          disabled={!request || update.isPending}
+          loading={update.isPending}
+        >
           {M.confirm}
         </Button>
-        <Button type="button" variant="secondary" disabled={!request} onClick={() => loadPlans(goals)}>
+        <Button type="button" size={compact ? "desk" : undefined} variant={compact ? "ghost" : "secondary"} disabled={!request} onClick={() => loadPlans(goals)}>
           {M.reset}
         </Button>
       </div>

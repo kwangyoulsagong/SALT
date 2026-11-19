@@ -9,6 +9,7 @@ import type {
   SavingsEmergency,
   SavingsGoal,
   SavingsGoalDetail,
+  SavingsOverview,
   SavingsSimulation,
   SavingsTemplate,
 } from "../model/types";
@@ -41,6 +42,10 @@ export const savingsRequest = async <T>(method: "POST" | "PUT" | "DELETE", path:
 export const goalApi = {
   list: async (signal?: AbortSignal): Promise<SavingsGoal[]> =>
     read(await apiFetch(`${SAVINGS}/goals`, { signal }), "savings-goals"),
+
+  /** 목록 요약 띠 — 합은 서버(`FE-REQ-060` FR-2) */
+  overview: async (signal?: AbortSignal): Promise<SavingsOverview> =>
+    read(await apiFetch(`${SAVINGS}/overview`, { signal }), "savings-overview"),
 
   detail: async (id: string, signal?: AbortSignal): Promise<SavingsGoalDetail> =>
     read(await apiFetch(`${SAVINGS}/goals/${encodeURIComponent(id)}`, { signal }), "savings-goal"),

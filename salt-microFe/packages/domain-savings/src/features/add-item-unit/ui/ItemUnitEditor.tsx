@@ -15,7 +15,16 @@ import { ITEM_UNIT_MESSAGES as M } from "../model";
 import * as s from "./itemUnit.css";
 
 /** 실물 단위(`FE-REQ-056` FR-9) — 만들기 · 지우기. 개수는 서버가 센 값(`count`)을 그대로 */
-export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units: SavingsItemUnit[]; limit: number }) => {
+export interface ItemUnitEditorProps {
+  goalId: string;
+  units: SavingsItemUnit[];
+  limit: number;
+  /** 데스크톱 상세(`FE-REQ-060` FR-9) — 입력 32 · 추가 32 옅은 버튼(주 버튼은 고정 열 적립) */
+  compact?: boolean;
+}
+
+export const ItemUnitEditor = ({ goalId, units, limit, compact = false }: ItemUnitEditorProps) => {
+  const field = compact ? "compact" : undefined;
   const add = useAddItemUnit(goalId);
   const remove = useDeleteItemUnit(goalId);
   const [name, setName] = useState("");
@@ -56,15 +65,15 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
       )}
       {full ? null : (
         <>
-          <TextField label={M.name} value={name} onChange={setName} maxLength={30} placeholder={M.namePlaceholder} />
-          <TextField label={M.price} value={price} onChange={(v) => nums.change("price", v)} inputMode="numeric" error={nums.message("price")} />
+          <TextField variant={field} label={M.name} value={name} onChange={setName} maxLength={30} placeholder={M.namePlaceholder} />
+          <TextField variant={field} label={M.price} value={price} onChange={(v) => nums.change("price", v)} inputMode="numeric" error={nums.message("price")} />
         </>
       )}
       <span className={s.label} role="status">
         {error ? labelOr(M.errorCode, code, M.failed) : ""}
       </span>
       {full ? null : (
-        <Button type="submit" disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>
+        <Button type="submit" size={compact ? "desk" : undefined} variant={compact ? "weak" : undefined} disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>
           {M.add}
         </Button>
       )}

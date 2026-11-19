@@ -14,10 +14,13 @@ import * as s from "./deposit.css";
 
 export interface DepositFormProps {
   goalId: string;
+  /** 데스크톱 미리보기 칸 · 상세 고정 열(`FE-REQ-060` FR-8 · 9) — 입력 32 · 저장 32. 메모는 접는다 */
+  compact?: boolean;
 }
 
 /** 적립 한 건(`FE-REQ-056` FR-4). 저장 뒤 진척 · 이정표 · 구간은 서버 응답으로 바뀐다. 장면 한 칸 이동은 응답의 `scene.step` 으로 `GoalScene` 이 그린다(S1b FR-8) */
-export const DepositForm = ({ goalId }: DepositFormProps) => {
+export const DepositForm = ({ goalId, compact = false }: DepositFormProps) => {
+  const field = compact ? "compact" : undefined;
   const record = useRecordDeposit(goalId);
   // 값과 안내를 한 덩어리로 — 입력 · 초기화가 같은 규칙을 지나고 안내는 그 칸 아래(`useNumberFields`)
   const nums = useNumberFields({ amount: "won" });
@@ -39,13 +42,25 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.title}>
-      <TextField label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
-      <TextField label={M.date} type="date" value={date} onChange={setDate} />
-      <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
+      <TextField variant={field} label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
+      {compact ? (
+        <details className={s.more}>
+          <summary className={s.moreSummary}>{M.more}</summary>
+          <div className={s.moreBody}>
+            <TextField variant={field} label={M.date} type="date" value={date} onChange={setDate} />
+            <TextField variant={field} label={M.note} value={note} onChange={setNote} maxLength={200} />
+          </div>
+        </details>
+      ) : (
+        <>
+          <TextField label={M.date} type="date" value={date} onChange={setDate} />
+          <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
+        </>
+      )}
       <span className={s.hint} role="status">
         {record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
       </span>
-      <Button type="submit" disabled={value === null || record.isPending} loading={record.isPending}>
+      <Button type="submit" size={compact ? "desk" : undefined} className={compact ? s.submitInline : undefined} disabled={value === null || record.isPending} loading={record.isPending}>
         {M.submit}
       </Button>
     </form>
