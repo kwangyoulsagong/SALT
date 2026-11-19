@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { PREFLIGHT_ANCHOR_ID } from "../../config";
 import { useWideViewport } from "../../lib";
 import { aside as asideStyle, grid, main, panel, root, tabBar } from "./DetailTabs.css";
+import { detailViewHref, resolveDetailView } from "./detailView";
 
 /** 탭이 사는 주소 이름 — 새로고침 · 뒤로가 같은 탭(`FE-REQ-049` FR-2) */
 export const DETAIL_VIEW_PARAM = "view";
@@ -44,16 +45,14 @@ export const DetailTabs = ({ tabs, aside, label }: DetailTabsProps) => {
   const fromUrl = params?.get(DETAIL_VIEW_PARAM) ?? null;
 
   const allTabs = asideIsTab ? [...tabs, { id: aside.id, label: aside.label, content: null }] : tabs;
-  const active = allTabs.some((t) => t.id === fromUrl) ? (fromUrl as string) : tabs[0]!.id;
+  const firstId = tabs[0]?.id ?? aside.id;
+  const active = resolveDetailView(fromUrl, tabs.map((t) => t.id), aside.id, asideIsTab);
 
   const setView = useCallback(
     (next: string) => {
-      const url = new URL(window.location.href);
-      if (next === tabs[0]!.id) url.searchParams.delete(DETAIL_VIEW_PARAM);
-      else url.searchParams.set(DETAIL_VIEW_PARAM, next);
-      window.history.replaceState(null, "", url);
+      window.history.replaceState(null, "", detailViewHref(window.location.href, next, firstId, DETAIL_VIEW_PARAM));
     },
-    [tabs],
+    [firstId],
   );
 
   // 처음 연 탭만 붙인다 — 숨은 탭의 조회가 첫 화면을 늦추지 않게
