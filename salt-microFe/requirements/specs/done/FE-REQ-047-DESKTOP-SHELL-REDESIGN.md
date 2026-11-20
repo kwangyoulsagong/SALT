@@ -153,3 +153,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 글자 크기 래칫 `domain-tips` 8 → 0(팁 화면 단 밖 크기 다 걷음) · 틀 컴포넌트 서버 입구 `@repo/web-shared/ui/frame`(같은 `PageFrame` · `SideRow` · `BackNav` · `NavChevron` · `ZoneLink`) |
 | 2026-11-20 | `FE-REQ-060` 3단계 확인 2회차 — 공용 `BackNav` — 지금 화면 이름이 길면 줄지 않아 360 에서 20px 넘침 → `nav` · 마지막 칸 `minWidth: 0` · 말줄임(앞 칸은 줄지 않음). 소비처 저축 · 가계부 · 팁 넘침 0 |
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 공용 `PageFrame` 앱 웹뷰 여백(16 · 20 · 24) · 제목 t3, 셸 웹뷰 바탕 흰색 · 세그먼트 칸 44. 데스크톱 값 변화 0. 래칫 시험에 `appType` 은 웹뷰 선택자 안에서만 칸 |
+| 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 글자 래칫에 휴대폰 표면 칸 — `appType` 만 허용 · 데스크톱 예산에서 뺌 |

@@ -116,3 +116,7 @@
 ## 2026-11-20 셸 포트 3100
 
 - [x] 다섯 zone 다시 빌드 · BFF 재기동 뒤 `localhost:3100` 로그인 · 화면 · 웹소켓 `auth` 연결 확인 · BFF 612 · core 316 통과(상세 루트 `checklists/OPS-002.md`)
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- `registry.cjs` 에 `MOBILE_ZONE_APPS` · 도메인 zone 목록에서 표면 zone 을 뺌 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)

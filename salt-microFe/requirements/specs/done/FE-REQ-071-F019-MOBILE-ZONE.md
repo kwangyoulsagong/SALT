@@ -26,6 +26,19 @@ source: 사용자 "pwa에도 전용 마이크로프론트엔드로 하고 서로
 | FR-7 | 이동 — 데스크톱 zone 공용 미들웨어(판정 함수는 `@repo/core` 한 곳 · 표 시험): 휴대폰(`Sec-CH-UA-Mobile: ?1` 또는 UA `Mobile`/`iPhone`, 태블릿 제외) · `Sec-Fetch-Mode: navigate` GET · `RSC`/prefetch/API/정적/봇 제외 · 쿠키 `view=desktop` 없음 · 대응표에 있는 경로 → 302 `/m/…` + `Vary: User-Agent, Sec-CH-UA-Mobile` + `Cache-Control: private`. `/m` 은 되돌려 보내지 않는다 · "데스크톱 화면으로 보기"가 쿠키를 단다 |
 | FR-8 | 768 미만 안내 문구 "데스크톱으로 이동해 주세요"(대응 화면이 없는 데스크톱 경로의 대비) — `FE-REQ-043` 안내 그대로 |
 
+## 구현 (2026-11-20 `feat/fe-req-071-pwa-zone-skeleton`)
+
+| FR | 어디 |
+|---|---|
+| FR-1 | `apps/web-mobile`(`app/m/**` · basePath 없음) · `registry.json` `mobile`(`surface` · 3006 · `/mobile-static`) · 셸 rewrites 자동 · `ops/salt.sh` 이름 표 |
+| FR-2 | `layer-rules.cjs` `mobile-domain`(`@repo/domain-<x>/mobile` 밖이면 막음) · 휴대폰 zone 도 `thin-zone` · 훅 시험 +4 |
+| FR-3 | `@repo/web-shared/layout/mobile` `routes.ts`(매니페스트 · 메타 · viewport) · 아이콘 넷 `pnpm brand:icons` → `public/m/icons/` |
+| FR-4 | 같은 파일 `serviceWorkerSource` · `RegisterServiceWorker`(운영 빌드만) · 오프라인 한 장은 스스로 완결된 HTML |
+| FR-5 | `MobileShell` · `MobileTabBar`(`APP_TABS` + `/m`) · 글자는 `appType` 만(`fontSizeBudget.test.ts` 휴대폰 표면 칸) |
+| FR-6 | 셸 로그인 폼 · 계약을 `@repo/web-shared/layout/sign-in` 으로 내림 — 셸 `features/sign-in` 은 Redux 몫만 · `/m/login` 같은 폼 |
+| FR-7 | `@repo/core/mobile` `mobileRedirectOf` · 데스크톱 zone 다섯 `middleware.ts` 302 · 대응표 `mobileRedirects`(이번엔 `/` · `/login` → `/m/login` 만 — 탭 화면은 `FE-REQ-072` 가 행을 더함) · `/m/desktop` 쿠키 · `/m` 문서에서 쿠키 지움 |
+| FR-8 | 문구는 순서 0 에서 이미("데스크톱으로 이동해 주세요") — 변화 없음 |
+
 ## 검증
 
 - 휴대폰 UA(Playwright 기기 · 실제 휴대폰) — 설치 가능(Chrome 매니페스트 진단) · standalone · 탭 넷 이동 문서 이동 0 · 로그인
@@ -37,3 +50,4 @@ source: 사용자 "pwa에도 전용 마이크로프론트엔드로 하고 서로
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-20 | 신규(to-do) — `ADR-012` 순서 1 |
+| 2026-11-20 | **done** — 구현 표 위. 판단: 배럴 밖 입구 둘(`layout/sign-in` · `layout/mobile` — 레이아웃 배럴에 두면 데스크톱 zone 다섯 번들에 딸려 감) · 대응표는 실제 화면이 있는 로그인만 · 탭 넷은 자리 한 장. 실기기(iOS · Android 설치)는 사용자 휴대폰 — `QA-001` Q-7 |

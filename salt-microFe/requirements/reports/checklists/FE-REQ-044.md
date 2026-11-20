@@ -222,3 +222,7 @@
 - `FE-REQ-049` 상세 재설계가 걸침 — `Tabs` 알약 변형이 세그먼트와 같은 미끄러지는 선택 면(`useSlidingIndicator`)을 씀 · 누름 피드백을 `@repo/ui/press` 로 공개(머리 버튼이 씀) · 상세 패널 면(`detailPanel`)에 블록 등장(`enterReveal`)
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- 로그인 화면 문구 import 자리만 `@repo/web-shared/layout/sign-in` 으로 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)

@@ -53,3 +53,7 @@
 ## 2026-11-20 파일만 걸침(`F019-s0-decision-slice.md`)
 
 - 주석 · 문서의 RN REQ 참조 → `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`). 동작 변경 0 — 타입 · 린트 · 레이어 훅 시험(차단 15 · 통과 11) 통과
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- `pnpm brand:icons` 가 휴대폰 zone PWA 아이콘 넷(`public/m/icons/`)도 굽는다 — 휴대폰 zone 은 Next 파일 규칙 아이콘을 두지 않는다 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)

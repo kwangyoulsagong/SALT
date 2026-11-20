@@ -77,3 +77,4 @@ source: 사용자 "로고도 … 참고해서 svg로 우리만의 로고도 만�
 | 2026-11-04 | 사용자 "파비콘도 똑같은 아이콘으로" — 브라우저 탭 아이콘(`icon.svg` · `favicon.ico` 16 · 32)을 로고와 같은 **입체** 물방울로. FR-5 의 "16 은 단색"을 이 결정으로 대체(단색은 `Logo` `depth={false}` · 한 색 인쇄 자리에만) |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `AppTabLink` 주석 — 머리 글자 링크 · 하단 탭 · 로고가 같은 링크 한 벌. 로고 자리 그대로(머리 첫 칸) |
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
+| 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — `pnpm brand:icons` 가 휴대폰 zone PWA 아이콘 넷(`public/m/icons/`)도 굽는다 — 휴대폰 zone 은 Next 파일 규칙 아이콘을 두지 않는다 |

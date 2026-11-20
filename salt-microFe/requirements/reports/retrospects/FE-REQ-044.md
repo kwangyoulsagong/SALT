@@ -94,3 +94,7 @@
 
 - `FE-REQ-049` 상세 재설계가 걸침 — `Tabs` 알약 변형이 세그먼트와 같은 미끄러지는 선택 면(`useSlidingIndicator`)을 씀 · 누름 피드백을 `@repo/ui/press` 로 공개(머리 버튼이 씀) · 상세 패널 면(`detailPanel`)에 블록 등장(`enterReveal`)
 - 판단은 `FE-REQ-049` 회고 같은 날 절
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음

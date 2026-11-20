@@ -74,3 +74,4 @@ created: 2026-09-22
 | 2026-11-12 | 서버 S3c 브랜치(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): lint 설정에 `@repo/fsd/danger-only-irreversible` 를 켰다(zone 다섯 · 패키지 다섯) — 빨강은 바로 위 주석에 되돌릴 수 없는 이유가 있을 때만 |
 | 2026-11-13 | 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `@repo/web-shared/api` 에 `countUsage` — `apiFetch` 를 지난다(축 하나 유지) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `@repo/web-shared/api` 배럴에 안 읽은 수 조회(`apiFetch` 경유 — 직접 fetch 0). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — `@repo/web-shared/api` 에 로그인 계약 `signIn` 을 더함(셸 feature 에서 내림) — `apiFetch` 경유 그대로 |
