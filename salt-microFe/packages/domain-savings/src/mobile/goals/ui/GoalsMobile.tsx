@@ -28,6 +28,9 @@ import { GOAL_TOOLS_MESSAGES, GoalTools } from "@/widgets/goal-tools";
 import { GOALS_MOBILE as M } from "../model/messages";
 import * as s from "./goalsMobile.css";
 
+/** 요약 금액 카드 높이(390 실측 214 — 금액 행 + 바닥 줄 셋) — 뼈대가 실제 카드와 같아야 카드가 올 때 아래가 밀리지 않는다 */
+const SUMMARY_SKELETON = 214;
+
 /**
  * 휴대폰 저축 목록 본문(`FE-REQ-072` FR-2 ← `FE-REQ-060` FR-M2) — 요약(모은 돈 30 + 줄) → 목표 행(누르면 상세로 push) → 저축 도구(접힘, 기본 크기).
  * 데스크톱 `GoalsBoard` 와 같은 조회 · 같은 칸(`goalSummaryItems`) — 배치만 다르다. 숫자는 전부 서버 값
@@ -74,7 +77,7 @@ export const GoalsMobile = ({ initialGoals, initialOverview }: { initialGoals: S
 
   return (
     <>
-      {summary ? <MobileSummary items={summary} label={GOAL_SUMMARY_MESSAGES.label} /> : <Skeleton height={96} />}
+      {summary ? <MobileSummary items={summary} label={GOAL_SUMMARY_MESSAGES.label} icon="ranking" /> : <Skeleton height={SUMMARY_SKELETON} />}
       <MobileSection title={M.list}>
         <ul className={goalRows}>
           {list.map((goal) => (

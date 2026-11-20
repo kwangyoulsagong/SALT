@@ -15,12 +15,31 @@ import * as s from "./detailMobile.css";
 const MINUS = "−";
 
 /** 등락은 색 + 부호를 같이(색만으로 전하지 않는다) — 값은 서버 · 시세 그대로 */
-const Change = ({ percent }: { percent: number }) => {
+const Change = ({ percent, label }: { percent: number; label: string }) => {
   const fixed = Math.abs(percent).toFixed(2);
   const tone = Number(fixed) === 0 ? s.flat : percent > 0 ? s.up : s.down;
   const text = Number(fixed) === 0 ? "0.00%" : percent > 0 ? `+${fixed}%` : `${MINUS}${fixed}%`;
-  return <span className={`${s.change} ${tone}`}>{text}</span>;
+  return (
+    <p className={s.changeLine}>
+      <span className={s.changeLabel}>{label}</span>
+      <span className={`${s.change} ${tone}`}>{text}</span>
+    </p>
+  );
 };
+
+/**
+ * 머리(`FE-REQ-074` FR-6 · 기준 화면 분석 §1) — 뒤로 + 이름 22 · 아이콘 / 가격 30(화면 주인공 하나) / 등락 줄 15(이름 + 색 + 부호).
+ * 이름 · 가격은 데스크톱 상세와 같은 조회
+ */
+const Head = ({ symbol, name, logoUrl, price, change, changeLabel }: { symbol: string; name: string; logoUrl?: string; price: string; change: number | null; changeLabel: string }) => (
+  <>
+    <MobileHead title={name} back={back} trailing={<AssetIcon symbol={symbol} src={logoUrl} name={name} size="md" />} />
+    <div className={s.priceBlock}>
+      <span className={s.price}>{price}</span>
+      {change === null ? null : <Change percent={change} label={changeLabel} />}
+    </div>
+  </>
+);
 
 const back = { href: MOBILE_ROUTES.investments, label: M.backTo };
 
@@ -32,14 +51,14 @@ const CryptoHead = ({ symbol }: { symbol: string }) => {
   const price = live?.currentPrice ?? item?.currentPrice ?? null;
   const change = live?.change24h ?? item?.change24h ?? null;
   return (
-    <>
-      <MobileHead title={item?.koreanName ?? symbol} back={back} />
-      <div className={s.priceRow}>
-        <AssetIcon symbol={symbol} src={item?.logoUrl ?? undefined} name={item?.koreanName ?? symbol} size="sm" />
-        <span className={s.price}>{price === null ? "—" : `${formatPrice(price)}원`}</span>
-        {change === null ? null : <Change percent={change} />}
-      </div>
-    </>
+    <Head
+      symbol={symbol}
+      name={item?.koreanName ?? symbol}
+      logoUrl={item?.logoUrl ?? undefined}
+      price={price === null ? "—" : `${formatPrice(price)}원`}
+      change={change}
+      changeLabel={M.change}
+    />
   );
 };
 
@@ -48,17 +67,16 @@ const KrHead = ({ code }: { code: string }) => {
   const detail = useKrDetail(code);
   const quote = detail.data?.status === "ok" ? detail.data.quote : null;
   return (
-    <>
-      <MobileHead title={quote?.name ?? code} back={back} />
-      <div className={s.priceRow}>
-        <AssetIcon symbol={code} name={quote?.name ?? code} size="sm" />
-        <span className={s.price}>{quote ? `${formatPrice(quote.price)}원` : "—"}</span>
-        {quote ? <Change percent={quote.changeRate} /> : null}
-      </div>
-    </>
+    <Head
+      symbol={code}
+      name={quote?.name ?? code}
+      price={quote ? `${formatPrice(quote.price)}원` : "—"}
+      change={quote ? quote.changeRate : null}
+      changeLabel={M.change}
+    />
   );
 };
 
-/** 머리 — 뒤로 + 이름 / 아이콘 · 가격 · 등락. 이름 · 가격은 데스크톱 상세와 같은 조회 */
+/** 머리 — 자산군에 따라 조회만 다르다 */
 export const DetailMobileHead = ({ symbol, asset }: { symbol: string; asset: "crypto" | "kr" }) =>
   asset === "kr" ? <KrHead code={symbol} /> : <CryptoHead symbol={symbol} />;

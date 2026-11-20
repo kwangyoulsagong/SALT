@@ -52,8 +52,8 @@ export const plate = style({
   // 저축 도메인 색 옅은 판 + 템플릿 선 아이콘(2026-11-20 — 글자 한 자 판이 밋밋했다). 도메인 색은 작은 표지에만
   background: "rgba(9, 146, 104, 0.1)",
   color: vars.colors.domain.savings,
-  // 휴대폰(`/m`) 목록 왼쪽 그림 = 원 40(`screen-mobile.md` §3)
-  selectors: { [ON_MOBILE]: { width: "40px", height: "40px", borderRadius: "999px" } },
+  // 휴대폰(`/m`) 목록 왼쪽 = 아이콘 판 44 · 모서리 12(`mobile-design.md` §2 · `FE-REQ-074` FR-2)
+  selectors: { [ON_MOBILE]: { width: "44px", height: "44px", borderRadius: "12px" } },
 });
 
 export const main = style({ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: 0, selectors: { [ON_MOBILE]: { flex: "1 1 96px" } } });
@@ -75,7 +75,8 @@ export const caption = style({
   ...label,
   overflowWrap: "anywhere",
   selectors: {
-    [ON_MOBILE]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight, fontWeight: vars.appType.caption.fontWeight, color: vars.colors.text.tertiary },
+    // 한국어는 낱말 단위로 줄바꿈 — "2027 / 년 6월" 처럼 낱말 중간에서 끊지 않는다(`FE-REQ-074` FR-3)
+    [ON_MOBILE]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight, fontWeight: vars.appType.caption.fontWeight, color: vars.colors.text.tertiary, wordBreak: "keep-all" },
   },
 });
 

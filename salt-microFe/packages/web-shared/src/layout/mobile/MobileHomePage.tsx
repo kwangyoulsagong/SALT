@@ -12,6 +12,7 @@ import { DesktopViewLink } from "./DesktopViewLink";
 import { MobileCardPreview } from "./MobileCardPreview";
 import { MOBILE_HOME_MESSAGES as M } from "./messages";
 import { MobileProfileHead } from "./MobileProfileHead";
+import { MobileShortcuts } from "./MobileShortcuts";
 import { MobileHead, MobileScreen, MobileSection } from "./MobileScreen";
 import * as s from "./MobileHome.css";
 
@@ -111,27 +112,9 @@ const SHORTCUTS: readonly { domain: HomeDomain; href: string; icon: ServiceIconV
   { domain: "savings", href: MOBILE_ROUTES.goals, icon: "ranking", label: M.shortcuts.goals },
 ];
 
-const Shortcuts = ({ hidden }: { hidden: ReadonlySet<HomeDomain> }) => {
-  const rows = SHORTCUTS.filter((row) => !hidden.has(row.domain));
-  if (rows.length === 0) return null;
-  return (
-    <ul className={s.shortcuts} aria-label={M.shortcuts.label}>
-      {rows.map((row) => (
-        <li key={row.href}>
-          <Link href={row.href} className={s.shortcut}>
-            <span className={s.shortcutIcon}>
-              <ServiceIcon variant={row.icon} />
-            </span>
-            <span className={s.shortcutLabel}>{row.label}</span>
-            <svg className={s.chevron} width="20" height="20" viewBox="0 0 24 24" aria-hidden focusable="false">
-              <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-};
+const Shortcuts = ({ hidden }: { hidden: ReadonlySet<HomeDomain> }) => (
+  <MobileShortcuts items={SHORTCUTS.filter((row) => !hidden.has(row.domain))} label={M.shortcuts.label} />
+);
 
 const FeedRow = ({ item }: { item: HomeRecentItem | HomeUpcomingItem }) => (
   <li>

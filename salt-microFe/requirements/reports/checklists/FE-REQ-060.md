@@ -205,3 +205,7 @@
 - FR-M(앱 웹뷰 휴대폰 배치)을 `/m` 으로 옮겼다 — 데스크톱 저축 · 가계부 화면의 `deskOnly` · `AppSummary` · `AppSheetAction` · `useInAppWebview` 분기 0, 요약 칸은 엔티티로(`goalSummaryItems` · `householdSummaryItems` — 데스크톱 띠 · 휴대폰 요약 한 벌), 저축 도구는 `widgets/goal-tools`. 같이 쓰는 조각의 휴대폰 값은 `/m` 표지(`ON_MOBILE`)
 - 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
 - 미충족: 없음(이 REQ 몫 변경은 위 한 줄)
+
+## 2026-11-20 `FE-REQ-074` 걸침
+
+- [x] 지출 행 판의 휴대폰 값 원 40 → 아이콘 판 44 · 모서리 12(`/m` 표지 안만). 데스크톱 행 변화 0 — 확인은 `checklists/FE-REQ-074.md`(390 · 360 측정 · 1280 데스크톱 대조)

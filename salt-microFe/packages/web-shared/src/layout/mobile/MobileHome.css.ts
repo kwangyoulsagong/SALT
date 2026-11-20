@@ -3,7 +3,8 @@ import { globalStyle, style, styleVariants } from "@vanilla-extract/css";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
-import { press, pressed, pressedCard } from "./MobilePress.css";
+import { footPill } from "./MobileFoot.css";
+import { press, pressedCard } from "./MobilePress.css";
 
 /**
  * 휴대폰 목록 행(`screen-mobile.md` §3) — 세로 여백 12 · 왼쪽 그림 40 · 이름 `t5` · 보조 `t7` · 값 오른쪽.
@@ -208,57 +209,5 @@ export const tileTitle = style({
 export const tileArt = style({ position: "absolute", right: "8px", bottom: "6px", width: "56px", height: "56px", pointerEvents: "none" });
 globalStyle(`${tileArt} img`, { width: "56px", height: "56px" });
 
-/** 바로가기 목록 카드 — 아이콘 28 · 이름 `t5` · 셰브론(기준 화면 분석 §11 목록 카드) */
-export const shortcuts = style({
-  ...enterReveal,
-  display: "flex",
-  flexDirection: "column",
-  margin: 0,
-  padding: "8px 0",
-  listStyle: "none",
-  borderRadius: "20px",
-  background: vars.colors.background.white,
-});
-export const shortcut = style({
-  ...press,
-  display: "flex",
-  alignItems: "center",
-  gap: "14px",
-  minHeight: "56px",
-  padding: "0 20px",
-  color: vars.colors.text.primary,
-  textDecoration: "none",
-  selectors: { "&:active": { ...pressed, background: vars.colors.neutral[50] } },
-  ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-2px" },
-});
-export const shortcutIcon = style({ display: "inline-flex", width: "32px", height: "32px", flexShrink: 0 });
-globalStyle(`${shortcutIcon} img`, { width: "32px", height: "32px" });
-export const shortcutLabel = style({
-  flex: 1,
-  minWidth: 0,
-  fontSize: vars.appType.body.fontSize,
-  lineHeight: vars.appType.body.lineHeight,
-  fontWeight: vars.fontWeights.semibold,
-});
-export const chevron = style({ flexShrink: 0, color: vars.colors.neutral[400] });
-
-/** 홈 화면 설정 — 가운데 회색 알약(테두리 · 톱니) */
-export const settingsPill = style({
-  ...press,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  alignSelf: "center",
-  minHeight: "44px",
-  margin: "12px 0 4px",
-  padding: "0 20px",
-  borderRadius: "999px",
-  border: `1px solid ${vars.colors.neutral[200]}`,
-  background: vars.colors.neutral[100],
-  color: vars.colors.neutral[600],
-  fontSize: vars.appType.desc.fontSize,
-  lineHeight: vars.appType.desc.lineHeight,
-  fontWeight: vars.fontWeights.semibold,
-  textDecoration: "none",
-  selectors: { "&:active": pressed },
-});
+/** 홈 화면 설정 — 가운데 회색 알약(바닥 알약과 한 부품 — `MobileFoot.css`) */
+export const settingsPill = style([footPill, { alignSelf: "center", margin: "12px 0 4px" }]);

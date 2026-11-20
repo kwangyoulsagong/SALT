@@ -41,3 +41,7 @@
 - `/m` 탭 넷 자리 화면(`MobilePendingPage`)을 실제 화면으로 바꿨다 · 레이아웃에 표면 표지 `data-surface` · 휴대폰 틀에 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction` — 하단 탭 위) · 홈 입구 `layout/mobile/home` · 디자인 시스템 크기 표지 규칙
 - 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
 - 미충족: 없음(이 REQ 몫 변경은 위 한 줄)
+
+## 2026-11-20 `FE-REQ-074` 걸침
+
+- [x] `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다 — 확인은 `checklists/FE-REQ-074.md`(390 · 360 측정 · 1280 데스크톱 대조)

@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { DesktopViewLink, MobileDetailTop } from "@repo/web-shared/layout/mobile";
+import { DesktopViewFoot, MobileDetailTop } from "@repo/web-shared/layout/mobile";
 import { BlockBoundary } from "@repo/web-shared/ui";
 
 import { INVESTMENT_DETAIL_MOBILE as M } from "../model/messages";
@@ -33,9 +33,6 @@ export const DetailMobileBody = ({ symbol, asset }: { symbol: string; asset: "cr
         <ScenarioPanel symbol={symbol} asset={asset} />
       </BlockBoundary>
     </div>
-    <div className={s.foot}>
-      <p className={s.note}>{M.more}</p>
-      <DesktopViewLink to={ROUTES.investmentDetail(symbol)} />
-    </div>
+    <DesktopViewFoot to={ROUTES.investmentDetail(symbol)} note={M.more} />
   </>
 );

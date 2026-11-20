@@ -216,3 +216,28 @@ export const foldHintSummary = style({
 /** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
 globalStyle(`${MOBILE_ROOT} ${footnote}, ${MOBILE_ROOT} ${panelFootnote}`, { fontSize: "13px", lineHeight: "20px" });
 globalStyle(`${MOBILE_ROOT} ${foldSummary}, ${MOBILE_ROOT} ${foldHintSummary}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });
+
+/** 위젯 안 "‹ 투자" — 데스크톱만. 휴대폰은 머리(`MobileHead`)가 이미 뒤로다(`FE-REQ-074` FR-8) */
+export const reportBack = style({});
+
+/**
+ * 휴대폰(`/m`) 리포트 = 흰 섹션 쌓기(`FE-REQ-074` FR-7 · FR-8) — 머리와 겹치는 뒤로 · 제목을 숨기고(다시 만들기 · 생성 시각은 남긴다),
+ * 섹션 사이 회색 띠 16 · 면책 띠는 고정이 아니라 맨 아래 흐름(하단 탭과 겹침 0)
+ */
+// `a${reportBack}` — 공용 `backLink` 의 휴대폰 규칙(누름 44 · inline-flex)과 우선순위가 같으면 뒤에 온 쪽이 이긴다
+globalStyle(`${MOBILE_ROOT} a${reportBack}, ${MOBILE_ROOT} ${title}`, { display: "none" });
+globalStyle(`${MOBILE_ROOT} ${layout}`, { gap: "16px", padding: 0 });
+globalStyle(`${MOBILE_ROOT} ${footnote}`, { padding: "0 20px" });
+globalStyle(`${MOBILE_ROOT} ${disclaimerBar}`, {
+  position: "static",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  gap: "4px",
+  marginTop: "16px",
+  padding: "20px",
+  background: "transparent",
+  borderTop: "none",
+  wordBreak: "keep-all",
+  fontSize: vars.appType.caption.fontSize,
+  lineHeight: vars.appType.caption.lineHeight,
+});

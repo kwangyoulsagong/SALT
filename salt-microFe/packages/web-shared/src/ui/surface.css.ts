@@ -201,3 +201,15 @@ export const toolEmptyBody = style({
 
 /** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
 globalStyle(`${MOBILE_ROOT} ${backLink}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });
+
+/**
+ * 휴대폰(`/m`) 상세 화면의 패널 = 흰 섹션(`FE-REQ-074` FR-7 · `mobile-design.md` §1) — 모서리 0 · 안쪽 선 0 · 좌우 20 · 위아래 24 ·
+ * 제목 `t3` 22 Bold. 섹션 사이 회색 띠는 부르는 쪽 묶음의 간격 16. 데스크톱 값은 그대로
+ */
+globalStyle(`${MOBILE_ROOT} ${panel}`, { borderRadius: 0, boxShadow: "none", padding: "24px 20px" });
+globalStyle(`${MOBILE_ROOT} ${panelTitle}`, {
+  fontSize: vars.appType.title.fontSize,
+  lineHeight: vars.appType.title.lineHeight,
+  fontWeight: vars.appType.title.fontWeight,
+});
+globalStyle(`${MOBILE_ROOT} ${panelDescription}`, { margin: "-4px 0 0", wordBreak: "keep-all" });

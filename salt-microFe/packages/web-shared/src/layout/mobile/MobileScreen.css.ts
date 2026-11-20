@@ -105,4 +105,5 @@ globalStyle(`${detailScreen} ${sectionTitle}`, {
   color: vars.colors.text.primary,
 });
 // 상세 머리 안 요약은 카드가 아니다 — 흰 머리 칸에 그대로
-globalStyle(`${detailTop} ${summary}`, { padding: 0, borderRadius: 0 });
+// 등장(떠오름)은 탭 화면 카드 몫 — 상세 머리 숫자는 제자리에 바로 선다(`mobile-motion.md` §3)
+globalStyle(`${detailTop} ${summary}`, { padding: 0, borderRadius: 0, animation: "none" });
