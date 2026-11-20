@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { vars } from "../styles/tokens.css";
 import { assetIconStyles, imageStyles } from "./styles/assetIcon.css";
+import { assetInitials } from "./assetInitials";
 import { fallbackPalette } from "./fallbackPalette";
 
 export type AssetIconSize = "sm" | "md" | "lg" | "xl";
@@ -29,15 +30,6 @@ const pickColor = (symbol: string) => {
     hash = (hash * 31 + symbol.charCodeAt(i)) % 100000;
   }
   return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
-};
-
-/** 한글은 1글자, 그 외는 2글자를 쓴다. */
-const toInitials = (symbol: string) => {
-  const trimmed = symbol.trim();
-  if (!trimmed) return "?";
-  return /[가-힣]/.test(trimmed[0] as string)
-    ? trimmed.slice(0, 1)
-    : trimmed.slice(0, 2).toUpperCase();
 };
 
 export const AssetIcon = ({
@@ -73,7 +65,7 @@ export const AssetIcon = ({
       className={rootClassName}
       style={{ background: pickColor(symbol) }}
     >
-      {toInitials(symbol)}
+      {assetInitials(symbol, name)}
     </span>
   );
 };

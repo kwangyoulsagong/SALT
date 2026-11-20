@@ -5,7 +5,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import Link from "next/link";
 
 import { MOBILE_PATHS, MOBILE_ROUTES } from "@repo/core/mobile";
-import { MobileCard, MobileSection } from "@repo/web-shared/layout/mobile";
+import { MobileSection, MobileShortcuts } from "@repo/web-shared/layout/mobile";
 
 import { useWatchlist } from "@/entities/market";
 
@@ -40,26 +40,15 @@ const Chevron = () => (
 );
 
 /**
- * 휴대폰 투자 탭 본문(`FE-REQ-072` FR-3) — 코치 리포트 행 → 관심 종목 행(누르면 `/m/investments/[symbol]` 한 장 패널).
+ * 휴대폰 투자 탭 본문(`FE-REQ-072` FR-3 · `FE-REQ-074` FR-4) — 코치 리포트 바로가기 카드 → 관심 종목 행(누르면 `/m/investments/[symbol]` 한 장 패널).
  * 데스크톱 시세 표(100행 실시간)는 휴대폰에 옮기지 않는다 — 투자는 동결(`ADR-005` §5), 휴대폰은 기획된 상세 · 리포트만
  */
 export const InvestmentsMobile = () => {
   const watchlist = useWatchlist();
   return (
     <>
-      <MobileCard>
-        <ul className={s.rows}>
-          <li>
-            <Link href={MOBILE_ROUTES.coachReport} className={s.row}>
-              <span className={s.main}>
-                <span className={s.name}>{M.reportTitle}</span>
-                <span className={s.sub}>{M.reportHint}</span>
-              </span>
-              <Chevron />
-            </Link>
-          </li>
-        </ul>
-      </MobileCard>
+      {/* 코치 리포트 — 홈 바로가기와 같은 목록 카드(3D 아이콘 · 보조 줄 · 셰브론, `FE-REQ-074` FR-4) */}
+      <MobileShortcuts items={[{ href: MOBILE_ROUTES.coachReport, icon: "analysis", label: M.reportTitle, hint: M.reportHint }]} label={M.reportTitle} />
       <MobileSection title={M.watchlist}>
         {watchlist.isSignedOut ? (
           <>

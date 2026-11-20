@@ -77,13 +77,14 @@ describe("데스크톱 글자 크기 다섯 단(FE-REQ-047 FR-3)", () => {
   });
 
   // 모바일 글자(`appType`)는 휴대폰 표면 · 같이 쓰는 조각의 `/m` 표지 선택자 안에서만 — 데스크톱 단 밖 크기를 이 이름으로 우회하지 않게(`FE-REQ-072` FR-4)
-  it("appType 은 휴대폰 표면 · ON_MOBILE 을 쓰는 파일에서만", () => {
+  // `MOBILE_ROOT`(`globalStyle` 앞머리)는 `ON_MOBILE` 과 같은 표지다 — 여러 클래스를 한 번에 `/m` 값으로(`screen-mobile.md` §1, `FE-REQ-074` FR-7)
+  it("appType 은 휴대폰 표면 · ON_MOBILE · MOBILE_ROOT 를 쓰는 파일에서만", () => {
     const leaks = Object.keys(BUDGET)
       .flatMap((root) => cssFiles(join(REPO, root)))
       .filter((file) => {
         if (isMobileSurface(file)) return false;
         const source = readFileSync(file, "utf8");
-        return /appType\./.test(source) && !source.includes("ON_MOBILE");
+        return /appType\./.test(source) && !/ON_MOBILE|MOBILE_ROOT/.test(source);
       })
       .map((file) => relative(REPO, file));
     expect(leaks, `appType 을 휴대폰 선택자 밖에서 썼다:\n${leaks.join("\n")}`).toEqual([]);

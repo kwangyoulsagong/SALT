@@ -74,7 +74,7 @@ export const GoalsMobile = ({ initialGoals, initialOverview }: { initialGoals: S
 
   return (
     <>
-      {summary ? <MobileSummary items={summary} label={GOAL_SUMMARY_MESSAGES.label} /> : <Skeleton height={96} />}
+      {summary ? <MobileSummary items={summary} label={GOAL_SUMMARY_MESSAGES.label} icon="ranking" /> : <Skeleton height={96} />}
       <MobileSection title={M.list}>
         <ul className={goalRows}>
           {list.map((goal) => (

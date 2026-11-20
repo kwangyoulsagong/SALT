@@ -9,6 +9,8 @@ export { MobileCard, MobileDetailTop, MobileHead, MobileScreen, MobileSection } 
 export { MobileSummary, type MobileSummaryProps } from "./MobileSummary";
 export { MobileSheetAction, type MobileSheetActionProps } from "./MobileSheetAction";
 export { DesktopViewLink } from "./DesktopViewLink";
+export { DesktopViewFoot } from "./DesktopViewFoot";
+export { MobileShortcuts, type MobileShortcut } from "./MobileShortcuts";
 export { RegisterServiceWorker } from "./RegisterServiceWorker";
 export { MOBILE_TABS, activeMobileTab, mobileTabHref } from "./mobileTabs";
 export {

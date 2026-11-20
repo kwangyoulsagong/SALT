@@ -39,6 +39,7 @@ import {
   header,
   layout,
   meta,
+  reportBack,
   title,
   titleBlock,
 } from "./CoachReport.css";
@@ -116,7 +117,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
   return (
     <>
       <div className={layout}>
-        <Link href={ROUTES.investments} className={backLink}>
+        <Link href={ROUTES.investments} className={`${backLink} ${reportBack}`}>
           {`\u2039 ${REPORT.back}`}
         </Link>
 

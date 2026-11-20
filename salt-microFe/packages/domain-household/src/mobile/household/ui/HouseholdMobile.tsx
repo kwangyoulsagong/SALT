@@ -94,7 +94,7 @@ export const HouseholdMobile = ({ ym, initial }: { ym: string; initial: Househol
 
   return (
     <CategoryNamesProvider categories={m.categories}>
-      <MobileSummary items={householdSummaryItems(m)} label={HOUSEHOLD_SUMMARY_MESSAGES.label} />
+      <MobileSummary items={householdSummaryItems(m)} label={HOUSEHOLD_SUMMARY_MESSAGES.label} icon="household" />
       {m.current ? (
         <div className={s.asks}>
           <RecurringAskCard items={m.recurring.items} />

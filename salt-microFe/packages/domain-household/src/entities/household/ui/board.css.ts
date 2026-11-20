@@ -69,8 +69,8 @@ export const plate = style({
   // 가계부 도메인 색 옅은 판 + 분류 선 아이콘(2026-11-20). 도메인 색은 작은 표지에만
   background: "rgba(232, 89, 12, 0.1)",
   color: vars.colors.domain.household,
-  // 휴대폰(`/m`) 목록 왼쪽 그림 = 원 40(`screen-mobile.md` §3)
-  selectors: { [ON_MOBILE]: { width: "40px", height: "40px", borderRadius: "999px" } },
+  // 휴대폰(`/m`) 목록 왼쪽 = 아이콘 판 44 · 모서리 12(`mobile-design.md` §2 · `FE-REQ-074` FR-2)
+  selectors: { [ON_MOBILE]: { width: "44px", height: "44px", borderRadius: "12px" } },
 });
 
 // 휴대폰(`/m`) — 이름 칸이 96 아래로 줄면 금액이 다음 줄로 내려간다(글자 160 · 200%, FR-M4)
