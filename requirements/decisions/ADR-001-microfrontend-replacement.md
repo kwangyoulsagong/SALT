@@ -159,11 +159,11 @@ const nextConfig = {
 
 ---
 
-## 4. 모바일 MFE는 다른 방식이다 — 토스형 번들 분리
+## 4. 모바일 MFE는 다른 방식이다 — 공유 · 서비스 번들 분리
 
 웹의 MFE 문제는 "한 도메인을 여러 배포로 쪼개기"이고, 모바일의 문제는 **"스토어 심사를 우회해서 화면을 배포하기"** 다. 문제가 다르므로 방식도 다르다.
 
-토스의 React Native 운영 방식을 근거로 삼는다 ([toss.tech, 2024](https://toss.tech/article/react-native-2024)).
+국내 대형 금융 앱의 공개된 React Native 운영 사례(2024)를 근거로 삼는다.
 
 | 항목 | 내용 |
 |---|---|
@@ -225,4 +225,4 @@ SALT의 서비스 번들 경계는 웹 zone 경계와 같은 기준을 쓴다: `
 - [vercel-labs/microfrontends-nextjs-app-multi-zone](https://github.com/vercel-labs/microfrontends-nextjs-app-multi-zone) — App Router 예제
 - [Vercel Microfrontends](https://vercel.com/docs/microfrontends) · [Public Beta 공지](https://vercel.com/changelog/microfrontends-support-is-now-in-public-beta)
 - [Announcing Rspack 2.0](https://www.rspack.dev/blog/announcing-2-0) — RSC 실험적 지원, MF shared tree shaking
-- [토스 — React Native 2024](https://toss.tech/article/react-native-2024) — Shared/Service 번들, ESBuild, 1초 배포, 카나리, Hermes
+- 국내 대형 금융 앱 React Native 운영 사례(2024, 공개 기술 글) — Shared/Service 번들, ESBuild, 1초 배포, 카나리, Hermes

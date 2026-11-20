@@ -92,6 +92,8 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 22(레이어 
 - `.claude/rules/canvas.md` — 고부하 시 Canvas 도입 기준
 - `.claude/rules/design-system.md` — `@repo/ui` 디자인 시스템
 - `.claude/rules/screen-desktop.md` — 데스크톱 화면 틀 · 글자 위계 · 컨트롤 값(실측 근거)
+- `.claude/rules/mobile-design.md` — 휴대폰 `/m` 배치 · 부품(탭 화면 카드 · 상세 흰 섹션 · 금액 행 · 아이콘 판 · 회색 알약 · 글래스 탭 · 떠 있는 시트) — 2026-11-20
+- `.claude/rules/mobile-motion.md` — 휴대폰 마이크로 인터랙션(누름 · 자리 바뀜 · 등장) — 2026-11-20
 - `.claude/rules/screen-mobile.md` — 휴대폰 PWA `/m` 글자 토큰 · 배치 · 컴포넌트 · 라이팅 · `src/mobile` 진입점 · `/m` 표지(앱 웹뷰 계약은 2026-11-20 `FE-REQ-072` 로 지움)
 - `.claude/rules/a11y-policy.md` — 접근성
 - `.claude/rules/i18n-policy.md` — 문구/i18n 정책

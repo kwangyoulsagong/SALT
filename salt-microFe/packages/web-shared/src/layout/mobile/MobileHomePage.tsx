@@ -3,12 +3,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { AppHomeVM, HomeDomain, HomeRecentItem, HomeSummaryCard, HomeUpcomingItem } from "@repo/core/home";
-import { MOBILE_PATHS, toMobileHref } from "@repo/core/mobile";
+import { MOBILE_PATHS, MOBILE_ROUTES, toMobileHref } from "@repo/core/mobile";
 import { ServiceIcon, type ServiceIconVariant } from "@repo/ui/serviceicon";
 
 import { serverBffRead } from "../../api/server";
 
 import { DesktopViewLink } from "./DesktopViewLink";
+import { MobileCardPreview } from "./MobileCardPreview";
 import { MOBILE_HOME_MESSAGES as M } from "./messages";
 import { MobileProfileHead } from "./MobileProfileHead";
 import { MobileHead, MobileScreen, MobileSection } from "./MobileScreen";
@@ -62,6 +63,8 @@ const CardRow = ({ card }: { card: HomeSummaryCard }) => {
         </span>
         <span className={s.pill}>{card.state === "empty" && card.action ? card.action : M.pill[card.domain]}</span>
       </RowLink>
+      {/* 미리보기 — 데스크톱 홈 카드와 같은 서버 값(흐름선 · 날마다 막대 · 목표 진척) */}
+      {card.preview && !degraded ? <MobileCardPreview domain={card.domain} preview={card.preview} /> : null}
       {card.secondary && !degraded ? (
         <p className={s.cardFoot}>
           <span>{card.secondary.label}</span>
@@ -69,6 +72,64 @@ const CardRow = ({ card }: { card: HomeSummaryCard }) => {
         </p>
       ) : null}
     </li>
+  );
+};
+
+/** 두 칸 타일 — 옅은 도메인 색 면 · 오른쪽 아래 3D 그림 · 두 줄 제목(기준 화면 분석 §11 · 사용자 2026-11-20 "이런 아이콘들 카드 배경"). 숨긴 도메인은 뺀다 */
+const QUICK: readonly { domain: HomeDomain; href: string; icon: ServiceIconVariant; title: readonly [string, string] }[] = [
+  { domain: "household", href: MOBILE_ROUTES.household, icon: "household", title: M.quick.expense },
+  { domain: "savings", href: MOBILE_ROUTES.goals, icon: "ranking", title: M.quick.deposit },
+];
+
+const QuickTiles = ({ hidden }: { hidden: ReadonlySet<HomeDomain> }) => {
+  const tiles = QUICK.filter((tile) => !hidden.has(tile.domain));
+  if (tiles.length === 0) return null;
+  return (
+    <ul className={s.tiles} aria-label={M.quick.label}>
+      {tiles.map((tile) => (
+        <li key={tile.domain} className={`${s.tile} ${s.tileTone[tile.domain]}`}>
+          <Link href={tile.href} className={s.tileLink}>
+            <span className={s.tileTitle}>
+              {tile.title[0]}
+              <br />
+              {tile.title[1]}
+            </span>
+            <span className={s.tileArt}>
+              <ServiceIcon variant={tile.icon} />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+/** 바로가기 목록 카드 — 아이콘 · 이름 · 셰브론(기준 화면 분석 §11 목록 카드). 숨긴 도메인은 뺀다 */
+const SHORTCUTS: readonly { domain: HomeDomain; href: string; icon: ServiceIconVariant; label: string }[] = [
+  { domain: "invest", href: MOBILE_ROUTES.coachReport, icon: "analysis", label: M.shortcuts.report },
+  { domain: "household", href: `${MOBILE_ROUTES.household}?view=calendar`, icon: "mission", label: M.shortcuts.calendar },
+  { domain: "savings", href: MOBILE_ROUTES.goals, icon: "ranking", label: M.shortcuts.goals },
+];
+
+const Shortcuts = ({ hidden }: { hidden: ReadonlySet<HomeDomain> }) => {
+  const rows = SHORTCUTS.filter((row) => !hidden.has(row.domain));
+  if (rows.length === 0) return null;
+  return (
+    <ul className={s.shortcuts} aria-label={M.shortcuts.label}>
+      {rows.map((row) => (
+        <li key={row.href}>
+          <Link href={row.href} className={s.shortcut}>
+            <span className={s.shortcutIcon}>
+              <ServiceIcon variant={row.icon} />
+            </span>
+            <span className={s.shortcutLabel}>{row.label}</span>
+            <svg className={s.chevron} width="20" height="20" viewBox="0 0 24 24" aria-hidden focusable="false">
+              <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 };
 
@@ -149,8 +210,18 @@ export const MobileHomePage = async () => {
           <CardRow key={card.domain} card={card} />
         ))}
       </ul>
+      <QuickTiles hidden={hidden} />
+      <Shortcuts hidden={hidden} />
       <Feed title={M.recentTitle} items={home.recent} empty={M.recentEmpty} />
       <Feed title={M.upcomingTitle} items={home.upcoming} empty={M.upcomingEmpty} />
+      {/* 홈 카드 순서 · 숨김은 데스크톱 설정(`arrange-home`) — 문서 이동 + "데스크톱 화면으로 보기" 쿠키 */}
+      <a className={s.settingsPill} href={`${MOBILE_PATHS.desktop}?to=${encodeURIComponent("/settings")}`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden focusable="false">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" strokeWidth="2" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
+        {M.settings}
+      </a>
     </MobileScreen>
   );
 };

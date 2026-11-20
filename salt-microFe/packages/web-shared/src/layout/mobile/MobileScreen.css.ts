@@ -1,5 +1,6 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 
+import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 import { summary } from "./MobileSummary.css";
@@ -40,6 +41,8 @@ export const detailTop = style({
 
 /** 카드 — 흰 면 · 모서리 20 · 안쪽 20(Figma 실측). 그림자 없음 */
 export const card = style({
+  // 카드가 차례로 8px 아래에서 떠오른다(블록 등장 — `motion.md` §1, 형제 차례 · 동작 줄이기면 끔)
+  ...enterReveal,
   display: "flex",
   flexDirection: "column",
   gap: vars.space.md,

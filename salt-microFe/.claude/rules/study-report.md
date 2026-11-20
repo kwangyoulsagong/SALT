@@ -78,7 +78,7 @@ requirements/reports/studies/{topic}.md
 
 ## 블로그형 서술 규칙
 
-- 토스 기술 블로그 스타일처럼 문제 배경, 제약, 선택지, 의사결정, 구현 모델, 결과 순서로 설명한다.
+- 국내 기술 블로그 글처럼 문제 배경, 제약, 선택지, 의사결정, 구현 모델, 결과 순서로 설명한다.
 - Velog 회고형 글처럼 "당시 헷갈렸던 점", "구현하며 배운 점", "다음에 다시 본다면 확인할 것"을 남긴다.
 - 독자의 학습 동선을 위해 섹션 끝에 "여기서 배울 점"을 짧게 둘 수 있다.
 
@@ -127,7 +127,6 @@ ASCII 예시:
 - [TanStack Query Documentation](https://tanstack.com/query/latest)
 - [Zustand Documentation](https://zustand.docs.pmnd.rs/)
 - [Frontend Fundamentals](https://frontend-fundamentals.com/)
-- [Toss Tech - Frontend](https://toss.tech/tech?category=frontend)
 
 ## 품질 체크리스트
 

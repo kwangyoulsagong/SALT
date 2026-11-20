@@ -39,7 +39,7 @@
 ### Cited Findings
 - 증권거래세: 2026-01-01 이후 양도분부터 코스피 0%→0.05%(농특세 0.15% 유지, 실질 0.20%), 코스닥 · K-OTC 0.15%→0.20%, 코넥스 0.10% 유지. 금투세 폐지(2024-12 국회 확정) 보완 조치 — [세계일보 2026-01-05](https://www.segye.com/newsView/20260105516769); [세정일보](https://www.taxtimes.co.kr/news/article.html?no=272624); [이코노미스트](https://economist.co.kr/article/view/ecn202512220061)
 - 거래세는 매도 금액 기준으로 손익과 무관하게 부과. 손실 투자자 거래세 면제 법안 논의 보도 있음(미확정) — [세계일보](https://www.segye.com/newsView/20260105516769)
-- 비대면 기본 위탁수수료 약 0.01~0.015%, 유관기관 제비용 대부분 0.0036396%(KB증권 0.0044792% 표기), 신규 비대면 고객 0.0036%대 평생 우대가 흔함. 토스증권 2025-12-15~2026-06 말 무료 이벤트 종료 후 기본 0.015%(넥스트레이드 0.014%) — [wikidocs 비교](https://wikidocs.net/blog/@insightbridge/18255/); [glasswallet 비교](https://glasswallet.com/blog/stock-account-fee-comparison-guide/); [bullstory 비교](https://bullstory.io/blog/수수료-낮은-증권사-2026년-비교-국내미국주식-실비용-총정리) (모두 비공식 비교 자료)
+- 비대면 기본 위탁수수료 약 0.01~0.015%, 유관기관 제비용 대부분 0.0036396%(KB증권 0.0044792% 표기), 신규 비대면 고객 0.0036%대 평생 우대가 흔함. 한 증권사 2025-12-15~2026-06 말 무료 이벤트 종료 후 기본 0.015%(넥스트레이드 0.014%) — [wikidocs 비교](https://wikidocs.net/blog/@insightbridge/18255/); [glasswallet 비교](https://glasswallet.com/blog/stock-account-fee-comparison-guide/); [bullstory 비교](https://bullstory.io/blog/수수료-낮은-증권사-2026년-비교-국내미국주식-실비용-총정리) (모두 비공식 비교 자료)
 - 거래세가 수수료보다 50배 이상 크다는 지적 — [wikidocs](https://wikidocs.net/blog/@insightbridge/18255/)
 - 대주주 양도세 기준: 2025-07 세제개편안의 10억 원 강화안을 2025-09-15 철회, **종목당 50억 원 유지**. 판정은 직전 사업연도 종료일 보유금액 — [SBS Biz](https://biz.sbs.co.kr/amp/article/20000259536); [다음/뉴스 2025-09-11](https://v.daum.net/v/20250911122251151?f=p); [heumtax](https://www.heumtax.com/contents/posts/major-shareholder-stock-transfer-tax)
 - 고배당기업 배당소득 분리과세(조특법 §104의27): 2025-12-02 국회 통과, 2026-01-01 시행. 2천만 원 이하 14%, 2천만~3억 20%, 3억~50억 25%, 50억 초과 30%(지방세 별도). 대상: 배당성향 40% 이상, 또는 25% 이상 + 전년 대비 배당 10% 이상 증가(배당 감소 없음). ETF · 리츠 · 펀드 제외. 신고 시 신청 필요. 적용 기간(2028년까지 vs 부칙 1년 한시)은 보도 엇갈림 — [비즈워치 2025-12-03](https://news.bizwatch.co.kr/article/market/2025/12/03/0026); [뉴시스 2026-01-15](https://www.newsis.com/view/NISX20260115_0003478692); [비즈워치 2026-03-13](https://news.bizwatch.co.kr/article/market/2026/03/13/0025)
@@ -91,7 +91,7 @@
 
 ### Cited Findings
 - 가격제한폭 ±30%(2015-06-15부터 확대) — [이투데이](https://www.etoday.co.kr/news/view/1127429); [뉴시스](https://www.newsis.com/view/NISX20220519_0001878246)
-- 정적 VI: 직전 단일가 대비 10% 이상 급변 시 2분 냉각. 동적 VI: 코스피200 구성종목 3%, 코스피 일반 · 코스닥 6%(종가 단일가 시간대엔 기준 낮음) — [뉴시스](https://www.newsis.com/view/NISX20220519_0001878246); [토스피드](https://toss.im/tossfeed/article/stock-alert)
+- 정적 VI: 직전 단일가 대비 10% 이상 급변 시 2분 냉각. 동적 VI: 코스피200 구성종목 3%, 코스피 일반 · 코스닥 6%(종가 단일가 시간대엔 기준 낮음) — [뉴시스](https://www.newsis.com/view/NISX20220519_0001878246)
 - 서킷브레이커: 전일 대비 8% 이상 하락 1분 지속 시 20분 매매 중단, 이후 10분 단일가 — [EBC](https://www.ebc.com/kr/forex/287445.html)
 - 2026년 코스피 급락: 3월 초 하루 약 -7.2% 및 장중 -11%, 6-08 -8.40%, 7-07 -8.07%, 7-13 -8.95%(사이드카+서킷브레이커), 7-28 8% 넘게 하락하며 **2026년 들어 8번째 서킷브레이커** — [MTN](https://news.mtn.co.kr/news-detail/2026060809194826487); [경향신문 2026-07-28](https://www.khan.co.kr/article/202607281019001); [wikidocs 7-13 정리](https://wikidocs.net/blog/@goodhosup/23674/) (3월 발동일은 보도마다 3-04/3-09로 엇갈림)
 - 2026 코스피 변동성은 반도체 2종목 집중과 단일종목 레버리지 ETF 탓이라는 분석(의견) — [검색 요약 출처 목록](https://cryptoslate.com/bitcoin-surges-past-71000-in-asia-trading-session-while-south-korean-stock-market-crashes-18-this-week/)

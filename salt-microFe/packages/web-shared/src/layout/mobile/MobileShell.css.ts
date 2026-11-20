@@ -3,6 +3,8 @@ import { globalStyle, style } from "@vanilla-extract/css";
 import { SURFACE_ATTRIBUTE, SURFACE_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
+import { press, pressed } from "./MobilePress.css";
+
 /**
  * 휴대폰 틀(`FE-REQ-071` FR-5) — 한 열 · `100dvh`(주소창이 접혀도 높이가 맞는다) · 노치 · 홈 표시줄 안전 영역 ·
  * 당겨 새로고침 끔(iOS 는 남을 수 있다 — WebKit 275947). 글자는 `appType` 만(`fontSizeBudget.test.ts`).
@@ -62,6 +64,7 @@ export const tabBar = style({
 
 /** 탭 칸 — 고른 칸은 옅은 회색 알약(높이 52 — 누름 칸 44 이상) */
 export const tab = style({
+  ...press,
   flex: 1,
   minWidth: 0,
   height: "100%",
@@ -79,13 +82,18 @@ export const tab = style({
   WebkitTapHighlightColor: "transparent",
   selectors: {
     '&[aria-current="page"]': { color: vars.colors.text.primary, fontWeight: vars.fontWeights.bold, background: "rgba(2, 32, 71, 0.06)" },
+    "&:active": { transform: "scale(0.94)" },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-4px" },
   },
 });
 
 export const tabIcon = style({
+  display: "inline-flex",
   color: vars.colors.neutral[400],
-  selectors: { [`${tab}[aria-current="page"] &`]: { color: vars.colors.text.primary } },
+  // 고른 탭 아이콘이 한 번 살짝 커졌다 자리 잡는다(transform 만)
+  transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.enter}, color ${vars.motion.duration.base}`,
+  "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
+  selectors: { [`${tab}[aria-current="page"] &`]: { color: vars.colors.text.primary, transform: "scale(1.08)" } },
 });
 
 /** 데스크톱 화면으로 보기 — 글자 링크, 누름 칸 44 이상 */
@@ -147,3 +155,10 @@ globalStyle(`html[${SURFACE_ATTRIBUTE}="${SURFACE_MOBILE}"] :is(input, select, t
 /** 입력 16px 이상 — iOS 가 포커스 때 확대하지 않게(확대 금지 메타는 쓰지 않는다, `FE-REQ-071` FR-5) */
 export const loginForm = style({});
 globalStyle(`${loginForm} input`, { fontSize: vars.appType.body.fontSize });
+
+/**
+ * 화면 안 누를 수 있는 것 전부(도메인 행 · 버튼 · 칩 · 접힘 머리 · 시트 안 버튼)에 같은 누름 반응 — 낮은 우선(`:where`)이라
+ * 부품이 자기 값을 두면 그쪽이 이긴다(`mobile-motion.md`). 입력칸 · 글자 링크는 빼지 않아도 줄어드는 폭이 작다
+ */
+globalStyle(`${PHONE} :where(main a, main button, main summary, [role="dialog"] button, [role="radio"])`, press);
+globalStyle(`${PHONE} :where(main a, main button, main summary, [role="dialog"] button, [role="radio"]):active`, pressed);

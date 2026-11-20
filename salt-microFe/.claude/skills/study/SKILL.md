@@ -78,7 +78,6 @@ argument-hint: <REQ 번호 또는 요구사항 파일 경로 또는 주제>
 
 ## 스타일 참고
 
-- [Toss Tech - Frontend](https://toss.tech/tech?category=frontend): 문제 배경, 제약, 선택지, 구현 모델, 결과 흐름을 참고한다.
 - [Frontend Fundamentals](https://frontend-fundamentals.com/): 코드 품질, 번들링, 접근성, 디버깅 학습 링크로 참고한다.
 
 ## 완료 조건

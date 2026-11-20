@@ -180,9 +180,9 @@ export const tableBodyStyles = style({
  * 행 hover — **셀(`td`)에 칠한다.**
  *
  * 행(`tr`)에 칠하면 셀이 자기 배경을 가진 경우(줄무늬·고정 헤더·선택 상태) 그 아래로
- * 가려진다. 토스증권 표가 같은 방식이다: `tr:hover td { background-color: grey100 }`.
+ * 가려진다. 기준 증권 앱 표가 같은 방식이다: `tr:hover td { background-color: grey100 }`.
  *
- * 색은 `background.primary`(#F2F4F6)이고 토스의 `grey100` 과 같은 값이다. 이전 값
+ * 색은 `background.primary`(#F2F4F6)이고 공개 디자인 시스템의 `grey100` 과 같은 값이다. 이전 값
  * (`secondary` #F8F9FA)은 흰 배경 위에서 거의 보이지 않았다 — 어느 행에 있는지
  * 알 수 없으면 hover 가 없는 것과 같다.
  *
