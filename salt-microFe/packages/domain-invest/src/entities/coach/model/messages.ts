@@ -42,7 +42,7 @@ export const COACH_MESSAGES = {
    * 무엇을 몇 개 보여 줄지는 서버 순서 + `nearestObservations`
    */
   observedLine: (parts: string[]) => `본 값 — ${parts.join(" · ")}`,
-  observedItem: { rsi: "RSI", change24h: "24시간 변화", sentiment: "심리 점수" } as Record<string, string>,
+  observedItem: { rsi: "RSI", change24h: "전일 대비 변화", sentiment: "심리 점수" } as Record<string, string>,
   observedValue: (item: string, value: number) =>
     item === "change24h"
       ? `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`

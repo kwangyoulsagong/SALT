@@ -78,3 +78,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-19 | 피드백 결함 · 보존 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `coach/domain/ports.ts` 에 `FEEDBACK_KEY_PREFIX`(피드백 키 접두사) · `CoachGenerationLogStore.pruneBefore` 포트. 주인 `DB-REQ-020` FR-1 · 41. 이 REQ 의 동작 변경 0. 루트 `WEB-perf-req-close-slice.md` |
 | 2026-11-19 | 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0 |
 | 2026-11-19 | 파일만 걸침 — `coach/domain/ports.ts`(머리가 이 REQ) 대화 저장 포트에 보관 한도 두 메서드(`SRV-REQ-028` FR-113). `feat/f006-coach-chat-history` |
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |

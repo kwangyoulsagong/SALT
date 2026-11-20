@@ -73,8 +73,8 @@ export interface MarketOverviewItem {
   /**
    * 요청한 기간의 변동률(%). 실시간이면 `change24h` 와 같다.
    *
-   * **`null` 이면 그 기간의 기준 시세가 없다**(상장한 지 짧거나 수집이 비었다). 24시간
-   * 값으로 대신 그리지 않는다 — "1년" 버튼이 24시간 값을 보여 주게 된다.
+   * **`null` 이면 그 기간의 기준 시세가 없다**(상장한 지 짧거나 수집이 비었다). 실시간(전일 대비)
+   * 값으로 대신 그리지 않는다 — "1년" 버튼이 하루 값을 보여 주게 된다.
    * 실시간 WS 는 이 값을 건드리지 않는다. 기간 값은 틱마다 바뀌는 값이 아니다.
    */
   periodChange: number | null;
@@ -259,9 +259,12 @@ export enum MarketSummaryTag {
   WideMove = "wide_move",
 }
 
-/** 등락 기준 — 코인은 24시간, 국내 주식은 전일 종가(`BFF-REQ-044`). 라벨 · 고지 문구가 갈린다 */
+/**
+ * 등락 기준 — 둘 다 **전일 대비**다(`SRV-REQ-061` · `FE-REQ-075`): 코인은 업비트 하루(한국 시각 오전 9시에 넘어감)의 전일 종가,
+ * 국내 주식은 전 거래일 종가(`BFF-REQ-044`). ~~코인은 24시간~~ — 업비트 `signed_change_rate` 는 24시간 창이 아니다. 종목 범위 · 고지 문구가 갈린다
+ */
 export enum SummaryChangeBasis {
-  Last24h = "24h",
+  CryptoDay = "crypto_day",
   PrevClose = "prev_close",
 }
 
@@ -303,7 +306,7 @@ export interface MarketSummaryHeadline {
   publishedAt: string;
 }
 
-/** 활성 종목의 24시간 오름 · 내림 · 그대로 수 — **서버가 센다**. 과거 사실이고 전망이 아니다 */
+/** 활성 종목의 전일 대비 오름 · 내림 · 그대로 수 — **서버가 센다**. 과거 사실이고 전망이 아니다 */
 export interface MarketBreadth {
   up: number;
   down: number;

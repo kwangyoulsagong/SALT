@@ -8,7 +8,7 @@ import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
 
 const MINUS = "−";
 
-/** 24시간 변동률(%) → `+0.8%` · `−1.2%`. 서버 값의 표시 포맷이다 */
+/** 전일 대비 변동률(%) → `+0.8%` · `−1.2%`. 서버 값의 표시 포맷이다 */
 const formatChange = (percent: number): string => {
   const fixed = Math.abs(percent).toFixed(2);
   if (Number(fixed) === 0) return "0.00%";

@@ -28,7 +28,7 @@ export const LLM_INPUTS: readonly LlmInputJob[] = [
     inputs: [
       { about: "종목 코드 · 이름", fields: ["symbol", "koreanName"], personal: false },
       { about: "판단 기간(단타 · 장기)", fields: ["mode"], personal: false },
-      { about: "현재가 · 24시간 변동률 · 거래대금", fields: ["currentPrice", "change24h", "tradeValue24h"], personal: false },
+      { about: "현재가 · 전일 대비 변동률 · 24시간 거래대금", fields: ["currentPrice", "change24h", "tradeValue24h"], personal: false },
       { about: "판단 근거 지표(이름과 값)", fields: ["evidence"], personal: false },
       { about: "관련 뉴스 제목 · 요약 · 출처 · 분위기", fields: ["news"], personal: false },
     ],

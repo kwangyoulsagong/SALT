@@ -303,6 +303,11 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
    * (대문자 정규화를 하지 않았다) 목록 조회는 `market` 에서 잘라 썼다. 두 응답이
    * 달랐던 것을 그대로 유지한다 — 정규화는 계약 변경이다.
    */
+  /*
+   * 필드 이름의 `24h` 는 창이 아니다(이름은 계약이라 그대로, `SRV-REQ-061`): 업비트 시세는
+   * `signed_change_rate` · `high_price` · `low_price` = **당일**(한국 시각 오전 9시에 넘어감) — 전일 종가 대비 · 당일 고저,
+   * `acc_trade_volume_24h` · `acc_trade_price_24h` 만 진짜 24시간 누적이다. 화면 · 프롬프트 이름표는 이 표를 따른다
+   */
   private toQuote(ticker: any, symbol?: string): Quote {
     return {
       symbol: symbol ?? ticker.market.replace("KRW-", ""),

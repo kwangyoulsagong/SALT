@@ -18,7 +18,8 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   tabs: { overview: "개요", orderbook: "호가 · 투자자", investors: "투자자", newsEvents: "소식 · 일정", trade: "내 거래" },
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
-  statRange: "24시간 범위",
+  /** 업비트 고가 · 저가는 **당일**(오전 9시부터) — ~~24시간 범위~~(`FE-REQ-075`). 거래대금만 진짜 24시간 누적 */
+  statRange: "당일 범위",
   /** 머리 시장 칩 · 범위 막대 · [더 보기](`FE-REQ-049` FR-1) */
   marketCrypto: "코인",
   statDayRange: "1일",
@@ -27,7 +28,7 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   statsMore: "더 보기",
   statTickSize: "호가 단위",
   chartHeading: "차트",
-  statTradeValue: "거래대금",
+  statTradeValue: "24시간 거래대금",
   statUpdatedAt: "시세 기준",
   /** 머리의 주문 전 체크 링크(FR-131) — 계산 카드로 간다. 주문하지 않는다 */
   preflight: "주문 전 체크",
@@ -36,7 +37,7 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   metaTitle: (name: string, symbol: string) => `${name}(${symbol}) 시세 · 차트 · AI 코치 판단`,
   metaTitleFallback: (symbol: string) => `${symbol} 시세 · 차트 · AI 코치 판단`,
   metaDescription: (name: string, price: string, change: string) =>
-    `${name} 현재가 ${price}원, 24시간 ${change}. 과거 적중률과 틀렸던 사례까지 함께 보는 AI 코치 판단과 내 규칙 기반 가격 — 예측이 아닙니다.`,
+    `${name} 현재가 ${price}원, 전일 대비 ${change}. 과거 적중률과 틀렸던 사례까지 함께 보는 AI 코치 판단과 내 규칙 기반 가격 — 예측이 아닙니다.`,
   metaDescriptionFallback: (symbol: string) =>
     `${symbol} 차트와 과거 적중률 · 틀렸던 사례까지 함께 보는 AI 코치 판단 — 예측이 아닙니다.`,
   breadcrumbInvestments: "코인 시세",

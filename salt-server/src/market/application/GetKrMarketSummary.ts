@@ -56,7 +56,7 @@ export interface KrSummaryItem {
 
 export interface KrMarketSummaryView {
   assetClass: "kr_stock";
-  /** 등락 기준 — 국내는 전일 종가(코인은 24시간) */
+  /** 등락 기준 — 전일 종가(코인도 업비트 전일 종가 대비라 같은 기준이다) */
   changeBasis: "prev_close";
   featured: KrSummaryItem | null;
   items: KrSummaryItem[];

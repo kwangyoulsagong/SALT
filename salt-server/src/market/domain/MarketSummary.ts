@@ -17,12 +17,12 @@ export enum MarketSummaryTag {
 export interface MarketSummaryPolicy {
   /** 첫 심볼이 큰 차트의 대표다. 순서가 화면 순서다. */
   symbols: string[];
-  /** `wide_move` 임계(24시간 변동률 %, 절댓값) */
+  /** `wide_move` 임계(전일 대비 변동률 %, 절댓값) */
   wideMoveRate: number;
 }
 
 /**
- * 시장 분위기 — 활성 종목 중 24시간 변동률이 오른 · 내린 · 그대로인 수. **과거 사실**이고 전망이 아니다.
+ * 시장 분위기 — 활성 종목 중 전일 대비 변동률이 오른 · 내린 · 그대로인 수. **과거 사실**이고 전망이 아니다.
  * 세는 것은 DB 가 한다(행을 옮겨 오지 않는다).
  */
 export interface MarketBreadth {
@@ -44,7 +44,7 @@ export const summaryTagsOf = (
   Math.abs(change24h) >= policy.wideMoveRate ? [MarketSummaryTag.WideMove] : [];
 
 /**
- * 24시간 등락 **금액** — 현재가와 변동률에서 기준가(24시간 전 가격)를 되짚는다.
+ * 전일 대비 등락 **금액** — 현재가와 변동률에서 기준가(전일 종가)를 되짚는다.
  *
  * 거래소 변동률은 `(현재가 - 기준가) / 기준가` 라 기준가 = 현재가 / (1 + 변동률). 저장 시세에 기준가
  * 컬럼이 없어 이렇게 구한다. **반올림하지 않는다** — 원 단위 반올림은 응답 직전 한 곳이다

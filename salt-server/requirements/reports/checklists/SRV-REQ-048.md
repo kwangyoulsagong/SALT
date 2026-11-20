@@ -231,3 +231,7 @@
 - 파일만 걸침 — 본문 `SRV-REQ-028` FR-113
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-20 시세 등락 기준 걸침
+
+- [x] 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 — 확인은 `salt-server` 짝 REQ 체크리스트(`SRV-REQ-061` · `FE-REQ-075`)

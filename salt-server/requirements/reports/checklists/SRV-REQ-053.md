@@ -390,3 +390,7 @@
 - `salt-server/src/market/application/api/index.ts` — 공개 API `dailyClosesSince` 를 더했다. 기존 시험 전부 통과(서버 1895 · BFF 533 · FE check-types · lint)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-overview.md`
+
+## 2026-11-20 시세 등락 기준 걸침
+
+- [x] 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 — 확인은 `salt-server` 짝 REQ 체크리스트(`SRV-REQ-061` · `FE-REQ-075`)

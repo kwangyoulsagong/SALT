@@ -121,3 +121,9 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
   - `bff/src/websocket/managers/__tests__/kr-stream.manager.test.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
   - `bff/src/websocket/managers/kr-stream.manager.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |

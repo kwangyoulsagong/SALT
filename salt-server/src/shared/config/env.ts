@@ -180,7 +180,7 @@ const envSchema = z.object({
   PLAN_KIMCHI_HIGH_PCT: z.coerce.number().default(3),
   PLAN_KIMCHI_LOW_PCT: z.coerce.number().default(-2),
   PLAN_KIMCHI_MAX_AGE_DAYS: z.coerce.number().int().positive().default(8),
-  /** 요약 태그 `wide_move` 임계(24시간 변동률 %, 절댓값) */
+  /** 요약 태그 `wide_move` 임계(전일 대비 변동률 %, 절댓값 — 코인도 업비트 전일 종가 대비) */
   MARKET_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
   /**
    * 전망 배치(`salt-forecast/ops/daily.sh`)를 서버가 부팅 · 매시 걸어 줄지 — F008 `FC-REQ-004`.

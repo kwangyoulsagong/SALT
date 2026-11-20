@@ -21,7 +21,7 @@ interface MarketBriefingPanelProps {
   featuredName: string | null;
   /** 국내 — 소식 줄 자리의 다가오는 일정(서버가 고른 최대 3건). 0건이면 그 자리를 숨긴다(`FE-REQ-050` FR-4) */
   schedule?: KrScheduleItem[];
-  /** 등락 기준 — 머리 설명("24시간" · "전일 대비")과 막대 설명이 갈린다 */
+  /** 등락 기준 — 머리 설명은 둘 다 "전일 대비" · 막대 설명(종목 범위)이 갈린다 */
   changeBasis?: SummaryChangeBasis;
 }
 
@@ -34,7 +34,7 @@ interface MarketBriefingPanelProps {
  * 둘 다 없으면 상자를 그리지 않는다.
  */
 export const MarketBriefingPanel = React.memo(
-  ({ breadth, headlines, featuredName, schedule = [], changeBasis = SummaryChangeBasis.Last24h }: MarketBriefingPanelProps) => {
+  ({ breadth, headlines, featuredName, schedule = [], changeBasis = SummaryChangeBasis.CryptoDay }: MarketBriefingPanelProps) => {
     const copy = MARKET_SUMMARY_MESSAGES.briefing;
     if (!breadth && headlines.length === 0 && schedule.length === 0) return null;
 

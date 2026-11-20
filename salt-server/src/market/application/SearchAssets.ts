@@ -34,7 +34,7 @@ export interface AssetSearchItem {
   logoUrl: string | null;
   /** 저장 시세. 없으면 `null` — 0 을 만들지 않는다(국내 주식은 시세 유니버스 밖이면 없다) */
   currentPrice: number | null;
-  /** 24시간(코인) · 전일 대비(국내) 변동률 % */
+  /** 전일 대비 변동률 % — 코인(업비트 전일 종가, 오전 9시에 넘어감) · 국내 둘 다 */
   changeRate: number | null;
   /** 게스트면 `null` — 모르는 것이지 "아님"이 아니다 */
   isTracked: boolean | null;

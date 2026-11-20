@@ -249,3 +249,31 @@ describe("서버 원인 줄 — 단계 '없음'", () => {
     assert.deepEqual(["RSI 56은 중간이에요.", "판단은 관망이에요.", "흐름이 엇갈려요."].map((l) => gate("keyDrivers", l).ok), [true, true, false]);
   });
 });
+
+/**
+ * 지난 24시간에 붙인 등락(`SRV-REQ-061`) — 입력 등락률은 전일 종가 대비다(업비트 `signed_change_rate`).
+ * 불변식: 뉴스 아닌 칸에서 "24시간 + 등락(%·오르내림)"은 버린다 · 거래대금 · 앞으로의 기간 · 시장이 열린다는 말 · 뉴스 칸 인용은 통과
+ */
+describe("지난 24시간에 붙인 등락", () => {
+  const inp = input({ symbol: "BTC", koreanName: "비트코인", mode: "scalp" });
+  const cases: Array<[string, Parameters<typeof guardExplanationLine>[0], string, boolean]> = [
+    ["24시간 동안 % 오름", "keyDrivers", "비트코인은 24시간 동안 3.20% 올랐어요.", false],
+    ["지난 24시간 하락", "modeReasoning", "지난 24시간 하락 흐름이라 비트코인 단타 관점은 관망이에요.", false],
+    ["24시간 변동률", "keyDrivers", "24시간 변동률은 +3.20%예요.", false],
+    ["최근 24시간 기준 등락", "risks", "최근 24시간 기준 등락이 커지면 이 판단은 약해질 수 있어요.", false],
+    ["전일 대비는 통과", "keyDrivers", "비트코인은 전일 대비 +3.20%예요.", true],
+    ["24시간 거래대금은 통과", "keyDrivers", "24시간 거래대금은 1조 2,000억원이에요.", true],
+    ["24시간 거래대금 증감은 통과", "keyDrivers", "24시간 거래대금이 늘었고 전일 대비 +3.20%예요.", true],
+    ["판단 뒤 24시간(앞으로)은 통과", "modeReasoning", "판단 뒤 24시간 동안 오른 경우를 세어요.", true],
+    ["다음 24시간(앞으로)은 통과", "risks", "다음 24시간 안에 하락하면 이 판단은 약해질 수 있어요.", true],
+    ["시장이 24시간 열린다는 말은 통과", "keyDrivers", "코인 시장은 24시간 열려 있어요.", true],
+    ["뉴스 칸 제목 인용은 통과", "newsSummary", "비트코인이 24시간 새 5% 급등했다는 기사가 나왔어요.", true],
+  ];
+  for (const [name, section, text, ok] of cases) {
+    it(name, () => {
+      const r = guardExplanationLine(section, text, inp);
+      if (ok) assert.ok(r.ok || !r.reasons.includes("wrong_change_window"), JSON.stringify(r));
+      else assert.deepEqual(r.ok ? [] : r.reasons, ["wrong_change_window"]);
+    });
+  }
+});

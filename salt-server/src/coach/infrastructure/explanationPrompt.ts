@@ -159,7 +159,8 @@ export const factsBlock = (input: CoachExplanationInput): string[] => {
     `종목: ${input.koreanName} (코드 ${input.symbol}) — 문장에서는 '${input.koreanName}'(이름)으로 부르고 코드로 부르지 마세요`,
     `모드: ${modeLabel}`,
     `현재가: ${input.currentPrice.toLocaleString("ko-KR")}원`,
-    `24시간 변동률: ${input.change24h.toFixed(2)}%`,
+    // 등락률은 코인도 전일 종가 대비다(업비트 하루는 한국 시각 오전 9시에 넘어간다) — "24시간"이라 주면 모델이 그 창으로 쓴다(`SRV-REQ-061`)
+    `전일 대비 변동률: ${input.change24h.toFixed(2)}%`,
     `24시간 거래대금: ${Math.round(input.tradeValue24h / 1e8)}억원`,
     "",
     "근거 데이터:",

@@ -26,7 +26,7 @@ export type ExplanationSource = "llm" | "llm_checked" | "template";
 const MODE_LABEL = { scalp: "단타", long_term: "장기" } as const;
 const NEWS_MAX = 5;
 /** 프롬프트 문구 자체에 있는 숫자 — 모델이 따라 써도 되는 표현이다(`explanationPrompt.ts`) */
-const PROMPT_PHRASES = ["24시간 변동률", "24시간 거래대금", "최근 5건"];
+const PROMPT_PHRASES = ["24시간 거래대금", "최근 5건"];
 
 const firstValue = (input: CoachExplanationInput, keyword: string): string | undefined =>
   input.evidence.find((e) => e.label.includes(keyword))?.value;
@@ -241,6 +241,7 @@ export const guardExplanationLine = (
   if (section !== "newsSummary" && CLOSE_WORD.test(text) && !CLOSE_WORD.test(ownFactsText(input))) {
     return { ok: false, reasons: ["unsupported_close"] };
   }
+  if (section !== "newsSummary" && PAST_DAY_CHANGE.test(text)) return { ok: false, reasons: ["wrong_change_window"] };
   if (fixedCauseLine(input) && (section === "modeReasoning" || section === "keyDrivers") && CAUSE_TALK.test(text)) {
     return { ok: false, reasons: ["cause_rewrite"] };
   }
@@ -267,6 +268,14 @@ const CAUSE_TALK = /범위 안|소식이 없|원인/;
  * 원인 칸의 "결과: 오늘 +1.26%" 를 모델이 "+1.26%로 마감했어요"로 옮겼다(`SRV-REQ-060` FR-4). 뉴스 칸은 제목 인용("주봉 마감")이라 건너뛴다
  */
 const CLOSE_WORD = /마감/;
+
+/**
+ * 지난 24시간에 붙인 등락 — 입력의 등락률은 **전일 종가 대비**다(코인도 — 업비트는 한국 시각 오전 9시에 하루가 넘어간다, `SRV-REQ-061`).
+ * 프롬프트 줄 이름을 고쳐도 모델이 "24시간 동안 +3.2%"라 쓸 수 있어 문장에서 막는다. 뉴스 칸은 제목 인용이라 건너뛴다.
+ * 통과: 24시간 거래대금 · 거래량 · "판단 뒤 / 다음 / 앞으로 24시간"(앞으로의 기간) · 코인 시장이 24시간 열린다는 말
+ */
+export const PAST_DAY_CHANGE =
+  /(?<!(판단\s*(뒤|후)|다음|앞으로|이후|향후)\s*)24\s*시간(?![^.!?\n]{0,8}(거래대금|거래량|열려|열리|열린|거래돼|거래되))[^.!?\n]{0,20}?([+−-]?\d[\d.,]*\s*%|올[랐라랏]|내[렸려]|떨어|상승|하락|오름|내림|등락|변동|급등|급락)/;
 const ownFactsText = (input: CoachExplanationInput): string =>
   [
     ...input.evidence.flatMap((e) => [e.label, e.value]),

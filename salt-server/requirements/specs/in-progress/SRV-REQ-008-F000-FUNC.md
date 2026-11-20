@@ -272,3 +272,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - 2026-11-10 밤: `schema.prisma` — `SymbolJudgmentSnapshot` 인덱스 하나(빗나간 사례 조회, 마이그레이션 `20261110210000`, `a7e63e9d` — 주인 `DB-REQ-017`). 스키마 파일이 이 REQ 를 가리켜 기록만
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `schema.prisma` 에 `MarketUniverseSnapshot` · `PriceFillMark`(`DB-REQ-044`). 관심 추가는 5분봉 따라잡기 순서(보유 · 관심 먼저)에 반영 — FR-80~87 계약 변경 0
 | 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): `prisma/schema.prisma` 에 모델 `MoveExplanation` 하나 더함(주인 `DB-REQ-041` FR-8) — 기존 모델 변경 0 |
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |

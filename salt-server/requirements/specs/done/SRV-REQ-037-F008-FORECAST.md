@@ -63,3 +63,9 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — 해설은 판단 꼬리표로 막지 않는다(`ExplainBlockedReason` = `facts_unavailable` 하나)
   - `salt-server/src/coach/application/ExplainCoachDecision.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/presentation/coachTools.controller.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |
