@@ -7,7 +7,9 @@ import { Button } from "@repo/ui/button";
 import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
-import { formatMonth, formatWon, useCategoryLabel, useRecurringTemplates, type RecurringTemplate } from "@/entities/household";
+import { toolAside, toolCard, toolEmpty, toolEmptyBody, toolEmptyTitle, toolGrid, toolMain } from "@repo/web-shared/ui/surface.css";
+
+import { CategoryIcon, formatMonth, formatWon, useCategoryLabel, useRecurringTemplates, type RecurringTemplate } from "@/entities/household";
 
 import { useEndTemplate } from "../api";
 import { RECURRING_MESSAGES as M } from "../model";
@@ -26,51 +28,65 @@ export const TemplateList = () => {
   if (!list.data) return <Skeleton height={240} />;
   const { templates, limit } = list.data;
 
+  // 2단(2026-11-20) — 목록 | 적기 · 고치기 카드. 비면 안내 상자(무엇이 생기는지)
   return (
-    <div className={s.form}>
-      {editing === null ? (
-        <div className={s.actions}>
-          <Button size="sm" onClick={() => setEditing("new")} disabled={templates.length >= limit}>
-            {M.add}
-          </Button>
-          <span className={s.note}>{M.limit(limit)}</span>
-        </div>
-      ) : (
-        <TemplateEditor key={editing === "new" ? "new" : editing.id} template={editing === "new" ? null : editing} onDone={() => setEditing(null)} />
-      )}
-      {templates.length === 0 ? (
-        <EmptyState title={M.empty} />
-      ) : (
-        <ul className={s.list}>
-          {templates.map((t) => (
-            <li key={t.id} className={s.row}>
-              <span className={s.rowMain}>
-                <span className={s.line}>
-                  {t.name} · {formatWon(t.amount)}
+    <div className={toolGrid}>
+      <aside className={`${toolAside} ${toolCard}`}>
+        {editing === null ? (
+          <>
+            <h2 className={s.asideTitle}>{M.addTitle}</h2>
+            <div className={s.actions}>
+              <Button size="sm" onClick={() => setEditing("new")} disabled={templates.length >= limit}>
+                {M.add}
+              </Button>
+              <span className={s.note}>{M.limit(limit)}</span>
+            </div>
+          </>
+        ) : (
+          <TemplateEditor key={editing === "new" ? "new" : editing.id} template={editing === "new" ? null : editing} onDone={() => setEditing(null)} />
+        )}
+      </aside>
+      <div className={toolMain}>
+        {templates.length === 0 ? (
+          <div className={toolEmpty}>
+            <p className={toolEmptyTitle}>{M.empty}</p>
+            <p className={toolEmptyBody}>{M.emptyHint}</p>
+          </div>
+        ) : (
+          <ul className={s.list}>
+            {templates.map((t) => (
+              <li key={t.id} className={s.row}>
+                <span className={s.iconPlate} aria-hidden="true">
+                  <CategoryIcon category={t.category} />
                 </span>
-                <span className={s.label}>
-                  {M.dayOf(t.dayOfMonth)} · {label.category(t.category)}
-                  {t.thisMonth ? ` · ${M.stage[t.thisMonth.stage]}` : ` · ${M.startsNext(formatMonth(t.startsMonth))}`}
+                <span className={s.rowMain}>
+                  <span className={s.line}>
+                    {t.name} · {formatWon(t.amount)}
+                  </span>
+                  <span className={s.label}>
+                    {M.dayOf(t.dayOfMonth)} · {label.category(t.category)}
+                    {t.thisMonth ? ` · ${M.stage[t.thisMonth.stage]}` : ` · ${M.startsNext(formatMonth(t.startsMonth))}`}
+                  </span>
                 </span>
-              </span>
-              <span className={s.actions}>
-                {t.confirmRequired ? null : <Badge>{M.autoBadge}</Badge>}
-                <Button size="xs" variant="weak" onClick={() => setEditing(t)}>
-                  {M.edit}
-                </Button>
-                <Button size="xs" variant="weak" disabled={end.isPending} onClick={() => end.mutate(t.id)}>
-                  {M.end}
-                </Button>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {end.isError ? (
-        <p className={s.note} role="status">
-          {M.endFailed}
-        </p>
-      ) : null}
+                <span className={s.actions}>
+                  {t.confirmRequired ? null : <Badge>{M.autoBadge}</Badge>}
+                  <Button size="xs" variant="weak" onClick={() => setEditing(t)}>
+                    {M.edit}
+                  </Button>
+                  <Button size="xs" variant="weak" disabled={end.isPending} onClick={() => end.mutate(t.id)}>
+                    {M.end}
+                  </Button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {end.isError ? (
+          <p className={s.note} role="status">
+            {M.endFailed}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 };

@@ -23,8 +23,29 @@ export const form = style({ display: "flex", flexDirection: "column", gap: "12px
 
 export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary });
 
-export const row = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "10px 0", borderBottom: `1px solid ${SURFACE.weakFill}` });
+export const row = style({ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderBottom: `1px solid ${SURFACE.weakFill}` });
 
-export const rowMain = style({ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 });
+export const rowMain = style({ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0, flex: 1 });
 
 export const amountField = style({ maxWidth: "200px" });
+
+/** 행 왼쪽 분류 판 — 가계부 도메인 색 옅은 면 + 선 아이콘(2026-11-20, 가계부 쓴 내역 행과 같은 모양) */
+export const iconPlate = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  width: "32px",
+  height: "32px",
+  borderRadius: "8px",
+  background: "rgba(232, 89, 12, 0.1)",
+  color: vars.colors.domain.household,
+});
+
+export const asideTitle = style({
+  margin: 0,
+  fontSize: vars.deskType.section.fontSize,
+  lineHeight: vars.deskType.section.lineHeight,
+  fontWeight: vars.deskType.section.fontWeight,
+  color: vars.colors.desk.text1,
+});

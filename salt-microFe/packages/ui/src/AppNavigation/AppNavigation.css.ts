@@ -58,6 +58,8 @@ export const column = style({
   "@media": {
     // 하단 탭이 본문 끝을 덮지 않게
     [TABLET]: { paddingBottom: `calc(${BOTTOM_TAB_HEIGHT} + env(safe-area-inset-bottom, 0px))` },
+    // 레일(고정) 자리 — 레일이 흐름 밖이라 본문이 그 폭만큼 비켜 선다
+    [DESKTOP]: { marginLeft: RAIL_WIDTH },
   },
 });
 
@@ -72,9 +74,12 @@ export const columnBare = style({
 export const rail = style({
   display: "none",
   "@media": {
+    // 고정(fixed) — sticky 는 긴 화면에서 스크롤과 같이 올라갔다(2026-11-20 실측 가계부 top -253, 사용자 "좌측 사이드바 고정").
+    // 자리는 `column` 의 왼쪽 여백이 잡는다
     [DESKTOP]: {
-      position: "sticky",
+      position: "fixed",
       top: 0,
+      left: 0,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",

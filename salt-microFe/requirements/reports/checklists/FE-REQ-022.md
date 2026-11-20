@@ -45,3 +45,9 @@
 성능은 `FE-REQ-025` 정리(CLS 0.0006 · LCP 404~660ms · 라우트 전용 JS 11.5 kB).
 
 미충족 — 없음
+
+## 2026-11-20 설정 전 상태 한 패널(`feat/fe-req-048-home-card-preview`)
+
+- 몫: `WeeklyPlanBoard` 설정 전 = 제목 · 본문 · 폼(왼쪽) + 회색 "예시"(오른쪽)
+- 확인: 실화면 1440 빈 계정 `/plan` · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 390 앱 UA — `FE-REQ-060` 4단계 앱 웹뷰 때 같이

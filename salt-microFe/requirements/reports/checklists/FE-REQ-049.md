@@ -115,3 +115,9 @@
 ## 2026-11-19 `FE-REQ-060` 2단계 저축이 걸침
 
 - 확인은 `FE-REQ-060` 체크리스트 2단계 절. 이 REQ 몫 동작 변경 0
+
+## 2026-11-20 호가 · 투자자 한 탭(`feat/fe-req-048-home-card-preview`)
+
+- 몫: 탭 둘 → 한 탭 · 컨테이너 쿼리(1000px 이상 나란히 / 아래 위아래) · 표 최대 폭 520 · 640 걷음 · 거래 정지는 투자자 탭만
+- 확인: 실화면 1440 — 나란히(호가 440 \| 투자자) · 빈 칸 없음 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 1280 미만 · 390 앱 UA 위아래 배치 실화면 — 이번은 1440 만. `FE-REQ-060` 4단계 앱 웹뷰 때 같이

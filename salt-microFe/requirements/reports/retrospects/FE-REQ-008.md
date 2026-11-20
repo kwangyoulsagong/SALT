@@ -178,3 +178,7 @@ Action item 1은 원래 "빠진 미러 9개를 채운다"였다. 실제 결정�
 
 - zone 루트 레이아웃에서 `next/font` 글꼴 변수(`FONT_VARIABLES`)를 뺐다 — 스트리밍 경계 · 레이아웃 구조는 그대로
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-20 셸 포트 3100
+
+- 로컬 포트는 레지스트리 한 곳이 아니라 기본값 여섯 곳(레지스트리 · dev 스크립트 · ops 표 · Server Actions · BFF 웹소켓 origin · SITE_URL)에 흩어져 있었다 — 포트를 바꿀 땐 `grep 3000` 으로 런타임 기본값부터 센다

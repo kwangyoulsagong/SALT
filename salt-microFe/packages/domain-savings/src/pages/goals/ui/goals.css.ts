@@ -109,7 +109,22 @@ export const foldSummary = style({
   borderRadius: "8px",
   cursor: "pointer",
   listStyle: "none",
-  selectors: { "&::-webkit-details-marker": { display: "none" } },
+  padding: "0 4px",
+  selectors: {
+    "&::-webkit-details-marker": { display: "none" },
+    // 펼칠 수 있다는 표지 — 오른쪽 셰브론, 열리면 아래로(2026-11-20 도구 접기)
+    "&::after": {
+      content: '""',
+      width: "7px",
+      height: "7px",
+      borderRight: `1.5px solid ${vars.colors.desk.text2}`,
+      borderBottom: `1.5px solid ${vars.colors.desk.text2}`,
+      transform: "rotate(-45deg)",
+      transition: `transform ${vars.motion.duration.instant}`,
+    },
+    "details[open] > &::after": { transform: "rotate(45deg)" },
+    "&:hover": { background: "rgba(7, 25, 76, 0.04)" },
+  },
   ":focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px" },
 });
 

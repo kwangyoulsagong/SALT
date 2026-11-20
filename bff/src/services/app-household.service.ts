@@ -579,8 +579,9 @@ class AppHouseholdService {
     return data(await backendApi.proxyAuthRequest("PUT", "/household/budget", token, body, { timeout: WRITE_TIMEOUT_MS }));
   }
 
-  async month(token: string, ym: string): Promise<HouseholdMonthVM> {
-    return data(await backendApi.proxyAuthRequest("GET", `/household/month/${encodeURIComponent(ym)}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
+  /** `timeout` — 홈 미리보기처럼 예산이 짧은 자리가 준다(기본은 화면 조회 예산) */
+  async month(token: string, ym: string, timeout = READ_TIMEOUT_MS): Promise<HouseholdMonthVM> {
+    return data(await backendApi.proxyAuthRequest("GET", `/household/month/${encodeURIComponent(ym)}`, token, undefined, { timeout }));
   }
 
   // ---------- 반복 · 마감(가계부 S1b) — 중계만 ----------

@@ -52,7 +52,31 @@ export const StoryBoard = ({ period, initial }: { period: string; initial: House
   if (query.isError) return <EmptyState title={M.loadFailed} tone="error" />;
   if (!query.data) return <Skeleton height={280} />;
   const story = query.data;
-  if (!story.ready) return <EmptyState title={storyTitle(story)} description={STORY_MESSAGES.readyOn(story.readyOn ?? "")} />;
+  // 공개 전 — 글자 두 줄만 있던 자리를 안내 | 예시 카드로(2026-11-20, 다른 빈 상태와 같은 틀). 예시는 모양만(숫자 0 · 회색)
+  if (!story.ready) {
+    return (
+      <section className={s.pending} aria-labelledby="story-pending">
+        <div className={s.pendingText}>
+          <h2 id="story-pending" className={s.pendingTitle}>
+            {storyTitle(story)}
+          </h2>
+          <p className={s.pendingBody}>{STORY_MESSAGES.readyOn(story.readyOn ?? "")}</p>
+          <p className={s.pendingBody}>{M.sampleHint}</p>
+        </div>
+        <div className={s.sampleCard} aria-hidden="true">
+          <span className={s.sampleBadge}>{M.sample}</span>
+          <span className={s.sampleLineWide} />
+          <span className={s.sampleLine} />
+          <div className={s.sampleDots}>
+            {Array.from({ length: 28 }, (_, i) => (
+              <span key={i} className={i % 5 === 2 ? s.sampleDotOn : s.sampleDot} />
+            ))}
+          </div>
+          <span className={s.sampleLine} />
+        </div>
+      </section>
+    );
+  }
   return (
     <div className={s.board}>
       <CategoryNamesProvider categories={story.categories}>

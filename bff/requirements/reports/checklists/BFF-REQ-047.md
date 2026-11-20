@@ -69,3 +69,7 @@
 ### 미검증 · 범위 밖
 
 없음
+
+## 2026-11-20 `BFF-REQ-046` 홈 카드 미리보기가 걸침
+
+- `appSavingsService.goals` 선택 `timeout` 인자(기본값 그대로) — BFF `npm test` 통과 · 실경로 `/api/app/home` 94ms. 미충족: 없음(이 REQ 몫)

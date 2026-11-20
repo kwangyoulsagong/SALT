@@ -206,3 +206,18 @@
 - 몫: 예산 · 지출 적기 서버 페이지의 `PageFrame` · `BackNav` import 를 `@repo/web-shared/ui/frame` 으로 — 첫 로드 지출 적기 164 → 137 · 예산 162 → 157 kB(같은 원인: 서버 페이지가 `ui` 배럴을 값으로 읽어 클라이언트 모듈이 전부 실림). 동작 변경 0
 - 확인: 가계부 zone 운영 빌드 전후 · 실화면 `/household/budget` · `/household/new` h1 · 사이드 · 넘침 0 · 콘솔 0
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-060` FR-15 가계부 재배치가 걸침
+
+- 몫: 문구 · 분류 선 아이콘 · 본문 재배치(기능 · 계약 변경 0)
+- 확인: `FE-REQ-060` 체크리스트 같은 날 절(1440 데이터 있음 · 빈 계정) · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 앱 웹뷰 배치 — `FE-REQ-060` 4단계
+
+## 2026-11-20 하위 화면 같은 틀
+
+- [x] 임시 계정(목표 2 · 넣기 4 · 지출 23 · 매달 나가는 돈 1 · 보유 1)으로 1440 실화면 — `/goals/new` · `/household/new` · `/household/budget` · `/household/templates` · `/household/challenges` · `/household/revolving` · `/household/people` · `/household/story/2026-11`
+- [x] 앱 웹뷰 390(SALTApp UA) — `/home` · `/goals` · `/household` · `/goals/new` · `/household/new` · `/household/templates` · `/household/challenges` · `/plan` · `/coach/chat` 가로 넘침 0, 2단 화면은 입력 → 목록 순으로 접힘(이전 "앱 웹뷰 390 미검증" 닫힘)
+- [x] turbo lint · check-types 22 작업 · test(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · `test:layer-check` · 저축 · 가계부 zone 운영 빌드
+- [x] 첫 로드: `/goals/new` 130 kB · `/household/new` 164 → 140 · `/household/budget` 162 → 156(서버 틀 입구) · `/household/templates` 146 · `/household/challenges` 170 · `/household/revolving` 169 · `/household/people` 171 · `/household` 178 → 180
+- 미검증: 없음 — 임시 계정은 앱 삭제 경로로 지움 · 초대 코드 지움
+

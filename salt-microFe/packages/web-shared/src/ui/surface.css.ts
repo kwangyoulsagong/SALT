@@ -136,3 +136,63 @@ export const detailPanelMeta = style({
 
 /** 머리 줄 없이 내용이 맨 위에서 시작하는 상세 패널(한 장 패널 — 자기 머리를 갖는다) — 위 여백 16 */
 export const detailPanelTop = style({ paddingTop: "16px" });
+
+/**
+ * 도구 화면 2단(2026-11-20) — 목록 · 빈 상태(넓게) | 입력 카드 400. 1280 이상 나란히(입력 카드는 붙어서 따라온다),
+ * 그보다 좁으면 입력이 위. 폼만 왼쪽에 두고 오른쪽 60% 를 비우던 화면(챌린지 · 리볼빙 · 목표 만들기 …)을 같은 틀로
+ */
+export const toolGrid = style({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: "20px",
+  alignItems: "start",
+  "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 1fr) 400px" } },
+});
+
+export const toolMain = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
+
+/** 입력 칸 — DOM 은 목록보다 앞(좁을 땐 위), 넓을 땐 오른쪽 열로(order). 카드 모양은 안에 든 폼이 갖는다 — 없으면 `toolCard` */
+export const toolAside = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  minWidth: 0,
+  "@media": { "screen and (min-width: 1280px)": { order: 1, position: "sticky", top: "16px" } },
+});
+
+export const toolCard = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  padding: "20px",
+  borderRadius: "12px",
+  background: vars.colors.background.white,
+  boxShadow: SURFACE.hairline,
+});
+
+/** 목록이 비었을 때 — 패널 높이를 지키는 정보 상자(무엇이 여기 생기는지 · 어떻게 채우는지) */
+export const toolEmpty = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "6px",
+  padding: "24px",
+  borderRadius: "12px",
+  background: SURFACE.infoFill,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
+});
+
+export const toolEmptyTitle = style({
+  margin: 0,
+  fontSize: vars.deskType.section.fontSize,
+  lineHeight: vars.deskType.section.lineHeight,
+  fontWeight: vars.deskType.section.fontWeight,
+  color: vars.colors.desk.text1,
+});
+
+export const toolEmptyBody = style({
+  margin: 0,
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});

@@ -159,3 +159,9 @@
 
 - `AppNavigation` 본문 칸에 패널 면(`contentPanel` — `#FBFCFD` · 모서리 12 · 안쪽 선 · 여백 12) · `data-app-navigation-content`(앱 웹뷰에서 면을 걷는 표지) · 머리 미선택 색을 토큰으로
 - 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)
+
+## 2026-11-20 데스크톱 레일 고정(`feat/fe-req-048-home-card-preview`)
+
+- 몫: 레일 `position: fixed` + 본문 칸 `margin-left: 72`(전 `sticky`)
+- 확인: 1440 `/household` 스크롤 1317 · 1833 에서 레일 top 0(전 −253) · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 앱 웹뷰(레일 없음 — 변경 영향 0이라 안 봄) · `build-storybook`(스타일만) — PR 전 영역 검증 때

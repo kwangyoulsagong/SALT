@@ -40,10 +40,9 @@ export const staleMark = style({
  * 3열 사다리 — 매도 잔량 | 호가 | 매수 잔량. 위 반은 매도(10 → 1단계), 아래 반은 매수(1 → 10단계).
  * 행 높이를 고정해 10초마다 값이 바뀌어도 칸이 흔들리지 않는다
  */
-/** 3열 고정 폭(FR-7) — 넓은 칸에서 늘어나지 않게 상한 520 */
+/** 3열 — 칸 폭은 호가 · 투자자 격자가 정한다(사다리 칸 상한 520, `KrStockDetail.css` `bookGrid`) */
 export const table = style({
   width: "100%",
-  maxWidth: "520px",
   borderCollapse: "collapse",
   tableLayout: "fixed",
   fontSize: vars.typography.t7.fontSize,

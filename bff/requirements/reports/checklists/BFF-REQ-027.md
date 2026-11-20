@@ -66,3 +66,7 @@
 | FR-113 | 충족 | 시험 3(틀린 커서 셋 400 · 서버 호출 0 / 빈 · 맞는 커서 / keep 모양 여섯) · `npm run build` · `test` 592 · 실응답 400 `INVALID_CURSOR` |
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-20 `BFF-REQ-046` 홈 카드 미리보기가 걸침
+
+- `appPortfolioService.getPositionFlow` 선택 `timeout` 인자(기본값 그대로) — BFF `npm test` 통과 · 실경로 `/api/app/home` 94ms. 미충족: 없음(이 REQ 몫)

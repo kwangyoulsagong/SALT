@@ -46,9 +46,9 @@ export const plate = style({
   width: "32px",
   height: "32px",
   borderRadius: "8px",
-  background: vars.colors.desk.line,
-  color: vars.colors.desk.text1,
-  fontWeight: vars.fontWeights.semibold,
+  // 저축 도메인 색 옅은 판 + 템플릿 선 아이콘(2026-11-20 — 글자 한 자 판이 밋밋했다). 도메인 색은 작은 표지에만
+  background: "rgba(9, 146, 104, 0.1)",
+  color: vars.colors.domain.savings,
 });
 
 export const main = style({ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: 0 });
@@ -67,7 +67,7 @@ export const caption = style({ ...label, overflowWrap: "anywhere" });
 
 /** 진척 막대 4 — 길이는 `scaleX`(레이아웃 속성을 바꾸지 않는다) */
 export const bar = style({ display: "block", width: "100%", maxWidth: "240px", height: "4px", borderRadius: "999px", background: vars.colors.desk.line, overflow: "hidden" });
-export const barFill = style({ display: "block", width: "100%", height: "100%", background: vars.colors.graphic.primary, transformOrigin: "left center" });
+export const barFill = style({ display: "block", width: "100%", height: "100%", background: vars.colors.domain.savings, transformOrigin: "left center" });
 
 export const side = style({ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px", flexShrink: 0, textAlign: "right" });
 

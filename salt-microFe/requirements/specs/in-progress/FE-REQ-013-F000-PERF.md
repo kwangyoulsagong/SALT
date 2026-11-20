@@ -222,3 +222,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 - 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — 홈 카드 목록(`HomeCards`)이 카드 클릭 때 계측 한 번(`countUsage` — 기다리지 않음 · keepalive). `/home` 번들 12.4 → 12.6 kB
 - 2026-11-19: `FE-REQ-049` 상세 재설계가 이 REQ 머리 파일(`InvestmentDetailBody`)을 걸침 — 한 장 패널에 상세 패널 면(`detailPanel`)을 끼워 줌. 토큰 · 조회 동작 변화 없음
 - 2026-11-19: `FE-REQ-060` 2단계 저축(파일만 걸침) — `useGoalQueries.ts`(이 REQ 가 머리 주석 주인)에 요약 띠 조회 `useSavingsOverview` — 쿠키 세션 · 첫 숫자 서버 렌더 규칙 그대로(`useHasSession` · `initialData`). 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md`
+- 2026-11-20: `FE-REQ-048` FR-12 · 13 대시보드 홈(`feat/fe-req-048-home-card-preview`)이 이 REQ 머리 파일(`HomeCards.tsx`)을 걸침 — 카드 미리보기 · 둘째 줄은 같은 홈 응답이라 요청 · 경계 수 그대로. 토큰 · 조회 동작 변화 없음. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md`

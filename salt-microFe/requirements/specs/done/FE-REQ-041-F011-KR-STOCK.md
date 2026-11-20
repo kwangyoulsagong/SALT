@@ -152,3 +152,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
   - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 - 2026-11-13: F017 v4 순서 1a 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): 국내 상세 — `KrScenario` 가 접힌 "자세히" 대신 오른쪽 열 맨 위 카드로 늘 · 죽은 스타일 넷(`krMore*`) · 문구 둘 삭제. 주인 REQ `SRV-REQ-053` FR-10 · `BFF-REQ-052` FR-4 · `FE-REQ-064` FR-8
 - 2026-11-19: `FE-REQ-049` 상세 재설계가 걸침 — 국내 상세가 알약 탭(개요 · 호가 · 투자자 · 소식 · 일정) + 오른쪽 고정 열(내 거래)로. 호가 현재가 행 = 옅은 면 + 가격 굵게 · 3열 상한 520, 패널 면 `detailPanel`
+- 2026-11-20: `FE-REQ-049` 호가 · 투자자 한 탭이 걸침(`feat/fe-req-048-home-card-preview`) — FR-32 투자자 표 · FR-33 호가 10단계가 한 탭 "호가 · 투자자"에 나란히(칸 1000px 이상) / 위아래. 표 최대 폭 걷음. 거래 정지 종목은 투자자만. 값 · 조회 무변경

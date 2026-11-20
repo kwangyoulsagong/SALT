@@ -74,3 +74,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.css.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
   - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.tsx` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 머리 메뉴 시험에 `/plan` · `/planner`(아님) · 순서. 이 REQ 의 FR 은 그대로 |
+| 2026-11-20 | 데스크톱 레일 `position: sticky` → `fixed` + 본문 칸 `margin-left: 72`(`feat/fe-req-048-home-card-preview`) — 사용자 "좌측 사이드바 고정". 긴 화면에서 sticky 가 같이 밀려 올라갔다(`/household` 레일 top −253 실측). 고친 뒤 스크롤해도 top 0(1317 · 1833 위치). 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |

@@ -53,6 +53,14 @@ export const COACH_CHIP_LABEL: Record<CoachQuestionChip, string> = {
   [CoachQuestionChip.MistakeReview]: "내가 뭘 잘못했나?",
 };
 
+/** 시작 질문 한 줄 설명(2026-11-20) — 무엇으로 답하는지만(지시형 0) */
+export const COACH_CHIP_HINT: Record<CoachQuestionChip, string> = {
+  [CoachQuestionChip.SellCheck]: "보유와 코치 판단으로 점검해요",
+  [CoachQuestionChip.WeeklyAmount]: "밴드 적립 이번 주 계획으로 답해요",
+  [CoachQuestionChip.RiskCheck]: "내 손실 기준과 지금 보유를 비교해요",
+  [CoachQuestionChip.MistakeReview]: "지난 거래 기록을 돌아봐요",
+};
+
 export const COACH_CHIPS: readonly CoachQuestionChip[] = [
   CoachQuestionChip.SellCheck,
   CoachQuestionChip.WeeklyAmount,

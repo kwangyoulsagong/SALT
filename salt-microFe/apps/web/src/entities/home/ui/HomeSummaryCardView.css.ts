@@ -14,7 +14,7 @@ export const cardLink = style({
   flexDirection: "column",
   gap: vars.space.md,
   height: "100%",
-  minHeight: "152px",
+  minHeight: "264px",
   padding: vars.space.lg2,
   borderRadius: SURFACE.panelRadius,
   background: vars.colors.background.white,
@@ -91,4 +91,21 @@ export const note = style({
   lineHeight: vars.deskType.label.lineHeight,
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
+});
+
+/** 비어 있는 카드의 첫 행동 — 버튼 모양 글자(카드 전체가 링크라 실제 버튼이 아니다). 옅은 브랜드 면 · 13/600 */
+export const action = style({
+  display: "inline-flex",
+  alignItems: "center",
+  alignSelf: "flex-start",
+  gap: "2px",
+  marginTop: "auto",
+  height: "32px",
+  padding: "0 8px 0 12px",
+  borderRadius: "8px",
+  background: vars.colors.brand.lighter,
+  color: vars.colors.brand.active,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
 });

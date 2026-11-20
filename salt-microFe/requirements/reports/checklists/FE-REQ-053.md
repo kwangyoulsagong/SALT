@@ -109,3 +109,7 @@
 - 몫: 설정 화면 `PageFrame` · `NavChevron` · `ZoneLink` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0)
 - 확인: 셸 운영 빌드 `/settings` 크기 변화 0 · 실화면 h1 · 넘침 0 · 콘솔 0
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 셸 포트 3100
+
+- [x] 다섯 zone 다시 빌드 · BFF 재기동 뒤 `localhost:3100` 로그인 · 화면 · 웹소켓 `auth` 연결 확인 · BFF 612 · core 316 통과(상세 루트 `checklists/OPS-002.md`)

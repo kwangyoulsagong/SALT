@@ -46,7 +46,7 @@ function zoneNextConfig(zoneId, options = {}) {
   const isShell = zone.assetPrefix === null;
 
   /** 사용자 대면 도메인. 한 도메인이 여러 앱을 서비스하므로 Server Actions 에 명시가 필요하다 (FE-REQ-007 FR-23) */
-  const allowedOrigins = (process.env.APP_ALLOWED_ORIGINS || "localhost:3000")
+  const allowedOrigins = (process.env.APP_ALLOWED_ORIGINS || "localhost:3100,127.0.0.1:3100")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);

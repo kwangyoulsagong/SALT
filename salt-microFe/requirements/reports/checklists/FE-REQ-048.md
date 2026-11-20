@@ -57,3 +57,32 @@
 
 - 몫: 공용 `SideRow` 누름 0.99 · 줄인 모션 끔(팁 사이드에서 빠진 것을 찾음 — 홈 사이드도 같이). 실화면 홈 사이드 누름 확인
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 대시보드 홈 — FR-12 · 13(`feat/fe-req-048-home-card-preview`)
+
+| 확인 | 결과 |
+|---|---|
+| 1440 데이터 있음 — 저축 진척 막대 셋(서버 순서) · 가계부 날마다 막대(오지 않은 날 빈 칸) · 투자 흐름선 + 기간 수익률 | 통과 |
+| 1440 빈 계정 — 회색 "예시" 그림 + 행동 알약 · 카드 전체가 첫 행동 링크(`/goals/new` · `/household/new` · `/portfolio`) | 통과 |
+| 격자 — 1440 한 줄 셋 · 카드 264 · 대기 칸 셋 264 | 통과 |
+| 둘째 줄 — 최근 기록 6행(날짜 내림) · 다가오는 일 5행(날짜 오름) · 빈 계정은 칸 없음 | 통과 |
+| 미리보기 실패 · 시간 초과 → 카드는 값만 | BFF 시험(`home-card-preview.test.ts`) |
+| 명령 | `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과 |
+
+실화면 1440 — 임시 초대 계정 둘(목표 · 지출 · 보유를 넣은 계정 / 빈 계정, 끝나고 지움).
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 앱 웹뷰 390 배치(이번에 바뀐 칸) | 이번은 데스크톱(사용자 요청). 웹뷰 배치는 `FE-REQ-060` 4단계 몫 | `FE-REQ-060` 4단계 앱 웹뷰 |
+| `build-storybook` | 안 돌림 — `@repo/ui` 컴포넌트 API 변경 0(`AppNavigation` 스타일만) | PR 전 영역 검증 때 |
+
+**zone 운영 빌드(2026-11-20, 닫힘)** — 다섯 zone `next build` 통과(`ops/salt.sh web prod`). 첫 로드: 셸 `/home` 163 → 167 kB · 저축 `/goals` 161 → 163 · 가계부 `/household` 175 → 178 · 투자 `/coach/chat` 171 → 175 · `/plan` 169(149 → 169 는 앞선 `FE-REQ-047` 투자 사이드 몫) · `/investments/[symbol]` 158 — 모두 예산(+40) 안. 운영 모드 실화면 셸 3000 로그인 · 홈 · 투자 7화면 정상
+
+## 2026-11-20 로딩 · 실패 실화면(Playwright `route`, 운영 모드 3100)
+
+- [x] 홈 응답 전체 실패(500) → 한 줄 "요약을 불러오지 못했어요" · 페이지 오류 0
+- [x] 부분 실패 — 카드 하나 `degraded` + 미리보기 전부 null + 최근 기록 · 다가오는 일 null → 그 세 곳만 "불러오지 못했어요", 나머지 카드 값 그대로
+- [x] 로딩 4초 지연 — 대기 칸 3 × 264 · 도착 카드 3 × 264(자리 밀림 0)
+- [x] 빈 저축 + 템플릿 조회 500 → 기본 순서 타일 7개
+- [x] 가계부 막대 누름 → `?day=…&view=calendar` · 그날 내역 열림 · 목록/달력 전환 키보드 화살표
+- [x] `@repo/ui` `build-storybook` 통과(레일 CSS) · BFF `npm run build` 통과(포트 기본값 바꾼 뒤)

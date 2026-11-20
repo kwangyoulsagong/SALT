@@ -118,3 +118,41 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 확인 필요(needs_check) 표지 · 띠의 새 배치 | 지금 원문 여섯 글 모두 유효기한 안 — 서버가 날짜로 정해 화면에서 만들 수 없다(서버 렌더라 `route` 도 못 건다) | 첫 글이 기한을 넘길 때(가장 이른 2026-12-31) 또는 원문 검수 때 |
+
+## 2026-11-20 FR-14 · 15 — 저축 시작 · 가계부 재배치(`feat/fe-req-048-home-card-preview`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| FR-14 저축 목표 0개 | 충족 | 1440 빈 계정 — 템플릿 타일(선 아이콘 · 초록 면) → `/goals/new?template=` 로 그 템플릿이 골라진 채 열림 · 회색 "예시" 행 |
+| FR-14 목표 행 · 사이드 | 충족 | 1440 데이터 있음 — 템플릿 아이콘 초록 판 · 초록 진척 · 나눠 넣기 · 목표 저울 접힘 |
+| FR-15 가계부 데이터 있음 | 충족 | 띠 → 날마다 막대(누르면 `?view=calendar` 그날) · 분류 막대(주황) → 쓴 내역 목록/달력 전환 · "이 달 더 보기" 내용 있는 것만 · 사이드 바로 적기 + 봉투 + 도구 접힘 · 분류 선 아이콘 |
+| FR-15 빈 이번 달 | 충족 | 1440 빈 계정 — 시작 카드(지출 적기 · 예산 정하기 + 예시 막대) · 예산 없으면 봉투 칸 없음 |
+| 명령 | 통과 | `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과 |
+
+실화면 1440 — 임시 초대 계정 둘(목표 · 지출 · 보유를 넣은 계정 / 빈 계정, 끝나고 지움).
+
+#### 미검증 · 범위 밖(추가)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 앱 웹뷰 390 배치(이번에 바뀐 칸) | 이번은 데스크톱(사용자 요청). 웹뷰 배치는 `FE-REQ-060` 4단계 몫 | `FE-REQ-060` 4단계 앱 웹뷰 |
+| `build-storybook` | 안 돌림 — `@repo/ui` 컴포넌트 API 변경 0(`AppNavigation` 스타일만) | PR 전 영역 검증 때 |
+
+**zone 운영 빌드(2026-11-20, 닫힘)** — 다섯 zone `next build` 통과(`ops/salt.sh web prod`). 첫 로드: 셸 `/home` 163 → 167 kB · 저축 `/goals` 161 → 163 · 가계부 `/household` 175 → 178 · 투자 `/coach/chat` 171 → 175 · `/plan` 169(149 → 169 는 앞선 `FE-REQ-047` 투자 사이드 몫) · `/investments/[symbol]` 158 — 모두 예산(+40) 안. 운영 모드 실화면 셸 3000 로그인 · 홈 · 투자 7화면 정상
+
+## 2026-11-20 하위 화면 같은 틀
+
+- [x] 임시 계정(목표 2 · 넣기 4 · 지출 23 · 매달 나가는 돈 1 · 보유 1)으로 1440 실화면 — `/goals/new` · `/household/new` · `/household/budget` · `/household/templates` · `/household/challenges` · `/household/revolving` · `/household/people` · `/household/story/2026-11`
+- [x] 앱 웹뷰 390(SALTApp UA) — `/home` · `/goals` · `/household` · `/goals/new` · `/household/new` · `/household/templates` · `/household/challenges` · `/plan` · `/coach/chat` 가로 넘침 0, 2단 화면은 입력 → 목록 순으로 접힘(이전 "앱 웹뷰 390 미검증" 닫힘)
+- [x] turbo lint · check-types 22 작업 · test(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · `test:layer-check` · 저축 · 가계부 zone 운영 빌드
+- [x] 첫 로드: `/goals/new` 130 kB · `/household/new` 164 → 140 · `/household/budget` 162 → 156(서버 틀 입구) · `/household/templates` 146 · `/household/challenges` 170 · `/household/revolving` 169 · `/household/people` 171 · `/household` 178 → 180
+- 미검증: 없음 — 임시 계정은 앱 삭제 경로로 지움 · 초대 코드 지움
+
+## 2026-11-20 로딩 · 실패 실화면(Playwright `route`, 운영 모드 3100)
+
+- [x] 홈 응답 전체 실패(500) → 한 줄 "요약을 불러오지 못했어요" · 페이지 오류 0
+- [x] 부분 실패 — 카드 하나 `degraded` + 미리보기 전부 null + 최근 기록 · 다가오는 일 null → 그 세 곳만 "불러오지 못했어요", 나머지 카드 값 그대로
+- [x] 로딩 4초 지연 — 대기 칸 3 × 264 · 도착 카드 3 × 264(자리 밀림 0)
+- [x] 빈 저축 + 템플릿 조회 500 → 기본 순서 타일 7개
+- [x] 가계부 막대 누름 → `?day=…&view=calendar` · 그날 내역 열림 · 목록/달력 전환 키보드 화살표
+- [x] `@repo/ui` `build-storybook` 통과(레일 CSS) · BFF `npm run build` 통과(포트 기본값 바꾼 뒤)

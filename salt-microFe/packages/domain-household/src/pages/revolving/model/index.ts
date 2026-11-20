@@ -7,6 +7,7 @@ export const REVOLVING_PAGE = {
   description: "카드 명세서를 적어 두면 앞으로 6개월 청구와 수수료를 추정해 보여 줘요. 연동하지 않아요 — 적은 값으로만 계산해요",
   blockName: "리볼빙",
   empty: "적어 둔 명세서가 없어요",
+  emptyHint: "카드 명세서의 이월 잔액 · 약정결제비율 · 수수료율을 적으면 여기 앞으로 6개월 청구 추정이 보여요.",
   signedOut: "로그인하면 볼 수 있어요",
   loadFailed: "불러오지 못했어요",
 } as const;

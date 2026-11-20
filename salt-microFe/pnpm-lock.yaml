@@ -470,6 +470,9 @@ importers:
       '@repo/web-shared':
         specifier: workspace:*
         version: link:../web-shared
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
     devDependencies:
       '@repo/eslint-plugin-fsd':
         specifier: workspace:*
@@ -598,6 +601,9 @@ importers:
       '@repo/web-shared':
         specifier: workspace:*
         version: link:../web-shared
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
     devDependencies:
       '@repo/eslint-plugin-fsd':
         specifier: workspace:*

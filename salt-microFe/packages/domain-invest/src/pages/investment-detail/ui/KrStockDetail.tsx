@@ -58,7 +58,7 @@ import { KrScenario } from "./KrScenario";
 import { KrStockNews } from "./KrStockNews";
 import { RangeBar } from "./RangeBar";
 import { StatsMore } from "./StatsMore";
-import { tradeCell } from "./KrStockDetail.css";
+import { bookGrid, bookWrap, tradeCell } from "./KrStockDetail.css";
 
 const won = (value: number | null) => (value === null ? M.priceUnknown : `${formatPrice(value)}원`);
 const ratio = (value: number | null, suffix = "") =>
@@ -171,16 +171,22 @@ export const KrStockDetail = ({ code }: { code: string }) => {
   );
 
   const tabs: DetailTab[] = [{ id: "overview", label: P.tabs.overview, content: overview }];
-  // 거래정지면 호가가 없다 — 탭도 없다
-  if (!quote.isHalted) {
-    tabs.push({
-      id: "orderbook",
-      label: P.tabs.orderbook,
-      content: <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />,
-    });
-  }
+  // 호가 · 투자자 한 탭 — 나란히 놓아 넓은 패널을 채운다. 거래정지면 호가가 없다 — 투자자 탭만
   tabs.push(
-    { id: "investors", label: P.tabs.investors, content: <KrInvestorFlows code={quote.code} /> },
+    quote.isHalted
+      ? { id: "investors", label: P.tabs.investors, content: <KrInvestorFlows code={quote.code} /> }
+      : {
+          id: "orderbook",
+          label: P.tabs.orderbook,
+          content: (
+            <div className={bookWrap}>
+              <div className={bookGrid}>
+                <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />
+                <KrInvestorFlows code={quote.code} />
+              </div>
+            </div>
+          ),
+        },
     {
       id: "news",
       label: P.tabs.newsEvents,

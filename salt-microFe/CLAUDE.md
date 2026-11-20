@@ -5,7 +5,7 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(셸 zone, 3000) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/mobile`(React Native, iOS+Android — 미착수)
+- Apps: `apps/web`(셸 zone, 3100 — 2026-11-20 3000 에서, 3000 은 다른 업무 프로젝트) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/mobile`(React Native, iOS+Android — 미착수)
 - **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **투자 화면은 `packages/domain-invest` → `apps/web-investment`(2026-11-02 `FE-REQ-053`), 저축 화면은 `packages/domain-savings` → `apps/web-savings`(2026-11-03 `FE-REQ-056`)** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
@@ -28,7 +28,8 @@
 ## Commands
 
 ```bash
-pnpm dev                        # zone 5개 동시 기동 (web:3000 · 투자 3002 — 투자 화면은 3002 가 서비스, 셸이 프록시. 3003~3005 는 빈 골격). 상시 기동은 루트 ops/salt.sh up
+pnpm dev                        # zone 5개 동시 기동 (web:3100 · 투자 3002 — 투자 화면은 3002 가 서비스, 셸이 프록시. 3003~3005 는 빈 골격). 상시 기동은 루트 ops/salt.sh up
+# 상시 웹은 운영 모드(zone 당 ~120MB) — 고치는 zone 만 `ops/salt.sh web dev <zone>`, 끝나면 `ops/salt.sh web prod <zone>`(dev 는 zone 당 2.4GB+ · 2026-11-20 OPS-002)
 pnpm build
 pnpm lint
 pnpm check-types

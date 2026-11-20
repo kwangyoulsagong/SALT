@@ -223,3 +223,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | 코치 답 링크 목록 `COACH_LINK_KINDS` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 모르는 종류는 여전히 거른다(시험) |
 | 2026-11-19 | FR-113 신설 — 틀린 커서 400 · `keep` 검증 전달. `feat/f006-coach-chat-history` |
+| 2026-11-20 | `BFF-REQ-046` FR-12 홈 카드 미리보기(`feat/fe-req-048-home-card-preview`)가 이 REQ 파일을 걸침 — `appPortfolioService.getPositionFlow` 에 선택 `timeout` 인자(기본값 그대로 — 홈 미리보기 예산 600ms 용). 경로 · 응답 무변경. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |

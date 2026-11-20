@@ -1,3 +1,5 @@
+export { CategoryIcon } from "./CategoryIcon";
+export { DailySpendBars } from "./DailySpendBars";
 export * from "./LandingBox";
 export * from "./GoalClockLine";
 export * from "./InstallmentBand";

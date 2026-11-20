@@ -30,6 +30,21 @@ export const HOUSEHOLD_PAGE = {
   list: "쓴 내역",
   calendar: "달력",
   more: "이 달 더 보기",
+  /** 목록 · 달력 전환(2026-11-20) */
+  viewLabel: "쓴 내역 보기",
+  viewList: "목록",
+  dailyHint: "막대를 누르면 그날 내역을 열어요",
+  toolsFold: "가계부 도구",
+  /** 지출이 없는 달 — 한 줄 대신 첫 기록 안내(리서치: 빈 영역은 무엇이 생기는지 · 어떻게 채우는지 · 바로 가는 행동) */
+  start: {
+    title: "이번 달 첫 지출을 적어 볼까요?",
+    description: "금액부터 적으면 돼요. 결제 문자를 붙여넣으면 금액 · 날짜를 읽어 드려요. 적은 만큼 아래 그림이 채워져요.",
+    add: "지출 적기",
+    budget: "예산 정하기",
+    sampleTitle: "적으면 이렇게 보여요",
+    sample: "예시",
+    pastTitle: "이 달에 적은 지출이 없어요",
+  },
   quickEntry: "바로 적기",
   envelopes: "봉투",
   ratio: "분류별로 쓴 돈",

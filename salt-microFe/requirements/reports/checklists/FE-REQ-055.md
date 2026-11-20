@@ -150,3 +150,9 @@
 - 몫: 홈 카드 `NavChevron` · `ZoneLink` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0)
 - 확인: 셸 운영 빌드 · 실화면 `/home` 콘솔 0
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-048` FR-12 · 13 이 걸침
+
+- 몫: `HomeSummaryCardView` 미리보기 칸 · 빈 카드 예시 · 카드 링크 — 계측 · 순서 · 숨김 그대로
+- 확인: `FE-REQ-048` 체크리스트 같은 날 절 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 앱 웹뷰 390 — `FE-REQ-060` 4단계

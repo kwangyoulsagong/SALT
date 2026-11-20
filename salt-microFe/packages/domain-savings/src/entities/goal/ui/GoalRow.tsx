@@ -1,8 +1,9 @@
 "use client";
 
-import { formatWon, GOAL_MESSAGES, TEMPLATE_LABEL, templateTag } from "../model/messages";
+import { formatWon, GOAL_MESSAGES, templateTag } from "../model/messages";
 import type { SavingsGoal } from "../model/types";
 import { reachText } from "../lib/reachText";
+import { GoalTemplateIcon } from "./GoalTemplateIcon";
 import * as s from "./goalRow.css";
 
 export interface GoalRowProps {
@@ -18,13 +19,12 @@ export interface GoalRowProps {
  * 장면 그림은 미리보기 칸 · 상세에서만 — 행은 판 하나. 숫자 · 막대 비율 · 도달은 서버 값(막대 길이만 화면)
  */
 export const GoalRow = ({ goal, selected, onSelect }: GoalRowProps) => {
-  const template = TEMPLATE_LABEL[goal.template];
   const done = goal.status === "completed";
   return (
     <li>
       <button type="button" className={s.row} aria-current={selected ? "true" : undefined} onClick={() => onSelect(goal.id)}>
         <span className={s.plate} aria-hidden>
-          {template.slice(0, 1)}
+          <GoalTemplateIcon template={goal.template} />
         </span>
         <span className={s.main}>
           <span className={s.title}>{goal.title}</span>

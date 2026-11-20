@@ -172,3 +172,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
   - `bff/src/services/app-search.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
   - `bff/src/utils/session-cookie.util.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
   - `salt-microFe/packages/web-shared/src/api/websocket/wsClient.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+| 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |

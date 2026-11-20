@@ -5,7 +5,7 @@
       "app": "web",
       "domain": null,
       "domainPackage": null,
-      "devPort": 3000,
+      "devPort": 3100,
       "pathPrefixes": ["/", "/home", "/login", "/onboarding", "/settings", "/alerts", "/streaming-probe"],
       "assetPrefix": null,
       "hostedIn": "web",

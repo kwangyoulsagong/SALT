@@ -80,3 +80,9 @@
 | **실패 문구 두 번(결함, 고침)** | 충족 | React Query `isError` 가 다음 쪽 실패에도 켜져 위 "지난 대화를 …"와 버튼 옆 줄이 같이 나왔다 — 첫 쪽 실패만 위 문구 |
 | 측정 도구 결함 둘 | 기록 | 실패 주입이 주소 경로만 보고 `?cursor=` 를 못 봐 첫 측정의 "지난 쪽 실패"는 주입이 안 된 것이었다 · `main` 이 둘(좁은 화면 안내) |
 | 명령 재실행 | 통과 | `check-types` · `lint` 13/13 · `test` · 투자 zone 운영 빌드 · 레이어 훅 사후 |
+
+## 2026-11-20 `FE-REQ-030` 시작 질문 카드가 걸침
+
+- 몫: 첫 질문 전 배치만 — 조회 · 무한 스크롤 무변경
+- 확인: `FE-REQ-030` 체크리스트 같은 날 절 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 없음(이 REQ 몫)

@@ -3,6 +3,9 @@ import { todayInKorea } from "@repo/web-shared/lib";
 
 /** 이야기 카드 화면 문구(가계부 S1g) — 사실만. 평가 · 칭찬 · 재촉 0 */
 export const STORY_PAGE = {
+  /** 공개 전(2026-11-20) — 예시 카드 표지 · 설명 */
+  sample: "예시",
+  sampleHint: "그 기간에 적은 지출 · 안 쓴 날 · 기분을 한 장으로 모아요. 금액은 처음엔 가려져 있고, 보일지 고를 수 있어요.",
   back: "가계부로",
   title: "이야기 카드",
   description: "이 기간에 적은 것을 한 장으로 모았어요. 점수나 비교는 없어요",

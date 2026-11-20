@@ -6,7 +6,12 @@ import { SegmentedControl } from "@repo/ui/segmentedControl";
 
 import { useDesktopViewport } from "@repo/web-shared/lib";
 
-import { LineEntry, PasteEntry, QuickEntryForm, RECORD_MESSAGES } from "@/features/record-expense";
+import {
+  LineEntry,
+  PasteEntry,
+  QuickEntryForm,
+  RECORD_MESSAGES,
+} from "@/features/record-expense";
 
 import { NEW_EXPENSE_PAGE as M } from "../model";
 
@@ -22,8 +27,22 @@ export const NewExpenseModes = () => {
   const desktop = useDesktopViewport();
   return (
     <>
-      <SegmentedControl label={M.mode} value={mode} onChange={setMode} options={MODES.map((m) => ({ value: m, label: RECORD_MESSAGES.modes[m] }))} />
-      {mode === "quick" ? <QuickEntryForm compact={desktop} expanded /> : mode === "line" ? <LineEntry /> : <PasteEntry />}
+      <SegmentedControl
+        label={M.mode}
+        value={mode}
+        onChange={setMode}
+        options={MODES.map((m) => ({
+          value: m,
+          label: RECORD_MESSAGES.modes[m],
+        }))}
+      />
+      {mode === "quick" ? (
+        <QuickEntryForm compact={desktop} expanded />
+      ) : mode === "line" ? (
+        <LineEntry />
+      ) : (
+        <PasteEntry />
+      )}
     </>
   );
 };

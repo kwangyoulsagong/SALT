@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { BOARD_MESSAGES as B, EMOTION_LABEL, EXPENSE_MESSAGES as M, FIXED_COST_MESSAGES as F, WORK_MESSAGES as W, formatWon, formatWorkMinutes } from "../model/messages";
 import { groupExpensesByDay } from "../lib/board";
 import type { CalendarDay, HouseholdExpense } from "../model/types";
+import { CategoryIcon } from "./CategoryIcon";
 import { useCategoryLabel } from "./CategoryNames";
 import * as s from "./board.css";
 
@@ -23,7 +24,7 @@ export const ExpenseRow = ({ expense: e, action }: { expense: HouseholdExpense; 
   return (
     <li className={s.row}>
       <span className={s.plate} aria-hidden>
-        {category.slice(0, 1)}
+        <CategoryIcon category={e.category} />
       </span>
       <span className={s.rowMain}>
         <span className={s.rowTitle}>{e.merchant ?? category}</span>

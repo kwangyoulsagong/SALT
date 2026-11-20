@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
@@ -38,6 +38,11 @@ export const log = style({
   padding: `${vars.space.xs} 0 ${vars.space.lg}`,
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px", borderRadius: "8px" },
 });
+
+/** 대화 시작 전 — 브리핑 · 시작 질문을 입력 상자 바로 위로(가운데가 비지 않게, 2026-11-20 사용자 "빈게 많구") */
+// flex-end 는 넘칠 때 위쪽이 스크롤로 닿지 않는다 — 첫 칸 위 여백(auto)으로 내린다
+export const logStart = style({});
+globalStyle(`${logStart} > :first-child`, { marginTop: "auto" });
 
 export const older = style({ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" });
 
@@ -171,7 +176,28 @@ const chipBase = {
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
 };
 
-export const starter = style({ ...chipBase, minHeight: "44px", padding: "10px 14px", borderRadius: "12px" });
+export const starter = style({ ...chipBase, gap: vars.space.md, minHeight: "64px", padding: "12px 14px", borderRadius: "12px", textAlign: "left" });
+
+/** 시작 질문 아이콘 판 — 브랜드 옅은 면(2026-11-20 — 글자만 있던 칩이 밋밋했다) */
+export const starterIcon = style({
+  display: "grid",
+  placeItems: "center",
+  flexShrink: 0,
+  width: "32px",
+  height: "32px",
+  borderRadius: "8px",
+  background: vars.colors.brand.lighter,
+  color: vars.colors.brand.active,
+});
+
+export const starterText = style({ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 });
+
+export const starterHint = style({
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});
 
 export const followUp = style({ ...chipBase, width: "auto", minHeight: "32px", padding: "6px 12px", borderRadius: "16px" });
 

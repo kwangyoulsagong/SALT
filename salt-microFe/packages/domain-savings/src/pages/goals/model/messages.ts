@@ -31,4 +31,23 @@ export const GOALS_PAGE = {
   split: "나눠 넣기",
   splitHint: "진행 중 목표가 둘 이상일 때 한 번에 나눠 넣어요",
   postcardsCount: (n: number) => `${n}장`,
+  /** 목표가 없을 때(2026-11-20 — 한 줄만 있던 빈 화면을 템플릿 고르기로, 리서치: 목적 템플릿 카드 + 예시 + 행동) */
+  start: {
+    title: "어떤 돈을 모을까요?",
+    description: "고르면 금액과 기한으로 매달 넣을 돈을 계산해 드려요. 계산은 서버가 해요.",
+    templatesLabel: "목표 템플릿",
+    /** 템플릿 한 줄 설명 — 무엇을 모으는 칸인지만(금액 · 권유 0) */
+    hints: {
+      wedding: "식 · 예물 · 신혼 살림",
+      housing: "보증금 · 이사 · 계약금",
+      first_car: "차값 · 등록 · 보험",
+      travel: "항공 · 숙소 · 여행 경비",
+      emergency: "갑자기 필요한 돈",
+      childbirth: "출산 · 육아 준비",
+      other: "이름을 직접 정해요",
+    },
+    sampleTitle: "목표를 만들면 이렇게 보여요",
+    sample: "예시",
+    sampleRows: ["목표 하나", "목표 둘"],
+  },
 } as const;

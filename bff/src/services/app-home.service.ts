@@ -5,6 +5,9 @@ import { appPortfolioService } from "./app-portfolio.service";
 import { appHouseholdService } from "./app-household.service";
 import { appSavingsService } from "./app-savings.service";
 import { backendApi } from "./backend-api.service";
+import type { HouseholdMonthVM } from "./app-household.service";
+import type { SavingsGoalVM } from "./app-savings.service";
+import { kstDate, toRecentFeed, toUpcomingFeed, type DepositFeedSource } from "./home-feed.viewmodel";
 import {
   DEFAULT_HOME_ORDER,
   HOME_CARD_TEXT,
@@ -13,6 +16,9 @@ import {
   toInvestCard,
   toSavingsCard,
   toHouseholdCard,
+  toHouseholdPreview,
+  toInvestPreview,
+  toSavingsPreview,
   HOUSEHOLD_HREF,
   SAVINGS_HREF,
   type AppHomeVM,
@@ -24,6 +30,31 @@ export type { AppHomeVM, HomeSummaryCard } from "./home-card.viewmodel";
 
 /** 홈 투자 카드의 적립 한 줄 — 카드 예산(800ms) 안에서 끝나야 한다. 넘으면 그 줄만 빠진다 */
 const HOME_PLAN_LINE_TIMEOUT_MS = 600;
+
+/**
+ * 카드 미리보기의 예산 — 카드 예산(800ms) 안에서 끝나야 한다. 넘거나 실패하면 **미리보기만** 빠진다(카드 값은 그대로).
+ * 카드 값과 나란히 부르므로 카드 하나가 늦어지는 폭은 이 값까지다(`BFF-REQ-046` FR-12)
+ */
+export const HOME_PREVIEW_TIMEOUT_MS = 600;
+
+/** 한국 시간 이번 달 "YYYY-MM" — 가계부 달력을 부를 달(서버 home-card 와 같은 달력 기준) */
+export const kstMonth = (now: Date): string => {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit" }).formatToParts(now);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  return `${year}-${month}`;
+};
+
+/** 미리보기 한 칸 — 실패 · 예산 초과는 null 로 접고 사유만 남긴다(금액 0) */
+const previewOrNull = async <T, R>(domain: HomeDomain, work: Promise<T>, build: (value: T) => R | null): Promise<R | null> => {
+  try {
+    return build(await withinBudget(work, HOME_PREVIEW_TIMEOUT_MS));
+  } catch (error) {
+    if (isUnauthenticated(error)) throw error;
+    logger.warn("홈 카드 미리보기를 받지 못했다", { domain, reason: (error as Error | undefined)?.message });
+    return null;
+  }
+};
 
 /** 정해진 시간 안에 오지 않으면 실패로 본다 — 그 카드만 `degraded` (`BFF-REQ-046` FR-3) */
 const withinBudget = <T>(work: Promise<T>, ms: number): Promise<T> =>
@@ -63,11 +94,28 @@ const visibleProfitRate = (
 const isUnauthenticated = (reason: unknown): boolean =>
   (reason as { response?: { status?: number } } | undefined)?.response?.status === 401;
 
+/**
+ * 카드 미리보기와 홈 둘째 줄이 같이 쓰는 원천 — 요청 한 번에 한 번씩만 부른다(목표 목록 · 이번 달 가계부).
+ * 실패는 쓰는 쪽이 각자 null 로 접는다(처리 안 된 거절이 남지 않게 여기서 한 번 받아 둔다)
+ */
+interface HomeSources {
+  goals: Promise<SavingsGoalVM[]>;
+  month: Promise<HouseholdMonthVM>;
+}
+
+const startSources = (token: string, now: string): HomeSources => {
+  const goals = appSavingsService.goals(token, HOME_PREVIEW_TIMEOUT_MS);
+  const month = appHouseholdService.month(token, kstMonth(new Date(now)), HOME_PREVIEW_TIMEOUT_MS);
+  goals.catch(() => undefined);
+  month.catch(() => undefined);
+  return { goals, month };
+};
+
 interface CardSource {
   domain: HomeDomain;
   title: string;
   href: string;
-  load: (token: string, now: string) => Promise<HomeSummaryCard>;
+  load: (token: string, now: string, sources: HomeSources) => Promise<HomeSummaryCard>;
 }
 
 /**
@@ -80,35 +128,84 @@ const CARD_SOURCES: CardSource[] = [
     title: HOME_CARD_TEXT.savings.title,
     href: SAVINGS_HREF,
     // Kotlin savings 서비스(라우팅 표 `/savings` → platform). 옛 `/goals/statistics` 는 은퇴(BFF-REQ-047 FR-7)
-    load: async (token, now) => toSavingsCard(await appSavingsService.homeCard(token, HOME_CARD_TIMEOUT_MS), now),
+    // 카드 값과 진척 미리보기(목표 목록)를 나란히 — 미리보기 실패는 그 칸만 빠진다
+    load: async (token, now, sources) => {
+      const [card, preview] = await Promise.all([
+        appSavingsService.homeCard(token, HOME_CARD_TIMEOUT_MS),
+        previewOrNull("savings", sources.goals, toSavingsPreview),
+      ]);
+      return toSavingsCard(card, now, preview);
+    },
   },
   {
     domain: "household",
     title: HOME_CARD_TEXT.household.title,
     href: HOUSEHOLD_HREF,
     // Kotlin household 서비스(라우팅 표 `/household` → platform, `SRV-REQ-046` FR-18)
-    load: async (token, now) => toHouseholdCard(await appHouseholdService.homeCard(token, HOME_CARD_TIMEOUT_MS), now),
+    // 카드 값과 이번 달 달력(날마다 쓴 돈)을 나란히
+    load: async (token, now, sources) => {
+      const [card, preview] = await Promise.all([
+        appHouseholdService.homeCard(token, HOME_CARD_TIMEOUT_MS),
+        previewOrNull("household", sources.month, toHouseholdPreview),
+      ]);
+      return toHouseholdCard(card, now, preview);
+    },
   },
   {
     domain: "invest",
     title: HOME_CARD_TEXT.invest.title,
     href: "/investments",
     load: async (token, now) => {
-      // 넷을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만, 적립 계획이 실패하면 그 줄만 뺀다
-      const [summary, profile, stats, plan] = await Promise.allSettled([
+      // 다섯을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만, 적립 계획이 실패하면 그 줄만,
+      // 평가금 흐름이 실패하면 미리보기만 뺀다
+      const [summary, profile, stats, plan, flow] = await Promise.allSettled([
         appPortfolioService.getSummary(token),
         appAICoachService.getProfile(token),
         backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
         // 카드 예산보다 짧게 — 적립 줄이 늦어 카드 전체가 degraded 가 되지 않게
         appPlanService.getWeekly(token, HOME_PLAN_LINE_TIMEOUT_MS, false),
+        withinBudget(appPortfolioService.getPositionFlow(token, "1m", HOME_PREVIEW_TIMEOUT_MS), HOME_PREVIEW_TIMEOUT_MS),
       ]);
       if (summary.status === "rejected") throw summary.reason;
       const hidden = profile.status === "fulfilled" && profile.value.hidePurchasePrice;
       const planKrw = plan.status === "fulfilled" && plan.value.configured ? plan.value.totalKrw : null;
-      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats), hidden, planKrw);
+      const profitRate = visibleProfitRate(profile, stats);
+      if (flow.status === "rejected") logger.warn("홈 카드 미리보기를 받지 못했다", { domain: "invest", reason: flow.reason?.message });
+      // 기간 수익률은 손익률과 같은 판정(숨김을 확인하고 꺼져 있을 때만)
+      const showRate = profile.status === "fulfilled" && !profile.value.hidePurchasePrice;
+      const preview = flow.status === "fulfilled" ? toInvestPreview(flow.value, showRate) : null;
+      return toInvestCard(summary.value, now, profitRate, hidden, planKrw, preview);
     },
   },
 ];
+
+/** 최근 기록에 넣은 기록을 읽을 진행 중 목표 수 — 목표 상세를 이만큼 나란히 부른다(서버 순서 앞에서) */
+export const HOME_FEED_GOALS = 3;
+
+/** 둘째 줄 원천 예산 — 카드 예산 안. 넘은 원천은 그 줄에서만 빠진다 */
+export const HOME_FEED_TIMEOUT_MS = 700;
+
+const settle = async <T>(work: Promise<T>): Promise<T | null> => {
+  try {
+    return await withinBudget(work, HOME_FEED_TIMEOUT_MS);
+  } catch (error) {
+    if (isUnauthenticated(error)) throw error;
+    logger.warn("홈 둘째 줄 원천을 받지 못했다", { reason: (error as Error | undefined)?.message });
+    return null;
+  }
+};
+
+/** 진행 중 목표 앞에서 몇 개의 넣은 기록 — 목표 목록 → 상세(나란히). 상세 하나가 실패하면 그 목표만 빠진다 */
+const loadDeposits = async (token: string, goals: Promise<SavingsGoalVM[]>): Promise<DepositFeedSource[]> => {
+  const list = await goals;
+  const active = (Array.isArray(list) ? list : []).filter((g) => g?.status === "active").slice(0, HOME_FEED_GOALS);
+  const details = await Promise.allSettled(active.map((g) => appSavingsService.goal(token, g.id)));
+  return details.flatMap((d, i) =>
+    d.status === "fulfilled" && Array.isArray(d.value?.deposits)
+      ? d.value.deposits.map((dep) => ({ goalId: active[i].id, goalTitle: active[i].title, amount: dep.amount, depositedOn: dep.depositedOn }))
+      : [],
+  );
+};
 
 /** 서버(identity)가 정한 홈 배치 — 저장 전이면 서버 기본값(고르지 않은 도메인 숨김). 모르는 키는 버린다 */
 export interface HomeLayoutVM {
@@ -146,10 +243,19 @@ const readLayout = async (token: string): Promise<HomeLayoutVM | null> => {
 class AppHomeService {
   async getHome(token: string): Promise<AppHomeVM> {
     const now = new Date().toISOString();
+    const sources = startSources(token, now);
+    // 둘째 줄 원천 — 카드와 나란히(목표 목록 · 이번 달은 카드 미리보기와 같은 요청)
+    const feed = Promise.all([
+      settle(sources.month),
+      settle(sources.goals),
+      settle(loadDeposits(token, sources.goals)),
+      settle(appPortfolioService.listTransactions(token, 1)),
+    ]);
+    feed.catch(() => undefined);
     // 배치(identity)와 카드를 나란히 — 배치가 실패해도 카드는 기본 순서로 나온다(배치는 카드 하나의 실패가 아니다)
     const [layoutResult, ...settled] = await Promise.allSettled([
       withinBudget(readLayout(token), HOME_CARD_TIMEOUT_MS),
-      ...CARD_SOURCES.map((source) => withinBudget(source.load(token, now), HOME_CARD_TIMEOUT_MS)),
+      ...CARD_SOURCES.map((source) => withinBudget(source.load(token, now, sources), HOME_CARD_TIMEOUT_MS)),
     ]);
     if (layoutResult.status === "rejected" && isUnauthenticated(layoutResult.reason)) throw layoutResult.reason;
 
@@ -169,7 +275,18 @@ class AppHomeService {
     const layout = layoutResult.status === "fulfilled" ? layoutResult.value : null;
     const has = (domain: HomeDomain) => cards.some((card) => card.domain === domain);
     const order = (layout?.order ?? DEFAULT_HOME_ORDER).filter(has);
-    return { cards, order, hidden: (layout?.hidden ?? []).filter(has) };
+    const hidden = (layout?.hidden ?? []).filter(has);
+
+    // 둘째 줄 — 숨긴 도메인은 넣지 않는다. 원천을 하나도 못 받았으면 null(빈 배열 = 정말 없음)
+    const [month, goals, deposits, trades] = await feed;
+    const hiddenSet = new Set(hidden);
+    const today = kstDate(now) ?? now.slice(0, 10);
+    const recent =
+      month === null && deposits === null && trades === null
+        ? null
+        : toRecentFeed(month?.expenses ?? null, deposits, trades?.items ?? null, hiddenSet);
+    const upcoming = month === null && goals === null ? null : toUpcomingFeed(month?.recurring?.items ?? null, goals, today, hiddenSet);
+    return { cards, order, hidden, recent, upcoming };
   }
 
   /**

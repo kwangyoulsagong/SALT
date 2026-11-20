@@ -51,3 +51,7 @@
   - `salt-microFe/packages/web-shared/src/api/websocket/wsClient.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-20 셸 포트 3100
+
+- [x] 다섯 zone 다시 빌드 · BFF 재기동 뒤 `localhost:3100` 로그인 · 화면 · 웹소켓 `auth` 연결 확인 · BFF 612 · core 316 통과(상세 루트 `checklists/OPS-002.md`)

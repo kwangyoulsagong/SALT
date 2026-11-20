@@ -14,8 +14,8 @@ export const QUICK_ACTION_MESSAGES = {
 
 /** 홈 블록 높이 — 스켈레톤이 실제 블록과 같아야 한다 (`streaming-ssr.md`). */
 export const HOME_BLOCK_MIN_HEIGHT = {
-  /** 카드 격자 두 줄(152 × 2 + 간격 16) — 데스크톱 2열(`FE-REQ-048` FR-8) */
-  cards: 320,
+  /** 카드 격자 한 줄(미리보기가 든 카드 264) — 넓은 패널은 한 줄 셋(`FE-REQ-048` FR-12) */
+  cards: 264,
   /** 카드 하나 — `HomeSummaryCardView` 최소 높이와 같다 */
-  card: 152,
+  card: 264,
 } as const;
