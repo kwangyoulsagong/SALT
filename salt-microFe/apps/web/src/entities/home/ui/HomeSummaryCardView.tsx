@@ -6,7 +6,7 @@ import { HomeCardGhostPreview, HomeCardPreviewView } from "./HomeCardPreviewView
 import { HOME_DOMAIN_ICON } from "../model/domainIcon";
 import { HOME_CARD_MESSAGES } from "../model/messages";
 import type { HomeCardValue, HomeSummaryCard } from "../model/types";
-import { action, cardLink, emptyValue, head, hero, heroValue, label, note, sub, subValue, title, values } from "./HomeSummaryCardView.css";
+import { action, cardLink, emptyValue, head, hero, heroValue, label, note, previewSlot, sub, subValue, title, values } from "./HomeSummaryCardView.css";
 
 interface HomeSummaryCardViewProps {
   card: HomeSummaryCard;
@@ -36,11 +36,14 @@ export const HomeSummaryCardView = ({ card, onOpen }: HomeSummaryCardViewProps) 
           <HeroValue item={card.primary} empty={card.state === "empty"} />
           <SubValue item={card.secondary} />
         </dl>
-        {card.preview ? (
-          <HomeCardPreviewView domain={card.domain} preview={card.preview} />
-        ) : card.state === "empty" ? (
-          <HomeCardGhostPreview domain={card.domain} />
-        ) : null}
+        {/* 앱 웹뷰 목록 행에서는 미리보기를 뺀다(`FE-REQ-060` FR-M3) — 데스크톱은 `contents` 라 배치 그대로 */}
+        <div className={previewSlot}>
+          {card.preview ? (
+            <HomeCardPreviewView domain={card.domain} preview={card.preview} />
+          ) : card.state === "empty" ? (
+            <HomeCardGhostPreview domain={card.domain} />
+          ) : null}
+        </div>
         {card.note ? <p className={note}>{card.note}</p> : null}
         {/* 비어 있는 카드 — 카드 전체가 이 행동으로 간다(링크 안에 링크를 두지 않는다 — 버튼 모양 글자) */}
         {card.action ? (

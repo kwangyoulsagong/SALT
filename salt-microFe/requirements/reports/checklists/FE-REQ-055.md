@@ -156,3 +156,7 @@
 - 몫: `HomeSummaryCardView` 미리보기 칸 · 빈 카드 예시 · 카드 링크 — 계측 · 순서 · 숨김 그대로
 - 확인: `FE-REQ-048` 체크리스트 같은 날 절 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
 - 미검증: 앱 웹뷰 390 — `FE-REQ-060` 4단계
+
+## 2026-11-20 `FE-REQ-060` 4단계 앱 웹뷰가 걸침
+
+- [x] 앱 웹뷰 390 카드 셋 목록 행 · 데스크톱 1440 카드 그대로

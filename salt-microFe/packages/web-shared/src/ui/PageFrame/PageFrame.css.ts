@@ -38,6 +38,8 @@ export const main = style({
   gap: vars.space.lg,
   minWidth: 0,
   padding: `${vars.space.lg2} ${vars.space.xl} ${vars.space["2xl"]}`,
+  // 앱 웹뷰 — 흰 바탕 한 열 · 좌우 20(행 안쪽 4 와 합쳐 목록 행 24, `screen-mobile.md` §3 · `FE-REQ-060` 모바일 표)
+  selectors: { [IN_APP_WEBVIEW]: { padding: "16px 20px 24px", gap: "16px" } },
 });
 
 export const head = style({
@@ -56,6 +58,15 @@ export const title = style({
   lineHeight: vars.deskType.title.lineHeight,
   fontWeight: vars.deskType.title.fontWeight,
   color: vars.colors.desk.text1,
+  // 앱 웹뷰 화면 제목 = `t3` 22 Bold(`screen-mobile.md` §3)
+  selectors: {
+    [IN_APP_WEBVIEW]: {
+      fontSize: vars.appType.title.fontSize,
+      lineHeight: vars.appType.title.lineHeight,
+      fontWeight: vars.appType.title.fontWeight,
+      color: vars.colors.text.primary,
+    },
+  },
 });
 
 export const side = style({

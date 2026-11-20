@@ -280,3 +280,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 
 - `@repo/tokens` 에 데스크톱 틀 토큰(`colors.desk` · `deskType`) · 바탕 `#F4F5F8` · 글꼴 네 키를 시스템 서체로 — 어댑터 구조(토큰 한 곳 → 웹 변수)는 그대로
 - 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)
+
+## 2026-11-20 `FE-REQ-060` 4단계 앱 웹뷰가 걸침
+
+- [x] `@repo/tokens` `appType` 추가 — 웹 `vars.appType.*` 생성 확인(웹뷰 실화면 글자 30 · 22 · 17 · 15 · 13)

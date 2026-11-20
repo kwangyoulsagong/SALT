@@ -33,7 +33,8 @@ export const sheetStyles = style({
   flexDirection: "column",
   width: "100%",
   maxWidth: "480px",
-  maxHeight: "85vh",
+  // 키보드가 열리면 보이는 높이가 줄어든다 — 동적 뷰포트로 시트도 같이 줄어 입력 · 저장이 화면 안에 남는다(`FE-REQ-060` FR-M5). 옛 브라우저는 85vh
+  maxHeight: ["85vh", "85dvh"],
   paddingBottom: "env(safe-area-inset-bottom, 0px)",
   borderTopLeftRadius: vars.radius.xl,
   borderTopRightRadius: vars.radius.xl,

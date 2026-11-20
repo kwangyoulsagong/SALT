@@ -16,6 +16,7 @@
     "./ui/frame": "./src/ui/frame.ts",
     "./ui/tokens.css": "./src/ui/tokens.css.ts",
     "./ui/surface.css": "./src/ui/surface.css.ts",
+    "./ui/app.css": "./src/ui/app.css.ts",
     "./layout": "./src/layout/index.ts",
     "./layout/globals.css": "./src/layout/globals.css.ts"
   },

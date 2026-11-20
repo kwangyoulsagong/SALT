@@ -16,3 +16,4 @@ export * from "./useLazyComponent";
 export * from "./useScrollRestoreOnBack";
 export * from "./useDesktopViewport";
 export * from "./useInAppWebview";
+export * from "./useBackCloses";

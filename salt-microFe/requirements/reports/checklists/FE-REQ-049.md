@@ -121,3 +121,7 @@
 - 몫: 탭 둘 → 한 탭 · 컨테이너 쿼리(1000px 이상 나란히 / 아래 위아래) · 표 최대 폭 520 · 640 걷음 · 거래 정지는 투자자 탭만
 - 확인: 실화면 1440 — 나란히(호가 440 \| 투자자) · 빈 칸 없음 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
 - 미검증: 1280 미만 · 390 앱 UA 위아래 배치 실화면 — 이번은 1440 만. `FE-REQ-060` 4단계 앱 웹뷰 때 같이
+
+## 2026-11-20 `FE-REQ-060` 4단계 앱 웹뷰가 걸침
+
+- [x] 투자 상세 첫 로드 158 → 160 kB(공용 배럴 몫) · 저축 상세 웹뷰 탭 넷 확인

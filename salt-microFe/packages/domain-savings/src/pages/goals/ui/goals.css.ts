@@ -1,5 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
+import { EMBED_APP, EMBED_ATTRIBUTE, IN_APP_WEBVIEW } from "@repo/core/embed";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
@@ -39,6 +40,8 @@ export const addLink = style({
   fontWeight: vars.deskType.section.fontWeight,
   textDecoration: "none",
   whiteSpace: "nowrap",
+  // 앱 웹뷰 터치 대상 44(`FE-REQ-060` FR-M5)
+  selectors: { [IN_APP_WEBVIEW]: { height: "44px" } },
   transition: `background-color ${vars.motion.duration.instant}`,
   ":hover": { background: vars.colors.desk.line },
   ":focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px" },
@@ -58,8 +61,15 @@ export const split = style({
 
 export const section = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
 export const sectionHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minHeight: "32px" });
-export const sectionTitle = style(title);
-export const hint = style({ ...label, margin: 0 });
+export const sectionTitle = style({
+  ...title,
+  // 앱 웹뷰 섹션 머리 = `t5`(`screen-mobile.md` §3)
+  selectors: {
+    [IN_APP_WEBVIEW]: { fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, fontWeight: vars.appType.body.fontWeight, color: vars.colors.text.primary },
+  },
+});
+// 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+export const hint = style({ ...label, margin: 0, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 
 /** 미리보기 칸 — 정보 상자. 목표를 바꾸면 새 칸이 8px 아래에서 올라온다(`motion.md` §1 블록 등장) */
 export const preview = style({
@@ -111,6 +121,8 @@ export const foldSummary = style({
   listStyle: "none",
   padding: "0 4px",
   selectors: {
+    // 앱 웹뷰 — 목록 아래 섹션 행(셰브론 · 44, FR-M2 · M5). 펼치면 같은 폼
+    [IN_APP_WEBVIEW]: { minHeight: "48px", fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, color: vars.colors.text.primary },
     "&::-webkit-details-marker": { display: "none" },
     // 펼칠 수 있다는 표지 — 오른쪽 셰브론, 열리면 아래로(2026-11-20 도구 접기)
     "&::after": {
@@ -130,4 +142,6 @@ export const foldSummary = style({
 
 /** 한 줄 상태(FR-13) — 실패 + 다시 불러오기 · 빈 목록은 칸 높이를 조금 지킨다 */
 export const statusRow = style({ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", minHeight: "120px" });
+// 앱 웹뷰 — 상태 줄의 "다시 불러오기"(데스크톱 버튼 32)를 터치 대상 44 로(`FE-REQ-060` FR-M5, route 실패 확인에서 찾음)
+globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] ${statusRow} button`, { minHeight: "44px" });
 export const emptyRow = style({ display: "flex", alignItems: "center", minHeight: "96px", padding: "0 8px" });
