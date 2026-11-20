@@ -22,10 +22,9 @@ export const caption = style({
   color: vars.colors.text.lightGray,
 });
 
-/** 표 폭 상한 640(`FE-REQ-049` FR-8 · B2 — 넓은 칸에서 숫자 열 사이가 200~300px 로 벌어졌다). 좁은 화면에서 표가 카드를 넘치면 표만 가로로 민다(페이지는 밀지 않는다) */
+/** 표 폭은 칸이 정한다 — 호가 옆 칸(2026-11-20 `bookGrid`)이라 넓게 벌어지지 않는다. 좁은 화면에서 표가 카드를 넘치면 표만 가로로 민다(페이지는 밀지 않는다) */
 export const scroller = style({
   overflowX: "auto",
-  maxWidth: "640px",
 });
 
 export const table = style({

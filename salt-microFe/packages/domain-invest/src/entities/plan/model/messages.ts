@@ -19,6 +19,10 @@ export const PLAN_MESSAGES = {
 
   notConfiguredTitle: "월 적립액을 정하면 이번 주 금액이 나와요",
   notConfiguredBody: "비트코인 · 코스피에 반씩 나눠 매주 금액으로 바꿔요. 밴드 효과가 검산으로 확인된 자산만 배수가 붙어요.",
+  /** 설정 전 화면 오른쪽 — 정한 뒤 모양의 예시(2026-11-20, 숫자 0 · 회색 · "예시" 표지) */
+  sampleTitle: "정하면 이렇게 보여요",
+  sample: "예시",
+  sampleRows: ["이번 주 금액", "자산별 금액", "지난 성적"],
 
   asset: { btc: "비트코인", kospi: "코스피" } satisfies Record<PlanAsset, string>,
   indicator: { mvrv_z: "MVRV Z", per_percentile: "코스피 PER" } satisfies Record<PlanIndicator, string>,

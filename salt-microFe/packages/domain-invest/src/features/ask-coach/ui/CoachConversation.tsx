@@ -1,10 +1,10 @@
 "use client";
 
-import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachHistoryKeep, type CoachMessage, type CoachQuestionChip } from "@repo/core/coach";
+import { firstCardHolders, isSameCard, type CoachAnswerLink, type CoachBriefing, type CoachCard, type CoachHistoryKeep, type CoachMessage, CoachQuestionChip } from "@repo/core/coach";
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, CalendarDays, History, LineChart, ShieldCheck, type LucideIcon } from "lucide-react";
 
 import { Button } from "@repo/ui/button";
 
@@ -15,8 +15,16 @@ import { RecommendationCard } from "@/entities/coach";
 import { useAskCoach, type LiveCoachMessage } from "../api/useAskCoach";
 import { formatMessageTime } from "../lib/formatMessageTime";
 import { coachLinkTarget } from "../lib/linkHref";
-import { ASK_COACH_MESSAGES, COACH_CHIP_LABEL, COACH_CHIPS, COACH_QUESTION_MAX_LENGTH, COACH_COUNTER_FROM, COACH_FOLLOW_UP_MAX } from "../model/messages";
+import { ASK_COACH_MESSAGES, COACH_CHIP_HINT, COACH_CHIP_LABEL, COACH_CHIPS, COACH_QUESTION_MAX_LENGTH, COACH_COUNTER_FROM, COACH_FOLLOW_UP_MAX } from "../model/messages";
 import * as styles from "./CoachConversation.css";
+
+/** 시작 질문 그림 — 장식(읽지 않는다) */
+const CHIP_ICON: Record<CoachQuestionChip, LucideIcon> = {
+  [CoachQuestionChip.SellCheck]: LineChart,
+  [CoachQuestionChip.WeeklyAmount]: CalendarDays,
+  [CoachQuestionChip.RiskCheck]: ShieldCheck,
+  [CoachQuestionChip.MistakeReview]: History,
+};
 
 /** 아래 끝에서 이만큼 안이면 "맨 아래를 보고 있다" — 새 답이 오면 따라 내려간다(`FE-REQ-031` FR-21) */
 const FOLLOW_THRESHOLD_PX = 80;
@@ -196,7 +204,7 @@ export const CoachConversation = ({
       <div className={styles.logFrame}>
         <div
           ref={logRef}
-          className={styles.log}
+          className={started ? styles.log : `${styles.log} ${styles.logStart}`}
           role="log"
           aria-label={ASK_COACH_MESSAGES.logLabel}
           aria-live="polite"
@@ -227,7 +235,16 @@ export const CoachConversation = ({
               {COACH_CHIPS.map((chip) => (
                 <li key={chip}>
                   <button type="button" className={styles.starter} disabled={busy} onClick={() => askChip(chip)}>
-                    {COACH_CHIP_LABEL[chip]}
+                    <span className={styles.starterIcon} aria-hidden="true">
+                      {(() => {
+                        const Icon = CHIP_ICON[chip];
+                        return <Icon size={16} strokeWidth={2} />;
+                      })()}
+                    </span>
+                    <span className={styles.starterText}>
+                      <span>{COACH_CHIP_LABEL[chip]}</span>
+                      <span className={styles.starterHint}>{COACH_CHIP_HINT[chip]}</span>
+                    </span>
                   </button>
                 </li>
               ))}

@@ -15,7 +15,7 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   tradeHeading: "내 거래",
   /** 알약 탭(`FE-REQ-049` FR-2 · 사용자 결정 2026-11-19 "합치기") — 개요 = 차트 + 한 장 패널, 나머지는 펼침에 있던 것 */
   tabsLabel: "종목 상세 보기",
-  tabs: { overview: "개요", orderbook: "호가", investors: "투자자", newsEvents: "소식 · 일정", trade: "내 거래" },
+  tabs: { overview: "개요", orderbook: "호가 · 투자자", investors: "투자자", newsEvents: "소식 · 일정", trade: "내 거래" },
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
   statRange: "24시간 범위",

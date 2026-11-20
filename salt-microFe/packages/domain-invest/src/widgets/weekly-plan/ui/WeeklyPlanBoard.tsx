@@ -2,8 +2,6 @@
 
 // 클라이언트 잎: 주간 계획 · 설정 · 월 합계를 브라우저에서 읽고(포지션 위젯과 같은 이유 — 토큰은 쿠키), 체크 · 저장이 여기서 일어난다.
 import { Button } from "@repo/ui/button";
-import { EmptyState } from "@repo/ui/emptyState";
-import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
@@ -23,7 +21,21 @@ import {
   useWeeklyPlan,
 } from "@/entities/plan";
 
-import { stack, twoColumns } from "./WeeklyPlanBoard.css";
+import {
+  emptyBody,
+  emptyGrid,
+  emptyMain,
+  emptyTitle,
+  sample,
+  sampleBadge,
+  sampleBar,
+  sampleHead,
+  sampleHero,
+  sampleName,
+  sampleRow,
+  stack,
+  twoColumns,
+} from "./WeeklyPlanBoard.css";
 
 /**
  * 밴드 적립 본문(`/plan`, F003 v2 순서 3) — 큰 숫자 → 자산별 근거 · 성적 · 빗나간 때 → 김프 · 이번 달 · 월 적립액.
@@ -59,16 +71,30 @@ export const WeeklyPlanBoard = () => {
   const plan = weekly.data;
   const settingsForm = settings.isSuccess ? <PlanSettingsForm settings={settings.data} /> : null;
 
+  // 설정 전 — 안내와 입력을 한 칸에, 오른쪽은 정한 뒤 모양 예시(2026-11-20 — 가운데 안내와 왼쪽 아래 입력이 떨어져 있었다)
   if (!plan.configured) {
     return (
-      <section className={panel} aria-labelledby="plan-empty">
-        <EmptyState
-          iconFrame="none"
-          icon={<StatusGraphic kind="empty" />}
-          title={<span id="plan-empty">{M.notConfiguredTitle}</span>}
-          description={M.notConfiguredBody}
-        />
-        {settingsForm}
+      <section className={`${panel} ${emptyGrid}`} aria-labelledby="plan-empty">
+        <div className={emptyMain}>
+          <h2 id="plan-empty" className={emptyTitle}>
+            {M.notConfiguredTitle}
+          </h2>
+          <p className={emptyBody}>{M.notConfiguredBody}</p>
+          {settingsForm}
+        </div>
+        <div className={sample} aria-hidden="true">
+          <div className={sampleHead}>
+            <span className={emptyBody}>{M.sampleTitle}</span>
+            <span className={sampleBadge}>{M.sample}</span>
+          </div>
+          <span className={sampleHero} />
+          {M.sampleRows.map((row, index) => (
+            <div key={row} className={sampleRow}>
+              <span className={sampleName}>{row}</span>
+              <span className={sampleBar} style={{ width: `${[72, 54, 38][index]}%` }} />
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
