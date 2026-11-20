@@ -203,3 +203,9 @@
 
 - `judgment-overview` 에 사이드 판(`layout="side"`)과 `InvestSide`(같은 두 칸 + 관심 종목)를 더함 — 띠의 칸 · 값 · 갈 곳은 그대로
 - 확인은 `FE-REQ-047` 체크리스트 2026-11-19 절(실화면 1440 · 900 · 390 앱 UA · 영역 검증 · zone 다섯 빌드)
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: `ScoreboardList` 의 `NavChevron` import 를 `@repo/web-shared/ui/frame` 으로(같은 컴포넌트 · 동작 변경 0)
+- 확인: 투자 zone 운영 빌드 · 라우트 크기 변화 0
+- 미검증: 없음(이 REQ 몫)

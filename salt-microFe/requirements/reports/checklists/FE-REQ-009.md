@@ -358,3 +358,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 레지스트리에 페이지 `plan` · 위젯 `weekly-plan`(엔티티 `plan` · 기능 둘은 이미 있었다) — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: 레이어 표에 features `tips-for-me` · `@repo/web-shared/ui/frame` 입구 예외(서버 페이지 틀 — 배럴의 클라이언트 모듈을 끌지 않는다, `fsd-shared.md` · `layer-rules.cjs`) · 훅 시험 통과 케이스 11
+- 확인: `test:layer-check` 차단 16 · 통과 11 · 규칙 직접 호출로 `ui/PageFrame/PageFrame` · `ui/frame/x` 차단 유지
+- 미검증: 없음(이 REQ 몫)

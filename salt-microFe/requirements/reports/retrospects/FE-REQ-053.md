@@ -70,3 +70,7 @@
 
 - 셸 `src/app` 재수출에서 `FONT_VARIABLES` 를 뺐다 — `fonts.ts` 삭제(시스템 서체)
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-20 `FE-REQ-060` 3단계
+
+- 파일만 걸침 — 이 REQ 몫 교훈 없음

@@ -144,3 +144,9 @@
 ## 2026-11-19 `FE-REQ-048` 데스크톱 홈이 걸침
 
 - 확인은 `FE-REQ-048` 체크리스트 2026-11-19 절(실화면 1440 · 1920 · 1280 · 900 · 390 앱 UA · 로딩 · 실패 · axe · 키보드 · 빌드)
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: 홈 카드 `NavChevron` · `ZoneLink` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0)
+- 확인: 셸 운영 빌드 · 실화면 `/home` 콘솔 0
+- 미검증: 없음(이 REQ 몫)

@@ -54,3 +54,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | 2026-11-05 | 금융 팁 S2b — FR-6 신설 · done(퀴즈 풀이 · 카드 모음) · 글 응답에 `quiz` · `changes`. 커밋 `4b5a294b` |
 | 2026-11-05 | 금융 팁 S2d — FR-7 신설 · done(내 숫자 — 원천 둘 → content). 글 응답 `myNumbers`. 커밋 `633057ad` |
 | 2026-11-05 | 금융 팁 S2d 확인 2회차 — FR-7 의 순서(원천 `allSettled` → 칸만 고름 · 원천 401 이면 계산 안 부름)를 규칙으로(`bff-architecture.md` §5 한 줄) |
+| 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — FE 가 기존 `GET /api/app/tips/for-me` 를 금융 팁 오른쪽 사이드에서도 부른다(맥락 savings · household, 로그인일 때만). 이 REQ 계약 · 코드 변경 0 — FE 화면 타입 `TipForMe` 를 `entities/tip` 에 옮겨 적음 |

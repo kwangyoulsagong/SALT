@@ -46,3 +46,9 @@
 |---|---|---|
 | 900 · 390 앱에서 시세 요약 띠가 잘리거나 겹침(코인 띠 오른쪽 · 비트코인 차트 아래로 이더리움 줄) | 이 PR 은 바탕색만 바꿨다 — 띠 배치는 `FE-REQ-050`. 이 PR 전부터인지 확인 못 함 | 요약 띠 좁은 폭 손볼 때(`FE-REQ-050` · 앱 웹뷰 `RN-REQ-032`) |
 
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: 홈 `PageFrame` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0)
+- 확인: 셸 운영 빌드 `/home` 크기 변화 0 · 실화면 h1 · 사이드 · 콘솔 0
+- 미검증: 없음(이 REQ 몫)

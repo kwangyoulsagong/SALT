@@ -118,3 +118,9 @@
 ## 2026-11-19 `FE-REQ-060` 2단계 저축이 걸침
 
 - 확인은 `FE-REQ-060` 체크리스트 2단계 절. 이 REQ 몫 동작 변경 0
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: 글자 크기 래칫 `domain-tips` 8 → 0(팁 화면 단 밖 크기 다 걷음) · 틀 컴포넌트 서버 입구 `@repo/web-shared/ui/frame`(같은 `PageFrame` · `SideRow` · `BackNav` · `NavChevron` · `ZoneLink`)
+- 확인: `fontSizeBudget.test.ts` 통과 · zone 5 운영 빌드
+- 미검증: 없음(이 REQ 몫)

@@ -75,3 +75,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9 · �
 | 2026-11-13 | F017 v4 순서 1c 짝(`feat/f017-v4-s1-scenario-always` — 이 REQ 가 머리 주인인 파일): `SymbolAnalysis` 가 해설 카드에 제목 단계 3 을 준다(h2 카드들 사이 — axe heading-order). 이 REQ 의 배치 변경 0 |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 요약 띠 목표 비중 칸 삭제 · 위험 한 줄은 리포트와 같은 헬퍼(`riskSummaryLine`)로 — 넘을 때만 강조. 리포트 리스크 예산은 한 줄 + 펼침(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — `judgment-overview` 에 사이드 판(`layout="side"`)과 `InvestSide`(같은 두 칸 + 관심 종목)를 더함 — 띠의 칸 · 값 · 갈 곳은 그대로 |
+| 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — `ScoreboardList` 의 `NavChevron` import 를 `@repo/web-shared/ui/frame` 으로(같은 컴포넌트 · 동작 변경 0) |
