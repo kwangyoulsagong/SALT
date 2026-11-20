@@ -305,3 +305,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
   - `salt-microFe/packages/domain-invest/src/entities/market/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
   - `salt-microFe/packages/domain-invest/src/widgets/asset-search/ui/AssetSearchDialog.tsx` — 게스트 검색 결과 대기 결함(꺼진 관심 조회 `isPending`) 고침 · 주석 정정
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/WatchlistTab.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+| 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 홈 온보딩 카드(`OnboardingCard`, 앱 웹뷰에서만 보임)를 맨 위 한 줄 배너 + 닫기로(`FE-REQ-048` FR-9 · `FE-REQ-060` FR-M3). 다음 단계 문구는 서버 값 그대로 |

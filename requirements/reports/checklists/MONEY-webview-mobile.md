@@ -1,0 +1,12 @@
+# MONEY-webview-mobile — 체크리스트
+
+영역 체크리스트가 진실이다: `salt-microFe/requirements/reports/checklists/FE-REQ-060.md` "4단계" 절 · `FE-REQ-048.md` "FR-9" 절.
+
+- [x] 가계부 · 저축 · 홈 앱 웹뷰 390 실화면(데이터 계정 · 빈 계정) · 운영 빌드에서 한 번 더
+- [x] 시트로 실제 저장 — 지출 3,200원 · 넣기 10,000원(서버 값으로 숫자 바뀜)
+- [x] 뒤로 · 바깥 누름 · Esc 로 시트 닫힘 · 남은 기록 칸 0
+- [x] 글자 ×2 가로 넘침 · 잘린 금액 0 · 터치 대상 44 · 보이는 글자 13 이상
+- [x] 데스크톱 1440 같은 계정 배치 변화 0
+- [x] check-types · lint · test · layer-check · build-storybook · 다섯 zone 운영 빌드 · 첫 로드 +1~2 kB
+- [ ] 실기기 키보드 · OS 글자 크기 · 하드웨어 뒤로 — 앱 없음, `RN-REQ-001` 뒤
+- [ ] 웹뷰 상세 패널 면 — `RN-REQ-032` 와 같이

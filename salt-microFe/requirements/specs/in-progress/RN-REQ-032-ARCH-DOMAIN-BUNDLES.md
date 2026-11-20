@@ -67,3 +67,4 @@ RN 앱은 코드가 없다(`apps/mobile` 없음, RN-REQ-001~031 전부 to-do). �
 | 2026-11-13 | FR-10 확정 — `FE-REQ-064` FR-12 확정을 따라감 |
 | 2026-11-17 | **F017 v4 순서 6**(`feat/f017-v4-s6-screen-cleanup`) — to-do → in-progress. FR-7 · 8 · 10 웹 몫 done(앱 웹뷰 UA 390 · 360 넘침 0 · 글자 13 · 누름 44 · 스트림 오프라인 · 복귀) · FR-9 대기(앱 없음). 실기기 측정은 `RN-REQ-001` 뒤 |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 앱 웹뷰에서 본문 패널 면 · 여백 · 선(`FE-REQ-047` FR-2)을 걷는다 · 화면 틀 사이드도 숨김 — 앱은 모바일 배치(FR-17). 390 앱 UA 실화면 확인 |
+| 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 웹뷰 글자 13 이상(FR-7) · 탭 44 를 돈 관리 화면 · 홈에도 — 홈 피드 보조 글 · 가계부 칩 · 저축 도구 글 12 → 13, 세그먼트 · 칩 · 지우기 44 |
