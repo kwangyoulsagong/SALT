@@ -127,8 +127,14 @@ class AppPortfolioService {
   }
 
   /** 평가금 흐름(기간 버튼) — 서버 그대로(BFF 계산 0) */
-  async getPositionFlow(token: string, range: FlowRange): Promise<PositionFlowVM> {
-    const response = await backendApi.proxyAuthRequest("GET", `/portfolio/position/flow?range=${range}`, token);
+  async getPositionFlow(token: string, range: FlowRange, timeout?: number): Promise<PositionFlowVM> {
+    const response = await backendApi.proxyAuthRequest(
+      "GET",
+      `/portfolio/position/flow?range=${range}`,
+      token,
+      undefined,
+      timeout === undefined ? undefined : { timeout },
+    );
     return toPositionFlowViewModel((response.data as { data: ServerPositionFlow }).data);
   }
 

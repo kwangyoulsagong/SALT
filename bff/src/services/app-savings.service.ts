@@ -261,8 +261,9 @@ class AppSavingsService {
     return data(await backendApi.proxyAuthRequest("GET", "/savings/templates", token, undefined, { timeout: READ_TIMEOUT_MS }));
   }
 
-  async goals(token: string): Promise<SavingsGoalVM[]> {
-    return data(await backendApi.proxyAuthRequest("GET", "/savings/goals", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  /** `timeout` — 홈 미리보기처럼 예산이 짧은 자리가 준다(기본은 화면 조회 예산) */
+  async goals(token: string, timeout = READ_TIMEOUT_MS): Promise<SavingsGoalVM[]> {
+    return data(await backendApi.proxyAuthRequest("GET", "/savings/goals", token, undefined, { timeout }));
   }
 
   /** 목록 요약 띠 — 가공 없이 그대로(`BFF-REQ-047` 수용 기준 1) */
