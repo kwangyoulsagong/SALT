@@ -120,3 +120,7 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 - lint 통과(`axios` 0)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-alerts-screen.md`
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- `@repo/web-shared/api` 에 로그인 계약 `signIn` 을 더함(셸 feature 에서 내림) — `apiFetch` 경유 그대로 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)

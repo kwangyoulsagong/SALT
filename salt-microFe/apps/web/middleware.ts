@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_HINT_COOKIE, SIGN_IN_NEXT_PARAM, safeNextPath } from "@repo/core/auth";
+import { MOBILE_REDIRECT_HEADERS, fromRequest, mobileRedirectOf } from "@repo/core/mobile";
 
 /**
  * 로그인한 사람이 `/`(로그인 화면)에 오면 **서버에서** 바로 홈으로 보낸다(2026-11-02).
@@ -14,6 +15,10 @@ import { SESSION_HINT_COOKIE, SIGN_IN_NEXT_PARAM, safeNextPath } from "@repo/cor
  * (2026-11-05 정정: 토큰이 쿠키로 갔다 — `FE-REQ-013` FR-80 2단계. 비공개 경로 서버 보호는 `FE-REQ-013` FR-82 — zone 5 · 운영 라우팅에 같이 걸려 별 칸)
  */
 export function middleware(request: NextRequest) {
+  // 휴대폰 문서 이동 → 대응 `/m` 주소가 먼저(`FE-REQ-071` FR-7) — `/` 는 `/m/login`, 거기서 로그인이면 `/m/home`
+  const mobile = mobileRedirectOf(fromRequest(request));
+  if (mobile) return NextResponse.redirect(new URL(mobile, request.url), { status: 302, headers: MOBILE_REDIRECT_HEADERS });
+  if (request.nextUrl.pathname !== "/") return NextResponse.next();
   if (request.cookies.get(SESSION_HINT_COOKIE)?.value === "1") {
     // 유리막에서 로그인하러 왔는데 이미 로그인돼 있으면 그 자리로(`FE-REQ-070` FR-6) — 우리 경로만
     const next = safeNextPath(request.nextUrl.searchParams.get(SIGN_IN_NEXT_PARAM));
@@ -22,4 +27,5 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/"] };
+// `MOBILE_REDIRECT_MATCHER_SOURCE`(`@repo/core/mobile`)와 같은 글자 — Next 가 정적으로 읽는다. `/` 도 잡는다
+export const config = { matcher: ["/((?!_next/|api/|m/|m$|.*\\.[a-zA-Z0-9]+$).*)"] };

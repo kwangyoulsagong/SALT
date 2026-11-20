@@ -6,13 +6,14 @@
  * 옮기지 않고 이 스크립트가 만든다 — 토큰을 바꾸면 다시 돌린다. `--check` 는 디스크와 다르면 실패한다(검증용).
  *
  * 만드는 것
- * - zone 앱 5개 `app/icon.svg`(입체 물방울 — 로고와 같은 아이콘) · `app/apple-icon.png`(180, 흰 바탕 · 입체 물방울 + 물결 · 여백 20%) · `app/favicon.ico`(16 · 32 입체)
+ * - 데스크톱 zone 앱 5개 `app/icon.svg`(입체 물방울 — 로고와 같은 아이콘) · `app/apple-icon.png`(180, 흰 바탕 · 입체 물방울 + 물결 · 여백 20%) · `app/favicon.ico`(16 · 32 입체)
  *   — Next 파일 규칙이라 `<link rel="icon">` 은 Next 가 단다. 내용이 같아 zone 마다 주소 해시도 같다
+ * - 휴대폰 zone `public/m/icons/` PWA 아이콘 넷(192 · 512 · maskable 512 · apple 180, `FE-REQ-071` FR-3)
  * - `docs/design-system/brand/` 의 SVG 3종(입체 심볼 · 글자 로고 · 어두운 바탕용) — 사람이 보는 사본
  *
  * 실행: `pnpm brand:icons` · 검사: `pnpm brand:icons --check`
  */
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -88,9 +89,11 @@ const logoSvg = (theme) => {
 
 const png = (source, size, base = 32) => sharp(Buffer.from(source), { density: 72 * (size / base) * 2 }).resize(size, size).png().toBuffer();
 
-/** 앱 아이콘 — 흰 바탕, 입체 물방울 + 물결이 가운데 60%(여백 20%씩) */
-const appleIcon = async () => {
-  const size = 180;
+/**
+ * 앱 아이콘 — 흰 바탕, 입체 물방울 + 물결이 가운데 60%(여백 20%씩).
+ * 같은 꼴로 휴대폰 PWA 아이콘도 굽는다(`FE-REQ-071` FR-3) — maskable 은 안전 영역(지름 80% 원) 안에 60% 가 들어가 그대로 쓴다.
+ */
+const appleIcon = async (size = 180) => {
   const inner = Math.round(size * 0.6);
   const symbol = await png(depthSvg(), inner, 200);
   const offset = Math.round((size - inner) / 2);
@@ -123,7 +126,10 @@ const ico = (entries) => {
 
 // zone 목록은 레지스트리 한 곳(`merge-zone-static.mjs` 와 같다) — zone 이 늘면 아이콘도 따라 생긴다
 const { ZONES, ZONE_IDS } = createRequire(import.meta.url)("../packages/core/src/zones/registry.cjs");
-const ZONE_APPS = ZONE_IDS.map((id) => ZONES[id].app);
+// 휴대폰 zone 은 Next 파일 규칙 아이콘(`app/icon.svg` · `apple-icon.png` · `favicon.ico` — 루트 주소라 셸 것과 겹친다)을 두지 않고
+// `/m/icons/` 아래 PWA 아이콘을 쓴다(매니페스트 · `apple-touch-icon`)
+const ZONE_APPS = ZONE_IDS.filter((id) => ZONES[id].surface !== "mobile").map((id) => ZONES[id].app);
+const MOBILE_APPS = ZONE_IDS.filter((id) => ZONES[id].surface === "mobile").map((id) => ZONES[id].app);
 
 const files = new Map();
 // 브라우저 탭 아이콘도 로고와 같은 입체 물방울이다(사용자 2026-11-04 "파비콘도 똑같은 아이콘으로") — SVG · ICO 16 · 32 전부
@@ -138,6 +144,13 @@ for (const app of ZONE_APPS) {
   files.set(`apps/${app}/app/apple-icon.png`, apple);
   files.set(`apps/${app}/app/favicon.ico`, favicon);
 }
+for (const app of MOBILE_APPS) {
+  const dir = `apps/${app}/public/m/icons`;
+  files.set(`${dir}/icon-192.png`, await appleIcon(192));
+  files.set(`${dir}/icon-512.png`, await appleIcon(512));
+  files.set(`${dir}/maskable-512.png`, await appleIcon(512));
+  files.set(`${dir}/apple-touch-icon.png`, apple);
+}
 files.set("docs/design-system/brand/salt-symbol.svg", Buffer.from(depthSvg()));
 files.set("docs/design-system/brand/salt-logo.svg", Buffer.from(logoSvg("light")));
 files.set("docs/design-system/brand/salt-logo-dark.svg", Buffer.from(logoSvg("dark")));
@@ -149,7 +162,10 @@ for (const [relative, data] of files) {
   const current = await readFile(target).catch(() => null);
   if (current && current.equals(data)) continue;
   if (check) stale.push(relative);
-  else await writeFile(target, data);
+  else {
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, data);
+  }
 }
 
 if (check && stale.length > 0) {

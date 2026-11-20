@@ -83,3 +83,7 @@
 - `FE-REQ-049` 상세 재설계가 걸침 — 유리막 자리(한 장 패널 · 주문 전 체크 · 거래 기록)는 그대로, 놓이는 칸만 바뀜(패널 = 개요 탭 · 거래 = 고정 열)
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-071` 짝
+
+- 공용 레이아웃 문구 파일에 로그인 문구가 셸에서 옮겨 왔다 — 이 REQ 의 동작 변화 없음 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)

@@ -331,3 +331,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 레지스트리에 페이지 `plan` · 위젯 `weekly-plan`(엔티티 `plan` · 기능 둘은 이미 있었다). 이 REQ 의 FR 은 그대로 |
 | 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 레이어 표에 features `tips-for-me` · `@repo/web-shared/ui/frame` 입구 예외(서버 페이지 틀 — 배럴의 클라이언트 모듈을 끌지 않는다, `fsd-shared.md` · `layer-rules.cjs`) · 훅 시험 통과 케이스 11 |
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
+| 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — layer-check 시험 케이스 +5(휴대폰 zone 3 · 배럴 밖 입구 2) |

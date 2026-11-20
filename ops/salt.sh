@@ -10,16 +10,17 @@
 #   ops/salt.sh plist <이름>     up 이 등록할 launchd plist 를 등록 없이 출력(검토용)
 #   ops/salt.sh sync            예측 실행 트리(~/.salt-run)를 지금 머지된 main 으로 맞춘다(평소엔 매시 live 가 한다)
 #   ops/salt.sh web dev <이름>…  그 zone 을 dev 로(고치는 zone 만 — 나머지는 운영 모드로 둔다)
-#   ops/salt.sh web prod [이름]… 그 zone(없으면 다섯 다)을 운영 빌드 + next start 로 — dev 목록에서 뺀다
+#   ops/salt.sh web prod [이름]… 그 zone(없으면 여섯 다)을 운영 빌드 + next start 로 — dev 목록에서 뺀다
 #   ops/salt.sh usage           도메인 사용 계측 — 최근 8주 주간 활성 · 재개율 · 카드 클릭(`ops/usage-weekly.sql`, 서버 S3d `SRV-REQ-048` FR-7)
 #
 # 왜 이 스크립트인가: 프로세스가 7개(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치 · 웹)인데 서버와 예측만 상시였고
 # 나머지는 사람이 기억해서 띄웠다. 2026-11-02 뉴스 워커가 09-29 부터 · BFF 시세 워커도 꺼진 채 발견 — 사용자 "계속 머 까먹어서".
 # 데이터를 모으는 프로세스(뉴스 · 시세)는 전부 상시로 둔다. 웹 dev 만 상시가 아니다(빌드 · 재시작이 잦다).
 #
-# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · forecast-intraday · forecast-backfill · web · web-investment · web-savings · web-household · web-tips
+# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · forecast-intraday · forecast-backfill · web · web-investment · web-savings · web-household · web-tips · web-mobile
 # platform = Kotlin(`salt-platform`, :4010) — S1 저축부터 화면 경로가 있다(`SRV-REQ-045`). RabbitMQ 는 그 스크립트가 Compose 로 띄운다
 # 웹 dev 는 zone 마다 하나(셸 web 3100(2026-11-20 3000 에서 — 3000 은 다른 업무 프로젝트) · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057` · 금융 팁 web-tips 3005 — `FE-REQ-058`, 2026-11-13 빠져 있던 것을 넣음). 셸이 도메인 경로를 각 zone 으로 프록시한다
+# 휴대폰 PWA web-mobile 3006(`/m/*`) — 2026-11-20 `FE-REQ-071`
 # 웹 zone 은 기본 운영 모드(빌드 + next start)다 — dev 서버는 zone 마다 2.4GB(오래 켜 두면 6.6GB) · 고칠 때마다 다섯이 각자 다시 컴파일해
 # CPU 478% 까지 갔다. 운영 모드는 zone 당 150MB · CPU 거의 0(2026-11-20 실측). 고치는 zone 만 `web dev <이름>` — 목록은 $WEB_DEV_FILE.
 # 운영 모드는 zone 별 정적 경로(`ZONE_STATIC=per-zone`, dev 와 같은 `/investment-static` 프록시) — `pnpm static:merge` 없이 셸이 그대로 프록시한다
@@ -49,20 +50,20 @@ LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
         forecast "$RUN/salt-forecast/ops/daily.sh" forecast-live "$RUN/salt-forecast/ops/live.sh" forecast-intraday "$RUN/salt-forecast/ops/intraday.sh" forecast-backfill "$RUN/salt-forecast/ops/backfill.sh")
-PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - forecast-intraday - forecast-backfill - web 3100 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005)
+PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - forecast-intraday - forecast-backfill - web 3100 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005 web-mobile 3006)
 HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
      bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" forecast-live "$LOGS/salt-forecast-live.log" forecast-intraday "$LOGS/salt-forecast-intraday.log" forecast-backfill "$LOGS/salt-forecast-backfill.log" web "$LOGS/salt-web.log"
      web-investment "$LOGS/salt-web-investment.log" web-savings "$LOGS/salt-web-savings.log"
-     web-household "$LOGS/salt-web-household.log" web-tips "$LOGS/salt-web-tips.log")
+     web-household "$LOGS/salt-web-household.log" web-tips "$LOGS/salt-web-tips.log" web-mobile "$LOGS/salt-web-mobile.log")
 # 포트 없는 상시 프로세스를 수동으로 띄웠는지 알아보는 명령줄 조각
 typeset -A PATTERN
 PATTERN=(news "workers/news-crawler.worker" bff-worker "workers/price-updater.worker")
-ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live forecast-intraday forecast-backfill web web-investment web-savings web-household web-tips)
+ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live forecast-intraday forecast-backfill web web-investment web-savings web-household web-tips web-mobile)
 # launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
-DEV_APPS=(web web-investment web-savings web-household web-tips)
+DEV_APPS=(web web-investment web-savings web-household web-tips web-mobile)
 is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
-# dev 로 띄울 zone 목록(한 줄에 하나) — 없으면 다섯 다 운영 모드
+# dev 로 띄울 zone 목록(한 줄에 하나) — 없으면 여섯 다 운영 모드
 WEB_DEV_FILE="$HOME/.salt-web-dev"
 wants_dev() { [[ -f $WEB_DEV_FILE ]] && grep -qx "$1" "$WEB_DEV_FILE"; }
 SERVICES=(server platform news bff-rest bff-ws bff-worker forecast forecast-live forecast-intraday forecast-backfill)
@@ -193,6 +194,7 @@ typeset -A WARM=(
   web-savings "/goals /goals/new"
   web-household "/household /household/new /household/budget"
   web-tips "/tips"
+  web-mobile "/m/login /m/home /m/goals"
 )
 
 warm_dev() {

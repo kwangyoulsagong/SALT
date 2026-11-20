@@ -63,7 +63,7 @@ features/{slice}/
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 격자 칸 옮기기 메뉴(키보드 대체) · 배치 저장(멈춘 뒤 한 번 · 저장 형식 판정은 `@repo/ui/layoutTree` `parseLayout`) | F006 (2026-11-19) |
-| `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
+| `sign-in` | 로그인 — 폼 · 계약 · 세션 저장은 `@repo/web-shared/layout/sign-in`(휴대폰 `/m/login` 과 한 벌, 2026-11-20 `FE-REQ-071` FR-6). 셸 슬라이스는 Redux 사용자 · 로그인한 사람 보내기만 | 현행 |
 | ~~`sign-out`~~ | ~~헤더 프로필 메뉴~~ **2026-11-02 삭제** — zone 이 같이 쓰므로 `@repo/web-shared/layout` `ProfileMenu`(설정 · 로그아웃은 문서 이동, `FE-REQ-053`) | — |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |

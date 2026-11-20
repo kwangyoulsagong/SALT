@@ -18,6 +18,8 @@
     "./ui/surface.css": "./src/ui/surface.css.ts",
     "./ui/app.css": "./src/ui/app.css.ts",
     "./layout": "./src/layout/index.ts",
+    "./layout/sign-in": "./src/layout/SignInForm.tsx",
+    "./layout/mobile": "./src/layout/mobile/index.ts",
     "./layout/globals.css": "./src/layout/globals.css.ts"
   },
   "scripts": {

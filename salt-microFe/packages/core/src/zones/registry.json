@@ -1,10 +1,11 @@
 {
-  "$comment": "zone 레지스트리 — 단일 소스(ADR-005 · FE-REQ-052 FR-2). TS(registry.ts)와 CommonJS(registry.cjs: next.config · eslint · 훅)가 이 파일 하나를 읽는다. hostedIn = 그 도메인 화면을 지금 실제로 서비스하는 앱. assetPrefix = dev 정적 경로(운영 빌드는 공용 /_next — ADR-005 규칙 7 개정 2026-11-03). 화면을 자기 zone 으로 옮기는 REQ(hostedUntil)가 닫히면 자기 app 으로 바꾼다.",
+  "$comment": "zone 레지스트리 — 단일 소스(ADR-005 · FE-REQ-052 FR-2). TS(registry.ts)와 CommonJS(registry.cjs: next.config · eslint · 훅)가 이 파일 하나를 읽는다. hostedIn = 그 도메인 화면을 지금 실제로 서비스하는 앱. assetPrefix = dev 정적 경로(운영 빌드는 공용 /_next — ADR-005 규칙 7 개정 2026-11-03). 화면을 자기 zone 으로 옮기는 REQ(hostedUntil)가 닫히면 자기 app 으로 바꾼다. surface = \"mobile\" 은 도메인이 아니라 화면 표면 zone(휴대폰 PWA /m — ADR-012). mobileRedirects = 휴대폰 문서 이동을 /m 으로 보내는 대응표(데스크톱 경로 → /m 경로, prefix 면 뒤를 그대로 붙인다) — 화면을 /m 으로 옮기는 REQ(F019 순서 2)가 행을 더한다.",
   "zones": {
     "shell": {
       "app": "web",
       "domain": null,
       "domainPackage": null,
+      "surface": "desktop",
       "devPort": 3100,
       "pathPrefixes": ["/", "/home", "/login", "/onboarding", "/settings", "/alerts", "/streaming-probe"],
       "assetPrefix": null,
@@ -16,6 +17,7 @@
       "app": "web-investment",
       "domain": "invest",
       "domainPackage": "@repo/domain-invest",
+      "surface": "desktop",
       "devPort": 3002,
       "pathPrefixes": ["/investments", "/coach", "/search", "/portfolio", "/plan"],
       "assetPrefix": "/investment-static",
@@ -27,6 +29,7 @@
       "app": "web-savings",
       "domain": "savings",
       "domainPackage": "@repo/domain-savings",
+      "surface": "desktop",
       "devPort": 3003,
       "pathPrefixes": ["/goals"],
       "assetPrefix": "/savings-static",
@@ -38,6 +41,7 @@
       "app": "web-household",
       "domain": "household",
       "domainPackage": "@repo/domain-household",
+      "surface": "desktop",
       "devPort": 3004,
       "pathPrefixes": ["/household"],
       "assetPrefix": "/household-static",
@@ -49,12 +53,29 @@
       "app": "web-tips",
       "domain": "tips",
       "domainPackage": "@repo/domain-tips",
+      "surface": "desktop",
       "devPort": 3005,
       "pathPrefixes": ["/tips"],
       "assetPrefix": "/tips-static",
       "hostedIn": "web-tips",
       "hostedUntil": null,
       "reason": "금융 팁 — 공개 · ISR. 공개 전 법무 확인"
+    },
+    "mobile": {
+      "app": "web-mobile",
+      "domain": null,
+      "domainPackage": null,
+      "surface": "mobile",
+      "devPort": 3006,
+      "pathPrefixes": ["/m"],
+      "assetPrefix": "/mobile-static",
+      "hostedIn": "web-mobile",
+      "hostedUntil": null,
+      "reason": "휴대폰 PWA — 표면 zone 하나(ADR-012). 화면은 domain-* 의 mobile 진입점, zone 은 조립 · 매니페스트 · 서비스 워커 · 하단 탭"
     }
-  }
+  },
+  "mobileRedirects": [
+    { "from": "/", "to": "/m/login", "prefix": false, "by": "FE-REQ-071" },
+    { "from": "/login", "to": "/m/login", "prefix": false, "by": "FE-REQ-071" }
+  ]
 }

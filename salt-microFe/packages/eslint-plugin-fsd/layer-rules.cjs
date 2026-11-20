@@ -219,6 +219,9 @@ const WEB_SHARED_PACKAGE = "@repo/web-shared";
  */
 const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "layout"];
 
+/** 세그먼트 안쪽이지만 열어 둔 입구 — 배럴을 끌지 않는다(`fsd-shared.md`). `package.json` `exports` 와 같은 목록 */
+const WEB_SHARED_DIRECT_ENTRIES = ["ui/frame", "layout/sign-in", "layout/mobile"];
+
 /** 도메인 패키지 안에 둘 수 있는 레이어. shared 는 `@repo/web-shared`, app 은 zone 앱이 갖는다 */
 const DOMAIN_PACKAGE_LAYERS = ["entities", "features", "widgets", "pages"];
 
@@ -340,6 +343,7 @@ const domainPackageOfPath = (resolved) => {
  * | `packages/domain-A` | `domain-B` | `cross-domain` — 도메인 사이는 URL 링크와 BFF 응답으로만 |
  * | 셸 `apps/web` | `domain-*` | `shell-domain` — 홈은 BFF 카드로만 받는다 |
  * | zone 앱 `apps/web-<x>` | 남의 `domain-*` | `foreign-domain` — zone 은 자기 도메인 패키지만 |
+ * | 휴대폰 zone `apps/web-mobile` | `domain-*` 의 `mobile` 진입점 밖(`pages/*` · 배럴) | `mobile-domain` — 휴대폰 화면은 `@repo/domain-<x>/mobile/*` 만(`FE-REQ-071` FR-2) |
  */
 const checkDomainImport = (here, source, resolved) => {
   const target = domainPackageOf(source) || domainPackageOfPath(resolved);
@@ -362,6 +366,14 @@ const checkDomainImport = (here, source, resolved) => {
     return {
       rule: "shell-domain",
       message: `'${source}' — 셸(\`apps/${zones.SHELL_APP}\`)은 도메인 화면 코드를 import 하지 않는다. 홈은 BFF \`HomeSummaryCard[]\` 로만 받는다 (ADR-005 §2-2).`,
+    };
+  }
+  if (zones.MOBILE_ZONE_APPS.includes(here.app)) {
+    // 표면 zone 은 도메인 넷을 다 조립한다 — 대신 데스크톱 화면(`pages` · 배럴)이 아니라 `mobile` 진입점만(`ADR-012`)
+    if (new RegExp(`^${target}/mobile(?:/|$)`).test(source)) return null;
+    return {
+      rule: "mobile-domain",
+      message: `'${source}' — 휴대폰 zone(\`apps/${here.app}\`)은 도메인 패키지의 \`mobile\` 진입점(\`${target}/mobile/<page>\`)만 조립한다. 데스크톱 화면(\`pages\` · 배럴)을 가져오면 데스크톱 분기가 휴대폰에 실린다 (FE-REQ-071 FR-2, ADR-012).`,
     };
   }
   if (zones.DOMAIN_ZONE_APPS.includes(here.app)) {
@@ -487,11 +499,13 @@ const checkImport = (filePath, source) => {
     // 예외: vanilla-extract 토큰. barrel 로 가져오면 `.css.ts` 빌드 그래프에 React 가 들어온다.
     const isStyleModule = /\.css$/.test(source);
     // 예외 둘: 서버 페이지용 화면 틀 입구 — 배럴을 값으로 읽으면 클라이언트 모듈이 전부 딸려 간다(FE-REQ-060 3단계, 118 → 152 kB)
-    const isFrameEntry = source === `${WEB_SHARED_PACKAGE}/ui/frame`;
-    if (target.deeper.length > 0 && !isStyleModule && !isFrameEntry) {
+    // 예외 셋: 배럴 밖 입구 — 서버 페이지 틀(`ui/frame`) · 로그인 폼(`layout/sign-in` — 셸 `/` · 휴대폰 `/m/login`) · 휴대폰 틀(`layout/mobile`).
+    // 배럴에 두면 그 배럴을 읽는 데스크톱 zone 다섯의 레이아웃 번들에 클라이언트 모듈이 딸려 간다(`FE-REQ-071`)
+    const isDirectEntry = WEB_SHARED_DIRECT_ENTRIES.includes(source.slice(WEB_SHARED_PACKAGE.length + 1));
+    if (target.deeper.length > 0 && !isStyleModule && !isDirectEntry) {
       return {
         rule: "segment-internal",
-        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`${fromWebShared ? WEB_SHARED_PACKAGE : "@/shared"}/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈과 \`${WEB_SHARED_PACKAGE}/ui/frame\`(서버 페이지 틀 입구)뿐이다.`,
+        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`${fromWebShared ? WEB_SHARED_PACKAGE : "@/shared"}/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈과 입구 ${WEB_SHARED_DIRECT_ENTRIES.map((e) => `\`${WEB_SHARED_PACKAGE}/${e}\``).join(" · ")} 뿐이다.`,
       };
     }
     return null;
@@ -538,10 +552,12 @@ const checkLocation = (filePath) => {
   const here = locate(filePath);
   if (!here || here.area !== "src") return null;
 
-  if (zones.DOMAIN_ZONE_APPS.includes(here.app) && THIN_ZONE_FORBIDDEN_LAYERS.includes(here.layer)) {
+  const thinZone = zones.DOMAIN_ZONE_APPS.includes(here.app) || zones.MOBILE_ZONE_APPS.includes(here.app);
+  if (thinZone && THIN_ZONE_FORBIDDEN_LAYERS.includes(here.layer)) {
+    const home = zones.domainPackageOfApp(here.app) ?? "`domain-*` 의 `mobile` 진입점";
     return {
       rule: "thin-zone",
-      message: `\`apps/${here.app}/src/${here.layer}\` — zone 앱은 얇다. 라우트 · 레이아웃 · next.config 만 두고 화면은 \`${zones.domainPackageOfApp(here.app)}\` 에 둔다 (FE-REQ-052 FR-4, ADR-005 §2-4).`,
+      message: `\`apps/${here.app}/src/${here.layer}\` — zone 앱은 얇다. 라우트 · 레이아웃 · next.config 만 두고 화면은 \`${home}\` 에 둔다 (FE-REQ-052 FR-4, ADR-005 §2-4 · ADR-012).`,
     };
   }
 

@@ -44,7 +44,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 **피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
 **규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
-미러가 아니다. 위반 케이스 15개(레이어 7 + 도메인 4 + 패키지 안 4, `FE-REQ-052` · `053` — RN 교차는 2026-11-20 `ADR-012` 로 뺐다)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
+미러가 아니다. 위반 케이스 19개(레이어 7 + 도메인 4 + 패키지 안 5 + 휴대폰 zone 3, `FE-REQ-052` · `053` · `071` — RN 교차는 2026-11-20 `ADR-012` 로 뺐다)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
 **훅이 막으면 우회하지 말고 구조를 고친다.**
 
@@ -62,7 +62,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
 
-**예외 둘 — `*.css` 토큰 모듈 · `@repo/web-shared/ui/frame`(서버 페이지 틀 입구, `fsd-shared.md`).** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
+**예외 — `*.css` 토큰 모듈 · 배럴 밖 입구 셋(`ui/frame` · `layout/sign-in` · `layout/mobile`, `fsd-shared.md`).** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
 `.css.ts`는 빌드 타임에 node에서 평가되므로 barrel로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.
 

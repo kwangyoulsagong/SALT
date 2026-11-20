@@ -27,7 +27,9 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 | `apps/web-savings` | 저축 `savings` | `/goals` | `packages/domain-savings` | 3003 · `/savings-static` |
 | `apps/web-household` | 가계부 `household` | `/household` | `packages/domain-household` | 3004 · `/household-static` |
 | `apps/web-tips` | 금융 팁 `tips` | `/tips`(공개 · ISR) | `packages/domain-tips` | 3005 · `/tips-static` |
+| `apps/web-mobile` | 휴대폰 표면(도메인 아님, `ADR-012`) | `/m`(PWA — 매니페스트 · SW 범위 `/m/`) | `domain-*` 의 `mobile` 진입점 · 틀은 `@repo/web-shared/layout/mobile` | 3006 · `/mobile-static` |
 
+- **휴대폰 이동** — 데스크톱 zone 다섯의 `middleware.ts` 가 `@repo/core/mobile` `mobileRedirectOf` 한 줄로 휴대폰 문서 이동(GET)만 레지스트리 `mobileRedirects` 대응표대로 `/m` 에 302(`FE-REQ-071` FR-7). 표에 없는 경로는 768 미만 안내. matcher 글자가 zone 마다 같은지는 `redirect.test.ts` 가 본다
 - 도메인 이름은 프론트 패키지 · BFF 경로 · 서버 서비스(`ADR-006`) 가 **같다**. 휴대폰 PWA zone(`/m`, `ADR-012`)은 도메인이 아니라 표면 zone 하나 — 화면은 도메인 패키지의 `mobile` 진입점
 - `apps/web-tax` 는 삭제한다(`ADR-002` 로 기능이 없다). 가계부는 `household` — 지운 `ledger` 와 섞지 않는다
 - 투자는 **동결** — 기획된 것까지만(`ADR-005` §5)

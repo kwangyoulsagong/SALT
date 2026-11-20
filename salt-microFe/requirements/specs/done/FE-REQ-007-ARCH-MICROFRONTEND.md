@@ -257,3 +257,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
   - `salt-microFe/packages/core/src/auth/keys.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — `@repo/tokens` 에 모바일 글자 토큰 `appType`(값은 `typography` 단 그대로) — 웹 어댑터 `vars` 로 그대로 올라간다. RN 이 같은 값을 본다 |
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
+| 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 레지스트리에 휴대폰 표면 zone `mobile`(`surface` · `/m` · 3006) · 대응표 `mobileRedirects` 를 더했다 |

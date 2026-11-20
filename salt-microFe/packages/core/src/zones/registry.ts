@@ -10,7 +10,7 @@
  */
 import data from "./registry.json";
 
-export const ZONE_IDS = ["shell", "invest", "savings", "household", "tips"] as const;
+export const ZONE_IDS = ["shell", "invest", "savings", "household", "tips", "mobile"] as const;
 
 export type ZoneId = (typeof ZONE_IDS)[number];
 
@@ -19,8 +19,13 @@ export interface ZoneDescriptor {
   readonly app: string;
   /** 도메인 이름 — BFF 경로 · 서버 서비스 · RN 번들과 같다. 셸은 `null` */
   readonly domain: string | null;
-  /** 화면 코드 패키지(`packages/domain-*`). 셸은 `null` */
+  /** 화면 코드 패키지(`packages/domain-*`). 셸 · 휴대폰 zone 은 `null` */
   readonly domainPackage: string | null;
+  /**
+   * 화면 표면. 데스크톱 zone 은 도메인 하나씩, 휴대폰 PWA zone(`/m`)은 **도메인이 아니라 표면 하나**다(`ADR-012` — `ADR-005` §1 예외).
+   * 휴대폰 zone 은 도메인 패키지의 `mobile` 진입점만 조립한다(레이어 규칙 `mobile-domain`).
+   */
+  readonly surface: "desktop" | "mobile";
   /** 개발 서버 포트 */
   readonly devPort: number;
   /**
@@ -44,6 +49,24 @@ export interface ZoneDescriptor {
 }
 
 export const ZONES = data.zones as Readonly<Record<ZoneId, ZoneDescriptor>>;
+
+/** 휴대폰 문서 이동 대응표 한 행 — 데스크톱 경로 `from` 을 `/m` 경로 `to` 로. `prefix` 면 `from/…` 의 뒤를 `to` 에 붙인다 */
+export interface MobileRedirect {
+  readonly from: string;
+  readonly to: string;
+  readonly prefix: boolean;
+  /** 이 행을 더한 REQ — 화면을 `/m` 으로 옮긴 곳 */
+  readonly by: string;
+}
+
+/**
+ * 휴대폰 대응표(`FE-REQ-071` FR-7). **대응 화면이 `/m` 에 실제로 있을 때만** 행을 둔다 — 없는 화면으로 보내지 않고,
+ * 표에 없는 데스크톱 경로는 그 자리에서 768 미만 안내("데스크톱으로 이동해 주세요")를 본다. 판정은 `@repo/core/mobile`.
+ */
+export const MOBILE_REDIRECTS = data.mobileRedirects as readonly MobileRedirect[];
+
+/** 휴대폰 PWA zone */
+export const MOBILE_ZONE_ID = "mobile" satisfies ZoneId;
 
 /** 셸 앱 이름 — 기본 관찰 지점 */
 export const SHELL_APP = ZONES.shell.app;

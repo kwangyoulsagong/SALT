@@ -7,6 +7,7 @@ import {
   ZONES,
   crossZonePathPrefixes,
   isCrossZonePath,
+  MOBILE_REDIRECTS,
   zoneOfPath,
 } from "./registry";
 
@@ -23,8 +24,8 @@ const node = require("./registry.cjs") as {
 };
 
 describe("zone 레지스트리 (ADR-005)", () => {
-  it("zone 5개 — 셸 + 도메인 4", () => {
-    expect([...ZONE_IDS]).toEqual(["shell", "invest", "savings", "household", "tips"]);
+  it("zone 6개 — 셸 + 도메인 4 + 휴대폰 표면 1(ADR-012)", () => {
+    expect([...ZONE_IDS]).toEqual(["shell", "invest", "savings", "household", "tips", "mobile"]);
     expect(node.ZONE_IDS).toEqual([...ZONE_IDS]);
     expect(ZONE_IDS.map((id) => ZONES[id].app)).toEqual([
       "web",
@@ -32,7 +33,35 @@ describe("zone 레지스트리 (ADR-005)", () => {
       "web-savings",
       "web-household",
       "web-tips",
+      "web-mobile",
     ]);
+    expect(ZONE_IDS.filter((id) => ZONES[id].surface === "mobile")).toEqual(["mobile"]);
+  });
+
+  it("휴대폰 zone 은 /m 하나 — 도메인 zone 이 아니다(FE-REQ-071 FR-1)", () => {
+    const n = node as unknown as { DOMAIN_ZONE_APPS: string[]; MOBILE_ZONE_APPS: string[] };
+    expect(n.MOBILE_ZONE_APPS).toEqual(["web-mobile"]);
+    expect(n.DOMAIN_ZONE_APPS).not.toContain("web-mobile");
+    expect(zoneOfPath("/m/home")).toBe("mobile");
+    expect(zoneOfPath("/m")).toBe("mobile");
+    // 접두 일치는 `/m/` 까지 — `/market` 은 휴대폰 경로가 아니다
+    expect(zoneOfPath("/market")).toBe("shell");
+    expect(isCrossZonePath("/m/home")).toBe(true);
+    expect(isCrossZonePath("/m/goals", "web-mobile")).toBe(false);
+    expect(isCrossZonePath("/goals", "web-mobile")).toBe(true);
+    expect(node.zoneRewrites().fallback).toContainEqual({
+      source: "/m/:path+",
+      destination: "http://localhost:3006/m/:path+",
+    });
+  });
+
+  it("휴대폰 대응표 — 목적지는 /m 안 · 출발지는 데스크톱 · 겹침 없음", () => {
+    for (const row of MOBILE_REDIRECTS) {
+      expect(zoneOfPath(row.to)).toBe("mobile");
+      expect(zoneOfPath(row.from)).not.toBe("mobile");
+    }
+    const froms = MOBILE_REDIRECTS.map((row) => row.from);
+    expect(new Set(froms).size).toBe(froms.length);
   });
 
   it("경로 prefix · assetPrefix · 포트가 zone 간 유일하다", () => {

@@ -74,8 +74,13 @@ const domainPackageOfApp = (app) => {
 /** `packages/domain-<x>` 디렉터리 이름 → 패키지 이름 */
 const DOMAIN_PACKAGES = ZONE_IDS.map((id) => ZONES[id].domainPackage).filter(Boolean);
 
-/** 셸이 아닌 zone 앱 이름 */
-const DOMAIN_ZONE_APPS = ZONE_IDS.filter((id) => ZONES[id].app !== SHELL_APP).map(
+/** 셸이 아닌 **도메인** zone 앱 이름 — 휴대폰 표면 zone(`ADR-012`)은 빠진다 */
+const DOMAIN_ZONE_APPS = ZONE_IDS.filter(
+  (id) => ZONES[id].app !== SHELL_APP && ZONES[id].surface !== "mobile"
+).map((id) => ZONES[id].app);
+
+/** 휴대폰 PWA 표면 zone 앱 이름(`ADR-012`) — 도메인 패키지의 `mobile` 진입점만 조립한다 */
+const MOBILE_ZONE_APPS = ZONE_IDS.filter((id) => ZONES[id].surface === "mobile").map(
   (id) => ZONES[id].app
 );
 
@@ -85,6 +90,7 @@ module.exports = {
   SHELL_APP,
   DOMAIN_PACKAGES,
   DOMAIN_ZONE_APPS,
+  MOBILE_ZONE_APPS,
   zoneIdOfApp,
   crossZonePathPrefixes,
   zoneOrigin,
