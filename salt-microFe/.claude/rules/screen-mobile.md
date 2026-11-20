@@ -19,6 +19,8 @@
 - 굵기 5단: Light · Regular · Medium · Semibold · Bold
 - **기기 글자 크기를 따른다** — 160% · 200% 에서 배치가 깨지지 않게(금액은 잘리지 않고 줄바꿈, 시트 · 목록 머리는 세로로 쌓임). 토큰 값을 컴포넌트에 숫자로 박지 않는다
 - 숫자는 고정폭 숫자
+- **앱 웹뷰(웹 코드)는 토큰 `vars.appType.*`**(hero 30 · title 22 · sheetTitle 20 · body 17 · desc 15 · caption 13 — 2026-11-20 `FE-REQ-060` FR-M) — `IN_APP_WEBVIEW` 선택자 안에서만. 밖에서 쓰면 `fontSizeBudget.test.ts` 가 막는다
+- 웹뷰 배치는 데스크톱과 **같은 HTML 에 두고 CSS 로 고른다**(`@repo/web-shared/ui/app.css` `deskOnly` · `AppSummary`). 붙일지를 가를 때만 `useInAppWebview` — 하단 고정 버튼 → 시트는 `AppSheetAction`(뒤로로 닫힘)
 
 ## 2. 색
 

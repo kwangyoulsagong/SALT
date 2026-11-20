@@ -303,6 +303,25 @@ export const tokens = {
     price: { fontSize: "24px", lineHeight: "32px", fontWeight: "700" },
   },
 
+  /**
+   * 모바일 글자(앱 웹뷰 · RN — `screen-mobile.md` §1, `FE-REQ-060` FR-M). 값은 `typography` 단 그대로, 이름은 쓰는 자리.
+   * 웹에서는 **앱 웹뷰 선택자(`IN_APP_WEBVIEW`) 안에서만** 쓴다 — 데스크톱 화면은 `deskType` 다섯 단(`fontSizeBudget.test.ts` 가 센다)
+   */
+  appType: {
+    /** t1 30/40 — 화면의 주인공 금액 한 줄 */
+    hero: { fontSize: "30px", lineHeight: "40px", fontWeight: "700" },
+    /** t3 22/31 — 화면 제목 */
+    title: { fontSize: "22px", lineHeight: "31px", fontWeight: "700" },
+    /** t4 20/29 — 시트 제목 · 섹션 큰 제목 */
+    sheetTitle: { fontSize: "20px", lineHeight: "29px", fontWeight: "700" },
+    /** t5 17/25.5 — 본문 · 목록 행 이름 · 금액 */
+    body: { fontSize: "17px", lineHeight: "25.5px", fontWeight: "600" },
+    /** t6 15/22.5 — 작은 본문 · 설명 · 보조 값 */
+    desc: { fontSize: "15px", lineHeight: "22.5px", fontWeight: "500" },
+    /** t7 13/19.5 — 안 읽어도 되는 글(출처 · 시각 · 행 보조) */
+    caption: { fontSize: "13px", lineHeight: "19.5px", fontWeight: "500" },
+  },
+
   fontSizes: {
     xs: "10px",
     sm: "12px",

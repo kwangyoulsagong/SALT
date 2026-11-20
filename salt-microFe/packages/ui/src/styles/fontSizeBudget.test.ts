@@ -62,6 +62,18 @@ describe("데스크톱 글자 크기 다섯 단(FE-REQ-047 FR-3)", () => {
     expect(offScaleSizes(`fontSize: vars.fontSizes.lg, fontSize: vars.fontSizes["2xl"], ...vars.typography.t6`)).toEqual(["lg", "2xl", "t6"]);
   });
 
+  // 모바일 글자(`appType`)는 앱 웹뷰 선택자 안에서만 — 데스크톱 단 밖 크기를 이 이름으로 우회하지 않게(`FE-REQ-060` FR-M)
+  it("appType 은 IN_APP_WEBVIEW 를 쓰는 파일에서만", () => {
+    const leaks = Object.keys(BUDGET)
+      .flatMap((root) => cssFiles(join(REPO, root)))
+      .filter((file) => {
+        const source = readFileSync(file, "utf8");
+        return /appType\./.test(source) && !source.includes("IN_APP_WEBVIEW");
+      })
+      .map((file) => relative(REPO, file));
+    expect(leaks, `appType 을 웹뷰 선택자 밖에서 썼다:\n${leaks.join("\n")}`).toEqual([]);
+  });
+
   for (const [root, budget] of Object.entries(BUDGET)) {
     it(`${root} — 단 밖 크기 ${budget} 개 — 늘면 실패 · 줄면 BUDGET 을 낮춘다`, () => {
       const hits = cssFiles(join(REPO, root)).flatMap((file) =>
