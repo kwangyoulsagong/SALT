@@ -35,7 +35,20 @@ export const trail = style({
   color: vars.colors.desk.text2,
 });
 
-export const crumb = style({ display: "inline-flex", alignItems: "center", gap: vars.space.xs, whiteSpace: "nowrap" });
+/**
+ * 이동 경로 칸 — 줄바꿈 없이 한 줄. 앞 칸(목록 이름)은 줄지 않고 **마지막 칸(지금 화면)만 줄어 말줄임**.
+ * `nav` · 마지막 칸에 `minWidth: 0` 이 없으면 긴 이름이 줄지 않아 360 에서 20px 가로로 넘쳤다(2026-11-20 금융 팁 글)
+ */
+export const nav = style({ minWidth: 0 });
+
+export const crumb = style({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: vars.space.xs,
+  whiteSpace: "nowrap",
+  flexShrink: 0,
+  selectors: { "&:last-child": { flexShrink: 1, minWidth: 0 } },
+});
 
 export const crumbLink = style({ color: "inherit", textDecoration: "none", ":hover": { color: vars.colors.desk.text1 } });
 

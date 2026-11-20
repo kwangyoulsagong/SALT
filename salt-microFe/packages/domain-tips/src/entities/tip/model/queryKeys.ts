@@ -6,4 +6,6 @@
 export const tipQueryKeys = {
   quizCards: ["tips", "quiz-cards"] as const,
   myNumbers: (slug: string) => ["tips", "my-numbers", slug] as const,
+  /** 내게 맞춘 팁(사이드) — 맥락(저축 · 가계부)마다 한 건 */
+  forMe: (context: string) => ["tips", "for-me", context] as const,
 };

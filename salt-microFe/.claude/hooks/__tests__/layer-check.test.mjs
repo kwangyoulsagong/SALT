@@ -175,6 +175,11 @@ const ALLOWED = [
     code: `import { vars } from "@repo/web-shared/ui/tokens.css";`,
   },
   {
+    name: "web-shared 서버 페이지 틀 입구(ui/frame)는 허용 — 배럴의 클라이언트 모듈을 끌지 않는다(FE-REQ-060 3단계)",
+    file: "/repo/salt-microFe/packages/domain-tips/src/pages/tips/ui/TipsPage.tsx",
+    code: `import { PageFrame } from "@repo/web-shared/ui/frame";`,
+  },
+  {
     name: "web-shared 세그먼트끼리 상대 경로",
     file: "/repo/salt-microFe/packages/web-shared/src/ui/CrossZoneLink/CrossZoneLink.tsx",
     code: `import { isCrossZonePath } from "../../config";`,

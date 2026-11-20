@@ -5,7 +5,7 @@ import type { JudgmentScoreboardView, ScoreboardCase, ScoreboardGroup } from "@r
 import { Badge } from "@repo/ui/badge";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { NavChevron } from "@repo/web-shared/ui";
+import { NavChevron } from "@repo/web-shared/ui/frame";
 
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
 import { SCOREBOARD_MESSAGES, SIGNAL_EVIDENCE_MESSAGES } from "../model";

@@ -29,3 +29,9 @@
 - 검증: `npm run build` · `npm test` 401/401(이 파일 새 6 — 원천 둘 → 사실만(목표 이름 · id 0) · 예산 1.5초 · 모르는 상태는 unknown / 끈 급여 not_set / 원천 늦음 · 5xx · 정수 아닌 금액 → 그 원천만 못 읽음 / content 5xx → reading null · 401 · 404 던짐 / 원천 401 이면 content 안 부름 / 빈 slug 400)
 - 실스택: 4001 → platform 4010 → 로컬 DB(임시 사용자) — 실화면 · 슬라이스 체크리스트
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: FE 가 기존 `GET /api/app/tips/for-me` 를 금융 팁 오른쪽 사이드에서도 부른다(맥락 savings · household, 로그인일 때만). 이 REQ 계약 · 코드 변경 0 — FE 화면 타입 `TipForMe` 를 `entities/tip` 에 옮겨 적음
+- 확인: 실화면에서 두 맥락 응답(11월 트리거) · 실패 · degraded 표시 확인. BFF 변경 0
+- 미검증: 없음(이 REQ 몫)

@@ -77,3 +77,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): FR-7 done · 새 FR-9 계측 done. `/settings` 번들 7.41 → 8.34 kB · `/home` 12.4 → 12.6 kB |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — 셸 `entities/notification` 배럴에 알림 목록 · 행 · 시각을 더했다. 알림 설정(FR-6) 동작 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | `FE-REQ-048` 데스크톱 홈(`feat/fe-req-048-home-desktop`)이 이 REQ 파일을 걸침 — 홈 요약 카드 모양을 데스크톱 카드로(3D 아이콘 · 주인공 값 · 보조 한 줄) — 계약 · 계측 그대로 |
+| 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 홈 카드 `NavChevron` · `ZoneLink` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0) |

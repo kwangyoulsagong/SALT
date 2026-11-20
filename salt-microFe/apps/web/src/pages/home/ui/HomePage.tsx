@@ -1,4 +1,4 @@
-import { PageFrame } from "@repo/web-shared/ui";
+import { PageFrame } from "@repo/web-shared/ui/frame";
 
 import { HomeBriefing, QuickActions } from "@/widgets/home-briefing";
 import { OnboardingCard, OnboardingSideRow } from "@/widgets/onboarding-flow";

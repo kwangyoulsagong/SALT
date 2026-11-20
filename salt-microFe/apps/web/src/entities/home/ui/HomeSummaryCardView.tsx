@@ -1,6 +1,6 @@
 import { ServiceIcon } from "@repo/ui/serviceicon";
 
-import { NavChevron, ZoneLink } from "@repo/web-shared/ui";
+import { NavChevron, ZoneLink } from "@repo/web-shared/ui/frame";
 
 import { HOME_DOMAIN_ICON } from "../model/domainIcon";
 import { HOME_CARD_MESSAGES } from "../model/messages";

@@ -1,6 +1,6 @@
 
 import { ROUTES } from "@repo/web-shared/config";
-import { NavChevron, PageFrame, ZoneLink } from "@repo/web-shared/ui";
+import { NavChevron, PageFrame, ZoneLink } from "@repo/web-shared/ui/frame";
 import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { HomeLayoutPanel } from "@/features/arrange-home";

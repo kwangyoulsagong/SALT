@@ -105,3 +105,7 @@
 
 - `judgment-overview` 에 사이드 판(`layout="side"`)과 `InvestSide`(같은 두 칸 + 관심 종목)를 더함 — 띠의 칸 · 값 · 갈 곳은 그대로
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-20 `FE-REQ-060` 3단계
+
+- 파일만 걸침 — 이 REQ 몫 교훈 없음

@@ -13,5 +13,10 @@ export const TIP_MESSAGES = {
   changeRemoved: "빠진 줄:",
   changeAdded: "들어온 줄:",
   disclaimer: "공적 제도를 설명하는 글이에요. 상품을 권하거나 가입을 돕지 않아요. 내 경우에 맞는지는 공식 안내로 확인할 수 있어요",
+  collectTitle: "모아 보기",
+  quizCards: "맞힌 카드 모음",
+  quizCardsHint: "글 위 문제를 맞히면 카드가 모여요",
+  /** 오른쪽 사이드 이름(화면 리더 `aside`) */
+  sideLabel: "금융 팁 곁 칸",
   baseYearValue: (year: number) => `${year}년`,
 } as const;

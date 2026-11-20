@@ -1,5 +1,5 @@
 import { ROUTES } from "@repo/web-shared/config";
-import { BackNav, PageFrame } from "@repo/web-shared/ui";
+import { BackNav, PageFrame } from "@repo/web-shared/ui/frame";
 import { panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { BUDGET_PAGE as M } from "../model";

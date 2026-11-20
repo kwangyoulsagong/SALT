@@ -200,3 +200,9 @@
 - `FE-REQ-060` 1단계가 가계부 화면을 데스크톱 틀로 — 한 달 화면(요약 띠 · 날짜 묶음 · 달력 고르기 · 사이드) · 예산 봉투 행 · 지출 적기 틀. 안 쓴 날 표시는 달력 칸 누름 → 고른 날 칸 버튼(`MarkNoSpendButton`). 옛 `MonthTotals` · `EnvelopeList` · `ExpenseList` · `NoSpendCalendar` · `MarkableCalendar` 삭제(소비처 0). 기능 · 서버 계약 변경 0
 - 확인: 본문 `FE-REQ-060` 체크리스트 1단계 절 · 루트 `requirements/specs/in-progress/MONEY-desktop-household-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`)
+
+- 몫: 예산 · 지출 적기 서버 페이지의 `PageFrame` · `BackNav` import 를 `@repo/web-shared/ui/frame` 으로 — 첫 로드 지출 적기 164 → 137 · 예산 162 → 157 kB(같은 원인: 서버 페이지가 `ui` 배럴을 값으로 읽어 클라이언트 모듈이 전부 실림). 동작 변경 0
+- 확인: 가계부 zone 운영 빌드 전후 · 실화면 `/household/budget` · `/household/new` h1 · 사이드 · 넘침 0 · 콘솔 0
+- 미검증: 없음(이 REQ 몫)

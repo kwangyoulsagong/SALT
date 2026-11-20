@@ -12,7 +12,8 @@ export const meta = style({
   margin: 0,
   padding: "12px 16px",
   borderRadius: "12px",
-  background: SURFACE.weakFill,
+  background: SURFACE.infoFill,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
   fontSize: "12px",
   lineHeight: "16px",
 });
@@ -27,9 +28,9 @@ export const body = style({ display: "flex", flexDirection: "column", gap: "12px
 
 export const heading = style({ margin: "8px 0 0", fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-export const paragraph = style({ margin: 0, fontSize: "15px", lineHeight: "24px", color: vars.colors.text.primary, wordBreak: "keep-all" });
+export const paragraph = style({ margin: 0, fontSize: "14px", lineHeight: "24px", color: vars.colors.text.primary, wordBreak: "keep-all" });
 
-export const bullets = style({ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "15px", lineHeight: "24px", color: vars.colors.text.primary, wordBreak: "keep-all" });
+export const bullets = style({ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "14px", lineHeight: "24px", color: vars.colors.text.primary, wordBreak: "keep-all" });
 
 export const revisions = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.primary });
 

@@ -63,7 +63,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
 
-**예외 하나 — `*.css` 토큰 모듈.** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
+**예외 둘 — `*.css` 토큰 모듈 · `@repo/web-shared/ui/frame`(서버 페이지 틀 입구, `fsd-shared.md`).** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
 `.css.ts`는 빌드 타임에 node에서 평가되므로 barrel로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.
 

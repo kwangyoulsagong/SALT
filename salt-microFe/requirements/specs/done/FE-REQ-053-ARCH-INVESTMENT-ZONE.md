@@ -67,6 +67,7 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
 | 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 셸 `/settings` 페이지에 패널 둘을 붙임(투자 링크 아래 — 지우기가 맨 끝). 이 REQ 몫 기능 변경 0 |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 셸 `src/app` 재수출에서 `FONT_VARIABLES` 를 뺐다 — `fonts.ts` 삭제(시스템 서체) |
+| 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 설정 화면 `PageFrame` · `NavChevron` · `ZoneLink` import 를 `@repo/web-shared/ui/frame` 으로(동작 변경 0) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachSettingsBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
 - 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(이 REQ 줄은 그대로 — 같은 줄에 이름이 나란히 있다)

@@ -696,6 +696,9 @@ importers:
       typescript:
         specifier: ^5
         version: 5.7.3
+      vitest:
+        specifier: ^4.0.9
+        version: 4.0.9(@types/node@20.17.16)(@vitest/browser-playwright@4.0.9)
 
   packages/eslint-config:
     devDependencies:
@@ -3554,7 +3557,7 @@ packages:
     engines: {node: '>=6.0.0'}
     dependencies:
       '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
       '@jridgewell/trace-mapping': 0.3.25
 
   /@jridgewell/remapping@2.3.5:
@@ -3587,7 +3590,7 @@ packages:
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   /@jridgewell/trace-mapping@0.3.31:
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
@@ -5313,7 +5316,7 @@ packages:
       '@storybook/builder-vite': 10.0.7(storybook@10.0.7)(vite@7.2.2)(webpack@5.97.1)
       '@storybook/react': 10.0.7(react-dom@18.2.0)(react@18.2.0)(storybook@10.0.7)(typescript@5.7.3)
       empathic: 2.0.0
-      magic-string: 0.30.17
+      magic-string: 0.30.21
       react: 18.2.0
       react-docgen: 8.0.2
       react-dom: 18.2.0(react@18.2.0)
@@ -6452,7 +6455,7 @@ packages:
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
-      magic-string: 0.30.17
+      magic-string: 0.30.21
       vite: 7.2.2(@types/node@20.17.16)
     dev: true
 
@@ -11095,12 +11098,6 @@ packages:
     hasBin: true
     dev: true
 
-  /magic-string@0.30.17:
-    resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.0
-    dev: true
-
   /magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
     dependencies:
@@ -14201,7 +14198,7 @@ packages:
     dependencies:
       '@next/env': 16.0.0
       image-size: 2.0.2
-      magic-string: 0.30.17
+      magic-string: 0.30.21
       module-alias: 2.2.3
       next: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       storybook: 10.0.7(@testing-library/dom@10.4.0)(react-dom@18.2.0)(react@18.2.0)(vite@7.2.2)

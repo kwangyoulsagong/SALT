@@ -31,7 +31,7 @@
  * | `packages/domain-<x>/src/<layer>/<slice>` | `entities` · `features` · `widgets` · `pages` | 슬라이스 |
  * | `packages/web-shared/src/<segment>` | `shared` 하나(+ `layout` — 공용 레이아웃) | 패키지 전체 |
  *
- * `@repo/web-shared/<segment>` 는 `@/shared/<segment>` 와 같은 판정을 탄다 — 세그먼트 내부 경로 금지(`*.css` 예외).
+ * `@repo/web-shared/<segment>` 는 `@/shared/<segment>` 와 같은 판정을 탄다 — 세그먼트 내부 경로 금지(`*.css` · `ui/frame` 예외).
  */
 
 const zones = require("../core/src/zones/registry.cjs");
@@ -126,6 +126,8 @@ const REGISTRY = {
     "answer-quiz",
     // 금융 팁 S2d(2026-11-05) — 내 숫자로 다시 읽기(계산은 서버 · 로그인일 때만)
     "read-my-numbers",
+    // FE-REQ-060 3단계(2026-11-20) — 내게 맞춘 팁(저축 목표 · 가계부 맥락으로 서버가 고른 글, 로그인일 때만 · 읽기 전용)
+    "tips-for-me",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -490,10 +492,12 @@ const checkImport = (filePath, source) => {
     }
     // 예외: vanilla-extract 토큰. barrel 로 가져오면 `.css.ts` 빌드 그래프에 React 가 들어온다.
     const isStyleModule = /\.css$/.test(source);
-    if (target.deeper.length > 0 && !isStyleModule) {
+    // 예외 둘: 서버 페이지용 화면 틀 입구 — 배럴을 값으로 읽으면 클라이언트 모듈이 전부 딸려 간다(FE-REQ-060 3단계, 118 → 152 kB)
+    const isFrameEntry = source === `${WEB_SHARED_PACKAGE}/ui/frame`;
+    if (target.deeper.length > 0 && !isStyleModule && !isFrameEntry) {
       return {
         rule: "segment-internal",
-        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`${fromWebShared ? WEB_SHARED_PACKAGE : "@/shared"}/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈뿐이다.`,
+        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`${fromWebShared ? WEB_SHARED_PACKAGE : "@/shared"}/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈과 \`${WEB_SHARED_PACKAGE}/ui/frame\`(서버 페이지 틀 입구)뿐이다.`,
       };
     }
     return null;

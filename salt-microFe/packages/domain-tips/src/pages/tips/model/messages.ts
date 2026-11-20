@@ -7,5 +7,5 @@ export const TIPS_PAGE = {
   emptyTitle: "아직 글이 없어요",
   needsCheck: "확인 필요",
   validUntil: "유효기한",
-  quizCards: "맞힌 카드 모음",
+  listLabel: "금융 팁 글",
 } as const;

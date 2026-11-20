@@ -4,7 +4,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { MouseEvent } from "react";
 
-import { button, crumb, crumbLink, current, row, separator, trail } from "./BackNav.css";
+import { button, crumb, crumbLink, current, nav, row, separator, trail } from "./BackNav.css";
 
 export interface BackNavCrumb {
   label: string;
@@ -70,7 +70,7 @@ export const BackNav = ({ label, fallbackHref, crumbs, trailLabel }: BackNavProp
       <a href={fallbackHref} className={button} aria-label={label} title={label} onClick={onBack}>
         <ChevronLeft size={24} strokeWidth={2} aria-hidden="true" />
       </a>
-      <nav aria-label={trailLabel}>
+      <nav className={nav} aria-label={trailLabel}>
         <ol className={trail}>
           {crumbs.map((item, index) => (
             <li key={`${item.label}-${index}`} className={crumb}>

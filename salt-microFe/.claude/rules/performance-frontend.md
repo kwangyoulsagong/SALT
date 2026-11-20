@@ -80,6 +80,8 @@ globs: apps/web/src/**, apps/web-*/app/**, packages/domain-*/src/**
   `"use client"` 모듈이 **전부** 그 페이지의 클라이언트 경계가 된다 — 렌더하지 않아도. 상세 분석 머리를
   서버로 옮겼는데 `@/entities/market` 한 줄 때문에 미리보기 · 차트가 딸려 와 110 → 161 kB 였다(2026-09-23).
   서버가 쓸 상수는 `shared/config` 로, 서버 조회는 부르는 페이지 슬라이스 `api/` 로 둔다. 배럴에서는 `import type` 만.
+  **`@repo/web-shared/ui` 배럴도 같다** — 서버 페이지가 `PageFrame` 하나 때문에 `DetailTabs`(모션) · `SignInRequired` 까지 실었다
+  (공개 팁 글 118 → 152 kB, 2026-11-20). 틀만 쓰면 `@repo/web-shared/ui/frame`(→ 121 kB, 지출 적기 164 → 137 kB).
 
 ## 8. 애니메이션
 

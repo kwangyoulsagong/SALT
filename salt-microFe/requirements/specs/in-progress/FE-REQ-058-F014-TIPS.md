@@ -78,3 +78,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 팁 화면 글자 2단 하드코딩을 토큰(`colors.desk.text2`)으로 — 값 같음 |
 | 2026-11-19 | `FE-REQ-060` 1단계 — 가계부 때맞춘 팁 칸 자리만 옮김(요약 띠 아래). 팁 계약 · 동작 변경 0 |
 | 2026-11-19 | `FE-REQ-060` 2단계 저축(파일만 걸침) — 저축 목록의 때맞춘 팁 칸(`TimelyTip` Savings) 자리를 요약 띠 아래로 옮김 — 동작 무변경. 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md` |
+| 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 금융 팁 세 화면이 데스크톱 틀로(`FE-REQ-060` FR-10) — `PublicShell` 1024 이상 본문 패널 · 목록 행 · 사이드(모아 보기 · 내게 맞춘 팁) · 글 단 720 · 회색 상자 → 정보 상자 · 글자 15 · 16 → 단 안 · 카드 모음 상태 한 줄 + 재시도 1회. 공개 · ISR · noindex · 개인 데이터 0 그대로 |
