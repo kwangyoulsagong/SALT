@@ -29,7 +29,7 @@ SALT 는 투자 앱이 아니라 **돈 관리 앱**이다(사용자 2026-10-30: 
 |---|---|---|---|
 | FE | `FE-REQ-052` | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 | F0 |
 | FE | `FE-REQ-053` | 투자 zone 분리(`domain-invest` · `apps/web-investment`) | F1 |
-| RN | `RN-REQ-032` | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 18건 대체 블록 | 착수 전 |
+| RN | ~~`RN-REQ-032`~~(→ F019 `/m` · `ADR-012`) | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 18건 대체 블록 | 착수 전 |
 | SRV | `SRV-REQ-043` | Kotlin 플랫폼(S0) | S0 |
 | SRV | `SRV-REQ-044` | 이벤트 · 아웃박스 · `contracts/events` | S0~S1 |
 | SRV | `SRV-REQ-049` | 투자 서비스 이전 S4~S7 · Express 종료(기능 추가 0) | S4~S7 |
@@ -42,10 +42,10 @@ SALT 는 투자 앱이 아니라 **돈 관리 앱**이다(사용자 2026-10-30: 
 
 | 기능 | DB | SRV | BFF | FE | RN | FC |
 |---|---|---|---|---|---|---|
-| **F012** 저축 목표 | `DB-REQ-037` | `SRV-REQ-045` | `BFF-REQ-047` | `FE-REQ-056` | `RN-REQ-033` | `FC-REQ-024` |
-| **F013** 가계부 | `DB-REQ-038` | `SRV-REQ-046` | `BFF-REQ-048` | `FE-REQ-057` | `RN-REQ-034` | (`FC-REQ-024` 착지 채점) |
-| **F014** 금융 팁 | `DB-REQ-039` | `SRV-REQ-047` | `BFF-REQ-049` | `FE-REQ-058` | (웹뷰 — `RN-REQ-035` FR-5) | — |
-| **F015** 셸 · 홈 · 온보딩 | `DB-REQ-040` | `SRV-REQ-048` | `BFF-REQ-046` | `FE-REQ-054` · `055` | `RN-REQ-035` | — |
+| **F012** 저축 목표 | `DB-REQ-037` | `SRV-REQ-045` | `BFF-REQ-047` | `FE-REQ-056` | ~~`RN-REQ-033`~~(→ F019 `/m` · `ADR-012`) | `FC-REQ-024` |
+| **F013** 가계부 | `DB-REQ-038` | `SRV-REQ-046` | `BFF-REQ-048` | `FE-REQ-057` | ~~`RN-REQ-034`~~(→ F019 `/m` · `ADR-012`) | (`FC-REQ-024` 착지 채점) |
+| **F014** 금융 팁 | `DB-REQ-039` | `SRV-REQ-047` | `BFF-REQ-049` | `FE-REQ-058` | (웹뷰 — ~~`RN-REQ-035` FR-5~~(→ F019 `/m` · `ADR-012`)) | — |
+| **F015** 셸 · 홈 · 온보딩 | `DB-REQ-040` | `SRV-REQ-048` | `BFF-REQ-046` | `FE-REQ-054` · `055` | ~~`RN-REQ-035`~~(→ F019 `/m` · `ADR-012`) | — |
 | **F008** 온톨로지 · 에이전트 · DART (투자 동결 범위 안 · 예측 바탕) | — | — | — | — | — | `FC-REQ-022` · `023` · `026` |
 
 영역 REQ 를 기능당 한 파일로 묶었다(F011 이후 관례). 종류(UI · FUNC · API · PERF)는 파일 안 FR 표로 나눈다.

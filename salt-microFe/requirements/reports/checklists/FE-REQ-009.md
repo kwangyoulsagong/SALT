@@ -364,3 +364,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 몫: 레이어 표에 features `tips-for-me` · `@repo/web-shared/ui/frame` 입구 예외(서버 페이지 틀 — 배럴의 클라이언트 모듈을 끌지 않는다, `fsd-shared.md` · `layer-rules.cjs`) · 훅 시험 통과 케이스 11
 - 확인: `test:layer-check` 차단 16 · 통과 11 · 규칙 직접 호출로 `ui/PageFrame/PageFrame` · `ui/frame/x` 차단 유지
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 파일만 걸침(`F019-s0-decision-slice.md`)
+
+- 주석 · 문서의 RN REQ 참조 → `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`). 동작 변경 0 — 타입 · 린트 · 레이어 훅 시험(차단 15 · 통과 11) 통과

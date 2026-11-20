@@ -39,7 +39,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 
 ## 계약 영향
 
-- DB `DB-REQ-040` · BFF `BFF-REQ-046` · 프론트 `FE-REQ-055` · RN `RN-REQ-035`
+- DB `DB-REQ-040` · BFF `BFF-REQ-046` · 프론트 `FE-REQ-055` · RN ~~`RN-REQ-035`~~(→ F019 `/m` · `ADR-012`)
 
 ## Changelog
 

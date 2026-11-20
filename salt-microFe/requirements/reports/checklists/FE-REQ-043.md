@@ -118,3 +118,8 @@
 ## 2026-11-19 파일만 걸침(`WEB-perf-req-close-slice.md`)
 
 - 청크 차단 실측: 거래 시트 · 뉴스 창 — 실패해도 화면 그대로 · 한 줄 · 다시 누르면 다시 받음(pass)
+
+## 2026-11-20 `ADR-012`(`F019-s0-decision-slice.md`)
+
+- 문구 "데스크톱으로 이동해 주세요" — `messages.ts` `NARROW_SCREEN_MESSAGES.prompt` 한 줄(pass · 화면 확인은 순서 1 이동 실측과 함께)
+- FR-6 앱 웹뷰 계약 — 쓰는 앱이 없어졌다. 코드는 `FE-REQ-072` FR-4 까지 그대로

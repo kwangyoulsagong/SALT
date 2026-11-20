@@ -30,7 +30,7 @@ Status: In Progress
 | **F003** | 밸류에이션 밴드 적립 (MVRV Z · CAPE · 김프 · 실패 이력) | `FEATURE-003-valuation-band-accumulation.md` |
 | **F004** | AI 코치 추천 (3종 세트 게이트 · 성적표 · 익절 플랜 · preflight) | `FEATURE-004-ai-coach-screen.md` |
 | **F006** | 코치 대화 & 3탭 IA (대화가 제품의 핵심 · PC MovableGrid) | `FEATURE-006-coach-conversation-ia.md` |
-| **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
+| ~~**F007**~~ | ~~모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE)~~ **폐기 2026-11-20 `ADR-012`** — 문서 삭제, F019 가 대체 | ~~`FEATURE-007-mobile-app.md`~~ |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
 | **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료 · 2026-10-08 슬라이스 2(BFF) · 3(화면 — 자산군 탭, 코인과 같은 화면) · 3b(거래 기록 · 보유 평가) · 4(코치 — 자산군 분리 판단 · 리스크 예산 · 사이즈 · 계획 연결) · 5(전망 배치 — 거래일 격자 · 국내 주식 풀, 화면 없음) · 5b(서버 전망 읽기 · 국내 σ, 실력 감사로 화면 보류) 완료 · 2026-10-09 ~ 12 5c P0 · P1 · P2 — 2026-10-12 P2 척도 도전자(`kr-scale@1`)가 1 · 2주 풀링 통과 → 챔피언 교체 · 2026-10-20 P3 `kr-scale@2` 범위 HAR 4기간(선택 보정 · 앞 창) → 챔피언 교체, 국내 4기간 카드 자격 · 2026-10-23 5d 화면(상세 "자세히 — 변동 범위", 소유자만) 완료 · 5e 상태 억제(정리매매 · 정지 · 관리 · 경고/위험 → 상태 문구) 완료 · 5f 수정주가 재작성 · 원천 끊김 완료, 다음 상폐 평가 · 7 나머지 기능 국내 파라미터 · 6 시간외(후순위) | `FEATURE-011-kr-stock-kis.md` |
@@ -39,6 +39,7 @@ Status: In Progress
 | **F014** | 금융 팁 (공적 제도 설명만 · 유효기한 · 때맞춘 한 줄 · 제도 파라미터 표의 주인) — 2026-10-30, 법무 확인 전 공개 금지 | `FEATURE-014-money-tips.md` |
 | **F015** | 셸 — 홈 요약 카드 · 도메인 선택 온보딩 · 내 데이터 · 4탭 IA(홈 · 저축 · 가계부 · 투자) — 2026-10-30 | `FEATURE-015-shell-home-onboarding.md` |
 | **F016** | 오늘 왜 움직였나 — 등락 분해 · 같은 날 사실 · 근거 인용 한 줄 · 시장 상태 태그(서킷브레이커 · 사이드카 · VI) · 국내 뉴스(제목) · 장중 수급 — 2026-11-06, **투자 동결 위 사용자 요청** · `ADR-009` | `FEATURE-016-why-moved.md` |
+| **F019** | 휴대폰 PWA — 같은 origin `/m/*` 전용 zone(표면 zone 하나 · 화면은 `domain-*` `mobile` 진입점) · 매니페스트 · 서비스 워커 · 데스크톱 → `/m` 이동 · 오프라인 마지막 화면 · 웹 푸시 — 2026-11-20 · `ADR-012`(RN 폐기) | `FEATURE-019-mobile-pwa.md` |
 | **F018** | 로그인 없이 시세 보기 — 게스트 토큰(서버 발급 · 30분 · httpOnly) · 시장 데이터 전부 공개(국내 포함) · ★ · 포트폴리오 · 거래 · AI 는 로그인(유리막) · 전망은 소유자 — 2026-11-10, **투자 동결 위 사용자 요청** · `ADR-011`(`FEATURE-011` §정책 뒤집음) | `FEATURE-018-public-market-guest.md` |
 | **F017** | AI 코치 — 잘 사고 잘 팔기: 늘 보이는 판단 · 해설(4단) · 사기/팔기 점검 · 단타 방향 확률(변동 범위 자리) · 측정 태그 — 2026-11-09 · **개정 2026-11-10** · **v2 같은 날 밤**(맨 위 쉬운 한 줄 + 점검 주인공 · 판단 막지 않고 3종 늘 · 등급 · 국내 단타 · 수집 기본기), **투자 동결 위 사용자 요청** · `ADR-010`(채택 · v2 개정) · `ADR-009` 개정 | `FEATURE-017-ai-coach-best-case.md` |
 
@@ -54,7 +55,7 @@ Status: In Progress
 | `SRV` | 서버 | `salt-server/src/**` | **DDD (컨텍스트 우선)** |
 | `BFF` | BFF | `bff/src/**` | 레이어드 + SSE |
 | `FE` | 웹 | `salt-microFe/apps/web`, `apps/web-tax` → 2026-10-30 `ADR-005`: 셸 `apps/web` + 도메인 zone `apps/web-{investment,savings,household,tips}` · 화면 코드 `packages/domain-*`, `web-tax` 삭제 | **FSD** + App Router + Multi-Zones |
-| `RN` | 모바일 | `salt-microFe/apps/mobile` | **FSD** + Shared/Service 번들 |
+| ~~`RN`~~ | ~~모바일 · `salt-microFe/apps/mobile`~~ | **폐기 2026-11-20 `ADR-012`** — 휴대폰은 `FE` 의 PWA zone `apps/web-mobile`(`/m/*`) | — |
 | `FC` | 예측 · 데이터 파이프라인 | `salt-forecast/**` | Python 배치 · `import-linter` 층 · DB 스키마 계약 (`ADR-004`) |
 
 ### 종류 (4) — 영역마다 같은 자리를 채운다
@@ -80,14 +81,14 @@ Status: In Progress
 | `SRV-REQ-006` | DDD 전환 | 컨텍스트 우선 4층. 현재 `modules/*` → `{context}/{domain,application,infrastructure,presentation}` |
 | `SRV-REQ-007` | 서버 정리 (삭제·동면) | 삭제 5건 · 동면 4건 · 410 Gone. **grep 근거 첨부** |
 | `BFF-REQ-006` | 레이어 정리 + SSE 기반 | route/controller/service 경계 재정의, 스트리밍 송신 |
-| `RN-REQ-001` | RN 앱 신설 | `apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native` |
-| `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 |
-| `RN-REQ-003` | 릴리스·스토어 | 코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트 |
+| ~~`RN-REQ-001`~~ | ~~RN 앱 신설~~ | ~~`apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native`~~ — **삭제 2026-11-20 `ADR-012`** |
+| ~~`RN-REQ-002`~~ | ~~RN 마이크로프론트엔드~~ | ~~Shared/Service 번들, ESBuild, CDN, 카나리~~ — **삭제 2026-11-20 `ADR-012`** |
+| ~~`RN-REQ-003`~~ | ~~릴리스·스토어~~ | ~~코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트~~ — **삭제 2026-11-20 `ADR-012`** |
 | `FE-REQ-051` | 로고 | 소금 물방울(은회색 · 입체 + 단색) · "Salt" · 머리 로고 · zone 5 파비콘 — **done 2026-11-04** |
 | `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 — **done 2026-11-02** |
 | `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
 | `FE-REQ-054` | 앱 내비게이션(F2) | `AppNavigation`(~~왼쪽 레일~~ 머리 글자 링크 — 2026-11-09 `FE-REQ-067` · 하단 탭 · 머리) · prerender · 문서 간 전환 · 설정 프리셋 — **done 2026-11-03** |
-| `RN-REQ-032` | 모바일 도메인 정렬 | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록 |
+| ~~`RN-REQ-032`~~ | ~~모바일 도메인 정렬~~ | ~~번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록~~ — **삭제 2026-11-20 `ADR-012`** |
 | `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 — ~~**in-progress 2026-11-03**~~ **done 2026-11-03**(수용 기준 4/4 · FR-8 인스턴스 연결은 `SRV-REQ-049` S5 로) |
 | `SRV-REQ-044` | 도메인 이벤트 | 아웃박스 · RabbitMQ · `contracts/events` · 멱등 구독 — **in-progress 2026-11-03**(서비스 스키마별 아웃박스 · 수용 기준 3/3, 13종은 단계마다) |
 | `SRV-REQ-049` | 투자 서비스 이전 S4~S7 | portfolio · market(+수집 프로세스) · coach · Express 종료 |
@@ -105,7 +106,7 @@ Status: In Progress
 | **F003** | `DB-013` `DB-014` `DB-015` `DB-016` | `SRV-020` `SRV-021` `SRV-022` `SRV-023` | `BFF-019` `BFF-020` `BFF-021` `BFF-022` | `FE-022` `FE-023` `FE-024` `FE-025` | `RN-016` `RN-017` `RN-018` `RN-019` |
 | **F004** | `DB-017` `DB-018` `DB-019` `DB-020` | `SRV-024` `SRV-025` `SRV-026` `SRV-027` | `BFF-023` `BFF-024` `BFF-025` `BFF-026` | `FE-026` `FE-027` `FE-028` `FE-029` `FE-034` | `RN-020` `RN-021` `RN-022` `RN-023` |
 | **F006** | `DB-021` `DB-022` `DB-023` `DB-024` | `SRV-028` `SRV-029` `SRV-030` `SRV-031` | `BFF-027` `BFF-028` `BFF-029` `BFF-030` | `FE-030` `FE-031` `FE-032` `FE-033` | `RN-024` `RN-025` `RN-026` `RN-027` |
-| **F007** | `DB-025` `DB-026` `DB-027` `DB-028` | `SRV-032` `SRV-033` `SRV-034` `SRV-035` | `BFF-031` `BFF-032` `BFF-033` `BFF-034` | `FE-043`(웹 좁은 화면 안내) | `RN-028` `RN-029` `RN-030` `RN-031` |
+| ~~**F007**~~ (삭제 2026-11-20 `ADR-012`) | `DB-025` `DB-026` `DB-027` `DB-028` | `SRV-032` `SRV-033` `SRV-034` `SRV-035` | `BFF-031` `BFF-032` `BFF-033` `BFF-034` | `FE-043`(웹 좁은 화면 안내) | ~~`RN-028`~`031`~~ |
 | **F012** | `DB-037` | `SRV-045` | `BFF-047` | `FE-056` | `RN-033` (+ FC `FC-024`) |
 | **F013** | `DB-038` | `SRV-046` | `BFF-048` | `FE-057` | `RN-034` |
 | **F014** | `DB-039` | `SRV-047` | `BFF-049` | `FE-058` | (웹뷰) |
@@ -117,7 +118,7 @@ Status: In Progress
 F012~F015 는 영역당 한 파일(F011 이후 관례) — 종류는 파일 안 FR 표로 나눈다. F008 온톨로지 · 에이전트는 `FC-REQ-022` · `023`.
 
 파일명 규칙: `<AREA>-REQ-<NNN>-<F기능>-<종류>.md`
-예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md` · `RN-REQ-024-F006-UI.md`
+예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md`
 
 ## 3. 규칙 문서 (하네스)
 
@@ -178,7 +179,7 @@ flowchart TB
     I["F006 코치 대화 + 3탭 IA"]
   end
   subgraph P4["P4 모바일"]
-    J["RN-001~003 앱·MFE·릴리스"] --> K["F007 푸시·디바이스 + 각 기능 RN 화면"]
+    J["F019 PWA /m zone (ADR-012 — RN 폐기)"]
   end
   A3 --> D1
   B2 --> D1
@@ -192,7 +193,7 @@ flowchart TB
 | **P0** | 아키텍처 전환 + F000 정리 | 이 위에 100개 문서가 올라간다. 나중에 하면 전부 다시 쓴다 |
 | ~~P1 · P2~~ | ~~F001 원장 · F002 세금~~ | **폐기 2026-09-21 (`ADR-002`).** P0 다음이 곧 P3 다 |
 | **P3** | F003 · F004 · F006 병렬 | 서로 막지 않는다. F006은 FE-009(FSD) 완료 후 |
-| **P4** | RN + F007 | 웹 계약이 확정된 뒤 시작한다. BFF 계약을 두 번 만들지 않기 위해 |
+| **P4** | ~~RN + F007~~ **F019 PWA `/m`**(2026-11-20 `ADR-012`) | 웹 계약이 확정된 뒤 시작한다 — 같은 BFF 계약 · 같은 웹 코드 |
 
 ### 4-1. 지금 우선순위 (2026-10-30 — 사용자 결정: 기능 남은 것 · 추가된 기능 먼저, 디자인은 그 뒤)
 
@@ -219,7 +220,7 @@ flowchart TB
 | **3c** | 투자 동결 위 사용자 요청(2026-11-09 · 11-10) | **F017** AI 코치 — ~~기획 끝~~ **11-10 개정(범위 "잘 사고 잘 팔기")** · 단계 0 결함 여섯 **done 2026-11-10**(`feat/f017-ai-coach-best-case`, PR #165 머지) → **v2 순서(11-10 밤, `feat/f017-s1-always-visible` PR #166 머지)**: 1 기본기(막지 않기 · 3종 늘 · 수집 `SRV-057` · `DB-044` · `OPS-003`) — **1a · 1d done**(`feat/f017-s1a-judgment-caveats` · 판단 보임 300/300 · 3종 결함 160 → 1b) → **1b done 2026-11-10**(`feat/f017-s1b-triad-backfill` — 코인 · 국내 단타 과거 검산 `signal-skill@1` · 국내 단타 원장 · `rule-ic-kr@1` · 3종 결함 160 → 6) → **1c done 2026-11-11**(`feat/f017-s1c-collection` — 지표 문턱 · 코인 채운 위치 · 국내 분봉 · 잠 감지 · 스냅샷 · 상태 점검 `OPS-003` done · KIS 초과 ≤ 1% 미충족) → **2 점검 + 쉬운 한 줄 done 2026-11-11**(`feat/f017-s2-checks-plain-line`, PR #170) → **3 해설 늘 done 2026-11-11**(`feat/f017-s3-explain-always` — 미리 만든 해설 · 4단 · 출처 칩 · 국내 상세도) → 4 등급 → 5 단타 확률 → **6 태그 done 2026-11-12**(`feat/f017-s6-measure-tags` — 소식 측정 태그 · 국내 제목 1년 백필) · ~~1 판단 · 해설 늘 보이게 → 2 사기/팔기 점검 → 3 단타 방향 확률 → 시나리오 카드 → 4 측정 태그~~ — `requirements/specs/in-progress/F017-ai-coach-best-case-global-plan.md` · 정리 화면 `pm/docs/2026-11-10-ai-coach-scenario.html` → **v4 한 장 패널(2026-11-13 스펙 끝)** 순서 0 문서 done → 1 있는 데이터로 패널(시나리오 늘 · 원인 근거 결과 · 3종 문장 — 1a~1c done PR #180 · **1d 패널 한 번 응답 · 1e 패널 UI · 1f 해설 스트림 done 2026-11-13** `feat/f017-v4-s1d-coach-panel` — 순서 1 끝) → 2 원천(공시 · 본문 사실 — 루트 슬라이스 `F017-v4-stage2-sources-slice.md` · **순서 2 done 2026-11-14** `feat/f017-v4-s2-disclosure-body` — 2a 기사 본문 AI 경로 · 2b DART 공시 · 2c 사실 추출 · 2d 회사 사정 칸) → 3 장중 기저율 · 반응 창(**3a 구현 2026-11-16** `feat/f017-v4-s3-intraday-base-rate` — `base-rate@3` 5분봉 · 이력 쌓기, 숫자는 백필 뒤 · `F017-v4-stage3-intraday-slice.md` / **3b 구현 2026-11-16** — `event-window@2` · 원인 카드 '미리 움직인 폭' 비교) → 4 예측 실험(H1 `vol-range@1` · H3 `move-news@1` 등록 끝 · **4a · 4b 전진 시험 구현 2026-11-16** `feat/f017-v4-s4-forward-test` — `F017-v4-stage4-experiment-slice.md`, 판정 2027-01-12 ~) → 5 온톨로지 → 6 화면 정리 — `requirements/specs/in-progress/F017-v4-one-panel-global-plan.md` · `pm/docs/2026-11-13-one-panel-research.html` | `ADR-010` · `ADR-009` v4 · 결정 D1~D8 · D19~D26 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) — **대화 1단계 구현 2026-11-18**(`feat/f006-coach-conversation`, `F006-coach-conversation-slice.md` — 칩 넷 · 규칙 답 · SSE · 대화 저장 · `/coach/chat`) → **대화 2단계 구현 2026-11-18**(`feat/f006-coach-conversation-s2`, 같은 슬라이스 — 답 · 브리핑에 저장 추천 카드(3종 게이트 공용) · 오늘의 브리핑 · 위로 더 읽기 · 새 답 따라가기) → **포지션 1단계 구현 2026-11-18**(`feat/f006-position-overview`, `F006-position-overview-slice.md` — `/portfolio` 위 Hero · 평가금 흐름(그날 실제 수량 · 시간가중 MDD) · 리스크 레이더 4축 · 보유 행 → 상세) → **포지션 2단계 구현 2026-11-18**(`feat/f006-position-trades`, `F006-position-trades-slice.md` — 거래 시트 · 서버 미리보기 · `/portfolio/transactions` 목록 · 수정 · 삭제, 거래일 순서 과매도 거부 · 한 트랜잭션 · 종목 잠금) → **알림 화면 구현 2026-11-18**(`feat/f006-alerts-screen`, `F006-alerts-screen-slice.md` — 모든 zone 머리 벨 · 셸 `/alerts` · 읽음 · 모두 읽음 · 갈 곳 코드 넷 · 이름표 한 벌 `@repo/core/labels`) → **PC 격자 구현 2026-11-19**(`feat/f006-pc-panel-grid`, `F006-pc-panel-grid-slice.md` — `/coach/chat` 1280 이상 칸 셋(대화 · 오늘의 추천 · 포지션 요약) · 칸 메뉴(키보드) · 배치 저장 `panel_layouts`). 다음: **F003 v2 재기획 2026-11-19**(BTC + 코스피 — 사용자 결정, `F003-v2-band-accumulation-global-plan.md` · 순서 1 예측 → 2 서버 → 3 화면) → **순서 1 예측 2026-11-19** → **순서 2 서버 2026-11-19**(`feat/f003-v2-s2-plan-server`, `F003-v2-s2-plan-server-slice.md`) → **순서 3 화면 2026-11-19**(`feat/f003-v2-s3-plan-screen`, `F003-v2-s3-plan-screen-slice.md` — 투자 zone `/plan` · 머리 메뉴 "적립" · 홈 투자 카드 한 줄). ~~다음: F003 앱(순위 6) 또는 §4-1 에서 다시~~ **사용자 2026-11-19 "데스크톱부터 다 만들고 앱"** → **성능 · 마이그레이션 REQ 정리 2026-11-19**(`feat/web-perf-close`, `WEB-perf-req-close-slice.md` — F003 · F004 · F006 · F000 성능 REQ 18개 FR 대조 · 피드백 행이 저장 추천을 가리던 결함 · 생성 기록 보존 · 거래 시트 지연 로딩 · 실측). 다음: 순위 5 디자인(`FE-REQ-047` 틀부터) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
 | **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소 · **2026-11-04 개정**: 도메인 사이드 · 글자색 대비 · 글꼴 · 모바일 분리) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B11 · 탭 제목 실시간 가격) → **`FE-REQ-060` 돈 관리 화면(저축 · 가계부 · 팁, 데스크톱 + 모바일 따로 — 2026-11-04)** → `FE-REQ-048` 홈(카드 홈 데스크톱/모바일로 정정) · 함께 **`FE-REQ-061` 좁은 화면 안내 · `FE-REQ-062` 화면 움직임** — REQ 2026-11-04. ~~**당김 2026-11-04**(사용자 "베스트 케이스"): 다음 칸 = 디자인 D1 — D1 `FE-REQ-051` 로고 + `FE-REQ-047` 틀 → D2 `FE-REQ-049` 상세 → D3 `FE-REQ-060` 돈 관리 화면 → D4 `FE-REQ-048` 홈 + `FE-REQ-061` 좁은 화면 안내. `FE-REQ-062` 움직임은 단계마다 그 화면에 같이~~ **정정 2026-11-04: 당김 취소**(사용자 "기능부터 만들어야지") — 디자인은 다시 기능 뒤. ~~`FE-REQ-051` 로고~~ **done 2026-11-04**(사용자 "로고는 필요하니까", `F000-brand-logo-slice.md`) → ~~`FE-REQ-047` 틀~~ **done 2026-11-19**(`feat/fe-req-047-desktop-shell`, `F000-desktop-shell-slice.md` — 본문 패널 · 바탕 · 글자 단 토큰 · 시스템 서체 · 사이드 자리 · 섹션 탭 · 뒤로 · 표 탭 주소. FR-6 → `049` · FR-8 시세 띠 범위 밖). → **`FE-REQ-048` 홈 구현 1차 2026-11-19**(`feat/fe-req-048-home-desktop`, `F000-home-desktop-slice.md` — 카드 2열 · 사용자 3D 아이콘 · 오른쪽 목록 행 · 저축 팁 뺌. FR-9 웹뷰 목록 행 남음) → ~~`FE-REQ-049` 상세~~ **done 2026-11-19**(`feat/fe-req-049-detail-redesign`, `F000-detail-redesign-slice.md` — 사용자 결정 "합치기": 개요 = 4블록 · 펼침 → 탭 · 내 거래 고정 열). 다음: `FE-REQ-060` 돈 관리 화면 → **`FE-REQ-060` 1단계 가계부 2026-11-19**(`MONEY-desktop-household-slice.md`) → **2단계 저축 2026-11-19**(`MONEY-desktop-savings-slice.md` — 서버 `SRV-REQ-045` FR-20 요약 띠 합) → **3단계 금융 팁 2026-11-20**(`MONEY-desktop-tips-slice.md` — 목록 행 · 사이드 내게 맞춘 팁 · 서버 페이지 틀 입구 `@repo/web-shared/ui/frame`). ~~다음: 4단계 앱 웹뷰 모바일 배치(FR-M)~~ **4단계 앱 웹뷰 2026-11-20 — `FE-REQ-060` · `FE-REQ-048` done**(`MONEY-webview-mobile-slice.md` — 한 열 · 주인공 숫자 · 목록 행 · 하단 버튼 → 시트, 데스크톱 변화 0) · 같이 **대시보드 홈 2026-11-20**(`feat/fe-req-048-home-card-preview`, `F000-home-dashboard-slice.md` — `FE-REQ-048` FR-12 · 13 카드 미리보기 · 둘째 줄 · `FE-REQ-060` FR-14 · 15 저축 시작 · 가계부 재배치) | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
-| **6** | 모바일 | F007 RN(`RN-REQ-001`~) · `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
+| **6** | 모바일 | ~~F007 RN(`RN-REQ-001`~)~~ **2026-11-20 사용자 결정 — RN 폐기(툴체인 무게) → F019 휴대폰 PWA `/m` zone**(`ADR-012` · `F019-mobile-pwa-global-plan.md`): 순서 1 zone 골격 `FE-REQ-071` → 2 화면 옮기기 · 웹뷰 계약 걷기 `FE-REQ-072` → 3 오프라인 마지막 화면 · 설치 안내 `FE-REQ-073` → 4 웹 푸시(전 영역). `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
 
 **정해진 날짜(작업 아님 · 확인만)**: 2026-11-03 410 로그 · 11-23 규칙 IC 라이브 · 11-25 시장 경고 라이브 통계 · 2027-02-08 뉴스 감성 라이브 통계 · 2027-05-17 도미넌스 라이브 통계.
 
@@ -263,7 +264,7 @@ flowchart TB
 | `FE-REQ-052` zone = 도메인(F0) | **done** 2026-11-02 | zone 앱 5(도메인 4 ~~빈 골격~~ — **정정 2026-11-02 F1: 투자 zone 이 투자 화면 서비스(`FE-REQ-053`), 셋은 골격**) · 레지스트리 `registry.json`(TS · CommonJS + 대조 테스트) · `hostedIn`(~~화면은 아직 셸~~ 저축만 셸 — 정정 2026-11-02) · 셸 rewrites 생성(경로 `fallback`) · lint/훅 도메인 축 4 · `web-tax` 삭제. 셸 공용 청크 105 → 105 kB. 남은 것은 `checklists/FE-REQ-052.md` §4 — 화면 이전 `FE-REQ-053` · `056` |
 | `FE-REQ-053` 투자 zone 분리(F1) | **done** 2026-11-02 | 투자 슬라이스 25 → `packages/domain-invest`(369 R100) · `apps/web-investment` 서비스 · `invest.hostedIn = web-investment` · shared → `packages/web-shared` · zone 공용 레이아웃(`@repo/web-shared/layout`) · `/coach/settings` · 이동 실측 Chromium 455 · WebKit 447ms(dev). 같이 고친 기존 결함 7 |
 | `FE-REQ-054` 앱 내비게이션(F2) | **done** 2026-11-03 | 이름 `AppNavigation`(사용자 결정) · 왼쪽 레일 72 / 하단 탭 / 머리 52 · 면 글리프(기준 레일 실측) · 탭 한 벌 `@repo/core/navigation` · prerender 규칙(로그인 · 다른 zone 탭) · 문서 간 전환 · `@repo/config-next` · 계측. 남은 것: ~~prerender 적중 · 녹화(`QA-001`)~~(2026-11-03 확인 — 적중 10/10 · 깜빡임 0) · ~~공용 청크 캐시 공유(`OPS-001` — 같은 청크 5개 · 117 KB 다시 받음)~~(같은 날 닫음 — `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12). `MONEY-F2-app-navigation-slice.md` |
-| `FE-REQ-051` 로고 | **done** 2026-11-04 | 소금 물방울(물결) · 은회색 입체 + 단색 두 벌(기준 원본 실측) · "Salt"(Poppins ExtraBold 경로) · `@repo/ui/logo` · 머리 첫 칸 24 · zone 5 `icon.svg` · `apple-icon.png` · `favicon.ico`(`pnpm brand:icons`). 남은 것: `ui-native` 로고(`RN-REQ-001`) · 상표 검색(사용자) · 실기기 홈 아이콘(`QA-001`) |
+| `FE-REQ-051` 로고 | **done** 2026-11-04 | 소금 물방울(물결) · 은회색 입체 + 단색 두 벌(기준 원본 실측) · "Salt"(Poppins ExtraBold 경로) · `@repo/ui/logo` · 머리 첫 칸 24 · zone 5 `icon.svg` · `apple-icon.png` · `favicon.ico`(`pnpm brand:icons`). 남은 것: ~~`ui-native` 로고(`RN-REQ-001`)~~(RN 폐기 `ADR-012` — PWA 아이콘은 `FE-REQ-071` FR-3) · 상표 검색(사용자) · 실기기 홈 아이콘(`QA-001`) |
 | `FE-REQ-055` 셸 홈 카드 · `BFF-REQ-046` 홈 계약 | **in-progress** 2026-11-02 | `HomeSummaryCard[]`(BFF 조립 · 글자 대조 테스트 · 카드당 800ms · 401 은 홈 401) · 저축 · 투자 카드(숨김 끔 손익률 / 켬 종목 수 + "오늘 처음 본다면"). 남은 것: 순서 · 숨김 편집 · 온보딩 · 내 데이터 · 알림(S3) |
 | `SRV-REQ-043` Kotlin 플랫폼(S0) | **done** 2026-11-03 | `salt-platform/`(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2 · JDK 21) · 빈 서비스 `ping` 종단 · 경계 Modulith + ArchUnit(변이 5) · Express 골든 4 · Compose(BFF · Jaeger). FR-8 인스턴스 연결은 `SRV-REQ-049` |
 | `SRV-REQ-044` 이벤트 · 아웃박스 | **in-progress** 2026-11-03 | 서비스 스키마별 아웃박스 · 릴레이(포기 · 순서) · 계약 검증 · 멱등 · 데드레터 · 지표. 남은 것: 13종(단계마다) · 프로젝션 · 내부 REST · 경보 |
@@ -1197,3 +1198,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-20 | **`FE-REQ-060` 돈 관리 화면 3단계 금융 팁**(`feat/fe-req-060-s3-tips`) — 사용자 "새 브랜치 파고 다음 파이프라인 진행". `/tips` · 글 · 카드 모음 = 데스크톱 틀(공개 껍데기 1024 이상 본문 패널) · 목록 행(유효기한 오른쪽 · 폭 920) · 사이드(맞힌 카드 · 내게 맞춘 팁 — 새 feature `tips-for-me`, 기존 `for-me` 두 맥락). 썸네일 칸 정정(글에 그림 없음). 공개 글 +34 kB 를 찾아 서버 페이지 틀 입구 `@repo/web-shared/ui/frame`(레이어 예외 하나) → 118 → 121 kB · 같은 원인 가계부 지출 적기 −27 kB. 서버 · BFF 0. 루트 `MONEY-desktop-tips-slice.md`. 다음: 4단계 앱 웹뷰 모바일 배치 |
 | 2026-11-20 | **대시보드 홈**(`feat/fe-req-048-home-card-preview`) — 사용자 "대시보드 느낌으로 · 카드에 프리뷰 · 차트" · "빈 화면 너무 비어 보임" · "가계부 어지러움" · "좌측 사이드바 고정" · "호가창 · 투자자 이상" · "적립 · 코치 대화도". `FE-REQ-048` FR-12 · 13 신설(카드 미리보기 — 목표 진척 · 날마다 쓴 돈 · 1개월 흐름, 빈 카드 예시 + 첫 행동, 둘째 줄 최근 기록 · 다가오는 일) · `BFF-REQ-046` FR-12 · 13(`preview` · `action` · `recent` · `upcoming`, 예산 따로 600 · 700ms, BREAKING 0) · `FE-REQ-060` FR-14 · 15(저축 목표 0개 템플릿 타일 · 가계부 본문 재배치 · 빈 달 시작 카드) · `FE-REQ-054` 레일 fixed · `FE-REQ-049` · `041` 호가 · 투자자 한 탭 · `FE-REQ-022` 설정 전 한 패널 · `FE-REQ-030` · `031` 시작 질문 카드. 짝 `BFF-REQ-027` · `047` · `048` · `FE-REQ-013` · `055` · `056` · `057`. 서버 · DB 0. 루트 `F000-home-dashboard-slice.md`. 웹뷰 390 은 `FE-REQ-060` 4단계 |
 | 2026-11-20 | **`FE-REQ-060` 4단계 앱 웹뷰 모바일 배치 — `FE-REQ-060` · `FE-REQ-048` done**(`feat/fe-req-060-s4-webview-mobile`) — 사용자 "새 브랜치 파고 다음 파이프라인 진행". 앱 웹뷰(UA `SALTApp/`) 가계부 · 저축 · 홈 = 흰 한 열 · 주인공 숫자 30 + 아래 줄 · 목록 행(원 40 · t5 · t7) · 가계부 세그먼트 넷(목록 · 달력 · 분류 · 봉투) · 하단 고정 "지출 적기" · "넣기" → 바텀 시트(뒤로 · 바깥 누름 · Esc 로 닫힘) · 목표 행 → 상세 push · 홈 카드 = 목록 행 + 시작하기 한 줄 배너(닫기) · 터치 44 · 글자 13 이상 · 글자 ×2 넘침 0. 같은 HTML 에 두 배치 — CSS 로 고름(수화 갈림 0). 모바일 글자 토큰 `appType`(웹뷰 선택자 안에서만 — 래칫 시험). 데스크톱 배치 변화 0 · 첫 로드 +1~2 kB. 서버 · BFF 0. 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`. 다음 칸은 §4-1 에서(순위 6 앱) |
+| 2026-11-20 | **모바일 = PWA — RN 폐기**(`feat/pwa-mobile-zone`, `ADR-012` · `FEATURE-019` · 루트 `F019-mobile-pwa-global-plan.md` · 리서치 `requirements/reports/research/2026-11-20-pwa-mobile-zone.md`) — 사용자 "모바일은 없애기로" · "요구사항이랑 모바일 코드 파일 다 삭제" · "그대신 pwa" · "전용 마이크로프론트엔드로 하고 서로 url이 다를듯" · "rn … sdk 설치하고 하면 너무 무거워서". 같은 origin `/m/*` 표면 zone 하나(`ADR-005` 개정) · 웹뷰 배치는 PWA 로 옮김 · 오프라인 = 마지막 화면 한 벌(사용자). 삭제: `RN-REQ-*` 49 · RN 규칙 3 · `FEATURE-007` · `BFF-REQ-031`~`034` · `SRV-REQ-032`~`035` · `DB-REQ-025`~`028` · `FE-REQ-061`(영상 안내 개편 — 문구만 "데스크톱으로 이동해 주세요"). 새 REQ `FE-REQ-071`~`073`(to-do). 다음: 순서 1 |

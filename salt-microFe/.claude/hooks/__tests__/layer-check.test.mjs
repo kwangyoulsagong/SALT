@@ -64,12 +64,6 @@ const BLOCKED = [
     rule: "cross-app",
   },
   {
-    name: "6. RN↔웹 교차 (mobile → @repo/ui)",
-    file: "/repo/salt-microFe/apps/mobile/src/shared/ui/Button.tsx",
-    code: `import { Button } from "@repo/ui/button";`,
-    rule: "rn-web-cross",
-  },
-  {
     name: "7. 루트 라우팅 파일에 re-export 외의 import",
     file: `${APP}/app/home/page.tsx`,
     code: `import { GoalSummary } from "@/entities/goal";\nexport default GoalSummary;`,

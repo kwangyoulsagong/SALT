@@ -411,19 +411,13 @@ const checkImport = (filePath, source) => {
   const domainViolation = checkDomainImport(here, source, resolved);
   if (domainViolation) return domainViolation;
 
-  // FR-23 · FR-24 — 앱(zone) 경계는 어디서든 넘지 못한다. 상대 경로도 마찬가지다.
+  // FR-23 — 앱(zone) 경계는 어디서든 넘지 못한다. 상대 경로도 마찬가지다.
   const crossApp = resolved.match(/apps\/([^/]+)\/src/);
   if (crossApp && crossApp[1] !== here.app) {
     // 도메인 패키지가 앱 src 를 찌르는 것도 같은 위반이다(here.app = null)
     return {
       rule: "cross-app",
       message: `'${source}' — zone 은 독립 배포 단위다. 다른 앱의 \`src\` 를 직접 import 하지 않는다. 공유는 workspace 패키지로만 한다 (FR-23).`,
-    };
-  }
-  if (here.app === "mobile" && /^@repo\/ui(\/|$)/.test(source)) {
-    return {
-      rule: "rn-web-cross",
-      message: `'${source}' — \`apps/mobile\` 은 \`@repo/ui\` 를 import 하지 않는다. vanilla-extract 는 RN 에서 동작하지 않는다. 토큰은 \`@repo/tokens\` 로 공유한다 (FR-24).`,
     };
   }
 

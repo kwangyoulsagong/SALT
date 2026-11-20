@@ -127,7 +127,8 @@ flowchart LR
 | FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트(v2 11-10: 저장 추천만 — 종목 판단은 늘 보이고 꼬리표, `FEATURE-017` v2) |
 | FEATURE-005 | ~~홈 브리핑 & 5탭 IA~~ | **결번.** 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 FEATURE-006이 대체한다. 홈 5블록 요구사항만 FEATURE-006으로 흡수 |
 | FEATURE-006 | 코치 대화 & 3탭 IA | 대화가 제품의 핵심. 3탭(홈/코치/자산) + PC 전용 `MovableGrid`. 홈 **3블록**(2026-09-21 개정) · 자산 탭 = 포지션 / 시장 / 관심 종목 |
-| FEATURE-007 | 모바일 앱 (React Native) | iOS+Android. 푸시(지표 · 추천 갱신 1종 — 세금 D-Day 는 `ADR-002` 로 소멸). TestFlight/Play 내부 테스트, OTA |
+| ~~FEATURE-007~~ | ~~모바일 앱 (React Native)~~ | **폐기 2026-11-20 `ADR-012`** — FEATURE-019 휴대폰 PWA `/m` zone 이 대체 |
+| FEATURE-019 | 휴대폰 PWA (`/m/*` 전용 zone) | 매니페스트 · 서비스 워커 · 데스크톱 → `/m` 이동 · 오프라인 마지막 화면 · 웹 푸시(설치 앱) |
 | FEATURE-008 | AI 전망 · 인텔리전스 | 확률 · 구간 전망 + 채점 · 기준 대비 · 빗나간 사례(`ADR-003`). Python 예측 서비스(`ADR-004`). 변동 범위 · 해설 SSE · 주요 사건 구현됨(2026-09-24) |
 | FEATURE-009 | 1인 펀드매니저 코치 | **2026-09-24 신설.** IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 처분효과 · 벤치마크 · 실수 비용 · 월간 복기. 수동 입력 전제, 통제 · 차단 없음, 추가 입력 2개 이하 · 새 화면 0 |
 | FEATURE-010 | 판정 AI v2 | **2026-09-29 신설.** 불변 원장 · 규칙 항목 IC · 국면 · σ 익절 계획 · 성적표 화면(슬라이스 0~3 구현) · 메타 모델 · 보정(슬라이스 4 — **두 사전등록 모두 채택 안 함, 확률 미표시**) · 확률 없는 목표 비중 안내(슬라이스 5 — 사전등록 `target-weight@1` 기록 고지) · 알트 몫 채택 없음 · core 모델 포트폴리오 라이브 원장(`target-weight@2`, 2026-10-05~) · `/investments` 는 요약 띠, 본문은 `/coach/report` · 운영(슬라이스 7, 2026-10-07 — 재료 신선도 게이트 `stale_inputs` · 해설 LLM 하루 상한 → 템플릿 · 운영 점검 `ops_check`). 모든 단계 결과 전 사전등록. 트레이딩 · 계좌 연동 없음 |
@@ -141,7 +142,7 @@ flowchart LR
 | 서피스 | 현재 | 전환 목표 | 근거 |
 |---|---|---|---|
 | 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones — zone = 도메인**(`apps/web` 셸 + 도메인 zone 4 — 투자 zone 이 투자 화면 서비스(`FE-REQ-053`) · 저축 · 가계부 · 팁 골격, `web-tax` 삭제 2026-11-02 `ADR-005` · `FE-REQ-052`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
-| 모바일 | 없음 | **`apps/mobile` 신설** (React Native, iOS+Android, FSD) | `RN-REQ-001`~`003` |
+| 모바일 | 없음 | ~~`apps/mobile` 신설 (React Native)~~ **휴대폰 PWA zone `apps/web-mobile`(`/m/*`)** | `ADR-012` · `FE-REQ-071`~`073` |
 | BFF | 레이어 경계 혼재 | 레이어드 + **SSE 스트리밍** | `BFF-REQ-006` |
 | 서버 | `src/modules/*` | **DDD 컨텍스트 우선** `{context}/{domain,application,infrastructure,presentation}` | `SRV-REQ-006` |
 | 서버 정리 | 삭제 대상 잔존 | 삭제 5건 · 동면 4건 · `410 Gone`(동면 410 완료 2026-10-27) | `SRV-REQ-007` |
@@ -152,7 +153,7 @@ flowchart LR
 
 프론트 FSD 슬라이스 이름과 서버 DDD 컨텍스트 이름은 **동일**하다.
 
-`auth` · `ledger` · `portfolio` · `market` · `coach` · `invoice` · `tax` · `plan` · `indicator` · `fx` · `goal` · `news` · `notification` · **`device`(F007 신규, 모바일 전용)**
+`auth` · `ledger` · `portfolio` · `market` · `coach` · `invoice` · `tax` · `plan` · `indicator` · `fx` · `goal` · `news` · `notification` · ~~`device`(F007)~~ (2026-11-20 `ADR-012` 폐기)
 
 ### 신규 DB 모델 (F007)
 
@@ -173,7 +174,7 @@ flowchart LR
 | `SRV` 006~035 | 30 | `salt-server/requirements/specs/to-do/` |
 | `BFF` 006~034 | 29 | `bff/requirements/specs/to-do/` |
 | `FE` 007~033 | 27 | `salt-microFe/requirements/specs/to-do/` |
-| `RN` 001~031 | 31 | `salt-microFe/requirements/specs/to-do/` |
+| ~~`RN` 001~031~~ | 0 | 삭제 2026-11-20 `ADR-012` |
 
 기능마다 영역별 4종(형태/기능/인터페이스/성능)을 채웠다. F007만 웹 화면이 없어 FE 사분면이 결번이다.
 
@@ -191,7 +192,7 @@ flowchart LR
 ### 관련 문서
 
 - 글로벌 계획: `requirements/specs/in-progress/salt-solo-rebuild-global-plan.md`
-- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-007-mobile-app.md` (**FEATURE-005는 결번**)
+- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-019-mobile-pwa.md` (**FEATURE-005는 결번** · ~~`FEATURE-007-mobile-app.md`~~ 삭제 2026-11-20 `ADR-012`)
 - 요구사항 지도: `requirements/specs/in-progress/salt-requirements-master-index.md`
 - 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md` · `ADR-002-drop-ledger-invoice-tax.md`
 - 스토리보드 갭 감사와 결정: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`

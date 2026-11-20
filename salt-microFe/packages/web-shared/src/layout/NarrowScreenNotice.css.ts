@@ -5,7 +5,7 @@ import { vars as ds } from "@repo/ui/tokens";
 
 /**
  * 이 폭 **미만**이면 앱 대신 안내 한 장(`FE-REQ-043`). 웹 화면은 PC 배치(표 · 우측 패널 · 2열 카드)라
- * 태블릿 세로(768)부터는 그대로 쓴다. 휴대폰은 앱이 맡는다(`RN-REQ-001`).
+ * 태블릿 세로(768)부터는 그대로 쓴다. 휴대폰은 PWA `/m` zone 이 맡는다(`ADR-012`).
  * CSS 만으로 가른다 — 서버는 화면 폭을 모르므로 JS 로 고르면 첫 페인트가 깜빡이고 하이드레이션이 어긋난다(`ssr.md`).
  */
 export const NARROW_MAX = "screen and (max-width: 767px)";

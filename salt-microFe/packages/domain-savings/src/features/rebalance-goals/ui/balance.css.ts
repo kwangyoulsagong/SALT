@@ -20,7 +20,7 @@ export const result = style({ display: "flex", flexDirection: "column", gap: "2p
 
 export const value = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 
-// 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+// 앱 웹뷰 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
 export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 
 export const actions = style({ display: "flex", gap: "8px" });

@@ -1,7 +1,7 @@
 /**
  * SALT 로고 모양 — 경로 데이터 한 벌 (FE-REQ-051 FR-1 · FR-6).
  *
- * 웹 `@repo/ui` `Logo`, 앱 `@repo/ui-native`(react-native-svg), 파비콘 생성 스크립트(`scripts/generate-brand-icons.mjs`)가
+ * 웹 `@repo/ui` `Logo`, 파비콘 · PWA 아이콘 생성 스크립트(`scripts/generate-brand-icons.mjs`)가
  * **이 객체 하나**를 읽는다. 색은 여기 두지 않는다 — `tokens.colors.brand.mark`(FR-4).
  *
  * 심볼(2026-11-04 사용자 선택 — 후보 페이지 다섯 판 끝에): **소금 물방울.** 물방울이 떨어져 물결이 퍼지는 순간 —

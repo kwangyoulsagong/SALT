@@ -10,7 +10,7 @@ globs: packages/web-shared/src/**
 
 ## 허용 Import
 
-- 외부 npm 패키지 · `@repo/tokens` · `@repo/ui`(웹) · `@repo/ui-native`(모바일) · `@repo/core` — 허용
+- 외부 npm 패키지 · `@repo/tokens` · `@repo/ui` · `@repo/core` — 허용
 - `@/entities` · `@/features` · `@/widgets` · `@/pages` · `@/app` — **절대 금지**
 
 ## 구조 — 슬라이스가 아닌 flat 세그먼트

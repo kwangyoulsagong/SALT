@@ -33,7 +33,7 @@ export const BOUNDARY_MESSAGES = {
 } as const;
 
 /**
- * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 앱(`RN-REQ-001`)이 맡는다.
+ * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 PWA `/m` zone 이 맡는다(`ADR-012`).
  * 주문을 실행하는 서비스가 아니라 "거래"라고 쓰지 않는다(공통 수용 기준 2).
  */
 export const NARROW_SCREEN_MESSAGES = {
@@ -42,7 +42,7 @@ export const NARROW_SCREEN_MESSAGES = {
   cardTitle: ["차트 · 판단 · 성적을", "한 화면에서"],
   cardBody: "넓은 화면에서 차트와 코치 판단, 과거 성적을 나란히 볼 수 있어요",
   cardAlt: "PC 화면의 종목 상세 — 코치 판단과 과거 성적",
-  prompt: "PC로 접속해 주세요",
+  prompt: "데스크톱으로 이동해 주세요",
   copy: "PC 링크 복사하기",
   copied: "링크를 복사했어요",
   copyFailed: "복사하지 못했어요 · 주소창의 링크를 복사해 주세요",

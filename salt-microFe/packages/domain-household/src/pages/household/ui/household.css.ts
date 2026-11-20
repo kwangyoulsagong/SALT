@@ -261,7 +261,7 @@ export const sampleBadge = style({
   fontSize: vars.deskType.label.fontSize,
   lineHeight: "20px",
   color: vars.colors.desk.text2,
-  // 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+  // 앱 웹뷰 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
   selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 

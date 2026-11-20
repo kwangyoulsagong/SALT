@@ -8,12 +8,11 @@ import { tokens } from "@repo/tokens";
 
 ## 규칙
 
-- **`@vanilla-extract/css`를 import하지 않는다.** import하는 순간 React Native에서 쓸 수 없게 된다.
-- 값은 여기서만 바꾼다. 어댑터(`@repo/ui`, `@repo/ui-native`)는 값을 재정의하지 않는다.
+- **`@vanilla-extract/css`를 import하지 않는다.** import하는 순간 CSS 밖(아이콘 생성 스크립트 · 서비스 워커 등)에서 쓸 수 없게 된다.
+- 값은 여기서만 바꾼다. 어댑터(`@repo/ui`)는 값을 재정의하지 않는다.
 
 ## 어댑터
 
 | 플랫폼 | 어댑터 | 하는 일 |
 |---|---|---|
 | 웹 | `@repo/ui` (`src/styles/tokens.css.ts`) | `createGlobalTheme(":root", tokens)` → CSS 변수 |
-| 모바일 | `@repo/ui-native` (RN-REQ-001) | `StyleSheet` 값으로 직접 사용 |

@@ -42,7 +42,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | 서피스 | 방법론 | 전환 근거 |
 |---|---|---|
 | 웹 `salt-microFe/apps/web` + 도메인 zone 4(`web-investment` · `web-savings` · `web-household` · `web-tips`) | **FSD** + Next.js **Multi-Zones(zone = 도메인)** + App Router **스트리밍 SSR** | `ADR-001`, `ADR-005`(2026-10-30 — 규칙 · 레지스트리 · 빈 zone 4 · `web-tax` 삭제는 `FE-REQ-052` 2026-11-02, 투자 화면 이전 `FE-REQ-053` 2026-11-02 · 저축은 `FE-REQ-056`~ · 가계부 `FE-REQ-057` · 공개 금융 팁 `FE-REQ-058` 2026-11-05), `FE-REQ-007`~`009` |
-| 모바일 `salt-microFe/apps/mobile` | **FSD** + React Native (iOS+Android) | `RN-REQ-001`~`003` |
+| 모바일 `salt-microFe/apps/web-mobile`(`/m/*`) | **PWA** — 같은 origin 전용 zone(표면 zone 하나 · 화면은 `domain-*/mobile` 진입점). RN 앱은 폐기(2026-11-20 — 툴체인 무게) | `ADR-012`, `FE-REQ-071`~`073` |
 | BFF `bff` | 레이어드 + SSE | `BFF-REQ-006` |
 | 서버 `salt-server` (Express) | **DDD (컨텍스트 우선)** — S7 까지 공존 | `SRV-REQ-006` |
 | 서버 `salt-platform` (Kotlin · S0 2026-11-03) | **MSA — 서비스 = 도메인** · Gradle 멀티모듈 · Spring Modulith · 스트랭글러 | `ADR-006`, `SRV-REQ-043`~`049` · 규칙 `salt-server/.claude/rules/msa-services.md` · `kotlin-platform.md` |

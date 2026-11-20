@@ -205,3 +205,4 @@ created: 2026-09-09
   - `salt-microFe/packages/domain-invest/src/features/toggle-watchlist/ui/WatchlistStarButton.tsx` — 게스트 ★ → 로그인 링크(모든 ★ 자리 한 곳)
   - `salt-microFe/packages/web-shared/src/api/apiFetch.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
   - `salt-microFe/packages/web-shared/src/api/refreshSession.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+- 2026-11-20: 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md`

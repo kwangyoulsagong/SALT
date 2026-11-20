@@ -215,7 +215,7 @@ type SymbolCoachViewModel = {
 ## Dependencies
 
 - **선행:** `BFF-REQ-023` · `SRV-REQ-025`
-- **소비:** `FE-REQ-028`(F004 API) · `RN-REQ-022`(F004 API)
+- **소비:** `FE-REQ-028`(F004 API) · ~~`RN-REQ-022`~~(→ F019 `/m` · `ADR-012`)(F004 API)
 
 ## Open Questions
 

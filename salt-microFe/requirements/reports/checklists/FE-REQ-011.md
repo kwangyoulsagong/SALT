@@ -233,3 +233,7 @@
 - zone 다섯 빌드 · 스크린샷 통과
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: `salt-microFe/requirements/reports/checklists/FE-REQ-047.md`
+
+## 2026-11-20 파일만 걸침(`F019-s0-decision-slice.md`)
+
+- 주석 · 문서의 RN REQ 참조 → `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`). 동작 변경 0 — 타입 · 린트 · 레이어 훅 시험(차단 15 · 통과 11) 통과

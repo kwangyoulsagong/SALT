@@ -24,7 +24,7 @@
 
 > 초안 2026-11-09 · **개정 2026-11-10(범위 다시 잡음 — 아래 머리 블록)**.
 > 리서치 `requirements/reports/research/2026-11-09-ai-coach-best-case.md` · `2026-11-10-ai-coach-scenario.md`. 결정 `ADR-010`(채택 2026-11-10) · `ADR-009` 개정(측정 태그) · `ADR-003`(전망 소유자 전용 — 그대로).
-> 영역 REQ: `SRV-REQ-053`(coach · market) · `BFF-REQ-052` · `FE-REQ-064` · `FC-REQ-028`(단타 방향 · 기저율 · 사건 반응) · `DB-REQ-043`. RN 없음(투자 화면은 앱 웹뷰 — `RN-REQ-032`).
+> 영역 REQ: `SRV-REQ-053`(coach · market) · `BFF-REQ-052` · `FE-REQ-064` · `FC-REQ-028`(단타 방향 · 기저율 · 사건 반응) · `DB-REQ-043`. RN 없음(투자 화면은 앱 웹뷰 — ~~`RN-REQ-032`~~(→ F019 `/m` · `ADR-012`)).
 > 전 영역 계획 `requirements/specs/in-progress/F017-ai-coach-best-case-global-plan.md`. 정리 화면(사용자 확인용) — 사용자 비공개 페이지.
 >
 > **2026-11-10 개정 — 범위를 "잘 사고 잘 팔기"로 좁혔다.** 사용자: *"우리가 원하는 건 잘 팔아야 하는 거 잘 사야 하는 거"* · *"손해 안 보고 돈 잘 버는 게 목표"* ·

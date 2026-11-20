@@ -6,7 +6,7 @@ SALT는 **네 서피스**로 구성된다. 같은 원칙을 쓰고 각자의 언
 |---|---|---|---|
 | 웹 (default zone) | `apps/web` | **FSD** | `shared` → `entities` → `features` → `widgets` → `pages` → `app` |
 | 웹 (도메인 zone 4) | `apps/web-{investment,savings,household,tips}` — 얇은 앱, 화면은 `packages/domain-*`(`ADR-005` · `microfrontend.md`) | **FSD**(패키지 안) | 동일 |
-| 모바일 | `apps/mobile` | **FSD** | 동일 (`pages` = 화면 셸) |
+| 웹 (휴대폰 PWA) | `apps/web-mobile` — `/m/*` 표면 zone, 화면은 `domain-*` 의 `mobile` 진입점(`ADR-012`) | **FSD**(패키지 안) | 동일 (`mobile` = pages 의 휴대폰 형제) |
 | BFF | `bff/src` | 레이어드 | `routes` → `controllers` → `services` |
 | 서버 | `salt-server/src` | **DDD** | `{context}/{domain · application · infrastructure · presentation}` |
 
@@ -17,7 +17,6 @@ FSD는 프론트엔드 방법론이다. `widgets`·`pages`는 Express 서버에�
 ```
 코치 기능을 찾을 때:
   apps/web/src/entities/coach/...           (웹 — 표시)
-  apps/mobile/src/entities/coach/...        (모바일 — 표시)
   bff/src/services/app-ai-coach.service.ts  (BFF — 뷰모델)
   salt-server/src/coach/...                 (서버 — Bounded Context)
 ```
@@ -25,7 +24,7 @@ FSD는 프론트엔드 방법론이다. `widgets`·`pages`는 Express 서버에�
 ## 1. 의존은 한 방향으로만 흐른다
 
 ```
-웹·모바일  shared(0) → entities(1) → features(2) → widgets(3) → pages(4) → app(5)
+웹         shared(0) → entities(1) → features(2) → widgets(3) → pages(4) → app(5)
 BFF        routes → controllers → services
 서버       presentation → application → domain ← infrastructure
 ```
@@ -45,7 +44,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 **피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
 **규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
-미러가 아니다. 위반 케이스 16개(레이어 8 + 도메인 4 + 패키지 안 4, `FE-REQ-052` · `053`)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
+미러가 아니다. 위반 케이스 15개(레이어 7 + 도메인 4 + 패키지 안 4, `FE-REQ-052` · `053` — RN 교차는 2026-11-20 `ADR-012` 로 뺐다)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
 **훅이 막으면 우회하지 말고 구조를 고친다.**
 
@@ -59,7 +58,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | `domain-*` → 다른 `domain-*` · 셸 → `domain-*` · zone 앱 → 남의 `domain-*` | 도메인 사이는 URL 링크와 BFF 응답으로만(`ADR-005` §2, `FE-REQ-052`) |
 | `apps/web-*/src/{entities,features,widgets}` | zone 앱은 얇다 — 화면은 `domain-*` |
 | `packages/domain-*/src/{shared,app}` · `web-shared` 에서 `@/…` | shared 는 `@repo/web-shared`, app 은 zone 앱 — shared 는 위를 모른다 |
-| `apps/mobile` → `packages/ui` | vanilla-extract는 RN에서 동작하지 않는다 |
+| `apps/web-mobile` → `domain-*/pages/*` | 휴대폰 화면은 `domain-*/mobile/*` 진입점으로만(`FE-REQ-071` FR-2) |
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
 
@@ -86,7 +85,6 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `tip` | 금융 팁 공개 글 · 메타 다섯 칸 · 확인 필요 · 바뀐 것(`FE-REQ-058`) | `content`(서비스 — 글 하나 = tip) | `tips` |
 | `news` | 뉴스 목록 · 프리뷰 | `news` | `invest` |
 | `notification` | 도메인별 알림 설정 조회(2026-11-06 `FE-REQ-055` FR-6) · 알림 목록 · 한 줄 · 문장(2026-11-18 F006 — 머리 벨의 안 읽은 수 쿼리는 `@repo/web-shared/api`, 벨이 공용 레이아웃이라서) | `notification`(Kotlin 서비스) | 셸 |
-| `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` | 셸(모바일) |
 
 도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` = `packages/domain-savings`(2026-11-03 `FE-REQ-056`). `household` = `packages/domain-household`(2026-11-04 `FE-REQ-057`). `tips` = `packages/domain-tips`(2026-11-05 `FE-REQ-058`). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
 
@@ -110,7 +108,6 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `judgment-overview` | coach + market(관심 종목) — 투자 화면 머리 아래 **요약 띠**(위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션 — ~~목표 비중~~ 2026-11-17 뺐다) + 같은 두 칸 · 관심 종목의 **오른쪽 사이드** `InvestSide`(2026-11-19 `FE-REQ-047` FR-7). 본문은 `coach-console` (F010, 2026-09-29) |
 | `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 진입은 그 머리 칸에 들어갔다(2026-11-09 `FE-REQ-067` `headerSearch` — 2026-11-10 투자 zone 만, 메뉴는 `headerNav` `FE-REQ-069`) · 알림도 같은 자리** |
 | `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |
-| `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나(요약 띠까지 — `FE-REQ-050`) |
 | `asset-search` | market + 검색어 상태(`search-asset`) + ★(`toggle-watchlist`) — 종목 검색 ~~화면~~ **모달**(머리 칸 · `/` · `/search` 는 연 채로 — 2026-11-09 `FE-REQ-066`) (F000 FR-40 · 41, 2026-10-30) |
 | `onboarding-flow` | auth + `choose-domains` + `accept-invite` — 초대 → 쓸 것 고르기 → 첫 기록(고른 도메인 zone 화면) → 끝(~~초대 → 첫 보유 기록 → 적립액~~ 2026-11-06 S3a `FE-REQ-055` FR-4) |
@@ -182,9 +179,8 @@ export enum AssetClass {
 
 | 패키지 | 내용 | 소비자 |
 |---|---|---|
-| `packages/tokens` | 플랫폼 중립 토큰 객체 (순수 TS, CSS 의존 없음) | web · 도메인 zone · mobile |
+| `packages/tokens` | 플랫폼 중립 토큰 객체 (순수 TS, CSS 의존 없음) | web · 도메인 zone |
 | `packages/ui` | 웹 컴포넌트 (vanilla-extract) — 공개 subpath 83 | web · 도메인 zone · `domain-*` |
-| `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 앱 내비게이션 연결 · 프로필 메뉴 · 404 · 글꼴 · prerender · 문서 간 전환) | web · 도메인 zone · `domain-*` |
 | `packages/config-next` | zone 공용 Next 설정 프리셋 `zoneNextConfig(zoneId)` — zone 몫은 레지스트리 값(`FE-REQ-054` FR-5). 운영 빌드는 공용 `/_next`(정적 파일 합치기 `pnpm static:merge`) | zone 앱 5 `next.config.js` |
@@ -194,5 +190,5 @@ export enum AssetClass {
 ## 9. 레이어별 규칙 문서
 
 `fsd-shared.md` · `fsd-entities.md` · `fsd-features.md` · `fsd-widgets.md` · `fsd-pages.md` · `fsd-app.md`
-서피스별: `microfrontend.md` · `streaming-ssr.md` · `rn-architecture.md` · `rn-microfrontend.md`
-성능: `performance-frontend.md` · `performance-rn.md`
+서피스별: `microfrontend.md` · `streaming-ssr.md` · `screen-mobile.md`(휴대폰 PWA)
+성능: `performance-frontend.md`

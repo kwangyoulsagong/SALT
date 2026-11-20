@@ -68,7 +68,7 @@ export const sectionTitle = style({
     [IN_APP_WEBVIEW]: { fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, fontWeight: vars.appType.body.fontWeight, color: vars.colors.text.primary },
   },
 });
-// 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+// 앱 웹뷰 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
 export const hint = style({ ...label, margin: 0, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 
 /** 미리보기 칸 — 정보 상자. 목표를 바꾸면 새 칸이 8px 아래에서 올라온다(`motion.md` §1 블록 등장) */

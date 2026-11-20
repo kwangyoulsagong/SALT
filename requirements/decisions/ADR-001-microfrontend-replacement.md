@@ -2,7 +2,8 @@
 
 - 상태: **제안 (사용자 승인 필요)**
 - 날짜: 2026-09-09
-- 실행 문서: `FE-REQ-007`(MFE 교체) · `FE-REQ-008`(App Router 스트리밍 SSR) · `FE-REQ-009`(FSD 전환) · `RN-REQ-002`(모바일 MFE)
+- 실행 문서: `FE-REQ-007`(MFE 교체) · `FE-REQ-008`(App Router 스트리밍 SSR) · `FE-REQ-009`(FSD 전환) · ~~`RN-REQ-002`(모바일 MFE)~~
+- **2026-11-20 — 모바일(RN · 번들 MFE) 부분은 `ADR-012` 가 대체했다**(RN 폐기 → 휴대폰 PWA `/m` zone). 본문의 RN 서술은 당시 기록
 - 규칙: `salt-microFe/.claude/rules/microfrontend.md`(개정) · `streaming-ssr.md`(신규) · `fsd-*.md`(신규)
 
 ## 요구 세 개가 동시에 들어왔다

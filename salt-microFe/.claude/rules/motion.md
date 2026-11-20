@@ -25,8 +25,7 @@ globs: apps/web/src/**, packages/ui/src/**, packages/tokens/src/**
 - 웹은 `framer-motion` v12. **`m` 과 named import 만** 쓴다 — `motion` 컴포넌트 · `motion/react` 는 ESLint 가 막는다(둘 다 드래그 · 레이아웃까지 실어 첫 로드 JS 가 45 kB 늘었다).
 - 기능 묶음(`domAnimation`)은 앱 루트 `MotionProvider` 의 `LazyMotion` 이 **동적 import** 로 싣는다. 컴포넌트는 `m` 으로만 쓴다.
 - Lottie · GIF · 동영상 · 외부 그래픽 파일 금지. 인라인 SVG 만 — 색 토큰을 따라야 하고 요청이 늘면 안 된다.
-  **예외 하나(2026-11-04 `FE-REQ-061`)** — 768 미만 안내의 PC 화면은 **우리 데스크톱 화면 녹화 영상 한 편**(webm + mp4 · 400KB 이하 · 3~5s — §4-1 "1초 안에"도 이 자리만 예외 · 한 번 재생 · 끝 프레임 = 정지 그림 · 넓은 화면에서 요청 0 · 줄인 모션이면 정지 그림만). 다른 자리로 넓히지 않는다
-- RN 은 `react-native-reanimated` 로 **같은 토큰**을 읽는다.
+  ~~예외 하나(2026-11-04 `FE-REQ-061` — 768 미만 안내의 PC 화면 녹화 영상)~~ **2026-11-20 `ADR-012` 로 취소** — 휴대폰은 PWA `/m` zone, 안내는 문구 한 장 그대로. 예외 0
 
 ## 3. 값은 토큰에서
 

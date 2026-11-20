@@ -85,7 +85,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 
 ## 계약 영향
 
-- DB `DB-REQ-037` · BFF `BFF-REQ-047` · 예측 `FC-REQ-024` · 프론트 `FE-REQ-056` · RN `RN-REQ-033`
+- DB `DB-REQ-037` · BFF `BFF-REQ-047` · 예측 `FC-REQ-024` · 프론트 `FE-REQ-056` · RN ~~`RN-REQ-033`~~(→ F019 `/m` · `ADR-012`)
 
 ## Changelog
 

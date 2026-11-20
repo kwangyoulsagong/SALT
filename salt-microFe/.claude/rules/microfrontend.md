@@ -28,7 +28,7 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 | `apps/web-household` | 가계부 `household` | `/household` | `packages/domain-household` | 3004 · `/household-static` |
 | `apps/web-tips` | 금융 팁 `tips` | `/tips`(공개 · ISR) | `packages/domain-tips` | 3005 · `/tips-static` |
 
-- 도메인 이름은 프론트 패키지 · BFF 경로 · 서버 서비스(`ADR-006`) · RN 서비스 번들(`RN-REQ-032`)이 **같다**
+- 도메인 이름은 프론트 패키지 · BFF 경로 · 서버 서비스(`ADR-006`) 가 **같다**. 휴대폰 PWA zone(`/m`, `ADR-012`)은 도메인이 아니라 표면 zone 하나 — 화면은 도메인 패키지의 `mobile` 진입점
 - `apps/web-tax` 는 삭제한다(`ADR-002` 로 기능이 없다). 가계부는 `household` — 지운 `ledger` 와 섞지 않는다
 - 투자는 **동결** — 기획된 것까지만(`ADR-005` §5)
 - **새 zone 은 새 도메인일 때만**, `ADR-005` 표 개정이 먼저다. 화면 · 탭 · 기능 단위로 zone 을 만들지 않는다 — 도메인 안의 잦은 이동(목록 → 상세 → 리포트)이 hard navigation 이 된다

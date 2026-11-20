@@ -81,7 +81,7 @@ export const scenarioPanelNote = style({
 });
 
 /**
- * 앱 웹뷰(`<html data-embed="app">`)에서만 — 손가락 칸 44 이상 · 글자 13 이상(F017 v4 순서 6 · `RN-REQ-032` FR-7).
+ * 앱 웹뷰(`<html data-embed="app">`)에서만 — 손가락 칸 44 이상 · 글자 13 이상(F017 v4 순서 6 · `ADR-012` 로 PWA `/m` 에 옮김).
  * 기간 탭 · 점검 방향 탭 · 펼침 머리처럼 누르는 칸, 그리고 패널 안 라벨 단(12) · 배지(11) 글자. 데스크톱 웹 값은 그대로(`screen-desktop.md` 라벨 12)
  */
 const IN_APP = `html[${EMBED_ATTRIBUTE}="${EMBED_APP}"]`;

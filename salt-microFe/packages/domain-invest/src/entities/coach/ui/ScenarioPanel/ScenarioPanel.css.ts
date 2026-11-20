@@ -279,5 +279,5 @@ export const judgmentHead = style({ display: "flex", alignItems: "center", gap: 
 export const plainList = style({ margin: 0, paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" });
 export const fold = style({ display: "flex", flexDirection: "column", gap: "6px" });
 export const foldSummary = style([label, { cursor: "pointer", fontWeight: vars.fontWeights.semibold, color: vars.colors.neutral[700] }]);
-/** 등급 배지 — 앱 웹뷰에선 13(배지 sm 11 은 웹 값 그대로, `RN-REQ-032` FR-7) */
+/** 등급 배지 — 앱 웹뷰에선 13(배지 sm 11 은 웹 값 그대로, `ADR-012` 로 PWA `/m` 에 옮김) */
 export const tierBadge = style({ selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } } });

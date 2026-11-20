@@ -165,3 +165,7 @@
 - 몫: 레일 `position: fixed` + 본문 칸 `margin-left: 72`(전 `sticky`)
 - 확인: 1440 `/household` 스크롤 1317 · 1833 에서 레일 top 0(전 −253) · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
 - 미검증: 앱 웹뷰(레일 없음 — 변경 영향 0이라 안 봄) · `build-storybook`(스타일만) — PR 전 영역 검증 때
+
+## 2026-11-20 파일만 걸침(`F019-s0-decision-slice.md`)
+
+- 주석 · 문서의 RN REQ 참조 → `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`). 동작 변경 0 — 타입 · 린트 · 레이어 훅 시험(차단 15 · 통과 11) 통과

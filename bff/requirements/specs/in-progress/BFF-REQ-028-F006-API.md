@@ -192,7 +192,7 @@ type SettingsViewModel = {
 ## Dependencies
 
 - **선행:** `BFF-REQ-027` · `SRV-REQ-029`
-- **소비:** `FE-REQ-032`(F006 API) · `RN-REQ-026`(F006 API)
+- **소비:** `FE-REQ-032`(F006 API) · ~~`RN-REQ-026`~~(→ F019 `/m` · `ADR-012`)(F006 API)
 
 ## Open Questions
 

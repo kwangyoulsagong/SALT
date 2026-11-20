@@ -47,7 +47,7 @@ export function BlockBoundary({ name, skeleton, children }: Props) {
 | 늦게 오는 블록에 `aria-busy`, 도착 시 해제 | 스크린리더가 "로딩 중"을 알아야 한다 |
 | **`loading.tsx`를 블록 지연에 쓰지 않는다** | 라우트 전체가 스켈레톤이 된다. 그건 라우트 전환용이다 |
 
-## 4. BFF 계약 — 웹은 블록별, 모바일은 1콜
+## 4. BFF 계약 — 웹은 블록별(집계 1콜은 옛 RN 몫 — `ADR-012` 로 소비자 없음)
 
 `FEATURE-005 FR-4`의 "홈은 1콜"은 **클라이언트 워터폴 방지**가 근거였다. RSC에서는 서버가 병렬로 부르므로 그 근거가 사라진다.
 
@@ -56,7 +56,7 @@ export function BlockBoundary({ name, skeleton, children }: Props) {
 | 소비자 | 방식 |
 |---|---|
 | `apps/web` 홈 | 서버 컴포넌트가 **블록별 BFF 엔드포인트**를 각각 호출, 각각 `Suspense` |
-| `apps/mobile` 홈 | **`GET /api/app/home` 집계 1콜** |
+| ~~`apps/mobile` 홈~~ (RN 폐기 `ADR-012`) · 휴대폰 PWA `/m/home` | 웹과 같다 — 서버 컴포넌트가 부른다. 집계 1콜은 쓰는 곳이 생기면 그때 |
 | BFF | 두 형태를 **같은 서비스 함수**에서 만든다. 집계는 블록 함수를 `allSettled`로 묶은 얇은 껍데기다 |
 
 뷰모델 정의는 BFF 한 곳에 남는다. 계약을 두 번 만들지 않는다.

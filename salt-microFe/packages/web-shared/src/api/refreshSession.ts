@@ -59,7 +59,7 @@ const requestRefresh = async (): Promise<boolean> => {
   return false;
 };
 
-/** 동시에 뜬 401 여러 건이 갱신을 한 번만 부르게 한다(`RN-REQ-018` FR-13 과 같은 규칙). */
+/** 동시에 뜬 401 여러 건이 갱신을 한 번만 부르게 한다. */
 export const refreshSession = singleFlight(requestRefresh);
 
 /**

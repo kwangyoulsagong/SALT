@@ -51,7 +51,7 @@ export const leadValue = style({
   },
 });
 
-// 앱 웹뷰 보조 글 = `t7` 13(웹뷰 글자 13 이상 — `RN-REQ-032` FR-7)
+// 앱 웹뷰 보조 글 = `t7` 13(웹뷰 글자 13 이상 — `ADR-012` 로 PWA `/m` 에 옮김)
 export const muted = style({ ...label, margin: 0, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 export const value = style({ ...body, fontVariantNumeric: "tabular-nums" });
 /** 이름 위 · 값 아래 — 넓은 패널에서 이름과 값을 양 끝으로 떼지 않는다(M1 "값 두 개가 650px 떨어진다") */

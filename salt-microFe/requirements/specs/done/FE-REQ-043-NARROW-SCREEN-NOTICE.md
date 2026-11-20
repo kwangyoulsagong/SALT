@@ -56,3 +56,4 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | 2026-11-19 | 파일만 걸침 — 뉴스 창 · 거래 시트를 나중에 받는 공용 훅 `useLazyComponent`(청크 실패면 화면 그대로 · 한 줄 `BOUNDARY_MESSAGES.lazyFailed`). 루트 `WEB-perf-req-close-slice.md` 판단 12 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/web-shared/src/i18n/messages.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
+| 2026-11-20 | `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`) — 안내 버튼 위 문구 "PC로 접속해 주세요" → **"데스크톱으로 이동해 주세요"**(사용자). 안내는 대응 `/m` 화면이 없는 데스크톱 경로의 대비로 남는다(`FE-REQ-071` FR-8). FR-6 앱 웹뷰 계약은 `FE-REQ-072` FR-4 에서 걷는다. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |

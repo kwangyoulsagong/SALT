@@ -49,7 +49,7 @@ routes → controllers → services
 
 ## 4. 웹은 블록별, 모바일은 1콜 — 두 형태를 같은 함수에서 만든다
 
-App Router RSC는 서버 컴포넌트가 블록별로 병렬 호출한다. **RN에는 RSC가 없으므로 집계 1콜이 필요하다.**
+App Router RSC는 서버 컴포넌트가 블록별로 병렬 호출한다. ~~RN에는 RSC가 없으므로 집계 1콜이 필요하다.~~ **2026-11-20 `ADR-012` — RN 앱 폐기, 휴대폰도 PWA(같은 Next 서버 컴포넌트)라 집계 1콜의 소비자가 없다.** 아래 모양은 소비자가 생기면 쓴다
 
 ```ts
 // services/app-home.service.ts
@@ -71,7 +71,7 @@ export const getHome = async (t: string) => {
 | 소비자 | 엔드포인트 |
 |---|---|
 | `apps/web` | `GET /api/app/home/total-asset` 등 **블록별** |
-| `apps/mobile` | `GET /api/app/home` **집계 1콜** |
+| ~~`apps/mobile`~~ | ~~`GET /api/app/home` 집계 1콜~~ — 휴대폰 PWA `/m` 은 `apps/web` 과 같은 방식 |
 
 뷰모델 정의는 한 곳에 남는다. **계약을 두 번 만들지 않는다.**
 

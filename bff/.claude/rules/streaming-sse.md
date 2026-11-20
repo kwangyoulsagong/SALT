@@ -16,7 +16,7 @@
 ## 2. 경로
 
 ```
-apps/web · apps/mobile  ──SSE──▶  BFF  ──SSE──▶  salt-server  ──▶  LLM
+apps/web · /m(PWA)     ──SSE──▶  BFF  ──SSE──▶  salt-server  ──▶  LLM
 ```
 
 BFF는 **중계자**다. 토큰을 저장하거나 변형하지 않는다. 다만 이벤트 이름과 페이로드를 **화면 계약으로 정규화**한다.
@@ -80,5 +80,5 @@ req.on('close', () => { upstream.destroy(); controller.abort(); });
 ## 9. 모바일 주의사항
 
 - 앱이 백그라운드로 가면 연결이 끊긴다. **재연결 시 §6의 멱등 규칙**이 적용된다
-- 토큰을 매번 setState하면 JS 스레드가 막힌다. **프레임 단위로 버퍼링**한다(`performance-rn.md` §4)
+- 토큰을 매번 setState하면 JS 스레드가 막힌다. **프레임 단위로 버퍼링**한다(옛 RN 규칙 — 웹도 같다)
 - 오프라인이면 스트림을 시작하지 않고 입력을 보존한다

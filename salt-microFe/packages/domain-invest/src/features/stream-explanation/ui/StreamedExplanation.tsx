@@ -24,7 +24,7 @@ interface StreamedExplanationProps {
  * | 문장이 오면 | 그 문장들(AI 표시) + 반짝임 |
  * | 끝 | 최종 한 벌(얼마나 믿을까 · 틀렸던 때 문장은 성적 줄이 그린다) |
  * | 실패 · 끊김 | 서버 문장 — 화면 복귀 · 연결 복귀에 한 번 다시 붙는다 |
- * | 오프라인 | 서버 문장 + "연결되면 이어서 써요"(열지 않는다 — `RN-REQ-032` FR-8) |
+ * | 오프라인 | 서버 문장 + "연결되면 이어서 써요"(열지 않는다 — `ADR-012` 웹뷰 · PWA 복귀) |
  */
 export const StreamedExplanation = ({ symbol, mode, stored }: StreamedExplanationProps) => {
   const state = useExplanationStream(symbol, mode, stored.tier !== "latest");

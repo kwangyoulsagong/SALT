@@ -3,9 +3,8 @@
  *
  * 이 파일은 **순수 TypeScript 객체**다. `@vanilla-extract/css`를 import하지 않는다.
  * - 웹(`@repo/ui`)은 이 객체로 `createGlobalTheme`을 만든다.
- * - React Native(`@repo/ui-native`)는 같은 객체로 `StyleSheet`를 만든다.
  *
- * 값을 바꾸는 곳은 여기 한 곳이다. 웹/RN 어댑터는 값을 재정의하지 않는다.
+ * 값을 바꾸는 곳은 여기 한 곳이다. 어댑터는 값을 재정의하지 않는다.
  */
 export const tokens = {
   radius: {

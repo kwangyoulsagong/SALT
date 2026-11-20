@@ -34,7 +34,7 @@ const streamUrl = (symbol: string, mode: "scalp" | "long_term") =>
  * - 끝(done · snapshot · fallback · error)이면 닫는다 — `EventSource` 의 자동 재연결이 같은 생성을 또 부르지 않게(서버는 지문당 생성 하나라
  *   다시 붙어도 LLM 이 두 번 돌지는 않지만, 끝난 뒤 다시 열 이유가 없다)
  * - 끝나면 패널 응답을 버린다 — 다음에 열면 최신 AI 저장본이 바로 온다
- * - **앱 웹뷰 복귀 · 오프라인(F017 v4 순서 6 · `RN-REQ-032` FR-8 · `streaming-sse.md` §9)**: 오프라인이면 열지 않고 `offline`.
+ * - **앱 웹뷰 복귀 · 오프라인(F017 v4 순서 6 · `ADR-012` 웹뷰 · PWA 복귀 · `streaming-sse.md` §9)**: 오프라인이면 열지 않고 `offline`.
  *   끊긴(`error`) · 오프라인 상태에서 화면이 다시 보이거나(`visibilitychange`) 연결이 돌아오면(`online`) **한 번** 다시 연다 —
  *   서버는 지문당 생성 하나라 다시 붙어도 LLM 이 두 번 돌지 않고, 끝났으면 저장본(`snapshot`)이 바로 온다(§6 멱등). 끝난(`done` · `fallback`) 뒤엔 다시 열지 않는다
  */
