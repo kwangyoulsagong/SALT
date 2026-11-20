@@ -284,5 +284,6 @@ export const tierBadge = style({ selectors: { [ON_MOBILE]: { fontSize: "13px" } 
 
 /** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
 // 출처 칩은 문장 안 글자 링크 — 상자를 44 로 키우면 줄이 벌어진다. 보이는 모양은 두고 누르는 자리만 위아래로 넓힌다(투명 `::after`)
-globalStyle(`${MOBILE_ROOT} ${sourceChip}`, { position: "relative", fontSize: "13px" });
-globalStyle(`${MOBILE_ROOT} ${sourceChip}::after`, { content: '""', position: "absolute", left: "-2px", right: "-2px", top: "50%", height: "44px", transform: "translateY(-50%)" });
+// 좁은 폭 × 큰 글자에서 긴 이름 칩("GoogleNews(비트코인)")이 줄 끝을 넘었다(320 × 글자 2배 4px, `FE-REQ-074` 검증) — 칩 폭은 줄 폭까지, 넘으면 칩 안에서 줄바꿈
+globalStyle(`${MOBILE_ROOT} ${sourceChip}`, { position: "relative", fontSize: "13px", maxWidth: "100%", whiteSpace: "normal", overflowWrap: "anywhere", boxSizing: "border-box" });
+globalStyle(`${MOBILE_ROOT} ${sourceChip}::after`, { content: '""', position: "absolute", left: 0, right: 0, top: "50%", height: "44px", transform: "translateY(-50%)" });

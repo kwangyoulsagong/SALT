@@ -57,7 +57,7 @@ const CryptoHead = ({ symbol }: { symbol: string }) => {
       logoUrl={item?.logoUrl ?? undefined}
       price={price === null ? "—" : `${formatPrice(price)}원`}
       change={change}
-      changeLabel={M.changeCrypto}
+      changeLabel={M.change}
     />
   );
 };
@@ -72,7 +72,7 @@ const KrHead = ({ code }: { code: string }) => {
       name={quote?.name ?? code}
       price={quote ? `${formatPrice(quote.price)}원` : "—"}
       change={quote ? quote.changeRate : null}
-      changeLabel={M.changeKr}
+      changeLabel={M.change}
     />
   );
 };
