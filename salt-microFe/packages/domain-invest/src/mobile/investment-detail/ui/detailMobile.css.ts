@@ -25,8 +25,8 @@ export const up = style({ color: vars.colors.special.up });
 export const down = style({ color: vars.colors.special.down });
 export const flat = style({ color: vars.colors.text.tertiary });
 
-/** 한 장 패널 자리 — 면 없이 화면 폭 그대로(휴대폰은 카드 면을 걷는다) */
-export const panel = style({ minWidth: 0 });
+/** 한 장 패널 자리 — 흰 카드 한 장(Figma 홈 카드: 모서리 20 · 안쪽 20) */
+export const panel = style({ minWidth: 0, padding: "20px", borderRadius: "20px", background: vars.colors.background.white });
 
 export const note = style({
   margin: 0,

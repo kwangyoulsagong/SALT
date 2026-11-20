@@ -13,7 +13,8 @@ export const frame = style({
   minHeight: "100dvh",
   display: "flex",
   flexDirection: "column",
-  background: vars.colors.background.white,
+  // 탭 화면 바탕 = 회색(grey100) 위 흰 카드 — 사용자 Figma "홈"(390, `FE-REQ-072` 2026-11-20). 탭 줄은 흰색 그대로
+  background: vars.colors.neutral[100],
   color: vars.colors.text.primary,
   overscrollBehaviorY: "none",
   paddingTop: "env(safe-area-inset-top, 0px)",

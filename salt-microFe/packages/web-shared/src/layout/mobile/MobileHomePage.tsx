@@ -48,7 +48,7 @@ const Chevron = () => (
 );
 
 const CardRow = ({ card }: { card: HomeSummaryCard }) => (
-  <li>
+  <li className={s.cardItem}>
     <RowLink href={card.href} className={s.row}>
       <ServiceIcon variant={DOMAIN_ICON[card.domain]} />
       <span className={s.rowMain}>
@@ -138,13 +138,11 @@ export const MobileHomePage = async () => {
           <DesktopViewLink to="/onboarding" />
         </div>
       ) : null}
-      <MobileSection label={M.cardsLabel}>
-        <ul className={s.rows}>
-          {cards.map((card) => (
-            <CardRow key={card.domain} card={card} />
-          ))}
-        </ul>
-      </MobileSection>
+      <ul className={s.cardStack} aria-label={M.cardsLabel}>
+        {cards.map((card) => (
+          <CardRow key={card.domain} card={card} />
+        ))}
+      </ul>
       <Feed title={M.recentTitle} items={home.recent} empty={M.recentEmpty} />
       <Feed title={M.upcomingTitle} items={home.upcoming} empty={M.upcomingEmpty} />
     </MobileScreen>

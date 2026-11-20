@@ -5,7 +5,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import Link from "next/link";
 
 import { MOBILE_PATHS, MOBILE_ROUTES } from "@repo/core/mobile";
-import { MobileSection } from "@repo/web-shared/layout/mobile";
+import { MobileCard, MobileSection } from "@repo/web-shared/layout/mobile";
 
 import { useWatchlist } from "@/entities/market";
 
@@ -14,12 +14,28 @@ import * as s from "./investmentsMobile.css";
 
 const MINUS = "−";
 /** 등락은 색 + 부호를 같이 — 값은 서버가 준 것 그대로 */
-const rateText = (value: number) => `${value > 0 ? "+" : value < 0 ? MINUS : ""}${Math.abs(value).toFixed(2)}%`;
-const rateTone = (value: number) => (value > 0 ? s.up : value < 0 ? s.down : s.flat);
+const rateText = (value: number) =>
+  `${value > 0 ? "+" : value < 0 ? MINUS : ""}${Math.abs(value).toFixed(2)}%`;
+const rateTone = (value: number) =>
+  value > 0 ? s.up : value < 0 ? s.down : s.flat;
 
 const Chevron = () => (
-  <svg className={s.chevron} width="16" height="16" viewBox="0 0 24 24" aria-hidden focusable="false">
-    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  <svg
+    className={s.chevron}
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    aria-hidden
+    focusable="false"
+  >
+    <path
+      d="M9 5l7 7-7 7"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -31,17 +47,19 @@ export const InvestmentsMobile = () => {
   const watchlist = useWatchlist();
   return (
     <>
-      <ul className={s.rows}>
-        <li>
-          <Link href={MOBILE_ROUTES.coachReport} className={s.row}>
-            <span className={s.main}>
-              <span className={s.name}>{M.reportTitle}</span>
-              <span className={s.sub}>{M.reportHint}</span>
-            </span>
-            <Chevron />
-          </Link>
-        </li>
-      </ul>
+      <MobileCard>
+        <ul className={s.rows}>
+          <li>
+            <Link href={MOBILE_ROUTES.coachReport} className={s.row}>
+              <span className={s.main}>
+                <span className={s.name}>{M.reportTitle}</span>
+                <span className={s.sub}>{M.reportHint}</span>
+              </span>
+              <Chevron />
+            </Link>
+          </li>
+        </ul>
+      </MobileCard>
       <MobileSection title={M.watchlist}>
         {watchlist.isSignedOut ? (
           <>
@@ -60,12 +78,24 @@ export const InvestmentsMobile = () => {
           <ul className={s.rows}>
             {watchlist.data.items.map((item) => (
               <li key={item.id}>
-                <Link href={MOBILE_ROUTES.investment(item.symbol)} className={s.row}>
-                  <AssetIcon symbol={item.symbol} src={item.logoUrl ?? undefined} name={item.name} size="md" />
+                <Link
+                  href={MOBILE_ROUTES.investment(item.symbol)}
+                  className={s.row}
+                >
+                  <AssetIcon
+                    symbol={item.symbol}
+                    src={item.logoUrl ?? undefined}
+                    name={item.name}
+                    size="md"
+                  />
                   <span className={s.main}>
                     <span className={s.name}>{item.name}</span>
                   </span>
-                  {item.changeRate === null ? null : <span className={`${s.rate} ${rateTone(item.changeRate)}`}>{rateText(item.changeRate)}</span>}
+                  {item.changeRate === null ? null : (
+                    <span className={`${s.rate} ${rateTone(item.changeRate)}`}>
+                      {rateText(item.changeRate)}
+                    </span>
+                  )}
                   <Chevron />
                 </Link>
               </li>

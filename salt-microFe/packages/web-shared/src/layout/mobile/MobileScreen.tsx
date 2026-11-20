@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { MOBILE_MESSAGES } from "./messages";
-import { backLink, head, headTitle, screen, section, sectionHead, sectionTitle } from "./MobileScreen.css";
+import { backLink, card, head, headTitle, screen, section, sectionHead, sectionTitle } from "./MobileScreen.css";
 
 /**
  * 휴대폰 화면 조각(`FE-REQ-072` FR-2 · `screen-mobile.md` §3 · §4) — 도메인 패키지 `src/mobile` 진입점이 같이 쓴다.
@@ -30,7 +30,14 @@ export const MobileHead = ({ title, back, trailing }: { title: ReactNode; back?:
   </header>
 );
 
-/** 섹션 — 머리 `t5` + 내용. 제목이 없으면 내용만 */
+/** 카드 한 장 — 회색 바탕 위 흰 면(섹션 머리가 없는 묶음) */
+export const MobileCard = ({ children, label }: { children: ReactNode; label?: string }) => (
+  <div className={card} aria-label={label} role={label ? "group" : undefined}>
+    {children}
+  </div>
+);
+
+/** 섹션 — 카드 한 장. 머리 `t5` + 내용. 제목이 없으면 내용만 */
 export const MobileSection = ({ title, action, children, label }: { title?: string; action?: ReactNode; children: ReactNode; label?: string }) => (
   <section className={section} aria-label={title ? undefined : label}>
     {title ? (

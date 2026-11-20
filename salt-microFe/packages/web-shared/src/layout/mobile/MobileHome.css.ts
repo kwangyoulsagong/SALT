@@ -61,10 +61,14 @@ export const banner = style({
   display: "flex",
   flexDirection: "column",
   gap: "2px",
-  padding: "12px 16px 4px",
-  borderRadius: "12px",
-  background: vars.colors.neutral[100],
+  padding: "16px 20px 8px",
+  borderRadius: "20px",
+  background: vars.colors.background.white,
 });
+
+/** 도메인 카드마다 흰 카드 한 장(Figma 홈 — 카드 사이 14 · 모서리 20). 안의 행은 그대로 */
+export const cardStack = style({ display: "flex", flexDirection: "column", gap: "14px", margin: 0, padding: 0, listStyle: "none" });
+export const cardItem = style({ padding: "8px 20px", borderRadius: "20px", background: vars.colors.background.white });
 
 export const bannerText = style({
   fontSize: vars.appType.desc.fontSize,

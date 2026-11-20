@@ -6,7 +6,8 @@ import { vars } from "@repo/ui/tokens";
  * 휴대폰 요약(`screen-mobile.md` §1 · §3) — 주인공 숫자 하나(`appType.hero` 30) + 그 아래 줄(이름 · 값).
  * 금액은 잘리지 않고 줄바꿈(글자 160 · 200% — `FE-REQ-072` FR-5)
  */
-export const summary = style({ display: "flex", flexDirection: "column", gap: "12px", margin: 0, padding: "4px 0 8px" });
+/** 요약도 카드 한 장(회색 바탕 위 — Figma 홈 첫 카드) */
+export const summary = style({ display: "flex", flexDirection: "column", gap: "12px", margin: 0, padding: "20px", borderRadius: "20px", background: vars.colors.background.white });
 
 export const hero = style({ display: "flex", flexDirection: "column", gap: "2px", margin: 0 });
 
