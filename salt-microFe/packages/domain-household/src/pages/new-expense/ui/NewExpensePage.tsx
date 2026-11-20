@@ -3,6 +3,7 @@ import { BackNav, PageFrame } from "@repo/web-shared/ui/frame";
 import { panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { NEW_EXPENSE_PAGE as M } from "../model";
+import { MonthGlance } from "./MonthGlance";
 import { NewExpenseModes } from "./NewExpenseModes";
 import { RecentExpenses } from "./RecentExpenses";
 import * as s from "./newExpense.css";
@@ -17,11 +18,18 @@ export const NewExpensePage = () => (
       label={M.back}
       trailLabel={M.trailLabel}
       fallbackHref={ROUTES.household}
-      crumbs={[{ label: M.trailHousehold, href: ROUTES.household }, { label: M.title }]}
+      crumbs={[
+        { label: M.trailHousehold, href: ROUTES.household },
+        { label: M.title },
+      ]}
     />
     <h1 className={panelTitle}>{M.title}</h1>
-    <div className={s.body}>
-      <NewExpenseModes />
+    {/* 폼 | 이번 달 지금까지(2026-11-20 — 폼 옆이 비어 있었다). 1280 미만은 위아래 */}
+    <div className={s.split}>
+      <div className={s.body}>
+        <NewExpenseModes />
+      </div>
+      <MonthGlance />
     </div>
   </PageFrame>
 );

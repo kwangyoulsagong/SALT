@@ -56,9 +56,9 @@ export const plate = style({
   width: "32px",
   height: "32px",
   borderRadius: "8px",
-  background: vars.colors.desk.line,
-  color: vars.colors.desk.text1,
-  fontWeight: vars.fontWeights.semibold,
+  // 가계부 도메인 색 옅은 판 + 분류 선 아이콘(2026-11-20). 도메인 색은 작은 표지에만
+  background: "rgba(232, 89, 12, 0.1)",
+  color: vars.colors.domain.household,
 });
 
 export const rowMain = style({ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 });
@@ -75,23 +75,25 @@ export const barFill = style({ height: "100%", background: vars.colors.neutral[6
 /** 분류 비율 — 가로 막대 하나(도넛 대신, FR-4) */
 export const ratioBar = style({ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: vars.colors.desk.line });
 /** 칸 색 — 회색 단계만(색으로 좋고 나쁨을 말하지 않는다). 칸 사이 1px 흰 틈 */
+/** 분류 막대 색 — 가계부 도메인 색 한 계열(진한 → 옅은, 2026-11-20 — 회색 단계가 밋밋했다). 다섯째부터는 같은 옅은 회색 */
+const RATIO_TONES = [vars.colors.domain.household, "#F08C4A", "#F5B183", "#F9D2B6", vars.colors.neutral[200]] as const;
 export const ratioPart = styleVariants({
-  0: { background: vars.colors.neutral[800], boxShadow: "inset -1px 0 0 #fff" },
-  1: { background: vars.colors.neutral[600], boxShadow: "inset -1px 0 0 #fff" },
-  2: { background: vars.colors.neutral[400], boxShadow: "inset -1px 0 0 #fff" },
-  3: { background: vars.colors.neutral[300], boxShadow: "inset -1px 0 0 #fff" },
-  4: { background: vars.colors.neutral[200] },
+  0: { background: RATIO_TONES[0], boxShadow: "inset -1px 0 0 #fff" },
+  1: { background: RATIO_TONES[1], boxShadow: "inset -1px 0 0 #fff" },
+  2: { background: RATIO_TONES[2], boxShadow: "inset -1px 0 0 #fff" },
+  3: { background: RATIO_TONES[3], boxShadow: "inset -1px 0 0 #fff" },
+  4: { background: RATIO_TONES[4] },
 });
 export const legend = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
 export const legendRow = style({ ...label, display: "flex", alignItems: "center", gap: "8px", minHeight: "28px", padding: "0 8px" });
 export const legendName = style({ flex: 1, minWidth: 0, color: vars.colors.desk.text1 });
 export const legendValue = style({ fontVariantNumeric: "tabular-nums", color: vars.colors.desk.text1, fontWeight: vars.deskType.body.fontWeight });
 export const swatch = styleVariants({
-  0: { width: "8px", height: "8px", borderRadius: "2px", background: vars.colors.neutral[800], flexShrink: 0 },
-  1: { width: "8px", height: "8px", borderRadius: "2px", background: vars.colors.neutral[600], flexShrink: 0 },
-  2: { width: "8px", height: "8px", borderRadius: "2px", background: vars.colors.neutral[400], flexShrink: 0 },
-  3: { width: "8px", height: "8px", borderRadius: "2px", background: vars.colors.neutral[300], flexShrink: 0 },
-  4: { width: "8px", height: "8px", borderRadius: "2px", background: vars.colors.neutral[200], flexShrink: 0 },
+  0: { width: "8px", height: "8px", borderRadius: "2px", background: RATIO_TONES[0], flexShrink: 0 },
+  1: { width: "8px", height: "8px", borderRadius: "2px", background: RATIO_TONES[1], flexShrink: 0 },
+  2: { width: "8px", height: "8px", borderRadius: "2px", background: RATIO_TONES[2], flexShrink: 0 },
+  3: { width: "8px", height: "8px", borderRadius: "2px", background: RATIO_TONES[3], flexShrink: 0 },
+  4: { width: "8px", height: "8px", borderRadius: "2px", background: RATIO_TONES[4], flexShrink: 0 },
 });
 
 export const note = style({ ...label, margin: 0 });

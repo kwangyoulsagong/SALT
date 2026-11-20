@@ -4,6 +4,7 @@ export const NEW_EXPENSE_PAGE = {
   title: "지출 적기",
   back: "뒤로",
   trailLabel: "이동 경로",
+  glanceTitle: "이번 달 지금까지",
   trailHousehold: "가계부",
   mode: "적는 방법",
   recent: "이 달 최근 쓴 내역",

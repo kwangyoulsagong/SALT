@@ -5,7 +5,15 @@ import { StatusLine } from "@repo/ui/statusLine";
 
 import { todayInKorea } from "@repo/web-shared/lib";
 
-import { CategoryNamesProvider, EXPENSE_MESSAGES as E, useHouseholdBudget, useHouseholdMonth, useWorkHours } from "@/entities/household";
+import {
+  CategoryNamesProvider,
+  EXPENSE_MESSAGES as E,
+  useHouseholdBudget,
+  useHouseholdMonth,
+  useWorkHours,
+  BOARD_MESSAGES as B,
+  CategoryRatio,
+} from "@/entities/household";
 import { BudgetEditor } from "@/features/edit-budget";
 import { CategoryManager } from "@/features/manage-categories";
 import { WorkHoursEditor } from "@/features/set-work-hours";
@@ -43,13 +51,28 @@ export const BudgetBoard = () => {
   const budget = useHouseholdBudget();
   const month = useHouseholdMonth(todayInKorea().slice(0, 7));
   // 상태는 한 줄(`FE-REQ-060` FR-13)
-  if (budget.isSignedOut) return <StatusLine kind="blocked">{E.signedOut}</StatusLine>;
-  if (budget.isError) return <StatusLine kind="error">{E.loadFailed}</StatusLine>;
+  if (budget.isSignedOut)
+    return <StatusLine kind="blocked">{E.signedOut}</StatusLine>;
+  if (budget.isError)
+    return <StatusLine kind="error">{E.loadFailed}</StatusLine>;
   if (budget.data === undefined) return <Skeleton height={400} />;
-  const spent = Object.fromEntries((month.data?.byCategory ?? []).map((c) => [c.key, c.spent]));
+  const spent = Object.fromEntries(
+    (month.data?.byCategory ?? []).map((c) => [c.key, c.spent]),
+  );
   return (
     <CategoryNamesProvider categories={month.data?.categories ?? []}>
-      <BudgetEditor budget={budget.data} spent={spent} />
+      {/* 예산 칸 | 이번 달 분류별로 쓴 돈(2026-11-20 — 칸을 정할 때 볼 숫자가 옆에, 오른쪽이 비어 있었다). 1280 미만은 위아래 */}
+      <div className={s.split}>
+        <BudgetEditor budget={budget.data} spent={spent} />
+        {month.data ? (
+          <section className={s.ratioCard} aria-labelledby="budget-ratio">
+            <h2 id="budget-ratio" className={s.sideTitle}>
+              {B.ratioTitle}
+            </h2>
+            <CategoryRatio byCategory={month.data.byCategory} />
+          </section>
+        ) : null}
+      </div>
     </CategoryNamesProvider>
   );
 };

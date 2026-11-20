@@ -4,10 +4,22 @@ import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
 import { useChallenges } from "@/entities/household";
-import { START_CHALLENGE_MESSAGES, StartChallengeForm } from "@/features/start-challenge";
+import {
+  START_CHALLENGE_MESSAGES,
+  StartChallengeForm,
+} from "@/features/start-challenge";
 import { ChallengeCard } from "@/features/track-challenge";
 
 import { CHALLENGES_PAGE as M } from "../model";
+import {
+  toolAside,
+  toolEmpty,
+  toolEmptyBody,
+  toolEmptyTitle,
+  toolGrid,
+  toolMain,
+} from "@repo/web-shared/ui/surface.css";
+
 import * as s from "./challenges.css";
 
 /**
@@ -23,30 +35,52 @@ export const ChallengeBoard = () => {
   const open = data.items.filter((c) => c.phase !== "ended");
   const ended = data.items.filter((c) => c.phase === "ended");
   return (
-    <>
-      {data.canStart ? <StartChallengeForm list={data} /> : <p className={s.note}>{START_CHALLENGE_MESSAGES.limit(data.limit)}</p>}
-      {data.items.length === 0 ? <EmptyState title={M.empty} /> : null}
-      {open.length > 0 ? (
-        <ul className={s.list}>
-          {open.map((c) => (
-            <li key={c.id}>
-              <ChallengeCard challenge={c} today={data.today} goals={data.goals} />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {ended.length > 0 ? (
-        <section aria-label={M.ended}>
-          <h2 className={s.sectionTitle}>{M.ended}</h2>
+    // 2단(2026-11-20) — 목록 | 고르기 카드. 비면 안내 상자(무엇이 생기는지)
+    <div className={toolGrid}>
+      <aside className={toolAside}>
+        {data.canStart ? (
+          <StartChallengeForm list={data} />
+        ) : (
+          <p className={s.note}>{START_CHALLENGE_MESSAGES.limit(data.limit)}</p>
+        )}
+      </aside>
+      <div className={toolMain}>
+        {data.items.length === 0 ? (
+          <div className={toolEmpty}>
+            <p className={toolEmptyTitle}>{M.empty}</p>
+            <p className={toolEmptyBody}>{M.emptyHint}</p>
+          </div>
+        ) : null}
+        {open.length > 0 ? (
           <ul className={s.list}>
-            {ended.map((c) => (
+            {open.map((c) => (
               <li key={c.id}>
-                <ChallengeCard challenge={c} today={data.today} goals={data.goals} />
+                <ChallengeCard
+                  challenge={c}
+                  today={data.today}
+                  goals={data.goals}
+                />
               </li>
             ))}
           </ul>
-        </section>
-      ) : null}
-    </>
+        ) : null}
+        {ended.length > 0 ? (
+          <section aria-label={M.ended}>
+            <h2 className={s.sectionTitle}>{M.ended}</h2>
+            <ul className={s.list}>
+              {ended.map((c) => (
+                <li key={c.id}>
+                  <ChallengeCard
+                    challenge={c}
+                    today={data.today}
+                    goals={data.goals}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
+    </div>
   );
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ROUTES } from "@repo/web-shared/config";
 import { SideRow } from "@repo/web-shared/ui";
 
-import { CategoryNamesProvider, CategoryRatio, EnvelopeRows, LandingBox, useHouseholdMonth, type HouseholdMonth } from "@/entities/household";
+import { CategoryNamesProvider, EnvelopeRows, useHouseholdMonth, type HouseholdMonth } from "@/entities/household";
 import { QuickEntryForm } from "@/features/record-expense";
 
 import { HOUSEHOLD_PAGE as M } from "../model";
@@ -22,8 +22,9 @@ export const householdTools = (ym: string) => [
 ];
 
 /**
- * 가계부 오른쪽 사이드(`FE-REQ-060` FR-4 · FR-6) — 바로 적기(이번 달만) → 봉투(행 44) → 분류별로 쓴 돈(가로 막대) → 착지 정보 상자(이번 달만 —
- * 구간 숫자는 요약 띠가 보이므로 여기선 설명만) → 가계부 도구. 본문과 같은 조회 키라 요청은 한 번
+ * 가계부 오른쪽 사이드(`FE-REQ-060` FR-4 · FR-6 → 2026-11-20 개편) — 바로 적기(이번 달만) → 봉투(예산을 정했을 때만) → 가계부 도구(접힘).
+ * 분류별로 쓴 돈은 본문 차트 칸으로, 착지 구간은 요약 띠가 보인다 — 칸을 쌓아 어지럽던 사이드를 두 덩어리로(리서치: 사이드는 블록 둘까지).
+ * 본문과 같은 조회 키라 요청은 한 번
  */
 export const HouseholdSide = ({ ym, initial }: { ym: string; initial: HouseholdMonth | null }) => {
   const month = useHouseholdMonth(ym, initial);
@@ -38,7 +39,7 @@ export const HouseholdSide = ({ ym, initial }: { ym: string; initial: HouseholdM
           <QuickEntryForm compact />
         </section>
       ) : null}
-      {m ? (
+      {m?.budget ? (
         <CategoryNamesProvider categories={m.categories}>
           <section className={s.sideBlock} aria-labelledby="hh-envelopes">
             <div className={s.sideHead}>
@@ -49,27 +50,18 @@ export const HouseholdSide = ({ ym, initial }: { ym: string; initial: HouseholdM
                 {M.budget}
               </Link>
             </div>
-            {m.budget ? <EnvelopeRows envelopes={m.envelopes} unbudgeted={m.unbudgeted} /> : <p className={s.hint}>{M.noBudget}</p>}
+            <EnvelopeRows envelopes={m.envelopes} unbudgeted={m.unbudgeted} />
           </section>
-          <section className={s.sideBlock} aria-labelledby="hh-ratio">
-            <h2 id="hh-ratio" className={s.sideTitle}>
-              {M.ratio}
-            </h2>
-            <CategoryRatio byCategory={m.byCategory} />
-          </section>
-          {m.current ? <LandingBox month={m} hideRange /> : null}
         </CategoryNamesProvider>
       ) : null}
-      <section className={s.sideBlock} aria-labelledby="hh-tools">
-        <h2 id="hh-tools" className={s.sideTitle}>
-          {M.tools}
-        </h2>
+      <details className={s.sideFold}>
+        <summary className={s.sideFoldSummary}>{M.toolsFold}</summary>
         <div>
           {householdTools(ym).map((tool) => (
             <SideRow key={tool.href} href={tool.href} icon={null} label={tool.label} hint={"hint" in tool ? tool.hint : undefined} />
           ))}
         </div>
-      </section>
+      </details>
     </>
   );
 };

@@ -23,3 +23,41 @@ export const sideLink = style({
   ":hover": { textDecoration: "underline" },
 });
 export const rows = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
+
+/** 폼 | 이번 달 지금까지 — 1280 이상 나란히 */
+export const split = style({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: "32px",
+  alignItems: "start",
+  "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 560px) minmax(0, 1fr)" } },
+});
+
+export const glance = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  minWidth: 0,
+  padding: "20px",
+  borderRadius: "12px",
+  background: vars.colors.background.white,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
+});
+
+export const glanceHead = style({ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "8px" });
+
+export const glanceTotal = style({
+  fontSize: vars.deskType.title.fontSize,
+  lineHeight: vars.deskType.title.lineHeight,
+  fontWeight: vars.deskType.title.fontWeight,
+  color: vars.colors.desk.text1,
+  fontVariantNumeric: "tabular-nums",
+});
+
+export const glanceHint = style({
+  marginTop: "-8px",
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});

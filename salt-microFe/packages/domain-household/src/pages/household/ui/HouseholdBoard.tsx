@@ -3,6 +3,7 @@
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
+import { SegmentedControl } from "@repo/ui/segmentedControl";
 import { SummaryBand, type SummaryBandItem } from "@repo/ui/summaryBand";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +14,8 @@ import { TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
 import {
   BOARD_MESSAGES as B,
   CategoryNamesProvider,
+  CategoryRatio,
+  DailySpendBars,
   DayExpenseGroups,
   EXPENSE_MESSAGES as E,
   ExpenseRow,
@@ -38,10 +41,14 @@ import { todayInKorea } from "@repo/web-shared/lib";
 
 import { HOUSEHOLD_PAGE as M } from "../model";
 import * as s from "./household.css";
+import { HouseholdStart } from "./HouseholdStart";
 import { householdTools } from "./HouseholdSide";
 
 /** 고른 날이 사는 주소 — `?day=YYYY-MM-DD`(목록 + 미리보기 패턴: 선택은 주소에, `screen-desktop.md` §4) */
 const DAY_PARAM = "day";
+/** 목록 · 달력 전환이 사는 주소 — `?view=calendar`(리서치: 달력과 목록은 둘 다 펼치지 않고 전환). 없으면 목록 */
+const VIEW_PARAM = "view";
+type ListView = "list" | "calendar";
 
 /** 요약 띠(`FE-REQ-060` FR-2) — 값 · 보일지 말지는 서버 값(없으면 그 칸을 안 그린다). 주인공은 쓴 돈 하나 */
 const summaryItems = (m: HouseholdMonth): SummaryBandItem[] => {
@@ -85,6 +92,19 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
     url.searchParams.set(DAY_PARAM, date);
     window.history.replaceState(null, "", url);
   }, []);
+  // 막대에서 날을 고르면 달력으로 — 그날 내역이 달력 옆에 열린다
+  const openDay = useCallback((date: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(DAY_PARAM, date);
+    url.searchParams.set(VIEW_PARAM, "calendar");
+    window.history.replaceState(null, "", url);
+  }, []);
+  const setView = useCallback((view: ListView) => {
+    const url = new URL(window.location.href);
+    if (view === "calendar") url.searchParams.set(VIEW_PARAM, view);
+    else url.searchParams.delete(VIEW_PARAM);
+    window.history.replaceState(null, "", url);
+  }, []);
 
   // 상태는 패널 안 한 줄(`FE-REQ-060` FR-13) — 큰 빈 그림 · 빈 카드 0. 실패는 다시 불러오기 하나
   if (month.isSignedOut) return <StatusLine kind="blocked">{E.signedOut}</StatusLine>;
@@ -106,6 +126,14 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
   const selectedDay = selected ? m.calendar.days.find((d) => d.date === selected) ?? null : null;
   const selectedExpenses = selected ? m.expenses.filter((e) => e.spentOn === selected) : [];
   const dayHead = selectedDay ? B.dayHead(selectedDay.date, B.weekday[selectedDay.weekday % 7]) : "";
+  const view: ListView = params?.get(VIEW_PARAM) === "calendar" ? "calendar" : "list";
+  const empty = m.expenses.length === 0;
+  const more = [
+    m.installments.lines.length > 0 ? <InstallmentBand key="installments" installments={m.installments} /> : null,
+    m.revolving.lines.length > 0 || m.revolving.stale.length > 0 ? <RevolvingBand key="revolving" revolving={m.revolving} /> : null,
+    m.close || m.closable ? <MonthReview key={`review-${m.month}-${m.close?.closedAt ?? "open"}`} month={m} /> : null,
+    m.feelings.mirror.length > 0 ? <FeelingMirror key="mirror" mirror={m.feelings.mirror} /> : null,
+  ].filter((node) => node !== null);
 
   // 내 분류 이름은 월 화면이 이미 받은 표로(가계부 S1f) — 서버 HTML 부터 이름이 맞고 분류 표를 따로 부르지 않는다
   return (
@@ -129,63 +157,85 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
             <FixedCostCard costs={m.fixedCosts} />
           </div>
         ) : null}
-
-        <div className={s.split}>
-          <section className={s.section} aria-labelledby="hh-list">
-            <div className={s.sectionHead}>
-              <h2 id="hh-list" className={s.sectionTitle}>
-                {M.list}
-              </h2>
-            </div>
-            {m.expenses.length === 0 ? (
-              <div className={s.emptyRow}>
-                <StatusLine kind="empty">{m.current ? `${M.emptyTitle} — ${M.emptyDescription}` : M.emptyTitle}</StatusLine>
-              </div>
-            ) : (
-              <DayExpenseGroups expenses={m.expenses} days={m.calendar.days} action={(expense) => <DeleteExpenseButton expense={expense} />} />
-            )}
-          </section>
-
-          <section className={s.section} aria-labelledby="hh-calendar">
-            <div className={s.sectionHead}>
-              <h2 id="hh-calendar" className={s.sectionTitle}>
-                {M.calendar}
-              </h2>
-              <span className={s.hint}>{B.calendarHint}</span>
-            </div>
-            <SpendCalendar days={m.calendar.days} selected={selected} onSelect={selectDay} />
-            {selectedDay ? (
-              <div key={selectedDay.date} className={s.dayDetail} aria-live="polite">
-                <div className={s.dayHead}>
-                  <span>{M.dayDetail(dayHead)}</span>
-                  <span>{B.dayTotal(formatWon(selectedDay.spent))}</span>
+        {empty ? (
+          <HouseholdStart current={m.current} />
+        ) : (
+          <>
+            {/* 차트 두 칸(2026-11-20 개편) — 날마다 쓴 돈 · 분류별로 쓴 돈(사이드에서 옮김). 막대를 누르면 그날을 달력으로 연다 */}
+            <div className={s.chartRow}>
+              <section className={s.card} aria-labelledby="hh-daily">
+                <div className={s.sectionHead}>
+                  <h2 id="hh-daily" className={s.sectionTitle}>
+                    {B.dailyTitle}
+                  </h2>
+                  <span className={s.hint}>{M.dailyHint}</span>
                 </div>
-                {selectedExpenses.length === 0 ? (
-                  <p className={s.hint}>{B.dayEmpty}</p>
-                ) : (
-                  <ul className={s.dayRows}>
-                    {selectedExpenses.map((e) => (
-                      <ExpenseRow key={e.id} expense={e} />
-                    ))}
-                  </ul>
-                )}
-                {m.current ? <MarkNoSpendButton ym={m.month} day={selectedDay} /> : null}
+                <DailySpendBars days={m.calendar.days} selected={view === "calendar" ? selected : null} onSelect={openDay} />
+              </section>
+              <section className={s.card} aria-labelledby="hh-ratio-main">
+                <div className={s.sectionHead}>
+                  <h2 id="hh-ratio-main" className={s.sectionTitle}>
+                    {B.ratioTitle}
+                  </h2>
+                </div>
+                <CategoryRatio byCategory={m.byCategory} />
+              </section>
+            </div>
+            <section className={s.card} aria-labelledby="hh-list">
+              <div className={s.sectionHead}>
+                <h2 id="hh-list" className={s.sectionTitle}>
+                  {M.list}
+                </h2>
+                <SegmentedControl<ListView>
+                  label={M.viewLabel}
+                  value={view}
+                  onChange={setView}
+                  options={[
+                    { label: M.viewList, value: "list" },
+                    { label: M.calendar, value: "calendar" },
+                  ]}
+                />
               </div>
-            ) : null}
+              {view === "list" ? (
+                <DayExpenseGroups expenses={m.expenses} days={m.calendar.days} action={(expense) => <DeleteExpenseButton expense={expense} />} />
+              ) : (
+                <div className={s.calendarSplit}>
+                  <div>
+                    <SpendCalendar days={m.calendar.days} selected={selected} onSelect={selectDay} />
+                    <p className={s.hint}>{B.calendarHint}</p>
+                  </div>
+                  {selectedDay ? (
+                    <div key={selectedDay.date} className={s.dayDetail} aria-live="polite">
+                      <div className={s.dayHead}>
+                        <span>{M.dayDetail(dayHead)}</span>
+                        <span>{B.dayTotal(formatWon(selectedDay.spent))}</span>
+                      </div>
+                      {selectedExpenses.length === 0 ? (
+                        <p className={s.hint}>{B.dayEmpty}</p>
+                      ) : (
+                        <ul className={s.dayRows}>
+                          {selectedExpenses.map((e) => (
+                            <ExpenseRow key={e.id} expense={e} />
+                          ))}
+                        </ul>
+                      )}
+                      {m.current ? <MarkNoSpendButton ym={m.month} day={selectedDay} /> : null}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+        {/* 이 달 더 보기 — 내용이 있는 칸만(리서치: 데이터가 없으면 섹션을 접는다). 다 비면 섹션째 없음 */}
+        {more.length > 0 ? (
+          <section className={s.section} aria-labelledby="hh-more">
+            <h2 id="hh-more" className={s.sectionTitle}>
+              {M.more}
+            </h2>
+            <div className={s.moreGrid}>{more}</div>
           </section>
-        </div>
-
-        <section className={s.section} aria-labelledby="hh-more">
-          <h2 id="hh-more" className={s.sectionTitle}>
-            {M.more}
-          </h2>
-          <div className={s.moreGrid}>
-            <InstallmentBand installments={m.installments} />
-            <RevolvingBand revolving={m.revolving} />
-            <MonthReview key={`${m.month}-${m.close?.closedAt ?? "open"}`} month={m} />
-            <FeelingMirror mirror={m.feelings.mirror} />
-          </div>
-        </section>
+        ) : null}
       </div>
     </CategoryNamesProvider>
   );

@@ -187,6 +187,9 @@ export const FEELING_MESSAGES = {
 
 /** 데스크톱 한 달 화면(`FE-REQ-060` FR-2~4) — 날짜 묶음 · 분류 비율 · 달력 칸. 숫자는 서버 값, 여기는 글자만 */
 export const BOARD_MESSAGES = {
+  /** 날마다 쓴 돈 막대(2026-11-20) — 막대 이름은 날짜 · 금액(오지 않은 날은 날짜만) */
+  dailyTitle: "날마다 쓴 돈",
+  dailyBar: (day: number, amount: string | null) => (amount === null ? `${day}일` : `${day}일 ${amount}`),
   dayTotal: (amount: string) => `합 ${amount}`,
   groupsLabel: "날짜별 쓴 내역",
   ratioTitle: "분류별로 쓴 돈",
@@ -255,3 +258,6 @@ export const CHALLENGE_MESSAGES = {
   saved: (amount: string) => `아낀 돈 ${amount}`,
   contributed: (amount: string) => `목표에 보탠 돈 ${amount}`,
 } as const;
+
+/** 가계부 하위 화면 머리 — 뒤로 + 이동 경로(`BackNav`, 2026-11-20 도구 화면을 데스크톱 틀로) */
+export const HOUSEHOLD_TRAIL = { label: "이동 경로", household: "가계부" } as const;

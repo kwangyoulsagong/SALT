@@ -18,7 +18,8 @@
     "@repo/core": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@repo/ui": "workspace:*",
-    "@repo/web-shared": "workspace:*"
+    "@repo/web-shared": "workspace:*",
+    "lucide-react": "^0.475.0"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.64.1",

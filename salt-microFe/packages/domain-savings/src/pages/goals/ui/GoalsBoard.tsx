@@ -26,6 +26,7 @@ import {
 import { GOALS_PAGE as M } from "../model";
 import { GoalPreview } from "./GoalPreview";
 import { GoalsTools } from "./GoalsSide";
+import { GoalsStart } from "./GoalsStart";
 import * as s from "./goals.css";
 
 /** 고른 목표가 사는 주소 — `?goal=`(목록 + 미리보기 패턴: 선택은 주소에, `screen-desktop.md` §4) */
@@ -83,15 +84,8 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
   if (!goals.data) return <Skeleton height={480} />;
   const list = goals.data;
 
-  if (list.length === 0) {
-    return (
-      <div className={s.board}>
-        <div className={s.emptyRow}>
-          <StatusLine kind="empty">{`${M.empty} — ${M.emptyDescription}`}</StatusLine>
-        </div>
-      </div>
-    );
-  }
+  // 목표가 없으면 템플릿 고르기(2026-11-20 — 한 줄 빈 상태가 넓은 패널에서 텅 비어 보였다)
+  if (list.length === 0) return <GoalsStart />;
 
   const selectedId = resolveSelectedGoal(params?.get(GOAL_PARAM) ?? null, list);
   const selected = list.find((g) => g.id === selectedId) ?? null;

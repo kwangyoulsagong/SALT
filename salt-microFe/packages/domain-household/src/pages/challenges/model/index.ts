@@ -7,6 +7,7 @@ export const CHALLENGES_PAGE = {
   description: "해 보고 싶은 걸 고르고 기간을 정해요. 한 날만 표시하고, 언제든 그만둬도 돼요. 아낀 돈은 저축 목표에 보탤 수 있어요",
   blockName: "챌린지",
   empty: "아직 고른 챌린지가 없어요",
+  emptyHint: "해 보고 싶은 걸 고르고 기간을 정하면 여기 날마다 표시하는 칸이 생겨요. 아낀 돈은 저축 목표에 보탤 수 있어요.",
   ended: "끝난 챌린지",
   signedOut: "로그인하면 볼 수 있어요",
   loadFailed: "불러오지 못했어요",

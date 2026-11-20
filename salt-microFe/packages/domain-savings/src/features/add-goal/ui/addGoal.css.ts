@@ -4,7 +4,24 @@ import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
-export const form = style({ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "560px" });
+/** 입력 | 계산 결과(2026-11-20) — 1280 이상 나란히 */
+export const form = style({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 560px)",
+  gap: "32px",
+  alignItems: "start",
+  "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 560px) minmax(0, 400px)" } },
+});
+
+export const inputs = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
+
+export const outcome = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  minWidth: 0,
+  "@media": { "screen and (min-width: 1280px)": { position: "sticky", top: "16px" } },
+});
 
 export const fieldset = style({ display: "flex", flexDirection: "column", gap: "8px", margin: 0, padding: 0, border: 0 });
 

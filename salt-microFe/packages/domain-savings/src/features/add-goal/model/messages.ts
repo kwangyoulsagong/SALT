@@ -21,4 +21,6 @@ export const ADD_GOAL_MESSAGES = {
   submit: "목표 만들기",
   submitFailed: "목표를 만들지 못했어요. 다시 시도해 주세요",
   calcFailed: "계산을 못 했어요 — 입력은 그대로예요",
+  resultTitle: "계산 결과",
+  resultEmpty: "목표 금액과 기한(또는 월 적립)을 넣으면 여기서 매달 넣을 돈 · 도달 시점을 계산해 드려요",
 } as const;

@@ -1,3 +1,4 @@
+export { GoalTemplateIcon } from "./GoalTemplateIcon";
 export * from "./MilestoneBox";
 export * from "./ProjectionLine";
 export * from "./GoalScene";
