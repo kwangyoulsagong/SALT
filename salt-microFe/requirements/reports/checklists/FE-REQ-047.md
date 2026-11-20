@@ -147,3 +147,5 @@
 ## 2026-11-20 `FE-REQ-074` 걸침
 
 - [x] 글자 래칫 "appType 은 휴대폰 선택자 안에서만" 이 `MOBILE_ROOT`(`globalStyle` 앞머리 — `ON_MOBILE` 과 같은 표지)도 인정. 데스크톱 예산 수 변화 0 — 확인은 `checklists/FE-REQ-074.md`(390 · 360 측정 · 1280 데스크톱 대조)
+
+- 2026-11-20 걸침(`FE-REQ-076` 1단계): `PageFrame` 에 `surface="cards"`(패널 자리 회색 판 · 사이드 선 없음 · 판 위 공용 패널 모서리 20 · 선 0) — 기존 `panel` · `white` 그대로 — 검증은 `checklists/FE-REQ-076.md`

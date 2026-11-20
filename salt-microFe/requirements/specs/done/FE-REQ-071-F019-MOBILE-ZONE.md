@@ -53,3 +53,4 @@ source: 사용자 "pwa에도 전용 마이크로프론트엔드로 하고 서로
 | 2026-11-20 | **done** — 구현 표 위. 판단: 배럴 밖 입구 둘(`layout/sign-in` · `layout/mobile` — 레이아웃 배럴에 두면 데스크톱 zone 다섯 번들에 딸려 감) · 대응표는 실제 화면이 있는 로그인만 · 탭 넷은 자리 한 장. 실기기(iOS · Android 설치)는 사용자 휴대폰 — `QA-001` Q-7 |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — `/m` 탭 넷 자리 화면(`MobilePendingPage`)을 실제 화면으로 바꿨다 · 레이아웃에 표면 표지 `data-surface` · 휴대폰 틀에 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction` — 하단 탭 위) · 홈 입구 `layout/mobile/home` · 디자인 시스템 크기 표지 규칙. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다 |
+| 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 휴대폰 홈 알약 문구를 `@repo/core/labels` `HOME_CARD_PILL_LABEL` 로 옮김(데스크톱 홈과 한 벌) — 값 그대로 |

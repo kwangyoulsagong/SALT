@@ -81,3 +81,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-20 | `FE-REQ-048` FR-12 · 13 대시보드 홈(`feat/fe-req-048-home-card-preview`)이 이 REQ 파일을 걸침 — 홈 요약 카드에 미리보기 칸 · 빈 카드 예시 그림 · 카드 전체 첫 행동 링크(`action` · `href` 는 BFF). 계측 · 순서 · 숨김 그대로. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 홈 카드(`HomeSummaryCardView`)가 앱 웹뷰에서 목록 행 — 값 · 문구 · `degraded` 는 BFF 계약 그대로, 미리보기 자리는 데스크톱 `display: contents` |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 홈 카드(`HomeSummaryCardView`)의 웹뷰 목록 행 분기를 뺐다 — 같은 카드 계약을 `/m/home` 이 행으로 그린다(`@repo/web-shared/layout/mobile/home`). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
+| 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 홈 요약 카드 표시만 바뀜(아이콘 판 · 알약 · 주인공 24) — BFF 값 · 링크 · 계측 그대로 |

@@ -164,3 +164,4 @@ source: 사용자 "상세 페이지 디자인이 너무 구려서 보기도 힘�
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — FR-M(앱 웹뷰 휴대폰 배치)을 `/m` 으로 옮겼다 — 데스크톱 저축 · 가계부 화면의 `deskOnly` · `AppSummary` · `AppSheetAction` · `useInAppWebview` 분기 0, 요약 칸은 엔티티로(`goalSummaryItems` · `householdSummaryItems` — 데스크톱 띠 · 휴대폰 요약 한 벌), 저축 도구는 `widgets/goal-tools`. 같이 쓰는 조각의 휴대폰 값은 `/m` 표지(`ON_MOBILE`). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — 지출 행 판의 휴대폰 값 원 40 → 아이콘 판 44 · 모서리 12(`/m` 표지 안만). 데스크톱 행 변화 0 |
+| 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 요약 띠(`SummaryBand`)를 금액 카드로 · 지출 행 판 40 — 띠 · 칸 · 값은 이 REQ 그대로 |

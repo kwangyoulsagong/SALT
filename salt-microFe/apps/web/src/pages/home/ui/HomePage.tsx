@@ -19,7 +19,7 @@ export const HomePage = () => (
         <OnboardingSideRow />
         <QuickActions />
       </>
-    } sideLabel={HOME_PAGE_MESSAGES.sideLabel}>
+    } sideLabel={HOME_PAGE_MESSAGES.sideLabel} surface="cards">
     <HomeBriefing />
   </PageFrame>
 );

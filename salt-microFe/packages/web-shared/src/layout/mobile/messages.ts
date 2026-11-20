@@ -1,3 +1,5 @@
+import { HOME_CARD_PILL_LABEL } from "@repo/core/labels";
+
 /** 휴대폰 틀 문구(`FE-REQ-071`, `screen-mobile.md` §5 해요체) */
 export const MOBILE_MESSAGES = {
   tabsLabel: "주요 메뉴",
@@ -32,6 +34,6 @@ export const MOBILE_HOME_MESSAGES = {
   shortcuts: { label: "바로가기", report: "코치 리포트", calendar: "이번 달 달력", goals: "내 저축 목표" },
   settings: "홈 화면 설정",
   /** 도메인 카드 오른쪽 회색 알약 — 그 도메인의 다음 행동(누르면 카드 전체와 같은 곳) */
-  pill: { savings: "넣기", household: "적기", invest: "보기", tips: "보기" },
+  pill: HOME_CARD_PILL_LABEL,
   feedSub: (detail: string, date: string) => `${detail} · ${date}`,
 } as const;

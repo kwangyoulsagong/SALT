@@ -25,6 +25,7 @@ export const GoalsPage = async () => {
       }
       side={<GoalsSide initialGoals={initialGoals} />}
       sideLabel={M.tools}
+      surface="cards"
     >
       <BlockBoundary name={M.blockName} minHeight={480}>
         <GoalsBoard initialGoals={initialGoals} initialOverview={initialOverview} />

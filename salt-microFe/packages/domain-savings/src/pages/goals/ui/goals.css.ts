@@ -3,10 +3,10 @@ import { style } from "@vanilla-extract/css";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { card } from "@repo/web-shared/ui/surface.css";
 
 /**
- * 저축 목표 데스크톱 화면(`FE-REQ-060` FR-1 · 8 · 12). 틀은 `PageFrame`(바탕 · 패널 · 사이드 312). 면은 패널 + 정보 상자 둘뿐.
+ * 저축 목표 데스크톱 화면(`FE-REQ-060` FR-1 · 8 · 12). 틀은 `PageFrame`(바탕 · 패널 · 사이드 312). 면은 카드 판 위 흰 카드(`FE-REQ-076`).
  * 1280 이상: 목록 | 미리보기(360) 두 칸 · 1280 미만: 미리보기가 목록 아래로 · 사이드는 1024 이상(태블릿은 본문 아래 — PageFrame)
  */
 const WIDE = "screen and (min-width: 1280px)";
@@ -32,7 +32,8 @@ export const addLink = style({
   height: "32px",
   padding: "0 12px",
   borderRadius: "8px",
-  background: SURFACE.weakFill,
+  // 카드 판(grey100) 위라 흰 면 — 옅은 회색 면은 판과 같아 안 보였다(`FE-REQ-076`)
+  background: vars.colors.background.white,
   color: vars.colors.desk.text1,
   fontSize: vars.deskType.section.fontSize,
   lineHeight: vars.deskType.section.lineHeight,
@@ -45,6 +46,9 @@ export const addLink = style({
 });
 
 /* ── 본문 ─────────────────────────────────────────────────── */
+/** 금액 카드 대기 칸 — 실제 카드 높이(`FE-REQ-076` 2회차 실측: 1280 이상 112 · 아래 190) */
+export const summarySkeleton = style({ height: "190px", "@media": { [WIDE]: { height: "112px" } } });
+
 export const board = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
 export const description = style({ ...label, margin: 0 });
 
@@ -56,23 +60,23 @@ export const split = style({
   "@media": { [WIDE]: { gridTemplateColumns: "minmax(0, 1fr) 360px" } },
 });
 
-export const section = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
+/** 묶음 = 카드 판 위 흰 카드(`FE-REQ-076` FR-7 — 목표 목록 · 고른 목표) */
+export const section = style([card, { gap: "8px" }]);
 export const sectionHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minHeight: "32px" });
 export const sectionTitle = style({
   ...title,
 });
 export const hint = style({ ...label, margin: 0 });
 
-/** 미리보기 칸 — 정보 상자. 목표를 바꾸면 새 칸이 8px 아래에서 올라온다(`motion.md` §1 블록 등장) */
+/**
+ * 미리보기 칸 — 목표를 바꾸면 새 칸이 8px 아래에서 올라온다(`motion.md` §1 블록 등장).
+ * 이미 카드 안이라 상자 면 · 선을 두지 않는다(카드 안 카드 0 — `FE-REQ-076` FR-7, 전 정보 상자 + 안쪽 선)
+ */
 export const preview = style({
   ...enterReveal,
   display: "flex",
   flexDirection: "column",
   gap: "12px",
-  padding: "16px",
-  borderRadius: "12px",
-  background: SURFACE.infoFill,
-  boxShadow: SURFACE.hairline,
 });
 export const previewHead = style({ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "8px" });
 export const previewTitle = style({ ...title, fontSize: vars.deskType.section.fontSize, lineHeight: vars.deskType.section.lineHeight });

@@ -14,10 +14,10 @@ export const cardLink = style({
   gap: vars.space.md,
   height: "100%",
   minHeight: "264px",
-  padding: vars.space.lg2,
-  borderRadius: SURFACE.panelRadius,
+  padding: "20px 24px",
+  // 카드 판 위 흰 카드 — 모서리 20 · 선 0(`FE-REQ-076` FR-2 · FR-5, 전 모서리 16 + 안쪽 선)
+  borderRadius: vars.radius.xl,
   background: vars.colors.background.white,
-  boxShadow: SURFACE.hairline,
   color: "inherit",
   textDecoration: "none",
   transition: `background ${vars.motion.duration.instant}`,
@@ -30,7 +30,7 @@ export const cardLink = style({
 export const head = style({
   display: "flex",
   alignItems: "center",
-  gap: vars.space.sm,
+  gap: vars.space.md,
 });
 
 /** 미리보기 자리 — 칸을 만들지 않는다(`contents`) */
@@ -64,11 +64,12 @@ export const label = style({
   color: vars.colors.desk.text2,
 });
 
+/** 주인공 금액 24/700(`deskType.price` — 금액 카드 주인공과 같은 단, `FE-REQ-076` FR-5 · 전 18) */
 export const heroValue = style({
   margin: 0,
-  fontSize: vars.deskType.title.fontSize,
-  lineHeight: vars.deskType.title.lineHeight,
-  fontWeight: vars.deskType.title.fontWeight,
+  fontSize: vars.deskType.price.fontSize,
+  lineHeight: vars.deskType.price.lineHeight,
+  fontWeight: vars.deskType.price.fontWeight,
   color: vars.colors.desk.text1,
   fontVariantNumeric: "tabular-nums",
 });

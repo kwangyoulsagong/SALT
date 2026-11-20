@@ -166,3 +166,5 @@
 - 홈 카드(`HomeSummaryCardView`)의 웹뷰 목록 행 분기를 뺐다 — 같은 카드 계약을 `/m/home` 이 행으로 그린다(`@repo/web-shared/layout/mobile/home`)
 - 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
 - 미충족: 없음(이 REQ 몫 변경은 위 한 줄)
+
+- 2026-11-20 걸침(`FE-REQ-076` 1단계): 홈 요약 카드 표시만 바뀜(아이콘 판 · 알약 · 주인공 24) — BFF 값 · 링크 · 계측 그대로 — 검증은 `checklists/FE-REQ-076.md`

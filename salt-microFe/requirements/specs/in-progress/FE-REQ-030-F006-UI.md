@@ -320,3 +320,4 @@ created: 2026-09-09
 | 2026-11-19 | **코치 대화 정렬**(사용자 2026-11-19 "정렬" — `FE-REQ-049` 브랜치 다른 커밋) — 화면 제목을 가운데 대화 단(720)의 왼쪽 끝에(`PageFrame` `headMaxWidth`) · 대화 기록 좌우 여백 4 → 0(브리핑 · 시작 질문 양 끝 = 입력 상자) · 옆 칸 포지션 요약 들여쓰기 12 → 0(꺾쇠 위치도 같게). 720 은 `@repo/web-shared/config` `TEXT_MAX_WIDTH` 한 곳 |
 | 2026-11-19 | FR-128 신설 — 맨 위 보관 안내. `feat/f006-coach-chat-history` |
 | 2026-11-20 | 시작 질문 = 아이콘 + 한 줄 힌트 카드(`COACH_CHIP_HINT` — 명령형 0)(`feat/fe-req-048-home-card-preview`). 첫 질문 전 브리핑 · 시작 질문을 입력 상자 바로 위로(첫 자식 `margin-top: auto` — `flex-end` 는 넘칠 때 스크롤이 막혀 쓰지 않음). 사용자 "적립 · 코치 대화도". 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |
+| 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 알림 화면 `/alerts` 을 카드 판(`PageFrame surface="cards"`) 위 카드로 — 목록 · 문구 · 동작 그대로 |

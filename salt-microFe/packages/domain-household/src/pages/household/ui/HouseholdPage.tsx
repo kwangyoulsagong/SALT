@@ -15,7 +15,7 @@ import { MonthNav } from "./MonthNav";
 const MonthView = async ({ ym }: { ym: string }) => {
   const initial = await serverMonth(ym);
   return (
-    <PageFrame title={M.title} actions={<MonthNav ym={ym} />} side={<HouseholdSide ym={ym} initial={initial} />} sideLabel={M.title}>
+    <PageFrame title={M.title} actions={<MonthNav ym={ym} />} side={<HouseholdSide ym={ym} initial={initial} />} sideLabel={M.title} surface="cards">
       <BlockBoundary name={M.blockName} minHeight={480}>
         <HouseholdBoard ym={ym} initial={initial} />
       </BlockBoundary>

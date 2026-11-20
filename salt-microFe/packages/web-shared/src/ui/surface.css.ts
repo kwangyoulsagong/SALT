@@ -68,6 +68,56 @@ export const panelDescription = style({
   fontWeight: vars.fontWeights.medium,
 });
 
+/* ── 카드 판(`FE-REQ-076` — 데스크톱도 휴대폰 같은 느낌) ─────────────── */
+
+/**
+ * 데스크톱 카드 — `PageFrame surface="cards"`(회색 판) 위 흰 면 · 모서리 20 · 안쪽 20 × 24 · 선 · 그림자 0.
+ * 휴대폰 탭 카드(`mobile-design.md` §1 — 모서리 20 · 안쪽 20)와 같은 모양에 데스크톱 폭만 더 넓게. 카드 안에 카드를 두지 않는다
+ */
+export const card = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.md,
+  padding: "20px 24px",
+  borderRadius: vars.radius.xl,
+  background: vars.colors.background.white,
+  minWidth: 0,
+  ...enterReveal,
+});
+
+/** 아이콘 판 — 44 · 모서리 12 · grey100 + 3D 아이콘 28(휴대폰 `MobileSummary` `iconTile` 과 같은 값, `FE-REQ-076` FR-3) */
+export const iconTile = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  width: "44px",
+  height: "44px",
+  borderRadius: vars.radius.medium,
+  background: vars.colors.neutral[100],
+});
+globalStyle(`${iconTile} img`, { width: "28px", height: "28px" });
+
+/** 작은 아이콘 판 — 사이드 행 36 · 아이콘 24 */
+export const iconTileSm = style([iconTile, { width: "36px", height: "36px", borderRadius: "10px" }]);
+globalStyle(`${iconTileSm} img`, { width: "24px", height: "24px" });
+
+/** 회색 알약 — 그 도메인의 다음 행동 한 단어(휴대폰 홈 카드와 같은 문구). 카드 전체가 링크면 모양만. 높이 32 · 13/600 */
+export const pill = style({
+  display: "inline-flex",
+  alignItems: "center",
+  flexShrink: 0,
+  height: "32px",
+  padding: "0 12px",
+  borderRadius: vars.radius.medium,
+  background: vars.colors.neutral[100],
+  color: vars.colors.neutral[700],
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  whiteSpace: "nowrap",
+});
+
 /** 옅은 회색 면 상자 — 안내 · 요약 · 지표 칸 */
 export const weakBox = style({
   borderRadius: "12px",

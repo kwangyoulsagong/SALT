@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { NavChevron } from "../NavChevron/NavChevron";
 import { ZoneLink } from "../ZoneLink/ZoneLink";
+import { iconTileSm } from "../surface.css";
 import { block, blockTitle, hint as hintClass, name, row, text } from "./SideRow.css";
 
 /** 사이드 묶음 — 제목 13/600 + 행 목록. `PageFrame` `side` 에 넣는다 */
@@ -28,7 +29,12 @@ export interface SideRowProps {
  */
 export const SideRow = ({ href, icon, label, hint }: SideRowProps) => (
   <ZoneLink href={href} className={row}>
-    {icon}
+    {/* 3D 아이콘은 작은 아이콘 판 36 위에(`FE-REQ-076` FR-3 — 휴대폰 바로가기와 같은 모양) */}
+    {icon ? (
+      <span className={iconTileSm} aria-hidden>
+        {icon}
+      </span>
+    ) : null}
     <span className={text}>
       <span className={name}>{label}</span>
       {hint ? <span className={hintClass}>{hint}</span> : null}

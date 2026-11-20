@@ -4,6 +4,7 @@ import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
+import { ServiceIcon } from "@repo/ui/serviceicon";
 import { SummaryBand } from "@repo/ui/summaryBand";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -116,7 +117,8 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
   return (
     <CategoryNamesProvider categories={m.categories}>
       <div className={s.board}>
-        <SummaryBand items={householdSummaryItems(m)} label={HOUSEHOLD_SUMMARY_MESSAGES.label} />
+        {/* 금액 카드 — 휴대폰 가계부 요약과 같은 3D 아이콘(`FE-REQ-076` FR-4) */}
+        <SummaryBand items={householdSummaryItems(m)} label={HOUSEHOLD_SUMMARY_MESSAGES.label} icon={<ServiceIcon variant="household" />} />
         <p className={s.description}>{M.description}</p>
         <div className={s.toolsInline}>
           {householdTools(ym).map((tool) => (

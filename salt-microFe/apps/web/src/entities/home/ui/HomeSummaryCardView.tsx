@@ -1,6 +1,8 @@
+import { HOME_CARD_PILL_LABEL } from "@repo/core/labels";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 
 import { NavChevron, ZoneLink } from "@repo/web-shared/ui/frame";
+import { iconTile, pill } from "@repo/web-shared/ui/surface.css";
 
 import { HomeCardGhostPreview, HomeCardPreviewView } from "./HomeCardPreviewView";
 import { HOME_DOMAIN_ICON } from "../model/domainIcon";
@@ -17,16 +19,25 @@ interface HomeSummaryCardViewProps {
 /**
  * 홈 요약 카드 하나 — **표시 전용**(`fsd-entities.md`). 값은 BFF 문자열 그대로, 계산 0 (`FE-REQ-055` FR-1).
  *
- * 데스크톱 카드(`FE-REQ-048` FR-8, 2026-11-19): 도메인 3D 아이콘 + 제목 + 셰브론 → `primary` 를 주인공(18/700)으로 →
+ * 데스크톱 카드(`FE-REQ-048` FR-8, 2026-11-19 → `FE-REQ-076` FR-5 휴대폰 같은 느낌): 아이콘 판 44(3D) + 제목 + 회색 알약(다음 행동 한 단어 — 휴대폰 홈과 같은 문구,
+ * 카드 전체가 링크라 모양만 · 첫 행동 버튼이 있는 빈 카드 · 못 받은 카드엔 셰브론) → `primary` 를 주인공(24/700)으로 →
  * `secondary` 는 라벨 · 값 한 줄 → 미리보기(흐름선 · 날마다 막대 · 목표 진척 — 2026-11-20 FR-12, 서버 값 그대로) → `note` 한 줄. 링크 이름은 카드 내용(제목 · 값)이다 — `aria-label` 로 덮으면 값을 읽지 못한다.
  * 카드 전체가 그 도메인 zone 진입 링크(`ZoneLink` 가 레지스트리로 `<Link>`/`<a>` 를 고른다). `degraded` 는 값 자리에 한 줄만 둔다.
  */
 export const HomeSummaryCardView = ({ card, onOpen }: HomeSummaryCardViewProps) => (
   <ZoneLink href={card.href} className={cardLink} onClick={onOpen}>
     <span className={head}>
-      <ServiceIcon variant={HOME_DOMAIN_ICON[card.domain]} />
+      <span className={iconTile} aria-hidden>
+        <ServiceIcon variant={HOME_DOMAIN_ICON[card.domain]} />
+      </span>
       <h2 className={title}>{card.title}</h2>
-      <NavChevron size={20} />
+      {card.state === "degraded" || card.action ? (
+        <NavChevron size={20} />
+      ) : (
+        <span className={pill} aria-hidden>
+          {HOME_CARD_PILL_LABEL[card.domain]}
+        </span>
+      )}
     </span>
     {card.state === "degraded" ? (
       <p className={note}>{HOME_CARD_MESSAGES.degraded}</p>
