@@ -1,0 +1,85 @@
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { vars } from "@repo/ui/tokens";
+
+/**
+ * 휴대폰 목록 행(`screen-mobile.md` §3) — 세로 여백 12 · 왼쪽 그림 40 · 이름 `t5` · 보조 `t7` · 값 오른쪽.
+ * 높이는 고정하지 않는다 — 글자를 키우면(160 · 200%) 값이 다음 줄로 내려간다(`FE-REQ-072` FR-5)
+ */
+export const rows = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
+
+export const row = style({
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "4px 12px",
+  minHeight: "44px",
+  padding: "12px 0",
+  color: vars.colors.text.primary,
+  textDecoration: "none",
+  WebkitTapHighlightColor: "transparent",
+  ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px", borderRadius: "8px" },
+});
+// 3D 아이콘 = 원 40 자리(목록 왼쪽 그림)
+globalStyle(`${row} > :first-child:not(span)`, { width: "40px", height: "40px", flexShrink: 0 });
+
+export const rowMain = style({ display: "flex", flexDirection: "column", gap: "2px", flex: "1 1 128px", minWidth: 0 });
+
+export const rowTitle = style({
+  fontSize: vars.appType.body.fontSize,
+  lineHeight: vars.appType.body.lineHeight,
+  fontWeight: vars.appType.body.fontWeight,
+});
+
+export const rowSub = style({
+  fontSize: vars.appType.caption.fontSize,
+  lineHeight: vars.appType.caption.lineHeight,
+  fontWeight: vars.appType.caption.fontWeight,
+  color: vars.colors.text.tertiary,
+});
+
+export const rowValue = style({
+  marginLeft: "auto",
+  textAlign: "right",
+  fontVariantNumeric: "tabular-nums",
+  fontSize: vars.appType.body.fontSize,
+  lineHeight: vars.appType.body.lineHeight,
+  fontWeight: vars.fontWeights.bold,
+});
+
+export const chevron = style({ flexShrink: 0, color: vars.colors.neutral[400] });
+
+export const note = style({
+  margin: 0,
+  fontSize: vars.appType.desc.fontSize,
+  lineHeight: vars.appType.desc.lineHeight,
+  color: vars.colors.neutral[700],
+});
+
+/** 시작하기 배너 — 회색 면 한 줄 + 데스크톱 화면 링크 */
+export const banner = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  padding: "12px 16px 4px",
+  borderRadius: "12px",
+  background: vars.colors.neutral[100],
+});
+
+export const bannerText = style({
+  fontSize: vars.appType.desc.fontSize,
+  lineHeight: vars.appType.desc.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
+});
+
+export const textLink = style({
+  display: "inline-flex",
+  alignItems: "center",
+  alignSelf: "flex-start",
+  minHeight: "44px",
+  color: vars.colors.brand.primary,
+  fontSize: vars.appType.body.fontSize,
+  fontWeight: vars.fontWeights.semibold,
+  textDecoration: "none",
+});

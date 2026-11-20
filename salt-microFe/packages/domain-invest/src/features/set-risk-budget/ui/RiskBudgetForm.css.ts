@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -70,3 +72,7 @@ export const primaryButton = style([
 
 export const statusText = style({ margin: 0, fontSize: "12px", lineHeight: "18px", color: vars.colors.text.secondary });
 export const errorText = style({ margin: 0, fontSize: "12px", lineHeight: "18px", color: vars.colors.status.errorDark });
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+globalStyle(`${MOBILE_ROOT} ${hint}`, { fontSize: "13px", lineHeight: "20px" });
+globalStyle(`${MOBILE_ROOT} ${primaryButton}, ${MOBILE_ROOT} ${weakButton}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });

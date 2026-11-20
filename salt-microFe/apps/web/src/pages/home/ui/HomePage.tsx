@@ -1,10 +1,9 @@
 import { PageFrame } from "@repo/web-shared/ui/frame";
 
 import { HomeBriefing, QuickActions } from "@/widgets/home-briefing";
-import { OnboardingCard, OnboardingSideRow } from "@/widgets/onboarding-flow";
+import { OnboardingSideRow } from "@/widgets/onboarding-flow";
 
 import { HOME_PAGE_MESSAGES } from "../model/messages";
-import { appOnly } from "./HomePage.css";
 
 /**
  * 셸 홈 — 데스크톱 배치(`FE-REQ-048` FR-8, 2026-11-19 · 리서치 `2026-11-19-home-desktop.md`): 제목 → 도메인 카드 2열(최대 560 · 3D 아이콘),
@@ -12,7 +11,7 @@ import { appOnly } from "./HomePage.css";
  *
  * **위젯 둘을 나란히 놓는 것은 `pages` 의 일이다.** `home-briefing` 안에서 `onboarding-flow` 를 부르면 같은 레이어의 다른 슬라이스를
  * 직접 import 하는 것이다(`layered-architecture.md`). 머리 프로필 · 벨은 zone 공용 `AppShell` 이 놓는다.
- * 앱 웹뷰(FR-9)는 사이드가 없어 시작하기를 본문 카드로 — 카드는 한 열
+ * 휴대폰은 `/m/home`(`FE-REQ-072`) — 이 화면에 휴대폰 분기가 없다
  */
 export const HomePage = () => (
   <PageFrame title={HOME_PAGE_MESSAGES.heading} side={
@@ -21,9 +20,6 @@ export const HomePage = () => (
         <QuickActions />
       </>
     } sideLabel={HOME_PAGE_MESSAGES.sideLabel}>
-    <div className={appOnly}>
-      <OnboardingCard />
-    </div>
     <HomeBriefing />
   </PageFrame>
 );

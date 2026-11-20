@@ -1,6 +1,2 @@
-import { MobilePendingPage } from "@repo/web-shared/layout/mobile";
-
-/** `/m/goals` — 틀만(`FE-REQ-071`). 화면은 F019 순서 2 가 도메인 패키지 `mobile` 진입점으로 바꾼다 */
-export default function Page() {
-  return <MobilePendingPage tab="savings" />;
-}
+/** `/m/goals` — 휴대폰 저축 목록(`FE-REQ-072` FR-2). 화면은 도메인 패키지 `mobile` 진입점 */
+export { GoalsMobilePage as default, metadata } from "@repo/domain-savings/mobile/goals";

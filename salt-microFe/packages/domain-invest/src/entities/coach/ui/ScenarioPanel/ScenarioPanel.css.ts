@@ -1,6 +1,6 @@
-import { keyframes, style, styleVariants } from "@vanilla-extract/css";
+import { globalStyle, keyframes, style, styleVariants } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE, MOBILE_ROOT } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
 import { nameChip } from "./ScenarioHeadline.css";
@@ -13,7 +13,7 @@ import { nameChip } from "./ScenarioHeadline.css";
  */
 
 const label = {
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
   color: vars.colors.text.tertiary,
@@ -42,7 +42,7 @@ export const srOnly = style({
 });
 
 export const aiMark = style({
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "16px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.brand.primary,
@@ -54,7 +54,7 @@ export const asOf = style([label, { marginLeft: "auto", fontVariantNumeric: "tab
 
 /** 부채꼴 — 그림 판 360 이 글자 12 의 원래 크기다. 넓은 칸에서 늘리면 글자까지 커진다(`FE-REQ-049` — 패널이 왼쪽 넓은 칸으로 옮겨 오며) */
 export const fan = style({ display: "block", width: "100%", maxWidth: "360px", height: "auto" });
-export const fanText = style({ fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } }, fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums" });
+export const fanText = style({ fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } }, fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums" });
 
 // ==================== 줄 ====================
 
@@ -134,7 +134,7 @@ export const gaugeLabel = styleVariants({
   bad: { color: vars.colors.special.downDark, transform: "translateX(-50%)" },
   now: { right: 0, color: vars.colors.text.primary },
 }, (tone) => [
-  { position: "absolute", top: "22px", fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } }, lineHeight: "14px", fontWeight: vars.fontWeights.bold, whiteSpace: "nowrap" },
+  { position: "absolute", top: "22px", fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } }, lineHeight: "14px", fontWeight: vars.fontWeights.bold, whiteSpace: "nowrap" },
   tone,
 ]);
 
@@ -145,7 +145,7 @@ export const compare = style({
   gridTemplateColumns: "76px minmax(0, 1fr) 40px",
   gap: "8px",
   alignItems: "center",
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "16px",
   color: vars.colors.neutral[700],
 });
@@ -235,7 +235,7 @@ export const sourceChip = style({
   textDecoration: "none",
   selectors: {
     "a&:hover": { background: vars.colors.brand.lighter, color: vars.colors.brand.active },
-    [IN_APP_WEBVIEW]: { fontSize: "13px" },
+    [ON_MOBILE]: { fontSize: "13px" },
   },
 });
 
@@ -262,7 +262,7 @@ export const onlyYou = style({
   padding: "1px 7px",
   borderRadius: "7px",
   background: vars.colors.background.white,
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.neutral[700],
@@ -279,5 +279,10 @@ export const judgmentHead = style({ display: "flex", alignItems: "center", gap: 
 export const plainList = style({ margin: 0, paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" });
 export const fold = style({ display: "flex", flexDirection: "column", gap: "6px" });
 export const foldSummary = style([label, { cursor: "pointer", fontWeight: vars.fontWeights.semibold, color: vars.colors.neutral[700] }]);
-/** 등급 배지 — 앱 웹뷰에선 13(배지 sm 11 은 웹 값 그대로, `ADR-012` 로 PWA `/m` 에 옮김) */
-export const tierBadge = style({ selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } } });
+/** 등급 배지 — 휴대폰(`/m`)에선 13(배지 sm 11 은 웹 값 그대로, `ADR-012` 로 PWA `/m` 에 옮김) */
+export const tierBadge = style({ selectors: { [ON_MOBILE]: { fontSize: "13px" } } });
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+// 출처 칩은 문장 안 글자 링크 — 상자를 44 로 키우면 줄이 벌어진다. 보이는 모양은 두고 누르는 자리만 위아래로 넓힌다(투명 `::after`)
+globalStyle(`${MOBILE_ROOT} ${sourceChip}`, { position: "relative", fontSize: "13px" });
+globalStyle(`${MOBILE_ROOT} ${sourceChip}::after`, { content: '""', position: "absolute", left: "-2px", right: "-2px", top: "50%", height: "44px", transform: "translateY(-50%)" });

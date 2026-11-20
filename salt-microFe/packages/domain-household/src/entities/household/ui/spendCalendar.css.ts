@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
+import { ON_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
 /** 한 달 달력(`FE-REQ-060` FR-4) — 칸 7열 · 칸 높이 48 · 날 12/500 · 그날 돈 12/500 2단. 고른 칸은 옅은 면 + 1단 선 */
@@ -57,6 +58,8 @@ export const amount = style({
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+  // 휴대폰(`/m`) — 7칸이 좁아 기기 글자를 키우면(×2) 줄임표로 잘렸다. 잘리지 않고 줄바꿈(`FE-REQ-072` FR-5). 숫자는 고른 날 칸에도 있다
+  selectors: { [ON_MOBILE]: { overflow: "visible", textOverflow: "clip", whiteSpace: "normal", overflowWrap: "anywhere" } },
 });
 
 /** 안 쓴 날 — 회색 점(오른쪽 위). 색으로 칭찬하지 않는다 */

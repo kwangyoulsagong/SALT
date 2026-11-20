@@ -1,7 +1,7 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 
 /**
  * 시나리오 — 한 장 패널의 머리(`FE-REQ-064` FR-8 · 시안 `pm/docs/2026-11-13-one-panel-research.html`). 큰 숫자 44/600 ·
@@ -51,7 +51,7 @@ export const sourceChip = style({
   padding: "0 7px",
   borderRadius: "7px",
   background: vars.colors.neutral[100],
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.secondary,
@@ -59,7 +59,7 @@ export const sourceChip = style({
 });
 
 export const asOf = style({
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   color: vars.colors.text.secondary,
   fontVariantNumeric: "tabular-nums",
@@ -118,7 +118,7 @@ export const splitLabels = style({
   display: "flex",
   justifyContent: "space-between",
   gap: "8px",
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.bold,
   fontVariantNumeric: "tabular-nums",
@@ -182,7 +182,7 @@ export const trackRow = style({
   gridTemplateColumns: "72px 1fr 40px",
   alignItems: "center",
   gap: "8px",
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   color: vars.colors.text.secondary,
   fontVariantNumeric: "tabular-nums",

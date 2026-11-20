@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -33,8 +33,8 @@ export const deleteButton = style({
   color: vars.colors.text.tertiary,
   cursor: "pointer",
   ":hover": { background: SURFACE.weakFill },
-  // 앱 웹뷰 터치 대상 44(`FE-REQ-060` FR-M5)
-  selectors: { [IN_APP_WEBVIEW]: { minWidth: "44px", minHeight: "44px", fontSize: "13px", lineHeight: "20px" } },
+  // 휴대폰(`/m`) 터치 대상 44(`FE-REQ-060` FR-M5)
+  selectors: { [ON_MOBILE]: { minWidth: "44px", minHeight: "44px", fontSize: "13px", lineHeight: "20px" } },
 });
 
 /* ── 사이드 빠른 입력(`FE-REQ-060` FR-6) ─────────────────────── */

@@ -1,0 +1,44 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+import { MOBILE_MESSAGES } from "./messages";
+import { backLink, head, headTitle, screen, section, sectionHead, sectionTitle } from "./MobileScreen.css";
+
+/**
+ * 휴대폰 화면 조각(`FE-REQ-072` FR-2 · `screen-mobile.md` §3 · §4) — 도메인 패키지 `src/mobile` 진입점이 같이 쓴다.
+ * 서버 컴포넌트(상태 0). 글자는 `appType` 만
+ */
+
+/** 화면 한 장 — 좌우 24 · 위아래 16, 칸 사이 24 */
+export const MobileScreen = ({ children }: { children: ReactNode }) => <div className={screen}>{children}</div>;
+
+/**
+ * 화면 머리 — 제목 `t3`. 탭 안 push 화면(상세)은 왼쪽 뒤로 하나(`screen-mobile.md` §4 내비 바).
+ * 뒤로는 같은 zone 링크다 — 목록에서 왔든 링크로 바로 왔든 같은 곳(목록)으로 간다
+ */
+export const MobileHead = ({ title, back, trailing }: { title: ReactNode; back?: { href: string; label: string }; trailing?: ReactNode }) => (
+  <header className={head}>
+    {back ? (
+      <Link href={back.href} className={backLink} aria-label={MOBILE_MESSAGES.back(back.label)}>
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden focusable="false">
+          <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+    ) : null}
+    <h1 className={headTitle}>{title}</h1>
+    {trailing}
+  </header>
+);
+
+/** 섹션 — 머리 `t5` + 내용. 제목이 없으면 내용만 */
+export const MobileSection = ({ title, action, children, label }: { title?: string; action?: ReactNode; children: ReactNode; label?: string }) => (
+  <section className={section} aria-label={title ? undefined : label}>
+    {title ? (
+      <div className={sectionHead}>
+        <h2 className={sectionTitle}>{title}</h2>
+        {action}
+      </div>
+    ) : null}
+    {children}
+  </section>
+);

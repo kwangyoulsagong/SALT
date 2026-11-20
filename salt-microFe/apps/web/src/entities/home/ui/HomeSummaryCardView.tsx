@@ -36,7 +36,7 @@ export const HomeSummaryCardView = ({ card, onOpen }: HomeSummaryCardViewProps) 
           <HeroValue item={card.primary} empty={card.state === "empty"} />
           <SubValue item={card.secondary} />
         </dl>
-        {/* 앱 웹뷰 목록 행에서는 미리보기를 뺀다(`FE-REQ-060` FR-M3) — 데스크톱은 `contents` 라 배치 그대로 */}
+        {/* 미리보기 — `contents` 라 카드 배치 그대로(휴대폰 `/m/home` 행에는 없다, `FE-REQ-072`) */}
         <div className={previewSlot}>
           {card.preview ? (
             <HomeCardPreviewView domain={card.domain} preview={card.preview} />

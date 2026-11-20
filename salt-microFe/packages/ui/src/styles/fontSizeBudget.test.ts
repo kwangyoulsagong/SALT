@@ -23,10 +23,16 @@ const BUDGET: Record<string, number> = {
 };
 
 /**
- * 휴대폰 PWA 표면(`ADR-012` · `FE-REQ-071`) — 데스크톱 다섯 단 대상이 아니다. 여기는 **`appType` 토큰만** 쓴다(숫자 · 옛 토큰 0).
- * 도메인 패키지의 `src/mobile` 진입점(F019 순서 2)도 생기면 여기 더한다.
+ * 휴대폰 PWA 표면(`ADR-012` · `FE-REQ-071` · `FE-REQ-072`) — 데스크톱 다섯 단 대상이 아니다. 여기는 **`appType` 토큰만** 쓴다(숫자 · 옛 토큰 0).
+ * 휴대폰 틀 · zone 앱 · 도메인 패키지의 `src/mobile` 진입점
  */
-const MOBILE_SURFACE = ["packages/web-shared/src/layout/mobile", "apps/web-mobile"];
+const MOBILE_SURFACE = [
+  "packages/web-shared/src/layout/mobile",
+  "apps/web-mobile",
+  "packages/domain-savings/src/mobile",
+  "packages/domain-household/src/mobile",
+  "packages/domain-invest/src/mobile",
+];
 const isMobileSurface = (file: string): boolean =>
   MOBILE_SURFACE.some((root) => relative(REPO, file).startsWith(`${root}/`));
 
@@ -70,17 +76,34 @@ describe("데스크톱 글자 크기 다섯 단(FE-REQ-047 FR-3)", () => {
     expect(offScaleSizes(`fontSize: vars.fontSizes.lg, fontSize: vars.fontSizes["2xl"], ...vars.typography.t6`)).toEqual(["lg", "2xl", "t6"]);
   });
 
-  // 모바일 글자(`appType`)는 앱 웹뷰 선택자 안에서만 — 데스크톱 단 밖 크기를 이 이름으로 우회하지 않게(`FE-REQ-060` FR-M)
-  it("appType 은 IN_APP_WEBVIEW 를 쓰는 파일 · 휴대폰 표면에서만", () => {
+  // 모바일 글자(`appType`)는 휴대폰 표면 · 같이 쓰는 조각의 `/m` 표지 선택자 안에서만 — 데스크톱 단 밖 크기를 이 이름으로 우회하지 않게(`FE-REQ-072` FR-4)
+  it("appType 은 휴대폰 표면 · ON_MOBILE 을 쓰는 파일에서만", () => {
     const leaks = Object.keys(BUDGET)
       .flatMap((root) => cssFiles(join(REPO, root)))
       .filter((file) => {
         if (isMobileSurface(file)) return false;
         const source = readFileSync(file, "utf8");
-        return /appType\./.test(source) && !source.includes("IN_APP_WEBVIEW");
+        return /appType\./.test(source) && !source.includes("ON_MOBILE");
       })
       .map((file) => relative(REPO, file));
-    expect(leaks, `appType 을 웹뷰 선택자 밖에서 썼다:\n${leaks.join("\n")}`).toEqual([]);
+    expect(leaks, `appType 을 휴대폰 선택자 밖에서 썼다:\n${leaks.join("\n")}`).toEqual([]);
+  });
+
+  // 데스크톱 화면(`pages`)에 휴대폰 분기를 다시 넣지 않는다(`ADR-012` · `FE-REQ-072` FR-4) — 휴대폰 배치는 `src/mobile` 진입점이 그린다
+  it("데스크톱 화면(pages)은 휴대폰 표지(ON_MOBILE · data-surface)를 쓰지 않는다", () => {
+    const pageRoots = ["apps/web/src/pages", ...Object.keys(BUDGET).filter((root) => root.startsWith("packages/domain-")).map((root) => `${root}/pages`)];
+    const hits = pageRoots
+      .flatMap((root) => {
+        try {
+          statSync(join(REPO, root));
+        } catch {
+          return [];
+        }
+        return cssFiles(join(REPO, root));
+      })
+      .filter((file) => /ON_MOBILE|SURFACE_ATTRIBUTE|data-surface/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(REPO, file));
+    expect(hits, `데스크톱 화면에 휴대폰 분기 — /m 진입점(src/mobile)으로 옮긴다:\n${hits.join("\n")}`).toEqual([]);
   });
 
   for (const [root, budget] of Object.entries(BUDGET)) {

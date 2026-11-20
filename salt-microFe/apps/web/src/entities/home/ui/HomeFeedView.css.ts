@@ -1,6 +1,5 @@
 import { style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -17,8 +16,6 @@ export const panel = style({
   borderRadius: SURFACE.panelRadius,
   background: vars.colors.background.white,
   boxShadow: SURFACE.hairline,
-  // 앱 웹뷰 — 흰 바탕 한 열이라 패널 면 · 선을 걷고 섹션으로(`FE-REQ-060` FR-M3)
-  selectors: { [IN_APP_WEBVIEW]: { padding: "8px 0 0", boxShadow: "none" } },
 });
 
 export const panelHead = style({ display: "flex", alignItems: "center", minHeight: "28px", padding: `0 ${vars.space.sm}`, marginBottom: vars.space.xs });
@@ -29,8 +26,6 @@ export const panelTitle = style({
   lineHeight: vars.deskType.section.lineHeight,
   fontWeight: vars.deskType.section.fontWeight,
   color: vars.colors.desk.text1,
-  // 앱 웹뷰 섹션 머리 = `t5`
-  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, fontWeight: vars.appType.body.fontWeight } },
 });
 
 export const list = style({ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" });
@@ -68,8 +63,6 @@ export const rowSub = style({
   lineHeight: vars.deskType.label.lineHeight,
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
-  // 앱 웹뷰 보조 = `t7` 13(웹뷰 글자 13 이상 — `ADR-012` 로 PWA `/m` 에 옮김)
-  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 
 export const amount = style({

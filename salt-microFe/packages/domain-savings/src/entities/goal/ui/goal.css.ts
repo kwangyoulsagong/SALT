@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -25,8 +25,8 @@ export const row = style({ display: "flex", alignItems: "baseline", justifyConte
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
-// 앱 웹뷰 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
-export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
+// 휴대폰(`/m`) 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
+export const label = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: vars.colors.text.tertiary, selectors: { [ON_MOBILE]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 
 export const value = style({
   fontSize: "13px",

@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -210,3 +212,7 @@ export const foldHintSummary = style({
   marginBottom: "8px",
   selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
 });
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+globalStyle(`${MOBILE_ROOT} ${footnote}, ${MOBILE_ROOT} ${panelFootnote}`, { fontSize: "13px", lineHeight: "20px" });
+globalStyle(`${MOBILE_ROOT} ${foldSummary}, ${MOBILE_ROOT} ${foldHintSummary}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });

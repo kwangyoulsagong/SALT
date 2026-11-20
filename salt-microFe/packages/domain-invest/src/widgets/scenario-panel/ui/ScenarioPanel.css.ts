@@ -1,6 +1,6 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 
-import { EMBED_APP, EMBED_ATTRIBUTE } from "@repo/core/embed";
+import { SURFACE_ATTRIBUTE, SURFACE_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
 /**
@@ -81,15 +81,15 @@ export const scenarioPanelNote = style({
 });
 
 /**
- * 앱 웹뷰(`<html data-embed="app">`)에서만 — 손가락 칸 44 이상 · 글자 13 이상(F017 v4 순서 6 · `ADR-012` 로 PWA `/m` 에 옮김).
+ * 휴대폰(`/m` — `<html data-surface="mobile">`)에서만 — 손가락 칸 44 이상 · 글자 13 이상(F017 v4 순서 6 · `ADR-012` 로 PWA `/m` 에 옮김).
  * 기간 탭 · 점검 방향 탭 · 펼침 머리처럼 누르는 칸, 그리고 패널 안 라벨 단(12) · 배지(11) 글자. 데스크톱 웹 값은 그대로(`screen-desktop.md` 라벨 12)
  */
-const IN_APP = `html[${EMBED_ATTRIBUTE}="${EMBED_APP}"]`;
-globalStyle(`${IN_APP} ${scenarioPanel} :is(button, [role="radio"], summary)`, {
+const ON_PHONE = `html[${SURFACE_ATTRIBUTE}="${SURFACE_MOBILE}"]`;
+globalStyle(`${ON_PHONE} ${scenarioPanel} :is(button, [role="radio"], summary)`, {
   minHeight: "44px",
   display: "inline-flex",
   alignItems: "center",
 });
-globalStyle(`${IN_APP} ${scenarioPanel} :is(button, [role="radio"])`, { justifyContent: "center", fontSize: "13px" });
-globalStyle(`${IN_APP} ${scenarioPanel} summary`, { display: "flex" });
-globalStyle(`${IN_APP} ${scenarioPanel}, ${IN_APP} ${scenarioPanelNote}`, { fontSize: "13px" });
+globalStyle(`${ON_PHONE} ${scenarioPanel} :is(button, [role="radio"])`, { justifyContent: "center", fontSize: "13px" });
+globalStyle(`${ON_PHONE} ${scenarioPanel} summary`, { display: "flex" });
+globalStyle(`${ON_PHONE} ${scenarioPanel}, ${ON_PHONE} ${scenarioPanelNote}`, { fontSize: "13px" });

@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
@@ -196,3 +198,6 @@ export const toolEmptyBody = style({
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
 });
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+globalStyle(`${MOBILE_ROOT} ${backLink}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });

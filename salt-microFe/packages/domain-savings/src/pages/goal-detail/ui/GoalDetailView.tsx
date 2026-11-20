@@ -7,8 +7,8 @@ import { StatusLine } from "@repo/ui/statusLine";
 
 import { hasApiStatus } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
-import { labelOr, useInAppWebview } from "@repo/web-shared/lib";
-import { AppSheetAction, BackNav, DetailTabs, SideRow } from "@repo/web-shared/ui";
+import { labelOr } from "@repo/web-shared/lib";
+import { BackNav, DetailTabs, SideRow } from "@repo/web-shared/ui";
 import { detailPanel, detailPanelHead, detailPanelTitle } from "@repo/web-shared/ui/surface.css";
 
 import {
@@ -62,7 +62,6 @@ const Panel = ({ title, children }: { title: string; children: ReactNode }) => (
  */
 export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: SavingsGoalDetail | null }) => {
   const query = useSavingsGoal(goalId, initial);
-  const inApp = useInAppWebview();
   if (query.isSignedOut) {
     return (
       <div className={s.stack}>
@@ -175,8 +174,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
 
   const aside = (
     <div className={s.aside}>
-      {/* 앱 웹뷰는 넣기가 하단 고정 버튼 → 시트(FR-M2) — 이 칸에는 비상시 · 저울만 */}
-      {inApp ? null : active ? (
+      {active ? (
         <section className={s.asideBlock} aria-label={M.aside}>
           <h2 className={detailPanelTitle}>{M.aside}</h2>
           <DepositForm goalId={goal.id} compact />
@@ -217,13 +215,8 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           { id: "history", label: M.tabs.history, content: history },
           { id: "review", label: M.tabs.review, content: review },
         ]}
-        aside={{ id: "deposit", label: inApp ? M.asideMore : M.aside, content: aside }}
+        aside={{ id: "deposit", label: M.aside, content: aside }}
       />
-      {active ? (
-        <AppSheetAction label={M.aside} title={M.aside}>
-          <DepositForm goalId={goal.id} />
-        </AppSheetAction>
-      ) : null}
     </div>
   );
 };

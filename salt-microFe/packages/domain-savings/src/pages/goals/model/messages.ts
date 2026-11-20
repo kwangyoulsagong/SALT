@@ -8,29 +8,14 @@ export const GOALS_PAGE = {
   signedOut: "로그인하면 목표를 볼 수 있어요",
   blockName: "저축 목표",
   retry: "다시 불러오기",
-  /** 요약 띠(`FE-REQ-060` FR-2) — 값은 서버 `overview` */
-  summaryLabel: "저축 요약",
-  summary: {
-    saved: "모은 돈",
-    savedHint: (goals: number) => `목표 ${goals}개`,
-    month: (month: string) => `${Number(month.slice(5, 7))}월에 넣은 돈`,
-    active: "진행 중 목표",
-    activeValue: (n: number) => `${n}개`,
-    nearest: "가장 가까운 도달",
-    none: "—",
-    /** 띠 칸 하나만 실패 — 그 칸만(FR-13 `degraded`) */
-    failed: "불러오지 못했어요",
-  },
+
   list: "목표",
   preview: "고른 목표",
   previewEmpty: "왼쪽에서 목표를 고르면 여기에 보여요",
   openDetail: "자세히 보기",
   deposit: "넣기",
-  /** 사이드 · 웹뷰 도구 */
+  /** 사이드 이름 — 도구 문구는 `widgets/goal-tools` */
   tools: "저축 도구",
-  split: "나눠 넣기",
-  splitHint: "진행 중 목표가 둘 이상일 때 한 번에 나눠 넣어요",
-  postcardsCount: (n: number) => `${n}장`,
   /** 목표가 없을 때(2026-11-20 — 한 줄만 있던 빈 화면을 템플릿 고르기로, 리서치: 목적 템플릿 카드 + 예시 + 행동) */
   start: {
     title: "어떤 돈을 모을까요?",

@@ -1,6 +1,5 @@
 import { style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
 
 /**
@@ -38,8 +37,6 @@ export const main = style({
   gap: vars.space.lg,
   minWidth: 0,
   padding: `${vars.space.lg2} ${vars.space.xl} ${vars.space["2xl"]}`,
-  // 앱 웹뷰 — 흰 바탕 한 열 · 좌우 20(행 안쪽 4 와 합쳐 목록 행 24, `screen-mobile.md` §3 · `FE-REQ-060` 모바일 표)
-  selectors: { [IN_APP_WEBVIEW]: { padding: "16px 20px 24px", gap: "16px" } },
 });
 
 export const head = style({
@@ -58,15 +55,6 @@ export const title = style({
   lineHeight: vars.deskType.title.lineHeight,
   fontWeight: vars.deskType.title.fontWeight,
   color: vars.colors.desk.text1,
-  // 앱 웹뷰 화면 제목 = `t3` 22 Bold(`screen-mobile.md` §3)
-  selectors: {
-    [IN_APP_WEBVIEW]: {
-      fontSize: vars.appType.title.fontSize,
-      lineHeight: vars.appType.title.lineHeight,
-      fontWeight: vars.appType.title.fontWeight,
-      color: vars.colors.text.primary,
-    },
-  },
 });
 
 export const side = style({
@@ -77,6 +65,5 @@ export const side = style({
   padding: `${vars.space.lg2} ${vars.space.lg} ${vars.space["2xl"]}`,
   boxShadow: `inset 0 0.75px 0 ${vars.colors.desk.line}`,
   "@media": { [DESKTOP]: { boxShadow: `inset 0.75px 0 0 ${vars.colors.desk.line}` } },
-  // 앱 웹뷰는 데스크톱 틀이 아니다(FR-17) — 사이드는 데스크톱 · 태블릿 웹에만. 앱 화면은 본문 한 열 그대로
-  selectors: { [IN_APP_WEBVIEW]: { display: "none" }, "&:empty": { display: "none" } },
+  selectors: { "&:empty": { display: "none" } },
 });
