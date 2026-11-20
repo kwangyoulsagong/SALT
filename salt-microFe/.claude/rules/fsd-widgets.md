@@ -34,6 +34,7 @@ widgets/{slice}/
 | `home-briefing` | `entities/home` 카드 + 목표 목록(임시) | 셸 홈 — 도메인 요약 카드(2026-11-02 `FE-REQ-055`). 도메인 엔티티를 읽지 않는다 |
 | `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — ~~맨 위 "내 보유"~~(2026-11-10 `/portfolio` 로 — `FE-REQ-069`, 패널은 이 위젯 것) · 리스크 예산 한 줄(+ 펼침) · 판정 성적표 · 추천 · 매매 거울 한 패널(코인 · 국내) · 월간 돌아보기 펼침 — ~~목표 비중~~ 2026-11-17 뺐다(F017 v4 순서 6) (대화는 F006). 판정 근거 상세 `/coach/signals/[signalType]`(F004, 2026-10-30) |
 | `position-overview` | portfolio + coach(매입가 숨김) | `/portfolio` 위쪽 — 포지션 Hero · 평가금 흐름(기간 4 · MDD) · 리스크 레이더(F006 G절, 2026-11-18). 3탭 IA 를 안 만들어 `asset-workspace` 대신 포트폴리오 페이지가 자리 |
+| `goal-tools` | goal + `record-deposit` + `rebalance-goals` | 저축 도구 — 데스크톱 `/goals` 오른쪽 사이드 · 휴대폰 `/m/goals` 목록 아래(2026-11-20 `FE-REQ-072` — 페이지 안에 있던 것을 휴대폰 진입점이 같이 쓰려고 내림) |
 | `weekly-plan` | plan + `complete-weekly-plan` + `edit-plan-settings` | `/plan` — 이번 주 금액 · 자산별 근거 · 밴드 표 · 과거 성적 · 빗나간 때 · 김프 · 이번 달 · 월 적립액(F003 v2 순서 3, 2026-11-19). 게이트가 닫히면 밴드 카드 0 · 금액 그대로 |
 | `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
 | `coach-panel` | market + coach | 투자 우측 미리보기 — 한 장 패널 응답의 원인 · 틀리는 선 · 시나리오 한 칸(2026-11-17 F017 v4 순서 6 — 판단 · 모드 · 구간 · 심리 · 스마트 머니는 뺐다) |

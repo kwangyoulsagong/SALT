@@ -159,3 +159,9 @@
 
 - `CoachBlock.css.ts` 막힌 카드 보조 글 색(`FE-REQ-047` FR-13)
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- 코치 카드 근거 줄(`CoachBlock` `claimItem`)에 `/m` 값(글자 13)만 더했다 — 데스크톱 값 그대로
+- 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
+- 미충족: 없음(이 REQ 몫 변경은 위 한 줄)

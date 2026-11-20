@@ -2,7 +2,7 @@
 
 근거: 기준 금융 앱의 **공개 디자인 시스템 문서**(모바일 파운데이션 · 컴포넌트 · 소비자 UX 가이드 · 라이팅 원칙, 2026-10-30 조사).
 값이 공개된 것만 옮겼다. 공개되지 않은 값(내비 바 높이 · 버튼 px · 간격 스케일 · 다크 hex)은 **지어내지 않고** §6 에 남긴다.
-문서 · 코드 · 커밋에 기준 서비스 이름을 쓰지 않는다. 웹 768 미만은 안내만 보인다(`FE-REQ-043`) — 이 규칙의 대상은 휴대폰 PWA zone `/m/*`(`ADR-012` — RN 앱은 폐기, 앱 웹뷰 배치는 `FE-REQ-072` 에서 이 zone 으로 옮긴다).
+문서 · 코드 · 커밋에 기준 서비스 이름을 쓰지 않는다. 웹 768 미만은 안내만 보인다(`FE-REQ-043`) — 이 규칙의 대상은 휴대폰 PWA zone `/m/*`(`ADR-012` — RN 앱은 폐기, 앱 웹뷰 배치는 2026-11-20 `FE-REQ-072` 로 이 zone 에 옮겼다).
 
 ## 1. 글자 — 토큰 이름으로, 고정 px 로 쓰지 않는다
 
@@ -19,9 +19,9 @@
 - 굵기 5단: Light · Regular · Medium · Semibold · Bold
 - **기기 글자 크기를 따른다** — 160% · 200% 에서 배치가 깨지지 않게(금액은 잘리지 않고 줄바꿈, 시트 · 목록 머리는 세로로 쌓임). 토큰 값을 컴포넌트에 숫자로 박지 않는다
 - 숫자는 고정폭 숫자
-- **휴대폰 표면(`@repo/web-shared/layout/mobile` · `apps/web-mobile`)은 `vars.appType.*` 만** — 숫자 · `deskType` · 옛 토큰을 쓰면 `fontSizeBudget.test.ts` 가 막는다(2026-11-20 `FE-REQ-071`). 입력은 `appType.body`(17 — 16 이상이라 iOS 가 확대하지 않는다)
-- **앱 웹뷰(웹 코드)는 토큰 `vars.appType.*`**(hero 30 · title 22 · sheetTitle 20 · body 17 · desc 15 · caption 13 — 2026-11-20 `FE-REQ-060` FR-M) — `IN_APP_WEBVIEW` 선택자 안에서만. 밖에서 쓰면 `fontSizeBudget.test.ts` 가 막는다
-- 웹뷰 배치는 데스크톱과 **같은 HTML 에 두고 CSS 로 고른다**(`@repo/web-shared/ui/app.css` `deskOnly` · `AppSummary`). 붙일지를 가를 때만 `useInAppWebview` — 하단 고정 버튼 → 시트는 `AppSheetAction`(뒤로로 닫힘)
+- **휴대폰 표면(`@repo/web-shared/layout/mobile` · `apps/web-mobile` · `domain-*/src/mobile`)은 `vars.appType.*` 만**(hero 30 · title 22 · sheetTitle 20 · body 17 · desc 15 · caption 13) — 숫자 · `deskType` · 옛 토큰을 쓰면 `fontSizeBudget.test.ts` 가 막는다(`FE-REQ-071` · `072`). 입력은 `appType.body`(17 — iOS 확대 없음)
+- **휴대폰 화면은 `domain-*/src/mobile/<page>`**(pages 의 형제 — 레이어 규칙 `mobile`) — 데스크톱 화면(`pages`)을 가져오지 않고 entities · features · widgets 를 쓴다. 조각 `MobileScreen` · `MobileHead`(뒤로) · `MobileSection` · `MobileSummary` · `MobileSheetAction`(하단 고정 버튼 → 시트, 뒤로로 닫힘 · 탭 위) — `@repo/web-shared/layout/mobile`. 홈은 `layout/mobile/home`(BFF 카드)
+- **같이 쓰는 조각의 휴대폰 값은 `/m` 표지로** — `<html data-surface="mobile">`(서버 HTML 고정) · `@repo/core/mobile` `ON_MOBILE`(style `selectors`) · `MOBILE_ROOT`(`globalStyle`). 데스크톱 `pages` 는 쓰지 않는다(시험이 센다). 디자인 시스템 작은 단(배지 sm · 버튼 · `Text body` · 고지 칸)은 크기 표지(`data-badge` …)로 틀이 한 번에 키운다(2026-11-20 `FE-REQ-072` — 옛 앱 웹뷰 UA 계약은 지웠다)
 
 ## 2. 색
 

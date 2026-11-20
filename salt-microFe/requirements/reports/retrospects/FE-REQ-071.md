@@ -8,3 +8,7 @@
 - 리다이렉트 기본값이 307 — 스펙(302)과 달라 실측에서 잡았다. 표 시험은 판정만 보고 상태 코드는 안 봤다
 - Action: `FE-REQ-072` 에서 도메인 패키지 `src/mobile` 을 만들 때 `no-cross-zone-link` 의 `appOf` 가 그 파일을 휴대폰 zone 앱으로 보게 고친다(지금은 도메인 zone 앱으로 판정)
 - 결함 주입 6개 중 `/m` 되돌림 가드가 살아남았다 — 경계 표가 "그 가드가 없어도 같은 답"인 입력만 갖고 있었다. 가드마다 **그 가드만 막는 입력**(잘못된 대응표)을 표에 둔다
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- `/m` 탭 넷 자리 화면(`MobilePendingPage`)을 실제 화면으로 바꿨다 · 레이아웃에 표면 표지 `data-surface` · 휴대폰 틀에 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction` — 앱 웹뷰 계약이 없어지며 같이 바뀌었다. 데스크톱 배치 변화는 main 비교로 0

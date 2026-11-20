@@ -59,3 +59,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — zone 루트 레이아웃 다섯에서 `next/font` 글꼴 변수를 뺐다(시스템 서체) — zone 구조 그대로 |
 | 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — `registry.cjs` 에 `MOBILE_ZONE_APPS` · 도메인 zone 목록에서 표면 zone 을 뺌 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — zone 레이아웃(가계부 · 저축 · 투자 · 팁)에서 앱 웹뷰 첫 스크립트를 뺐다 — zone 레지스트리 · 경계 무변경. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

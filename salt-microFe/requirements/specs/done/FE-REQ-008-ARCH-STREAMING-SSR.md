@@ -228,3 +228,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/MarketBoard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 | 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 데스크톱 zone 다섯 루트 레이아웃에서 앱 웹뷰 첫 스크립트 · `suppressHydrationWarning` 을 뺐다(`<html>` 속성이 서버 HTML 과 같아졌다). 스트리밍 경계 무변경. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

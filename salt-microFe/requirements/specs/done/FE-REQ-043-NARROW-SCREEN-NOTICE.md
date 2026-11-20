@@ -57,3 +57,4 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/web-shared/src/i18n/messages.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
 | 2026-11-20 | `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`) — 안내 버튼 위 문구 "PC로 접속해 주세요" → **"데스크톱으로 이동해 주세요"**(사용자). 안내는 대응 `/m` 화면이 없는 데스크톱 경로의 대비로 남는다(`FE-REQ-071` FR-8). FR-6 앱 웹뷰 계약은 `FE-REQ-072` FR-4 에서 걷는다. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 768 미만 안내에서 앱 웹뷰 예외(`data-embed`)를 뺐다 — 앱이 없다(`ADR-012`). 휴대폰은 `/m` 으로 이동, 대응표 밖은 안내 그대로. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

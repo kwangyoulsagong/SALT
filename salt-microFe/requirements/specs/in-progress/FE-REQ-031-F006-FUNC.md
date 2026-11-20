@@ -266,3 +266,4 @@ created: 2026-09-09
 | 2026-11-19 | FR-25 정정(자동 삭제 0 → 보관 한도, 사용자 결정) · FR-123 신설 — 미리 불러오기 600px · 되풀이 멈춤 · 겹침 거르기. 사용자 2026-11-19 "무한 스크롤 해야한다 코치대화에 늘어나면 감당 안되니" · "대화도 어느정도 되면 날려버려야". `feat/f006-coach-chat-history` |
 | 2026-11-19 | FR-123 보강(2회차 검증) — 지난 쪽 실패 시 요청 폭주(1.5초 62번) 고침 · 실패 문구 두 번 고침 |
 | 2026-11-20 | `FE-REQ-030` 시작 질문 카드가 이 REQ 파일을 걸침(`feat/fe-req-048-home-card-preview`) — `CoachConversation` 첫 질문 전 배치(입력 상자 바로 위 · 넘치면 스크롤). 조회 · 보관 · 무한 스크롤(FR-123) 동작 무변경 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 코치 대화 CSS 의 웹뷰 선택자를 `/m` 표지(`ON_MOBILE`)로 바꿨다 — 값 그대로. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

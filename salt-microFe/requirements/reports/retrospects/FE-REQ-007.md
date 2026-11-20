@@ -158,3 +158,7 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- `@repo/core/mobile` 에 휴대폰 표면 표지(`SURFACE_*` · `ON_MOBILE` · `MOBILE_ROOT`) · 휴대폰 주소 `MOBILE_ROUTES` · `toMobileHref`, 레지스트리 `mobileRedirects` 행 다섯 + `except` · `@repo/core/embed` 삭제(앱 웹뷰 UA 계약). zone 구조 · rewrites 무변경 — 앱 웹뷰 계약이 없어지며 같이 바뀌었다. 데스크톱 배치 변화는 main 비교로 0
