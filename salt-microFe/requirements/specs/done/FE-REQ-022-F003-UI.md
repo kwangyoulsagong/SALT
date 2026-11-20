@@ -291,3 +291,4 @@ FEATURE-003 FR-10: *"실패 이력 데이터가 없으면 배수 카드를 렌�
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-19 | F003 v2 순서 3 구현(`feat/f003-v2-s3-plan-screen`) — 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s3-plan-screen-slice.md` |
 | 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 남은 FR 없음(관측 FR 은 `FE-REQ-023` FR-16 → `OPS-001`). in-progress → done |
+| 2026-11-20 | 설정 전 상태(FR-80~86 빈 상태)를 한 패널로(`feat/fe-req-048-home-card-preview`) — 왼쪽 제목 · 본문 · 설정 폼, 오른쪽 회색 "예시" 계획. 전에는 가운데 `EmptyState` 와 왼쪽 아래로 떨어진 폼. 사용자 "빈 화면 너무 비어 보임". 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |

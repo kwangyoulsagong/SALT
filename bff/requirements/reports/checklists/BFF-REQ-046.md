@@ -112,3 +112,15 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 홈 투자 카드 `note` 에 적립 한 줄(서버 `totalKrw`, 600ms · 매입가 숨김 질문 우선) — 카드 계약 모양 무변경 — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-20 홈 카드 미리보기 · 둘째 줄 — FR-12 · 13(`feat/fe-req-048-home-card-preview`)
+
+| FR | 결과 | 근거 |
+|---|---|---|
+| FR-12 | 충족 | `__tests__/home-card-preview.test.ts` 13(서버 값 그대로 · 미리보기 실패/초과면 미리보기만 빠짐 · 모양 다른 원천 · 공유 원천 한 번) · `home-card-contract.test.ts` 통과(계약 블록 = `@repo/core/home`) |
+| FR-13 | 충족 | `__tests__/home-feed.test.ts` 6(정렬 · 개수 · 숨긴 도메인 · 원천 실패 `null`) |
+| 전체 | 통과 | `npm test` 606+ · 실경로 `/api/app/home` 데이터 있음 94ms · 실화면 1440 임시 계정 둘 |
+
+| 미충족 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 코드 주석 FR 번호 — `home-card.viewmodel.ts` · `app-home.service.ts` · 시험 두 파일 · `home-feed.viewmodel.ts` · `@repo/core` `homeSummaryCard.ts` 가 `BFF-REQ-046` FR-8 · 9 로 적음 | FR-8(알림 설정) · FR-9(옛 블록 삭제)는 이미 있다 — 스펙은 FR-12 · 13 | PR 전 주석 고침 |

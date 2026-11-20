@@ -28,6 +28,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-9 | 기존 홈 블록 경로(`/api/app/home/*`)는 FE 전환 뒤 삭제 — 그 전까지 병존 |
 | FR-10 | **새로 2026-11-13(S3d)** `GET /api/app/me/privacy` — 저장하는 것(서비스 = 지워지는 범위 `MY_DATA_SCOPE` · 등급 묶음 민감 → 금액 → 기록 → 모름) · AI 로 가는 것(투자 서비스 AI 입력 · `personal`). 서버 `SRV-REQ-048` FR-6 |
 | FR-11 | **새로 2026-11-13(S3d)** `POST /api/app/me/usage {domain, kind}` → identity 그대로(값 판정은 서버) · 204. 서버 `SRV-REQ-048` FR-7 |
+| FR-12 | **새로 2026-11-20** `HomeSummaryCard.preview`(`HomeCardTrend` \| `HomeCardBars` \| `HomeCardProgress`) + `action`(빈 카드 첫 행동 이름 · `href`). 미리보기는 카드 값과 따로 600ms — 실패 · 초과면 미리보기만 빠지고 카드는 그대로. 원천 모양이 달라도 버티는 조립(모르는 모양 = 미리보기 없음). 공유 원천(목표 목록 · 가계부 한 달)은 요청당 한 번. `FE-REQ-048` FR-12 |
+| FR-13 | **새로 2026-11-20** `AppHomeVM.recent` · `upcoming`(`home-feed.viewmodel.ts`, 700ms) — 최근 기록(지출 · 목표 넣은 기록 · 거래, 날짜 내림 6) · 다가오는 일(반복 지출 예정 · 물어봄 + 목표일, 날짜 오름 5). 숨긴 도메인 뺌 · 원천 실패면 `null`. `FE-REQ-048` FR-13 |
 
 ## 구현 현황 (2026-11-02 — 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`)
 
@@ -45,6 +47,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-10 | ✅ 2026-11-13 S3d — 서비스 여섯 나란히(`allSettled`) · 하나 실패 = 그 칸 `unavailable` · 401 은 전체 · **등급 없는 표는 숨기지 않고 `unknown` 에 표 이름**(감추면 공개가 거짓) · 투자 실패면 `ai: null` |
 | FR-11 | ✅ 2026-11-13 S3d — 중계만 · 3초 · 서버 400 그대로 |
 | FR-9 | ✅ 옛 블록 응답(`portfolio` · `unreadNotifications` · `marketOverview`)을 바로 지웠다 — 소비처 0(웹은 이 경로를 부르지 않았다, 모바일 미착수) |
+| FR-12 | ✅ 2026-11-20 — `home-card.viewmodel.ts` 미리보기 조립 · `app-home.service.ts` 600ms 예산 · 공유 원천 한 번. 계약 블록 = `@repo/core/home/homeSummaryCard.ts`(글자 대조 시험 통과). 시험 `home-card-preview.test.ts` 13 |
+| FR-13 | ✅ 2026-11-20 — `home-feed.viewmodel.ts` · 700ms · 시험 `home-feed.test.ts` 6. 실경로 `/api/app/home` 데이터 있음 94ms |
 | 추가 | 인증 거절(401)은 카드 degraded 로 덮지 않고 홈 401(`5b6d5320`) — 프론트 토큰 갱신 · 로그인 이동 |
 
 ## Acceptance Criteria
@@ -76,3 +80,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-13 | 서버 S3d(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`): 새 FR-10 개인정보 뷰모델 · FR-11 계측 중계 done. 라우팅 표 `/notification/me/data-classification` → platform(`BFF-REQ-045`) |
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — `alerts.controller.ts` 에 목록 · 안 읽은 수 · 읽음 셋을 더했다. 설정(`/api/app/me/notifications`) 경로 · 동작 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 홈 투자 카드 `note` 에 적립 한 줄(서버 `totalKrw`, 600ms · 매입가 숨김 질문 우선) — 카드 계약 모양 무변경. 이 REQ 의 FR 은 그대로 |
+| 2026-11-20 | **FR-12 · 13 신설 · 충족**(`feat/fe-req-048-home-card-preview`) — 카드 미리보기 · 빈 카드 `action` · 홈 `recent` · `upcoming`. 필드 더하기만(BREAKING 0) · 계약 블록 `@repo/core/home` 같이. 미리보기 600ms · 둘째 줄 700ms 따로 — 카드 값 800ms 는 그대로. 짝 `BFF-REQ-027` · `047` · `048`(선택 `timeout` 인자). 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |

@@ -71,3 +71,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachSettingsBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
 - 2026-11-13: 서버 S3d 짝(루트 `requirements/specs/done/MONEY-S3d-identity-classify-usage-slice.md`) — `ops/salt.sh` 웹 zone 줄에 `web-tips` 3005(이 REQ 줄은 그대로 — 같은 줄에 이름이 나란히 있다)
+| 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |

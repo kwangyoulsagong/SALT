@@ -537,3 +537,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - `FE-REQ-049` 상세 재설계가 걸침 — 국내 상세가 알약 탭(개요 · 호가 · 투자자 · 소식 · 일정) + 오른쪽 고정 열(내 거래)로. 호가 현재가 행 = 옅은 면 + 가격 굵게 · 3열 상한 520, 패널 면 `detailPanel`
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 — `FE-REQ-049` 호가 · 투자자 한 탭 걸침
+
+- 몫: FR-32 · 33 표가 한 탭에 — 값 · 조회 무변경
+- 확인: `FE-REQ-049` 체크리스트 같은 날 절(실화면 1440) · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 좁은 폭 위아래 실화면 — `FE-REQ-049` 같은 날 절

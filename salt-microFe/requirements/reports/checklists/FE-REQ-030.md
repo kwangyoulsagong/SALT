@@ -155,3 +155,15 @@
 | FR-128 | 충족 | 실화면 1440 · 1024 · 390 앱 UA — "대화는 최근 질문 100개 · 90일까지만 보관해요 …" · axe 0 · 가로 넘침 0 |
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-20 시작 질문 카드 · 입력 위 배치(`feat/fe-req-048-home-card-preview`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 시작 질문 카드(아이콘 + 힌트 한 줄) | 충족 | 실화면 1440 — 힌트 문구 명령형 0 |
+| 첫 질문 전 브리핑 · 시작 질문이 입력 상자 바로 위 · 넘쳐도 스크롤 | 충족 | 실화면 1440(`margin-top: auto`) |
+| 명령 | 통과 | `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과 |
+
+| 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 390 앱 UA | 이번은 데스크톱 | `FE-REQ-060` 4단계 앱 웹뷰 |

@@ -106,3 +106,7 @@
 
 - `AppNavigation` 본문 칸에 패널 면(`contentPanel` — `#FBFCFD` · 모서리 12 · 안쪽 선 · 여백 12) · `data-app-navigation-content`(앱 웹뷰에서 면을 걷는 표지) · 머리 미선택 색을 토큰으로
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-20 데스크톱 레일 고정
+
+- sticky 는 부모 높이 안에서만 붙는다 — 레일 부모가 본문보다 짧으면 긴 화면에서 같이 밀려 올라간다. 긴 화면 스크롤 끝에서 top 을 재야 보인다

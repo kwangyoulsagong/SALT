@@ -57,3 +57,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-18 | F006 알림 화면(`feat/f006-alerts-screen`) — 파일만 걸침 — 레지스트리 셸 `pathPrefixes` 에 `/alerts` · 시험 두 줄(도메인 zone 에서 cross-zone · 셸에선 아님). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 레지스트리 invest `pathPrefixes` 에 `/plan`. 이 REQ 의 FR 은 그대로 |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — zone 루트 레이아웃 다섯에서 `next/font` 글꼴 변수를 뺐다(시스템 서체) — zone 구조 그대로 |
+| 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |

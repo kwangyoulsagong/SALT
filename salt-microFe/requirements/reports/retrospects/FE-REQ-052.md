@@ -69,3 +69,7 @@
 
 - zone 루트 레이아웃 다섯에서 `next/font` 글꼴 변수를 뺐다(시스템 서체) — zone 구조 그대로
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+## 2026-11-20 셸 포트 3100
+
+- 로컬 포트는 레지스트리 한 곳이 아니라 기본값 여섯 곳(레지스트리 · dev 스크립트 · ops 표 · Server Actions · BFF 웹소켓 origin · SITE_URL)에 흩어져 있었다 — 포트를 바꿀 땐 `grep 3000` 으로 런타임 기본값부터 센다

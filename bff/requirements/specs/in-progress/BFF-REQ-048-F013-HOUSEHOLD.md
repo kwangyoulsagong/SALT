@@ -109,3 +109,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-18 | FR-3 이어서(O4) — 월 화면 `coverage`(`HouseholdCoverageVM`) · `coverageReason`. 가공 0. 루트 `requirements/specs/in-progress/MONEY-O4-personal-projection-scoring-slice.md` |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 오류 미들웨어 시험 파일에 413 한 블록(본문 너무 큼). 이 REQ 동작 무변경 |
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — error middleware 가 서버 4xx 의 `field` · `min` · `max` · `unit` · `asset` · `currentWeek` 를 정해진 이름 · 형식만 옮긴다(시험 1 더함). 이 REQ 의 FR 은 그대로 |
+| 2026-11-20 | `BFF-REQ-046` FR-12 홈 카드 미리보기(`feat/fe-req-048-home-card-preview`)가 이 REQ 파일을 걸침 — `appHouseholdService.month` 에 선택 `timeout` 인자(기본값 그대로 — 홈 미리보기 예산 600ms 용). 경로 · 응답 무변경. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |

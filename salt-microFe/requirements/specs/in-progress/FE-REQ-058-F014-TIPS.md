@@ -79,3 +79,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-19 | `FE-REQ-060` 1단계 — 가계부 때맞춘 팁 칸 자리만 옮김(요약 띠 아래). 팁 계약 · 동작 변경 0 |
 | 2026-11-19 | `FE-REQ-060` 2단계 저축(파일만 걸침) — 저축 목록의 때맞춘 팁 칸(`TimelyTip` Savings) 자리를 요약 띠 아래로 옮김 — 동작 무변경. 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md` |
 | 2026-11-20 | `FE-REQ-060` 3단계 금융 팁(`feat/fe-req-060-s3-tips`, 루트 `requirements/specs/in-progress/MONEY-desktop-tips-slice.md`) — 금융 팁 세 화면이 데스크톱 틀로(`FE-REQ-060` FR-10) — `PublicShell` 1024 이상 본문 패널 · 목록 행 · 사이드(모아 보기 · 내게 맞춘 팁) · 글 단 720 · 회색 상자 → 정보 상자 · 글자 15 · 16 → 단 안 · 카드 모음 상태 한 줄 + 재시도 1회. 공개 · ISR · noindex · 개인 데이터 0 그대로 |
+| 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |

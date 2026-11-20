@@ -145,3 +145,18 @@
 ## 2026-11-19 `FE-REQ-060` 2단계 저축 화면 틀이 걸침
 
 - 확인은 `FE-REQ-060` 체크리스트 2단계 절(실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA · 넣기 · 상태 · axe · 빌드). 수용 기준 1(숫자는 서버) · 2(칭찬 · 재촉 0) 유지 — 띠 합은 서버 새 경로
+
+## 2026-11-20 `FE-REQ-060` FR-14 저축 시작이 걸침
+
+- 몫: 목표 만들기 `?template=` 읽기(모르는 값이면 기본) · `AddGoalPage` `searchParams`
+- 확인: 1440 빈 계정에서 템플릿 타일 → 그 템플릿이 골라진 채 열림 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
+- 미검증: 없음(이 REQ 몫 — 웹뷰 배치는 `FE-REQ-060` 4단계)
+
+## 2026-11-20 하위 화면 같은 틀
+
+- [x] 임시 계정(목표 2 · 넣기 4 · 지출 23 · 매달 나가는 돈 1 · 보유 1)으로 1440 실화면 — `/goals/new` · `/household/new` · `/household/budget` · `/household/templates` · `/household/challenges` · `/household/revolving` · `/household/people` · `/household/story/2026-11`
+- [x] 앱 웹뷰 390(SALTApp UA) — `/home` · `/goals` · `/household` · `/goals/new` · `/household/new` · `/household/templates` · `/household/challenges` · `/plan` · `/coach/chat` 가로 넘침 0, 2단 화면은 입력 → 목록 순으로 접힘(이전 "앱 웹뷰 390 미검증" 닫힘)
+- [x] turbo lint · check-types 22 작업 · test(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · `test:layer-check` · 저축 · 가계부 zone 운영 빌드
+- [x] 첫 로드: `/goals/new` 130 kB · `/household/new` 164 → 140 · `/household/budget` 162 → 156(서버 틀 입구) · `/household/templates` 146 · `/household/challenges` 170 · `/household/revolving` 169 · `/household/people` 171 · `/household` 178 → 180
+- 미검증: 없음 — 임시 계정은 앱 삭제 경로로 지움 · 초대 코드 지움
+

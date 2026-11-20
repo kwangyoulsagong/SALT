@@ -112,3 +112,7 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - error middleware 가 서버 4xx 의 `field` · `min` · `max` · `unit` · `asset` · `currentWeek` 를 정해진 이름 · 형식만 옮긴다(시험 1 더함) — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-20 `BFF-REQ-046` 홈 카드 미리보기가 걸침
+
+- `appHouseholdService.month` 선택 `timeout` 인자(기본값 그대로) — BFF `npm test` 통과 · 실경로 `/api/app/home` 94ms. 미충족: 없음(이 REQ 몫)
