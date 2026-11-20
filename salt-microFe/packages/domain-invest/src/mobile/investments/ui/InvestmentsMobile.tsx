@@ -91,12 +91,15 @@ export const InvestmentsMobile = () => {
                   <span className={s.main}>
                     <span className={s.name}>{item.name}</span>
                   </span>
-                  {item.changeRate === null ? null : (
-                    <span className={`${s.rate} ${rateTone(item.changeRate)}`}>
-                      {rateText(item.changeRate)}
-                    </span>
-                  )}
-                  <Chevron />
+                  {/* 등락 · 셰브론은 한 묶음 — 셰브론만 다음 줄로 떨어지지 않게 */}
+                  <span className={s.end}>
+                    {item.changeRate === null ? null : (
+                      <span className={`${s.rate} ${rateTone(item.changeRate)}`}>
+                        {rateText(item.changeRate)}
+                      </span>
+                    )}
+                    <Chevron />
+                  </span>
                 </Link>
               </li>
             ))}

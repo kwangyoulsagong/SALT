@@ -47,6 +47,9 @@ export const rowValue = style({
   fontWeight: vars.fontWeights.bold,
 });
 
+/** 값 + 셰브론 — 오른쪽 끝에 붙어 같이 움직인다 */
+export const rowEnd = style({ display: "inline-flex", alignItems: "center", gap: "8px", marginLeft: "auto" });
+
 export const chevron = style({ flexShrink: 0, color: vars.colors.neutral[400] });
 
 export const note = style({
@@ -86,4 +89,20 @@ export const textLink = style({
   fontSize: vars.appType.body.fontSize,
   fontWeight: vars.fontWeights.semibold,
   textDecoration: "none",
+});
+
+/** 홈 머리 — 프로필 사진 48 · 이름 `t5` 굵게 · 이메일 `t7`(Figma "홈" 머리 — 회색 바탕 위, 카드 아님) */
+export const profileHead = style({ display: "flex", alignItems: "center", gap: "12px", minHeight: "56px", padding: "4px 5px" });
+export const profileText = style({ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 });
+export const profileName = style({
+  margin: 0,
+  fontSize: vars.appType.body.fontSize,
+  lineHeight: vars.appType.body.lineHeight,
+  fontWeight: vars.fontWeights.bold,
+  color: vars.colors.text.primary,
+});
+export const profileSub = style({
+  fontSize: vars.appType.caption.fontSize,
+  lineHeight: vars.appType.caption.lineHeight,
+  color: vars.colors.text.tertiary,
 });

@@ -10,6 +10,7 @@ import { serverBffRead } from "../../api/server";
 
 import { DesktopViewLink } from "./DesktopViewLink";
 import { MOBILE_HOME_MESSAGES as M } from "./messages";
+import { MobileProfileHead } from "./MobileProfileHead";
 import { MobileHead, MobileScreen, MobileSection } from "./MobileScreen";
 import * as s from "./MobileHome.css";
 
@@ -61,8 +62,11 @@ const CardRow = ({ card }: { card: HomeSummaryCard }) => (
           <span className={s.rowSub}>{card.action}</span>
         ) : null}
       </span>
-      {card.state !== "degraded" && card.primary ? <span className={s.rowValue}>{card.primary.value}</span> : null}
-      <Chevron />
+      {/* 값 · 셰브론은 한 묶음 — 값이 길면 둘이 같이 다음 줄로(셰브론만 떨어지지 않게) */}
+      <span className={s.rowEnd}>
+        {card.state !== "degraded" && card.primary ? <span className={s.rowValue}>{card.primary.value}</span> : null}
+        <Chevron />
+      </span>
     </RowLink>
   </li>
 );
@@ -130,7 +134,8 @@ export const MobileHomePage = async () => {
 
   return (
     <MobileScreen>
-      <MobileHead title={M.title} />
+      {/* 머리 = 프로필(Figma "홈") — 다른 탭은 화면 제목 */}
+      <MobileProfileHead />
       {step ? (
         // 시작하기는 데스크톱 화면이다(초대 · 고르기 — FEATURE-019 FR-5) — 문서 이동 + "데스크톱 화면으로 보기" 쿠키
         <div className={s.banner}>

@@ -32,8 +32,9 @@ export const sub = style({
   color: vars.colors.text.tertiary,
 });
 
+export const end = style({ display: "inline-flex", alignItems: "center", gap: "8px", marginLeft: "auto" });
+
 export const rate = style({
-  marginLeft: "auto",
   fontSize: vars.appType.desc.fontSize,
   lineHeight: vars.appType.desc.lineHeight,
   fontWeight: vars.fontWeights.semibold,
