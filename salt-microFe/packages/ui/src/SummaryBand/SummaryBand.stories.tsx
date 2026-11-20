@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import { ServiceIcon } from "../ServiceIcon/ServiceIcon";
 import { SummaryBand } from "./SummaryBand";
 
 const meta = {
@@ -36,5 +37,30 @@ export const LongValues: Story = {
       { key: "a", label: "모은 돈", value: "12,345,678,900원", hero: true },
       { key: "b", label: "가장 가까운 도달", value: "2027년 3월 ~ 2027년 9월 사이" },
     ],
+  },
+};
+
+/** 금액 카드(`icon`) — 아이콘 판 + 주인공 금액 24 · 나머지 타일. 회색 판 위 흰 카드라 판 색을 깔고 본다 */
+export const AmountCard: Story = {
+  args: {
+    label: "이번 달 요약",
+    icon: <ServiceIcon variant="household" />,
+    items: Default.args?.items ?? [],
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 24, background: "#F2F4F6" }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+/** 금액 카드인데 주인공이 없으면(요약 실패) 띠 그대로 — 실패 문장을 큰 숫자로 보이지 않는다 */
+export const AmountCardWithoutHero: Story = {
+  args: {
+    label: "요약 실패",
+    icon: <ServiceIcon variant="ranking" />,
+    items: [{ key: "failed", label: "요약", value: "지금은 불러오지 못했어요" }],
   },
 };

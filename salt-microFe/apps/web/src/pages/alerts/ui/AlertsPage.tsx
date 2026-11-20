@@ -2,7 +2,12 @@ import Link from "next/link";
 
 import { ROUTES } from "@repo/web-shared/config";
 import { BlockBoundary, NavChevron } from "@repo/web-shared/ui";
-import { panel, panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
+import { PageFrame } from "@repo/web-shared/ui/frame";
+import {
+  panel,
+  panelDescription,
+  panelTitle,
+} from "@repo/web-shared/ui/surface.css";
 
 import { AlertList } from "@/widgets/alert-list";
 
@@ -18,23 +23,26 @@ import * as s from "./AlertsPage.css";
 export const AlertsPage = async () => {
   const initial = await serverAlerts();
   return (
-    <div className={s.page}>
-      {/* 머리 · 설명 · 목록이 한 본문 패널 위(`screen-desktop.md` §1). 회색 바탕에 바로 두면
+    // 카드 판 위 카드 한 장(`FE-REQ-076` FR-7) — 제목은 카드 안 머리라 틀 제목은 없다
+    <PageFrame surface="cards">
+      <div className={s.page}>
+        {/* 머리 · 설명 · 목록이 한 본문 패널 위(`screen-desktop.md` §1). 회색 바탕에 바로 두면
           자리표시(neutral 100)가 바탕과 같아 안 보였다(2026-11-18 확인 2회차 — axe · 스크린샷) */}
-      <section className={panel}>
-        <div className={s.head}>
-          <h1 className={panelTitle}>{ALERTS_PAGE.title}</h1>
-          <Link href={ROUTES.settings} className={s.settingsLink}>
-            {ALERTS_PAGE.settingsLink}
-            <NavChevron />
-          </Link>
-        </div>
-        <p className={panelDescription}>{ALERTS_PAGE.description}</p>
-        <BlockBoundary name={ALERTS_PAGE.blockName} minHeight={160}>
-          <AlertList initial={initial} />
-        </BlockBoundary>
-      </section>
-    </div>
+        <section className={panel}>
+          <div className={s.head}>
+            <h1 className={panelTitle}>{ALERTS_PAGE.title}</h1>
+            <Link href={ROUTES.settings} className={s.settingsLink}>
+              {ALERTS_PAGE.settingsLink}
+              <NavChevron />
+            </Link>
+          </div>
+          <p className={panelDescription}>{ALERTS_PAGE.description}</p>
+          <BlockBoundary name={ALERTS_PAGE.blockName} minHeight={160}>
+            <AlertList initial={initial} />
+          </BlockBoundary>
+        </section>
+      </div>
+    </PageFrame>
   );
 };
 

@@ -5,7 +5,7 @@ import { vars } from "@repo/ui/tokens";
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /**
- * 홈 둘째 줄 패널(`FE-REQ-048` FR-13) — 카드와 같은 면(흰 면 · 모서리 16 · 안쪽 선, 그림자 없음).
+ * 홈 둘째 줄 패널(`FE-REQ-048` FR-13) — 카드와 같은 면(흰 면 · 모서리 20 · 선 · 그림자 없음 — `FE-REQ-076` FR-5).
  * 행 = 왼쪽 3D 아이콘 · 이름(13/600) + 한 줄(12/500 2단) · 금액 오른쪽(고정폭 숫자) — `screen-desktop.md` §4 날짜 묶음 목록의 행과 같은 세 칸
  */
 export const panel = style({
@@ -13,9 +13,8 @@ export const panel = style({
   flexDirection: "column",
   minWidth: 0,
   padding: `${vars.space.lg} ${vars.space.md} ${vars.space.md}`,
-  borderRadius: SURFACE.panelRadius,
+  borderRadius: vars.radius.xl,
   background: vars.colors.background.white,
-  boxShadow: SURFACE.hairline,
 });
 
 export const panelHead = style({ display: "flex", alignItems: "center", minHeight: "28px", padding: `0 ${vars.space.sm}`, marginBottom: vars.space.xs });

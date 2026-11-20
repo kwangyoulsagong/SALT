@@ -22,7 +22,7 @@ import { navRow, stack } from "./SettingsPage.css";
  * (FR-5, 서버 S3c 2026-11-12 — 투자 링크 아래, 지우기가 맨 끝).
  */
 export const SettingsPage = () => (
-  <PageFrame title={SETTINGS_PAGE.title}>
+  <PageFrame title={SETTINGS_PAGE.title} surface="cards">
     <div className={stack}>
       {/* 패널째 기능이 그린다 — 로그아웃이면 패널이 없다(빈 제목만 남지 않게) */}
       <HomeLayoutPanel />

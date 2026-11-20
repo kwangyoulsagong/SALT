@@ -2,6 +2,7 @@ import { HOUSEHOLD_CATEGORY_LABEL, labelOf } from "@repo/core/labels";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 
 import { ZoneLink } from "@repo/web-shared/ui/frame";
+import { iconTile } from "@repo/web-shared/ui/surface.css";
 
 import { HOME_DOMAIN_ICON } from "../model/domainIcon";
 import { HOME_FEED_MESSAGES } from "../model/messages";
@@ -22,7 +23,10 @@ interface FeedRowProps {
 const FeedRow = ({ item, title, formatDate = monthDay }: FeedRowProps) => (
   <li>
     <ZoneLink href={item.href} className={row}>
-      <ServiceIcon variant={HOME_DOMAIN_ICON[item.domain]} />
+      {/* 아이콘 판 44(`FE-REQ-076` FR-3 — 휴대폰 목록 판과 같은 값) */}
+      <span className={iconTile} aria-hidden>
+        <ServiceIcon variant={HOME_DOMAIN_ICON[item.domain]} />
+      </span>
       <span className={main}>
         <span className={rowTitle}>{title}</span>
         <span className={rowSub}>{HOME_FEED_MESSAGES.sub(item.detail, formatDate(item.date))}</span>

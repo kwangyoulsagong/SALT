@@ -3,6 +3,7 @@
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
+import { ServiceIcon } from "@repo/ui/serviceicon";
 import { SummaryBand, type SummaryBandItem } from "@repo/ui/summaryBand";
 import { useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -34,8 +35,10 @@ const GOAL_PARAM = "goal";
 /** 요약 띠(`FE-REQ-060` FR-2) — 칸 · 값은 `goalSummaryItems`(서버 `overview` 그대로, 휴대폰 요약과 한 벌). 실패면 그 칸만 한 줄(FR-13) */
 const Band = ({ overview }: { overview: ReturnType<typeof useSavingsOverview> }) => {
   const items: SummaryBandItem[] | null = overview.data ? goalSummaryItems(overview.data) : overview.isError ? GOAL_SUMMARY_FAILED : null;
-  if (items) return <SummaryBand items={items} label={GOAL_SUMMARY_MESSAGES.label} />;
-  return <Skeleton height={64} />;
+  // 금액 카드 — 휴대폰 저축 요약과 같은 3D 아이콘(`FE-REQ-076` FR-4)
+  if (items) return <SummaryBand items={items} label={GOAL_SUMMARY_MESSAGES.label} icon={<ServiceIcon variant="ranking" />} />;
+  // 금액 카드 높이(20 + 44 + 20) — 도착할 때 아래가 밀리지 않게
+  return <Skeleton height={84} radius="medium" />;
 };
 
 /**

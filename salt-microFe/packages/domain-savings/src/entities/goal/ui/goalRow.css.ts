@@ -46,9 +46,10 @@ export const plate = style({
   alignItems: "center",
   justifyContent: "center",
   flexShrink: 0,
-  width: "32px",
-  height: "32px",
-  borderRadius: "8px",
+  // 데스크톱 40 · 모서리 12 — 휴대폰 아이콘 판과 같은 모양을 데스크톱 행 높이 안에서(`FE-REQ-076` FR-6, 전 32 · 8)
+  width: "40px",
+  height: "40px",
+  borderRadius: "12px",
   // 저축 도메인 색 옅은 판 + 템플릿 선 아이콘(2026-11-20 — 글자 한 자 판이 밋밋했다). 도메인 색은 작은 표지에만
   background: "rgba(9, 146, 104, 0.1)",
   color: vars.colors.domain.savings,

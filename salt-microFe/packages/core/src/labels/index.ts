@@ -37,3 +37,9 @@ export const COACH_MODE_LABEL = { scalp: "단타", long_term: "장기" } as cons
 /** 코드 → 이름표. 모르는 코드는 undefined — 원문 코드를 화면에 내지 않는다 */
 export const labelOf = <T extends Record<string, string>>(table: T, code: string | undefined): string | undefined =>
   code !== undefined && Object.prototype.hasOwnProperty.call(table, code) ? table[code as keyof T] : undefined;
+
+/**
+ * 홈 도메인 카드 오른쪽 회색 알약 — 그 도메인의 다음 행동 한 단어(누르면 카드 전체와 같은 곳).
+ * 휴대폰 `/m/home` · 데스크톱 홈 카드가 같이 쓴다(`FE-REQ-076` FR-5 — 셸 entities 와 `layout/mobile` 이 서로를 import 하지 못해 여기 한 벌)
+ */
+export const HOME_CARD_PILL_LABEL = { savings: "넣기", household: "적기", invest: "보기", tips: "보기" } as const;

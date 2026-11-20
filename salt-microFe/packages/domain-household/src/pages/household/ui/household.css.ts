@@ -3,7 +3,7 @@ import { style } from "@vanilla-extract/css";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { SURFACE, card as sharedCard } from "@repo/web-shared/ui/surface.css";
 
 /**
  * 가계부 데스크톱 화면(`FE-REQ-060` FR-1~6 · FR-12). 틀은 `PageFrame`(바탕 · 패널 · 사이드 312). 면은 패널 + 정보 상자 둘뿐.
@@ -94,7 +94,8 @@ export const split = style({
   "@media": { [WIDE]: { gridTemplateColumns: "minmax(0, 1fr) 360px" } },
 });
 
-export const section = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
+/** 이 달 더 보기 묶음 = 카드(`FE-REQ-076` FR-7) */
+export const section = style([sharedCard, { gap: "8px" }]);
 export const sectionHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minHeight: "32px" });
 export const sectionTitle = style({
   ...title,
@@ -109,8 +110,8 @@ export const dayDetail = style({
   gap: "8px",
   padding: "12px",
   borderRadius: "12px",
+  // 카드 안이라 선 없이 정보 상자 면만(카드 안 카드 0 — `FE-REQ-076` FR-7)
   background: SURFACE.infoFill,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
 });
 export const dayHead = style({ ...title, display: "flex", justifyContent: "space-between", gap: "8px", fontVariantNumeric: "tabular-nums" });
 
@@ -136,16 +137,8 @@ export const emptyRow = style({ display: "flex", alignItems: "center", minHeight
 /**
  * 2026-11-20 가계부 개편 — 본문 칸을 흰 카드로(차트 두 칸 · 쓴 내역). 카드 = 흰 면 · 모서리 12 · 안쪽 선, 그림자 없음(`screen-desktop.md` §3)
  */
-export const card = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  minWidth: 0,
-  padding: "16px 20px 20px",
-  borderRadius: "12px",
-  background: vars.colors.background.white,
-  boxShadow: SURFACE.hairline,
-});
+/** 묶음 카드 — 공용 카드(흰 · 모서리 20 · 선 0, `FE-REQ-076` FR-2 · 전 모서리 12 + 안쪽 선) */
+export const card = style([sharedCard, { gap: "12px", padding: "16px 20px 20px" }]);
 
 /** 차트 두 칸 — 날마다(넓게) · 분류. 1280 미만은 위아래 */
 export const chartRow = style({

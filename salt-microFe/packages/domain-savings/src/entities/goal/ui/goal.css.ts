@@ -39,7 +39,8 @@ export const value = style({
 export const bigValue = style([value, { fontSize: "18px", lineHeight: "24px", fontWeight: 700 }]);
 
 /** 정보 상자(`FE-REQ-060` FR-1 — 면은 패널 · 정보 상자 둘뿐, 회색 상자 0) */
-export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: SURFACE.hairline });
+/** 정보 상자 — 카드 안에 놓이므로 면만(선 0 — 카드 안 카드 0, `FE-REQ-076` FR-7) */
+export const box = style({ display: "flex", flexDirection: "column", gap: "6px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill });
 
 /** 제목 있는 패널 안 — 면 없이 같은 간격만 */
 export const bare = style({ display: "flex", flexDirection: "column", gap: "6px" });

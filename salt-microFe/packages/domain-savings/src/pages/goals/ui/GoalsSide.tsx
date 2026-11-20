@@ -7,5 +7,10 @@ import { GoalTools } from "@/widgets/goal-tools";
 export const GoalsSide = ({ initialGoals }: { initialGoals: SavingsGoal[] | null }) => {
   const goals = useSavingsGoals(initialGoals);
   if (!goals.data || goals.data.length === 0) return null;
-  return <GoalTools goals={goals.data} />;
+  // 도구 셋을 카드 한 장에(카드 판에서 사이드 직계 자식 하나 = 카드 하나 — `FE-REQ-076` FR-2, 휴대폰 "저축 도구" 카드와 같은 묶음)
+  return (
+    <div>
+      <GoalTools goals={goals.data} />
+    </div>
+  );
 };
