@@ -25,7 +25,8 @@
     "./navigation": "./src/navigation/index.ts",
     "./input": "./src/input/numberText.ts",
     "./search": "./src/search/searchList.ts",
-    "./format": "./src/format/price.ts"
+    "./format": "./src/format/price.ts",
+    "./mobile": "./src/mobile/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

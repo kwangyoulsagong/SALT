@@ -4,7 +4,7 @@ const { ZONES, zoneRewrites } = require("@repo/core/zones/node");
 /**
  * zone 공용 Next 설정 프리셋 (`FE-REQ-054` FR-5, `ADR-005` §3 "공용 청크 같은 해시").
  *
- * zone 5개의 `next.config.js` 가 **이 함수 하나**로 설정을 만든다. 손으로 다섯 벌을 쓰면 한 곳만 바뀌어
+ * zone 6개의 `next.config.js` 가 **이 함수 하나**로 설정을 만든다. 손으로 다섯 벌을 쓰면 한 곳만 바뀌어
  * (React 엄격 모드 · 이미지 허용 · Server Actions origin · 변환 패키지) 같은 의존이 zone 마다 다른 청크가 된다.
  * 바뀌는 것은 zone 몫뿐이다 — `assetPrefix` · `NEXT_PUBLIC_ZONE_APP`(레지스트리 값) · 셸만 rewrites · 앱이 더하는 변환 패키지.
  *
@@ -18,7 +18,7 @@ const { ZONES, zoneRewrites } = require("@repo/core/zones/node");
  * dev 청크는 해시가 없어(`app/layout.js`) 합치면 서로 덮으므로 dev 만 레지스트리 assetPrefix 를 쓴다.
  * `ZONE_STATIC=per-zone` 이면 운영 빌드도 zone 별(합치기 없이 zone 하나만 띄울 때).
  *
- * @param {"shell" | "invest" | "savings" | "household" | "tips"} zoneId 레지스트리 zone id
+ * @param {"shell" | "invest" | "savings" | "household" | "tips" | "mobile"} zoneId 레지스트리 zone id(`mobile` = 휴대폰 PWA 표면 zone, `ADR-012`)
  * @param {{ transpilePackages?: string[] }} [options]
  * @returns {import('next').NextConfig}
  */

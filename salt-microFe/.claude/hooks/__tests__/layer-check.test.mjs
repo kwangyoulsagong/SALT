@@ -124,6 +124,31 @@ const BLOCKED = [
     code: `export const x = 1;`,
     rule: "unknown-layer",
   },
+  // FE-REQ-071 FR-2 — 휴대폰 표면 zone 은 `domain-*/mobile` 진입점만
+  {
+    name: "17. 휴대폰 zone → 도메인 데스크톱 화면(pages)",
+    file: "/repo/salt-microFe/apps/web-mobile/app/m/goals/page.tsx",
+    code: `export { GoalsPage as default } from "@repo/domain-savings/pages/goals";`,
+    rule: "mobile-domain",
+  },
+  {
+    name: "18. 휴대폰 zone → 도메인 배럴",
+    file: "/repo/salt-microFe/apps/web-mobile/app/m/household/page.tsx",
+    code: `export { HouseholdPage as default } from "@repo/domain-household";`,
+    rule: "mobile-domain",
+  },
+  {
+    name: "19. 휴대폰 zone 안 widgets — zone 앱은 얇다",
+    file: "/repo/salt-microFe/apps/web-mobile/src/widgets/tab-bar/ui/TabBar.tsx",
+    code: `export const TabBar = () => null;`,
+    rule: "thin-zone",
+  },
+  {
+    name: "20. 입구 목록에 없는 layout 안쪽 경로",
+    file: `${APP}/src/pages/login/ui/LoginPage.tsx`,
+    code: `import { SignInForm } from "@repo/web-shared/layout/SignInForm";`,
+    rule: "segment-internal",
+  },
 ];
 
 /** 통과해야 하는 것 — 규칙이 과하게 막지 않는지 본다. */
@@ -177,6 +202,21 @@ const ALLOWED = [
     name: "web-shared 세그먼트끼리 상대 경로",
     file: "/repo/salt-microFe/packages/web-shared/src/ui/CrossZoneLink/CrossZoneLink.tsx",
     code: `import { isCrossZonePath } from "../../config";`,
+  },
+  {
+    name: "휴대폰 zone 이 도메인 패키지의 mobile 진입점을 re-export(넷 모두)",
+    file: "/repo/salt-microFe/apps/web-mobile/app/m/goals/page.tsx",
+    code: `export { GoalsMobile as default } from "@repo/domain-savings/mobile/goals";\nexport { InvestMobile } from "@repo/domain-invest/mobile";`,
+  },
+  {
+    name: "휴대폰 zone 라우트가 공용 레이아웃(로그인 · 틀)을 re-export",
+    file: "/repo/salt-microFe/apps/web-mobile/app/m/login/page.tsx",
+    code: `export { MobileLoginPage as default } from "@repo/web-shared/layout";`,
+  },
+  {
+    name: "배럴 밖 입구 layout/sign-in — 셸 feature 가 공용 로그인 폼을(FE-REQ-071 FR-6)",
+    file: `${APP}/src/features/sign-in/ui/SignInForm.tsx`,
+    code: `import { SignInForm } from "@repo/web-shared/layout/sign-in";`,
   },
   {
     name: "검사 대상이 아닌 파일",

@@ -22,6 +22,14 @@ const BUDGET: Record<string, number> = {
   "packages/ui/src": 119,
 };
 
+/**
+ * 휴대폰 PWA 표면(`ADR-012` · `FE-REQ-071`) — 데스크톱 다섯 단 대상이 아니다. 여기는 **`appType` 토큰만** 쓴다(숫자 · 옛 토큰 0).
+ * 도메인 패키지의 `src/mobile` 진입점(F019 순서 2)도 생기면 여기 더한다.
+ */
+const MOBILE_SURFACE = ["packages/web-shared/src/layout/mobile", "apps/web-mobile"];
+const isMobileSurface = (file: string): boolean =>
+  MOBILE_SURFACE.some((root) => relative(REPO, file).startsWith(`${root}/`));
+
 const DESK_SIZES = new Set(["12", "13", "14", "18", "24"]);
 /** 다섯 단 밖을 가리키는 옛 토큰 키(`@repo/tokens` `fontSizes` · `typography` · web-shared `fontSizes`) */
 const OFF_SCALE_KEYS = new Set([
@@ -63,10 +71,11 @@ describe("데스크톱 글자 크기 다섯 단(FE-REQ-047 FR-3)", () => {
   });
 
   // 모바일 글자(`appType`)는 앱 웹뷰 선택자 안에서만 — 데스크톱 단 밖 크기를 이 이름으로 우회하지 않게(`FE-REQ-060` FR-M)
-  it("appType 은 IN_APP_WEBVIEW 를 쓰는 파일에서만", () => {
+  it("appType 은 IN_APP_WEBVIEW 를 쓰는 파일 · 휴대폰 표면에서만", () => {
     const leaks = Object.keys(BUDGET)
       .flatMap((root) => cssFiles(join(REPO, root)))
       .filter((file) => {
+        if (isMobileSurface(file)) return false;
         const source = readFileSync(file, "utf8");
         return /appType\./.test(source) && !source.includes("IN_APP_WEBVIEW");
       })
@@ -76,10 +85,30 @@ describe("데스크톱 글자 크기 다섯 단(FE-REQ-047 FR-3)", () => {
 
   for (const [root, budget] of Object.entries(BUDGET)) {
     it(`${root} — 단 밖 크기 ${budget} 개 — 늘면 실패 · 줄면 BUDGET 을 낮춘다`, () => {
-      const hits = cssFiles(join(REPO, root)).flatMap((file) =>
+      const hits = cssFiles(join(REPO, root)).filter((file) => !isMobileSurface(file)).flatMap((file) =>
         offScaleSizes(readFileSync(file, "utf8")).map((size) => `${relative(REPO, file)} ${size}`),
       );
       expect(hits.length, `새로 생긴 단 밖 크기는 deskType 토큰으로:\n${hits.join("\n")}`).toBe(budget);
     });
   }
+});
+
+describe("휴대폰 표면 글자는 appType 만(FE-REQ-071 FR-5 · screen-mobile.md §1)", () => {
+  it("숫자 글자 크기 · 데스크톱 · 옛 토큰 0", () => {
+    const hits = MOBILE_SURFACE.flatMap((root) => {
+      const dir = join(REPO, root);
+      try {
+        statSync(dir);
+      } catch {
+        return [];
+      }
+      return cssFiles(dir).flatMap((file) => {
+        const source = readFileSync(file, "utf8");
+        const literal = [...source.matchAll(LITERAL)].map((m) => `${m[1] ?? m[2]}px`);
+        const token = [...source.matchAll(TOKEN_REF), ...source.matchAll(/deskType\./g)].map((m) => m[0]);
+        return [...literal, ...token].map((hit) => `${relative(REPO, file)} ${hit}`);
+      });
+    });
+    expect(hits, `휴대폰 표면은 vars.appType.* 로:\n${hits.join("\n")}`).toEqual([]);
+  });
 });

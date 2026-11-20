@@ -2,8 +2,9 @@ import { Illustration } from "@repo/ui/illustration";
 import { Text } from "@repo/ui/text";
 import Link from "next/link";
 
-import { RedirectSignedIn, SignInForm, SIGN_IN_MESSAGES } from "@/features/sign-in";
+import { RedirectSignedIn, SignInForm } from "@/features/sign-in";
 import { ROUTES } from "@repo/web-shared/config";
+import { SIGN_IN_MESSAGES } from "@repo/web-shared/layout/sign-in";
 
 import { brandMark, card, inviteRow, screen, title } from "./LoginPage.css";
 

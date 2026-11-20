@@ -1,10 +1,45 @@
-import { ApiError, apiFetch } from "@repo/web-shared/api";
-import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
+/** `FE-REQ-071` FR-6 — 셸 `/` · 휴대폰 `/m/login` 이 같이 쓰는 로그인 계약 · 호출 */
+import { INVESTMENTS_BASE_URL } from "../config";
 
-import type { SignInRequest, SignInResponse } from "../model/types";
+import { ApiError } from "./apiError";
+import { apiFetch } from "./apiFetch";
 
 /**
- * 로그인 경로는 **BFF 프록시**다 (`BFF-REQ-009` 호출 맵 `login`).
+ * 로그인 계약 — `FE-REQ-071` FR-6 에서 셸 `features/sign-in` 의 계약 · 호출을 여기로 내렸다(서버 `POST /api/auth/login`, BFF 통과 경로 `login`).
+ *
+ * ## 목이 아니라 서버 계약이다 (2026-09-23 정정)
+ *
+ * 이 타입은 `POST /api/v1/auth/login` 의 **MSW 목**을 따라 `{ id, password }` → `{ token }`
+ * 이었다. 실제 서버는 `POST /api/auth/login` 에서 `{ email, password }` 를 받고
+ * `{ user, accessToken, refreshToken }` 을 준다. 목이 진짜처럼 통과하는 동안 화면은
+ * `mock-jwt-token` 을 저장했고, 그 토큰으로 `/api/app/*` 를 부르면 전부 401 이었다 —
+ * **로그인은 성공한 것처럼 보이고 데이터만 없는 상태**가 만들어졌다.
+ */
+
+export interface SignInRequest {
+  email: string;
+  password: string;
+}
+
+/** 서버 `AccountView` 에서 화면이 쓰는 것만. `id` 는 uuid 문자열이다. */
+export interface SignInUser {
+  id: string;
+  email: string;
+  nickname: string;
+  profileImageUrl: string | null;
+}
+
+export interface SignInResponse {
+  user: SignInUser;
+  accessToken: string;
+  /** 갱신에 쓴다. 목에는 이 필드가 없었다. */
+  refreshToken: string;
+}
+
+
+
+/**
+ * 로그인 경로는 **BFF 프록시**다 — 셸 `/` 와 휴대폰 `/m/login` 이 같이 쓴다(2026-11-20 셸 `features/sign-in` 에서 내림).
  *
  * 화면은 원래 `/api/app/*` 만 부른다(`entities/auth/api/endpoints.ts` 주석). 그런데 로그인과
  * 갱신에는 앱 대면 계약이 **없다** — BFF 가 서버 경로를 그대로 통과시킨다. 그래서 여기 두
@@ -19,7 +54,7 @@ interface LoginEnvelope {
   data?: SignInResponse;
 }
 
-/** mutation 은 feature 가 갖는다 (`fsd-entities.md` — entities/api 는 조회만). */
+/** 폼은 `@repo/web-shared/layout` `SignInForm` — 셸 · 휴대폰 zone 이 같은 계약 · 같은 세션 저장을 쓴다 */
 export const signInApi = {
   signIn: async (body: SignInRequest): Promise<SignInResponse> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${LOGIN_PATH}`, {
