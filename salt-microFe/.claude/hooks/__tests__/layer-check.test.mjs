@@ -3,6 +3,7 @@
  * `layer-check` 훅의 위반 케이스 (`FE-REQ-009` 수용 기준 — 위반 8개로 테스트).
  * 도메인 축 4개(`FE-REQ-052` FR-4 — 도메인 간 · 셸 → 도메인 · 남의 도메인 · zone 앱 안 features)를 더했다.
  * 패키지 안 레이어 4개(`FE-REQ-053` — domain-* 안 cross-slice · web-shared 세그먼트 내부 · web-shared → 앱 alias · domain-* 안 shared)를 더했다.
+ * 휴대폰 진입점 3개(`FE-REQ-072` — mobile → pages · mobile → mobile · 레지스트리 밖 mobile)를 더했다.
  *
  * 훅을 **실제로 실행**한다. 판정 함수를 부르는 것으로는 훅이 stdin 을 못 읽거나
  * exit code 를 잘못 내는 것을 못 잡는다.
@@ -149,6 +150,25 @@ const BLOCKED = [
     code: `import { SignInForm } from "@repo/web-shared/layout/SignInForm";`,
     rule: "segment-internal",
   },
+  // FE-REQ-072 FR-1 — 도메인 패키지 `mobile` 진입점은 pages 의 형제
+  {
+    name: "21. 휴대폰 진입점 → 데스크톱 화면(pages)",
+    file: "/repo/salt-microFe/packages/domain-savings/src/mobile/goals/ui/GoalsMobile.tsx",
+    code: `import { GoalsSide } from "@/pages/goals";`,
+    rule: "mobile-pages",
+  },
+  {
+    name: "22. 휴대폰 진입점 → 다른 휴대폰 진입점",
+    file: "/repo/salt-microFe/packages/domain-savings/src/mobile/goals/ui/GoalsMobile.tsx",
+    code: `import { GoalDetailMobile } from "@/mobile/goal-detail";`,
+    rule: "cross-slice",
+  },
+  {
+    name: "23. 레지스트리에 없는 휴대폰 진입점",
+    file: "/repo/salt-microFe/packages/domain-household/src/mobile/budget-sheet/ui/Sheet.tsx",
+    code: `export const Sheet = () => null;`,
+    rule: "registry",
+  },
 ];
 
 /** 통과해야 하는 것 — 규칙이 과하게 막지 않는지 본다. */
@@ -217,6 +237,11 @@ const ALLOWED = [
     name: "배럴 밖 입구 layout/sign-in — 셸 feature 가 공용 로그인 폼을(FE-REQ-071 FR-6)",
     file: `${APP}/src/features/sign-in/ui/SignInForm.tsx`,
     code: `import { SignInForm } from "@repo/web-shared/layout/sign-in";`,
+  },
+  {
+    name: "휴대폰 진입점 → entities · features · widgets 배럴(FE-REQ-072 FR-1)",
+    file: "/repo/salt-microFe/packages/domain-invest/src/mobile/investment-detail/ui/DetailMobile.tsx",
+    code: `import { useMarketTicker } from "@/entities/market";\nimport { CheckTradeOdds } from "@/features/check-trade-odds";\nimport { ScenarioPanel } from "@/widgets/scenario-panel";\nimport { MobileSummary } from "@repo/web-shared/layout/mobile";`,
   },
   {
     name: "검사 대상이 아닌 파일",

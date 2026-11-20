@@ -28,7 +28,7 @@
  * | 위치 | 레이어 | 단위 |
  * |---|---|---|
  * | `apps/<app>/src/<layer>/<slice>` | 6레이어 | 슬라이스 |
- * | `packages/domain-<x>/src/<layer>/<slice>` | `entities` · `features` · `widgets` · `pages` | 슬라이스 |
+ * | `packages/domain-<x>/src/<layer>/<slice>` | `entities` · `features` · `widgets` · `pages` · `mobile` | 슬라이스 |
  * | `packages/web-shared/src/<segment>` | `shared` 하나(+ `layout` — 공용 레이아웃) | 패키지 전체 |
  *
  * `@repo/web-shared/<segment>` 는 `@/shared/<segment>` 와 같은 판정을 탄다 — 세그먼트 내부 경로 금지(`*.css` · `ui/frame` 예외).
@@ -162,6 +162,8 @@ const REGISTRY = {
     "transaction-list",
     // 밴드 적립 `/plan` 본문 — plan 엔티티 + 완료 체크 · 월 적립액 설정(F003 v2 순서 3, 2026-11-19)
     "weekly-plan",
+    // 저축 도구(나눠 넣기 · 저울 · 엽서) — 데스크톱 `/goals` 사이드와 휴대폰 `/m/goals` 가 같이 쓴다(`FE-REQ-072`)
+    "goal-tools",
   ],
   pages: [
     "home",
@@ -208,6 +210,16 @@ const REGISTRY = {
     "streaming-probe",
     // "not-found" — 404 는 zone 이 같이 쓴다 → `@repo/web-shared/layout` (FE-REQ-044 P-15 → FE-REQ-053)
   ],
+  // 휴대폰 진입점(`FE-REQ-072`, `ADR-012`) — 도메인 패키지 `src/mobile/<slice>`, 이름은 짝이 되는 데스크톱 `pages` 슬라이스와 같다.
+  // 홈은 도메인이 아니라 `@repo/web-shared/layout/mobile` 이 BFF 카드로 그린다
+  mobile: [
+    "goals",
+    "goal-detail",
+    "household",
+    "investments",
+    "investment-detail",
+    "coach",
+  ],
 };
 
 /** 웹 shared 레이어 패키지 (`FE-REQ-053`). 셸과 도메인 zone 이 같이 쓴다 */
@@ -220,15 +232,21 @@ const WEB_SHARED_PACKAGE = "@repo/web-shared";
 const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "layout"];
 
 /** 세그먼트 안쪽이지만 열어 둔 입구 — 배럴을 끌지 않는다(`fsd-shared.md`). `package.json` `exports` 와 같은 목록 */
-const WEB_SHARED_DIRECT_ENTRIES = ["ui/frame", "layout/sign-in", "layout/mobile"];
+const WEB_SHARED_DIRECT_ENTRIES = ["ui/frame", "layout/sign-in", "layout/mobile", "layout/mobile/home", "api/server"];
 
 /** 도메인 패키지 안에 둘 수 있는 레이어. shared 는 `@repo/web-shared`, app 은 zone 앱이 갖는다 */
-const DOMAIN_PACKAGE_LAYERS = ["entities", "features", "widgets", "pages"];
+const DOMAIN_PACKAGE_LAYERS = ["entities", "features", "widgets", "pages", "mobile"];
+
+/**
+ * `mobile` 은 도메인 패키지 안 `pages` 의 형제다(`FE-REQ-072` FR-1) — 같은 높이(4)라 entities · features · widgets 를 쓰고,
+ * 데스크톱 화면(`pages`)은 가져오지 않는다(가져오면 데스크톱 배치가 휴대폰에 실린다).
+ */
+const LAYER_RANK_OF = { mobile: "pages" };
 
 /** 루트 라우팅 파일이 import 해도 되는 것. 그 외는 전부 막는다 (FR-25). */
 const ROUTING_ALLOWED_ALIAS = ["@/pages", "@/app"];
 
-const rankOf = (layer) => LAYERS.indexOf(layer);
+const rankOf = (layer) => LAYERS.indexOf(LAYER_RANK_OF[layer] ?? layer);
 
 /** `a/b/../c` → `a/c`. node 의 path 를 쓰지 않는 이유는 Windows 구분자를 이미 정규화했기 때문이다. */
 const normalize = (path) => {
@@ -403,7 +421,7 @@ const parseAliasImport = (rawSource) => {
   if (!source.startsWith("@/")) return null;
   const parts = source.slice(2).split("/");
   const layer = parts[0];
-  if (!LAYERS.includes(layer)) return null;
+  if (!LAYERS.includes(layer) && !(layer in LAYER_RANK_OF)) return null;
   return { layer, slice: parts[1] || null, deeper: parts.slice(2) };
 };
 
@@ -499,7 +517,7 @@ const checkImport = (filePath, source) => {
     // 예외: vanilla-extract 토큰. barrel 로 가져오면 `.css.ts` 빌드 그래프에 React 가 들어온다.
     const isStyleModule = /\.css$/.test(source);
     // 예외 둘: 서버 페이지용 화면 틀 입구 — 배럴을 값으로 읽으면 클라이언트 모듈이 전부 딸려 간다(FE-REQ-060 3단계, 118 → 152 kB)
-    // 예외 셋: 배럴 밖 입구 — 서버 페이지 틀(`ui/frame`) · 로그인 폼(`layout/sign-in` — 셸 `/` · 휴대폰 `/m/login`) · 휴대폰 틀(`layout/mobile`).
+    // 예외 셋: 배럴 밖 입구 — 서버 페이지 틀(`ui/frame`) · 로그인 폼(`layout/sign-in` — 셸 `/` · 휴대폰 `/m/login`) · 휴대폰 틀(`layout/mobile`) · 휴대폰 홈(`layout/mobile/home`) · 서버 조회(`api/server`) — 뒤 둘은 `next/headers` 라 클라이언트가 읽는 배럴에 못 둔다(FE-REQ-072).
     // 배럴에 두면 그 배럴을 읽는 데스크톱 zone 다섯의 레이아웃 번들에 클라이언트 모듈이 딸려 간다(`FE-REQ-071`)
     const isDirectEntry = WEB_SHARED_DIRECT_ENTRIES.includes(source.slice(WEB_SHARED_PACKAGE.length + 1));
     if (target.deeper.length > 0 && !isStyleModule && !isDirectEntry) {
@@ -509,6 +527,14 @@ const checkImport = (filePath, source) => {
       };
     }
     return null;
+  }
+
+  // FE-REQ-072 FR-1 — 휴대폰 진입점은 데스크톱 화면을 가져오지 않는다. 둘이 같이 쓰는 것은 widgets 이하로 내린다
+  if (here.layer === "mobile" && target.layer === "pages") {
+    return {
+      rule: "mobile-pages",
+      message: `'${source}' — 휴대폰 진입점(\`mobile\`)은 데스크톱 화면(\`pages\`)을 import 하지 않는다. 같이 쓰는 것은 entities · features · widgets 로 내린다 (FE-REQ-072 FR-1, ADR-012).`,
+    };
   }
 
   // FR-3 — 같은 레이어의 다른 슬라이스를 직접 import 하지 않는다

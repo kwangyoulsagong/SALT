@@ -12,6 +12,9 @@
   "dependencies": {
     "@repo/config-next": "workspace:*",
     "@repo/core": "workspace:*",
+    "@repo/domain-household": "workspace:*",
+    "@repo/domain-invest": "workspace:*",
+    "@repo/domain-savings": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/web-shared": "workspace:*",
