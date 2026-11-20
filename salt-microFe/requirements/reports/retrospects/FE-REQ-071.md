@@ -12,3 +12,7 @@
 ## 2026-11-20 `FE-REQ-072` 가 걸침
 
 - `/m` 탭 넷 자리 화면(`MobilePendingPage`)을 실제 화면으로 바꿨다 · 레이아웃에 표면 표지 `data-surface` · 휴대폰 틀에 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction` — 앱 웹뷰 계약이 없어지며 같이 바뀌었다. 데스크톱 배치 변화는 main 비교로 0
+
+## 2026-11-20 `FE-REQ-074` 걸침
+
+- 이 REQ 파일을 `/m` 값 때문에 고쳤다 — `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다. 새 할 일 없음

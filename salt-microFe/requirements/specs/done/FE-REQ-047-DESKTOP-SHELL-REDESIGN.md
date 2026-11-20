@@ -155,3 +155,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 공용 `PageFrame` 앱 웹뷰 여백(16 · 20 · 24) · 제목 t3, 셸 웹뷰 바탕 흰색 · 세그먼트 칸 44. 데스크톱 값 변화 0. 래칫 시험에 `appType` 은 웹뷰 선택자 안에서만 칸 |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 글자 래칫에 휴대폰 표면 칸 — `appType` 만 허용 · 데스크톱 예산에서 뺌 |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 데스크톱 틀(`PageFrame`)에서 웹뷰 분기(본문 여백 · 제목 · 사이드 숨김)를 뺐다 — 데스크톱 값 그대로(main 과 나란히 11화면 상자 비교 다른 줄 0). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
+| 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — 글자 래칫 "appType 은 휴대폰 선택자 안에서만" 이 `MOBILE_ROOT`(`globalStyle` 앞머리 — `ON_MOBILE` 과 같은 표지)도 인정. 데스크톱 예산 수 변화 0 |
