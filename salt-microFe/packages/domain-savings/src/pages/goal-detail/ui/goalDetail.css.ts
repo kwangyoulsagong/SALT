@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
+import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
 
 /** 목표 상세(`FE-REQ-060` FR-9) — 틀은 `DetailTabs`(알약 탭 · 고정 열 360). 글자는 데스크톱 4단 토큰만 */
@@ -31,18 +32,27 @@ export const name = style({
   lineHeight: vars.deskType.section.lineHeight,
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.desk.text1,
+  flexWrap: "wrap",
+  // 앱 웹뷰 화면 제목 = `t3`(`screen-mobile.md` §3 · `FE-REQ-060` FR-M2)
+  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.title.fontSize, lineHeight: vars.appType.title.lineHeight, color: vars.colors.text.primary } },
 });
 export const chip = style({ ...label, padding: "0 8px", borderRadius: "999px", background: vars.colors.desk.line });
-export const headLine = style({ display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap" });
+/** 앱 웹뷰 — 이름 · 큰 숫자 · 진척 한 줄이 세로로(숫자 세 줄, FR-M2) */
+export const headLine = style({ display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap", selectors: { [IN_APP_WEBVIEW]: { flexDirection: "column", alignItems: "flex-start", gap: "2px" } } });
 export const leadValue = style({
   fontSize: vars.deskType.title.fontSize,
   lineHeight: vars.deskType.title.lineHeight,
   fontWeight: vars.deskType.title.fontWeight,
   color: vars.colors.desk.text1,
   fontVariantNumeric: "tabular-nums",
+  // 앱 웹뷰 주인공 숫자 = `t1` 30 — 잘리지 않고 줄바꿈(FR-M4)
+  selectors: {
+    [IN_APP_WEBVIEW]: { fontSize: vars.appType.hero.fontSize, lineHeight: vars.appType.hero.lineHeight, fontWeight: vars.appType.hero.fontWeight, color: vars.colors.text.primary, overflowWrap: "anywhere" },
+  },
 });
 
-export const muted = style({ ...label, margin: 0 });
+// 앱 웹뷰 보조 글 = `t7` 13(웹뷰 글자 13 이상 — `RN-REQ-032` FR-7)
+export const muted = style({ ...label, margin: 0, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
 export const value = style({ ...body, fontVariantNumeric: "tabular-nums" });
 /** 이름 위 · 값 아래 — 넓은 패널에서 이름과 값을 양 끝으로 떼지 않는다(M1 "값 두 개가 650px 떨어진다") */
 export const kv = style({ display: "flex", flexDirection: "column", gap: "2px" });

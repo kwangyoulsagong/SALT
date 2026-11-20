@@ -4,11 +4,13 @@ import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 import { SummaryBand, type SummaryBandItem } from "@repo/ui/summaryBand";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
+import { ROUTES } from "@repo/web-shared/config";
 import { useInAppWebview } from "@repo/web-shared/lib";
-import { TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
+import { AppSummary, TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
+import { deskOnly } from "@repo/web-shared/ui/app.css";
 
 import {
   formatWon,
@@ -49,8 +51,16 @@ const summaryItems = (o: SavingsOverview): SummaryBandItem[] => [
 const failedItems: SummaryBandItem[] = [{ key: "saved", label: M.summary.saved, value: M.summary.failed, hero: true }];
 
 const Band = ({ overview }: { overview: ReturnType<typeof useSavingsOverview> }) => {
-  if (overview.data) return <SummaryBand items={summaryItems(overview.data)} label={M.summaryLabel} />;
-  if (overview.isError) return <SummaryBand items={failedItems} label={M.summaryLabel} />;
+  // 데스크톱 = 타일 띠, 앱 웹뷰 = 주인공 숫자 한 줄 + 아래 줄(같은 칸 · 같은 값, FR-M2)
+  const items = overview.data ? summaryItems(overview.data) : overview.isError ? failedItems : null;
+  if (items) {
+    return (
+      <>
+        <SummaryBand items={items} label={M.summaryLabel} className={deskOnly} />
+        <AppSummary items={items} label={M.summaryLabel} />
+      </>
+    );
+  }
   return <Skeleton height={64} />;
 };
 
@@ -63,11 +73,20 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
   const overview = useSavingsOverview(initialOverview);
   const params = useSearchParams();
   const inApp = useInAppWebview();
-  const selectGoal = useCallback((id: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(GOAL_PARAM, id);
-    window.history.replaceState(null, "", url);
-  }, []);
+  const router = useRouter();
+  // 앱 웹뷰는 미리보기 칸이 없다 — 행을 누르면 상세로 push(뒤로 = 내비 바, FR-M2). 데스크톱은 같은 패널 오른쪽 미리보기
+  const selectGoal = useCallback(
+    (id: string) => {
+      if (inApp) {
+        router.push(ROUTES.goal(id));
+        return;
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set(GOAL_PARAM, id);
+      window.history.replaceState(null, "", url);
+    },
+    [inApp, router],
+  );
 
   // 상태는 패널 안 한 줄(FR-13) — 큰 빈 그림 · 빈 카드 0. 실패는 다시 불러오기 하나
   if (goals.isSignedOut) return <StatusLine kind="blocked">{M.signedOut}</StatusLine>;
@@ -93,7 +112,7 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
   return (
     <div className={s.board}>
       <Band overview={overview} />
-      <p className={s.description}>{M.description}</p>
+      <p className={`${s.description} ${deskOnly}`}>{M.description}</p>
       {/* 때맞춘 팁 0~1장 — 결혼 · 주거 목표를 만들면 붙는 제도 한 줄(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
       <TimelyTip context={TimelyTipContext.Savings} />
       <div className={s.split}>
@@ -105,11 +124,11 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
           </div>
           <ul className={goalRows}>
             {list.map((goal) => (
-              <GoalRow key={goal.id} goal={goal} selected={goal.id === selectedId} onSelect={selectGoal} />
+              <GoalRow key={goal.id} goal={goal} selected={!inApp && goal.id === selectedId} onSelect={selectGoal} />
             ))}
           </ul>
         </section>
-        <section className={s.section} aria-labelledby="goals-preview">
+        <section className={`${s.section} ${deskOnly}`} aria-labelledby="goals-preview">
           <div className={s.sectionHead}>
             <h2 id="goals-preview" className={s.sectionTitle}>
               {M.preview}
@@ -118,10 +137,11 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
           {selected ? <GoalPreview key={selected.id} goal={selected} /> : <p className={s.hint}>{M.previewEmpty}</p>}
         </section>
       </div>
-      {/* 앱 웹뷰는 사이드가 숨는다(PageFrame) — 같은 도구를 본문 아래에(4단계 모바일 배치 전까지) */}
+      {/* 앱 웹뷰는 사이드가 숨는다(PageFrame) — 같은 도구를 목록 아래 섹션 행(셰브론 · 접힘)으로(FR-M2) */}
       {inApp ? (
         <div className={s.inlineTools}>
-          <GoalsTools goals={list} />
+          {/* 앱 웹뷰 — 데스크톱 조밀 입력(32 · 12) 대신 기본 크기(터치 44 · 글자 13 이상, FR-M5) */}
+          <GoalsTools goals={list} compact={false} />
         </div>
       ) : null}
     </div>

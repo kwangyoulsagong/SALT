@@ -1,5 +1,6 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 
+import { IN_APP_WEBVIEW } from "@repo/core/embed";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -82,6 +83,8 @@ export const tileHint = style({
   lineHeight: vars.deskType.label.lineHeight,
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
+  // 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 
 /** 만든 뒤 모양의 예시 — 회색 · 정보 상자 면, "예시" 표지 */
@@ -102,6 +105,8 @@ export const sampleTitle = style({
   lineHeight: vars.deskType.label.lineHeight,
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
+  // 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 
 export const sampleBadge = style({
@@ -111,6 +116,8 @@ export const sampleBadge = style({
   fontSize: vars.deskType.label.fontSize,
   lineHeight: "20px",
   color: vars.colors.desk.text2,
+  // 앱 웹뷰 글자 13 이상(`RN-REQ-032` FR-7 · `FE-REQ-060` FR-M)
+  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 
 export const sampleRow = style({

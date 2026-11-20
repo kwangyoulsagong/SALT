@@ -17,11 +17,12 @@ export const cardList = style({
   gap: vars.space.lg,
   width: "100%",
   maxWidth: "1712px",
-  selectors: { [IN_APP_WEBVIEW]: { gridTemplateColumns: "minmax(0, 1fr)" } },
+  // 앱 웹뷰 — 한 열 목록 행(간격 0, 행 아래 선이 가른다 — `FE-REQ-060` FR-M3)
+  selectors: { [IN_APP_WEBVIEW]: { gridTemplateColumns: "minmax(0, 1fr)", gap: 0 } },
 });
 
 /** 대기 칸 — 카드와 같은 높이(264)(`streaming-ssr.md` 스켈레톤 높이 = 실제 블록) */
-export const skeletonCell = style({ minHeight: "264px" });
+export const skeletonCell = style({ minHeight: "264px", selectors: { [IN_APP_WEBVIEW]: { minHeight: "72px", height: "72px", overflow: "hidden", padding: "4px 0" } } });
 
 /** 카드 줄 + 둘째 줄 */
 export const stack = style({ display: "flex", flexDirection: "column", gap: vars.space.lg, maxWidth: "1712px" });
