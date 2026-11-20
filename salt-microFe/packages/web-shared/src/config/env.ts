@@ -32,7 +32,7 @@ export const WEBSOCKET_URL =
  * 이 사이트의 공개 주소 — canonical · sitemap · Open Graph 의 절대 URL 기준.
  * 배포 도메인이 정해지면 `NEXT_PUBLIC_SITE_URL` 로 준다.
  */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3100";
 
 /**
  * 이 코드를 서비스하는 zone 앱 이름(`registry.json` 의 `app`) — 각 zone 의 `next.config.js` 가 `env` 로 넣는다(`FE-REQ-053`).

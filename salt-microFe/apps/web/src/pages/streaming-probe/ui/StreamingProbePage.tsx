@@ -27,7 +27,7 @@ import { BlockBoundary } from "@repo/web-shared/ui";
  *
  * ```bash
  * STREAMING_PROBE=1 pnpm --filter web start
- * curl -N --no-buffer -s "http://localhost:3000/streaming-probe" \
+ * curl -N --no-buffer -s "http://localhost:3100/streaming-probe" \
  *   | while IFS= read -r l; do printf '%s %s\n' "$(python3 -c 'import time;print(f"{time.time():.3f}")')" "${l:0:60}"; done
  * ```
  *

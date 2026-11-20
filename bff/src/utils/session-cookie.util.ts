@@ -77,9 +77,12 @@ export const isAllowedSocketOrigin = (headers: IncomingHttpHeaders, allowedOrigi
   return origin !== undefined && allowedOrigins.includes(origin);
 };
 
-/** 쿠키를 토큰으로 받을 웹 origin — `WEB_ORIGINS`(쉼표). 운영은 한 origin(`ADR-008`) */
+/**
+ * 쿠키를 토큰으로 받을 웹 origin — `WEB_ORIGINS`(쉼표). 운영은 한 origin(`ADR-008`).
+ * 로컬 셸은 3100(2026-11-20 — 3000 은 다른 업무 프로젝트가 쓴다) · localhost 와 127.0.0.1 둘 다(브라우저가 주소 그대로 Origin 에 싣는다)
+ */
 export const webOrigins = (env: NodeJS.ProcessEnv = process.env): string[] =>
-  (env.WEB_ORIGINS || "http://localhost:3000")
+  (env.WEB_ORIGINS || "http://localhost:3100,http://127.0.0.1:3100")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);

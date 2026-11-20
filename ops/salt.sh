@@ -9,6 +9,8 @@
 #   ops/salt.sh logs <이름>      로그 꼬리
 #   ops/salt.sh plist <이름>     up 이 등록할 launchd plist 를 등록 없이 출력(검토용)
 #   ops/salt.sh sync            예측 실행 트리(~/.salt-run)를 지금 머지된 main 으로 맞춘다(평소엔 매시 live 가 한다)
+#   ops/salt.sh web dev <이름>…  그 zone 을 dev 로(고치는 zone 만 — 나머지는 운영 모드로 둔다)
+#   ops/salt.sh web prod [이름]… 그 zone(없으면 다섯 다)을 운영 빌드 + next start 로 — dev 목록에서 뺀다
 #   ops/salt.sh usage           도메인 사용 계측 — 최근 8주 주간 활성 · 재개율 · 카드 클릭(`ops/usage-weekly.sql`, 서버 S3d `SRV-REQ-048` FR-7)
 #
 # 왜 이 스크립트인가: 프로세스가 7개(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치 · 웹)인데 서버와 예측만 상시였고
@@ -17,9 +19,10 @@
 #
 # 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · forecast-intraday · forecast-backfill · web · web-investment · web-savings · web-household · web-tips
 # platform = Kotlin(`salt-platform`, :4010) — S1 저축부터 화면 경로가 있다(`SRV-REQ-045`). RabbitMQ 는 그 스크립트가 Compose 로 띄운다
-# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057` · 금융 팁 web-tips 3005 — `FE-REQ-058`, 2026-11-13 빠져 있던 것을 넣음). 셸이 도메인 경로를 각 zone 으로 프록시한다
-# 웹은 dev 로만 띄운다 — dev 정적 경로는 zone 별(`/investment-static`). 운영 빌드(`next start`)를 여기에 넣으려면 빌드 뒤
-# `pnpm static:merge` 가 먼저다(운영 빌드는 모든 zone 이 공용 `/_next` — `ADR-005` 규칙 7 개정 · `FE-REQ-054`, 2026-11-03)
+# 웹 dev 는 zone 마다 하나(셸 web 3100(2026-11-20 3000 에서 — 3000 은 다른 업무 프로젝트) · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057` · 금융 팁 web-tips 3005 — `FE-REQ-058`, 2026-11-13 빠져 있던 것을 넣음). 셸이 도메인 경로를 각 zone 으로 프록시한다
+# 웹 zone 은 기본 운영 모드(빌드 + next start)다 — dev 서버는 zone 마다 2.4GB(오래 켜 두면 6.6GB) · 고칠 때마다 다섯이 각자 다시 컴파일해
+# CPU 478% 까지 갔다. 운영 모드는 zone 당 150MB · CPU 거의 0(2026-11-20 실측). 고치는 zone 만 `web dev <이름>` — 목록은 $WEB_DEV_FILE.
+# 운영 모드는 zone 별 정적 경로(`ZONE_STATIC=per-zone`, dev 와 같은 `/investment-static` 프록시) — `pnpm static:merge` 없이 셸이 그대로 프록시한다
 set -u
 ROOT="${0:A:h:h}"
 UID_NUM="$(id -u)"
@@ -46,7 +49,7 @@ LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
         forecast "$RUN/salt-forecast/ops/daily.sh" forecast-live "$RUN/salt-forecast/ops/live.sh" forecast-intraday "$RUN/salt-forecast/ops/intraday.sh" forecast-backfill "$RUN/salt-forecast/ops/backfill.sh")
-PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - forecast-intraday - forecast-backfill - web 3000 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005)
+PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - forecast-intraday - forecast-backfill - web 3100 web-investment 3002 web-savings 3003 web-household 3004 web-tips 3005)
 HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
      bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" forecast-live "$LOGS/salt-forecast-live.log" forecast-intraday "$LOGS/salt-forecast-intraday.log" forecast-backfill "$LOGS/salt-forecast-backfill.log" web "$LOGS/salt-web.log"
@@ -59,6 +62,9 @@ ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live fo
 # launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
 DEV_APPS=(web web-investment web-savings web-household web-tips)
 is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
+# dev 로 띄울 zone 목록(한 줄에 하나) — 없으면 다섯 다 운영 모드
+WEB_DEV_FILE="$HOME/.salt-web-dev"
+wants_dev() { [[ -f $WEB_DEV_FILE ]] && grep -qx "$1" "$WEB_DEV_FILE"; }
 SERVICES=(server platform news bff-rest bff-ws bff-worker forecast forecast-live forecast-intraday forecast-backfill)
 
 say() { print -r -- "$*"; }
@@ -119,6 +125,11 @@ EOF
 loaded() { launchctl print "gui/$UID_NUM/${LABEL[$1]}" >/dev/null 2>&1; }
 agent_pid() { launchctl print "gui/$UID_NUM/${LABEL[$1]}" 2>/dev/null | awk '/^\tpid = /{print $3; exit}'; }
 port_pid() { lsof -nP -tiTCP:"$1" -sTCP:LISTEN 2>/dev/null | head -1; }
+# 웹 zone 을 특정 주소에만 묶을 때(이름 → 주소). 2026-11-20 셸을 3000 → 3100 으로 옮겨 다른 업무 프로젝트(3000)와 겹치지 않으니 비워 둔다 —
+# 겹치는 포트가 생기면 여기 `(web 127.0.0.1)` 처럼 넣는다(그 프로젝트 vite 는 [::1] 만 잡았다)
+typeset -A WEB_HOST=()
+web_pid() { local h=${WEB_HOST[$1]:-}; if [[ -n $h ]]; then lsof -nP -tiTCP@"$h":"${PORT[$1]}" -sTCP:LISTEN 2>/dev/null | head -1; else port_pid "${PORT[$1]}"; fi; }
+host_flag() { [[ -n ${WEB_HOST[$1]:-} ]] && print -r -- "-H ${WEB_HOST[$1]}"; }
 cmd_of() { ps -p "$1" -o command= 2>/dev/null; }
 # 포트 · 패턴으로 찾은 프로세스가 이 저장소 것인가
 is_salt() { [[ "$(cmd_of "$1")" == *"$ROOT"* ]] || [[ "$(lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" == "$ROOT"* ]]; }
@@ -174,14 +185,46 @@ start_service() {
   say "  ▲ $name — launchd 에 올렸다(${LABEL[$name]})"
 }
 
-start_dev() {
-  local name=$1 port=${PORT[$1]} holder; holder=$(port_pid "$port")
+# dev 예열 — zone dev 서버는 라우트를 처음 열 때 그 자리에서 컴파일한다(첫 방문 2~3초, 운영 빌드는 DCL 38ms — 2026-11-20 실측).
+# 띄운 직후 주요 화면을 한 번씩 불러 컴파일해 둔다. 로그인 안 한 요청이라 화면은 비어도 모듈 컴파일은 같다. 주소는 127.0.0.1(다른 프로젝트 vite 가 localhost 를 잡는 때가 있다)
+typeset -A WARM=(
+  web "/home /settings /alerts"
+  web-investment "/investments /investments/005930 /portfolio /plan /coach/chat /coach/report"
+  web-savings "/goals /goals/new"
+  web-household "/household /household/new /household/budget"
+  web-tips "/tips"
+)
+
+warm_dev() {
+  local name=$1 port=${PORT[$1]} route i
+  for i in {1..60}; do curl -s -o /dev/null --max-time 2 "http://127.0.0.1:$port/" && break; sleep 2; done
+  for route in ${=WARM[$name]}; do curl -s -o /dev/null --max-time 180 "http://127.0.0.1:$port$route"; done
+}
+
+# 운영 모드 — 빌드(수 분) 뒤 next start. 기동 명령을 기다리게 하지 않게 뒤에서. 빌드가 실패하면 로그에 남고 포트는 빈다
+start_prod() {
+  local name=$1 port=${PORT[$1]} holder; holder=$(web_pid "$1")
   if [[ -n $holder ]]; then
     if is_salt "$holder"; then say "  ✓ $name — 떠 있다(PID $holder)"; else say "  ✗ $name — $port 을 다른 프로젝트가 쓴다(PID $holder). 건너뜀"; fi
     return
   fi
-  (cd "$ROOT/salt-microFe" && nohup pnpm --filter "$name" dev >"${LOG[$name]}" 2>&1 &)
-  say "  ▲ $name — pnpm --filter $name dev ($port, 로그 ${LOG[$name]})"
+  (cd "$ROOT/salt-microFe" && ZONE_STATIC=per-zone nohup zsh -c "pnpm --filter $name exec next build && pnpm --filter $name exec next start -p $port $(host_flag "$name")" >"${LOG[$name]}" 2>&1 &)
+  say "  ▲ $name — 운영 모드(빌드 뒤 next start, $port · 로그 ${LOG[$name]})"
+}
+
+# zone 하나 띄우기 — dev 목록에 있으면 dev, 아니면 운영
+start_web() { if wants_dev "$1"; then start_dev "$1"; else start_prod "$1"; fi; }
+
+start_dev() {
+  local name=$1 port=${PORT[$1]} holder; holder=$(web_pid "$1")
+  if [[ -n $holder ]]; then
+    if is_salt "$holder"; then say "  ✓ $name — 떠 있다(PID $holder)"; else say "  ✗ $name — $port 을 다른 프로젝트가 쓴다(PID $holder). 건너뜀"; fi
+    return
+  fi
+  (cd "$ROOT/salt-microFe" && nohup pnpm --filter "$name" dev ${=$(host_flag "$name")} >"${LOG[$name]}" 2>&1 &)
+  # 예열은 뒤에서 — 기동 명령을 기다리게 하지 않는다
+  (warm_dev "$name" >/dev/null 2>&1 &)
+  say "  ▲ $name — pnpm --filter $name dev ($port, 로그 ${LOG[$name]}) · 주요 화면 예열 중"
 }
 
 latest() {
@@ -315,7 +358,7 @@ status() {
   for name in $ORDER; do
     port=${PORT[$name]}; h=""
     if is_dev "$name"; then
-      pid=$(port_pid "$port"); how=dev
+      pid=$(web_pid "$name"); how=운영; wants_dev "$name" && how=dev
       [[ -n $pid ]] && ! is_salt "$pid" && { how=남의것; }
     elif loaded "$name"; then
       pid=$(agent_pid "$name"); how=launchd
@@ -354,7 +397,7 @@ run_tree() {
 down_one() {
   local name=$1
   if is_dev "$name"; then
-    local p; p=$(port_pid "${PORT[$name]}")
+    local p; p=$(web_pid "$name")
     if [[ -n $p ]] && is_salt "$p"; then pkill -P "$p" 2>/dev/null; kill "$p"; say "  ▼ $name"; else say "  · $name — 안 떠 있다"; fi
     return
   fi
@@ -375,9 +418,20 @@ case "${1:-status}" in
     say "켜기"
     ensure_run_tree
     for name in $SERVICES; do start_service "$name" "$replace"; done
-    for name in $DEV_APPS; do start_dev "$name"; done
+    for name in $DEV_APPS; do start_web "$name"; done
     sleep 4
     status ;;
+  web)
+    # 고치는 zone 만 dev — 나머지는 운영 모드(램 · CPU, 2026-11-20)
+    mode="${2:-}"; [[ $mode == dev || $mode == prod ]] || { say "ops/salt.sh web dev <이름>… | web prod [이름]…"; exit 2; }
+    names=("${@:3}"); (( ${#names} )) || { [[ $mode == prod ]] && names=($DEV_APPS) || { say "dev 로 띄울 zone 이름을 주세요 — ${DEV_APPS[*]}"; exit 2; }; }
+    for name in $names; do is_dev "$name" || { say "웹 zone 이 아니다: $name — ${DEV_APPS[*]}"; exit 2; }; done
+    touch "$WEB_DEV_FILE"
+    for name in $names; do
+      grep -vx "$name" "$WEB_DEV_FILE" > "$WEB_DEV_FILE.tmp"; mv "$WEB_DEV_FILE.tmp" "$WEB_DEV_FILE"
+      [[ $mode == dev ]] && print -r -- "$name" >> "$WEB_DEV_FILE"
+      down_one "$name"; sleep 1; start_web "$name"
+    done ;;
   status) status ;;
   sync)
     # 개발 트리의 동기화 스크립트로 — 실행 트리에 아직 그 파일이 없는 첫 맞춤(머지 직후)도 되게
@@ -389,7 +443,7 @@ case "${1:-status}" in
     valid "${2:-}"
     for name in "${@:2}"; do valid "$name"; done
     for name in "${@:2}"; do
-      if is_dev "$name"; then down_one "$name"; sleep 1; start_dev "$name"
+      if is_dev "$name"; then down_one "$name"; sleep 1; start_web "$name"
       elif loaded "$name"; then
         # kickstart -k 를 쓰지 않는다 — 옛 node 가 종료(DB 연결 닫기) 중일 때 새 프로세스가 떠 EADDRINUSE 로 죽고,
         # launchd 가 재시도를 미뤄 1~2분 꺼져 있었다(2026-11-02 실측). 내리고 · 비기를 확인하고 · 올린다
@@ -416,6 +470,6 @@ case "${1:-status}" in
     psql "$url" -At -F '|' -v ON_ERROR_STOP=1 -f "$ROOT/ops/usage-weekly.sql" | while IFS='|' read -r week domain active resume clicks; do
       printf "  %-6s %-10s %6s %8s %6s\n" "$week" "$domain" "$active" "$resume" "$clicks"
     done ;;
-  -h|--help|help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//' ;;
-  *) say "모르는 명령: $1 — up | status | down | restart | logs | plist | sync | usage"; exit 2 ;;
+  -h|--help|help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) say "모르는 명령: $1 — up | status | down | restart | web | logs | plist | sync | usage"; exit 2 ;;
 esac

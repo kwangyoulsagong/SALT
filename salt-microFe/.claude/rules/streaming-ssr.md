@@ -80,9 +80,9 @@ export function BlockBoundary({ name, skeleton, children }: Props) {
 
 ```bash
 pnpm --filter web build
-cd apps/web && STREAMING_PROBE=1 npx next start -p 3000
-node scripts/measure-streaming.mjs http://localhost:3000/streaming-probe
-node scripts/measure-streaming.mjs "http://localhost:3000/streaming-probe?mode=blocking"
+cd apps/web && STREAMING_PROBE=1 npx next start -p 3100
+node scripts/measure-streaming.mjs http://localhost:3100/streaming-probe
+node scripts/measure-streaming.mjs "http://localhost:3100/streaming-probe?mode=blocking"
 ```
 
 | 쿼리 | 무엇 |

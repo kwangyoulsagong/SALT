@@ -6,7 +6,7 @@ import type { Request, Response } from "express";
 import { cookieSessionMiddleware } from "../../rest/middleware/cookieSession.middleware";
 import { isAllowedSocketOrigin, isSameOriginRequest, readCookie, sessionTokenFromCookie, webOrigins } from "../session-cookie.util";
 
-const ORIGINS = ["http://localhost:3000"];
+const ORIGINS = ["http://localhost:3100"];
 
 describe("readCookie", () => {
   it("이름이 정확히 같은 것만 · 빈 값은 없음", () => {
@@ -29,9 +29,9 @@ describe("isSameOriginRequest — 경계 표", () => {
     [{ "sec-fetch-site": "same-origin" }, true],
     [{ "sec-fetch-site": "none" }, true],
     [{ "sec-fetch-site": "same-site" }, false],
-    [{ "sec-fetch-site": "cross-site", origin: "http://localhost:3000" }, false],
+    [{ "sec-fetch-site": "cross-site", origin: "http://localhost:3100" }, false],
     [{}, true],
-    [{ origin: "http://localhost:3000" }, true],
+    [{ origin: "http://localhost:3100" }, true],
     [{ origin: "https://evil.example" }, false],
   ];
   for (const [headers, expected] of rows) {
@@ -41,7 +41,7 @@ describe("isSameOriginRequest — 경계 표", () => {
 
 describe("isAllowedSocketOrigin", () => {
   it("허용 목록의 Origin 만 — 없으면 아니오", () => {
-    assert.equal(isAllowedSocketOrigin({ origin: "http://localhost:3000" }, ORIGINS), true);
+    assert.equal(isAllowedSocketOrigin({ origin: "http://localhost:3100" }, ORIGINS), true);
     assert.equal(isAllowedSocketOrigin({ origin: "http://localhost:3001" }, ORIGINS), false);
     assert.equal(isAllowedSocketOrigin({}, ORIGINS), false);
   });
@@ -49,7 +49,7 @@ describe("isAllowedSocketOrigin", () => {
 
 describe("webOrigins", () => {
   it("쉼표 목록 · 기본은 로컬 셸", () => {
-    assert.deepEqual(webOrigins({}), ["http://localhost:3000"]);
+    assert.deepEqual(webOrigins({}), ["http://localhost:3100", "http://127.0.0.1:3100"]);
     assert.deepEqual(webOrigins({ WEB_ORIGINS: "https://a.example, https://b.example" }), ["https://a.example", "https://b.example"]);
   });
 });
