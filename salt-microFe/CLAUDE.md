@@ -5,11 +5,11 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(셸 zone, 3100 — 2026-11-20 3000 에서, 3000 은 다른 업무 프로젝트) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/mobile`(React Native, iOS+Android — 미착수)
+- Apps: `apps/web`(셸 zone, 3100 — 2026-11-20 3000 에서, 3000 은 다른 업무 프로젝트) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/web-mobile`(휴대폰 PWA `/m/*`, 3006 — `ADR-012` 2026-11-20, 착수 전 · RN 앱은 폐기)
 - **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **투자 화면은 `packages/domain-invest` → `apps/web-investment`(2026-11-02 `FE-REQ-053`), 저축 화면은 `packages/domain-savings` → `apps/web-savings`(2026-11-03 `FE-REQ-056`)** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
-- Framework: Next.js 15, React 18, TypeScript strict / React Native
+- Framework: Next.js 15, React 18, TypeScript strict
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
-- Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
+- Style: Vanilla Extract(`*.css.ts`) + `@repo/ui` — 휴대폰 PWA 도 같은 웹 코드
 - Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/web-shared`(웹 shared 레이어 + zone 공용 레이아웃 `layout` — 앱 내비게이션 연결 · prerender · 문서 간 전환, 2026-11-02 · 11-03), `packages/config-next`(zone 공용 Next 설정 프리셋, 2026-11-03 `FE-REQ-054`), `packages/domain-invest`(투자 화면, 2026-11-02), `packages/domain-savings`(저축 화면, 2026-11-03), `packages/domain-household`(가계부 화면, 2026-11-04), `packages/domain-tips`(공개 금융 팁, 2026-11-05), `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
 
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
@@ -23,7 +23,7 @@
 > 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —
 > **홈·세금 콕핏·청구서의 화면 단위 판정은 그 화면이 생길 때 다시 한다.**
 > 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
-> `apps/mobile`·`packages/ui-native`는 `RN-REQ-001`에서 생긴다.
+> 휴대폰은 PWA zone `apps/web-mobile`(`/m/*`)이 `FE-REQ-071` 에서 생긴다 — RN 앱(`apps/mobile` · `packages/ui-native`)은 만들지 않는다(`ADR-012`).
 
 ## Commands
 
@@ -57,7 +57,7 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 
 - **블록 경계는 `BlockBoundary`**(Suspense + error boundary)다. 화면당 5개 이하, 스켈레톤 높이는 실제 블록과 같게.
 - 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
 - **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
-- **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다. 토큰은 `packages/tokens`로 공유한다.
+- **휴대폰 화면은 `/m` zone 하나**(`ADR-012`) — 데스크톱 화면에 휴대폰 분기를 새로 넣지 않는다. 도메인 화면은 `domain-*` 의 `mobile` 진입점, 모바일 zone 은 조립만.
 - **zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다.** `next/link`의 `<Link>`를 쓰면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다. zone 경로의 단일 소스는 `@repo/core/zones`.
 - **HTTP 는 `shared/api` 의 `apiFetch` 로만 한다.** `axios` import 는 `no-restricted-imports` 가 막는다(번들 회귀 3회, `FE-REQ-035`).
 - 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단하고 `@repo/fsd/layers`가
@@ -75,12 +75,9 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 
 - `.claude/rules/fsd-shared.md` · `fsd-entities.md` · `fsd-features.md` · `fsd-widgets.md` · `fsd-pages.md` · `fsd-app.md` — FSD 레이어별 규칙
 - `.claude/rules/microfrontend.md` — **Next.js Multi-Zones** (zone 경계 기준)
 - `.claude/rules/streaming-ssr.md` — App Router RSC 경계 · Suspense 스트리밍
-- `.claude/rules/rn-architecture.md` — React Native 앱 구조
-- `.claude/rules/rn-microfrontend.md` — 모바일 번들 분리 (단계적 도입)
 
 ### 성능
 - `.claude/rules/performance-frontend.md` — 웹 예산 · 실시간 테이블 · 번들
-- `.claude/rules/performance-rn.md` — 앱 시작 · 프레임 · 대화 스트리밍 · 메모리
 
 ### 관례
 - `.claude/rules/domain-architecture.md` — (구) 도메인 분리 — `layered-architecture.md`로 대체됨
@@ -95,7 +92,7 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 
 - `.claude/rules/canvas.md` — 고부하 시 Canvas 도입 기준
 - `.claude/rules/design-system.md` — `@repo/ui` 디자인 시스템
 - `.claude/rules/screen-desktop.md` — 데스크톱 화면 틀 · 글자 위계 · 컨트롤 값(실측 근거)
-- `.claude/rules/screen-mobile.md` — 모바일(RN · 앱 웹뷰) 글자 토큰 · 배치 · 컴포넌트 · 라이팅
+- `.claude/rules/screen-mobile.md` — 모바일(PWA `/m` · ~~앱 웹뷰~~ `FE-REQ-072` 까지) 글자 토큰 · 배치 · 컴포넌트 · 라이팅
 - `.claude/rules/a11y-policy.md` — 접근성
 - `.claude/rules/i18n-policy.md` — 문구/i18n 정책
 - `.claude/rules/requirements-management.md` — 요구사항/리포트 관리

@@ -3,7 +3,7 @@
 - 상태: **채택 (사용자 결정)**
 - 날짜: 2026-10-30
 - 대체: `ADR-001` §3-4 의 zone 판정(세 조건 · "탭으로 자르지 않는다") · `ADR-002` §5 에 열어 둔 `web-tax` 처리
-- 관련: `FEATURE-012`~`015` · 설계 `salt-microFe/docs/architecture/2026-10-30-domain-zones.html` · `FE-REQ-052`~`058` · `RN-REQ-032`
+- 관련: `FEATURE-012`~`015` · 설계 `salt-microFe/docs/architecture/2026-10-30-domain-zones.html` · `FE-REQ-052`~`058` · ~~`RN-REQ-032`~~ · 개정 `ADR-012`(표면 zone 하나)
 
 > 사용자 결정(2026-10-30): *"투자도 zone으로 빼야한다니까"*, *"web-investment이렇게 빠져야하지않냐"*,
 > *"도메인으로 zone을 분리해야하고 rules해야돼 그게 마이크로프론트엔드지"*
@@ -19,10 +19,11 @@ SALT 는 투자 앱이 아니라 **돈 관리 앱**이다(`FEATURE-015`). 마이
 | `apps/web-savings` | 저축 (`savings`) | `/goals` | `packages/domain-savings` | 3003 · `/savings-static` |
 | `apps/web-household` | 가계부 (`household`) | `/household` | `packages/domain-household` | 3004 · `/household-static` |
 | `apps/web-tips` | 금융 팁 (`tips`) | `/tips` (공개 · ISR) | `packages/domain-tips` | 3005 · `/tips-static` |
+| `apps/web-mobile` | **표면 zone — 휴대폰 PWA**(도메인 아님, 2026-11-20 `ADR-012`) | `/m/*` | `domain-*` 의 `mobile` 진입점 조립 | 3006 · `/mobile-static` |
 
 - `apps/web-tax` 는 **삭제**한다(ADR-002 로 기능이 없다, 90줄 자리표시자).
 - 가계부 도메인 이름은 `household` — ADR-002 가 지운 `ledger`(개입 청구서 원장)와 섞이지 않게.
-- 도메인 이름은 프론트 패키지 · BFF 경로 · 서버 서비스(`ADR-006`) · RN 서비스 번들(`RN-REQ-032`)이 같다.
+- 도메인 이름은 프론트 패키지 · BFF 경로 · 서버 서비스(`ADR-006`) 이 같다. ~~RN 서비스 번들(`RN-REQ-032`)~~ — RN 폐기(`ADR-012`).
 
 ## 2. 규칙 (microfrontend.md 개정 — `FE-REQ-052`)
 

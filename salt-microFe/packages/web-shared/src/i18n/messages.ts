@@ -42,7 +42,7 @@ export const NARROW_SCREEN_MESSAGES = {
   cardTitle: ["차트 · 판단 · 성적을", "한 화면에서"],
   cardBody: "넓은 화면에서 차트와 코치 판단, 과거 성적을 나란히 볼 수 있어요",
   cardAlt: "PC 화면의 종목 상세 — 코치 판단과 과거 성적",
-  prompt: "PC로 접속해 주세요",
+  prompt: "데스크톱으로 이동해 주세요",
   copy: "PC 링크 복사하기",
   copied: "링크를 복사했어요",
   copyFailed: "복사하지 못했어요 · 주소창의 링크를 복사해 주세요",

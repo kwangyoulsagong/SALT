@@ -37,9 +37,9 @@ pages/{page-name}/
 
 zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`), 저축이 둘째(2026-11-03 `FE-REQ-056` — `goals` · `add-goal` · `goal-detail`), 가계부가 셋째(2026-11-04 `FE-REQ-057` — `household` · `new-expense` · `budget`, S1b `recurring` `/household/templates`, S1d `challenges` `/household/challenges`, S1g `story` `/household/story/[period]`, S1h `revolving` `/household/revolving` · `people` `/household/people`). ~~팁은 빈 골격~~ 팁이 넷째(2026-11-05 `FE-REQ-058` — `tips` `/tips` · `tip-detail` `/tips/[slug]`, S2b `quiz-cards` `/tips/cards`, 레이아웃은 `PublicShell` — 이것도 `<main>` 을 둔다). **페이지 최상위는 `<div>`** — zone 레이아웃 `AppShell` · `PublicShell` 이 이미 `<main>` 이다(저축 실측에서 main 3개). `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
 
-### `apps/mobile`
+### `apps/web-mobile`(휴대폰 PWA `/m/*` — `ADR-012`, `FE-REQ-071` 에서 생긴다)
 
-`home` · `coach` · `assets` · `tax` · `onboarding` · `login` (3탭 + push 화면)
+`src/pages` 없음 — 루트 `app/m/**` 이 `@repo/domain-<x>/mobile/<page>` 를 re-export 한다. 탭 넷(홈 · 저축 · 가계부 · 투자) + `/m/login`. ~~`apps/mobile`(RN)~~ 폐기
 
 ## 원칙
 

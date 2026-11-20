@@ -64,7 +64,7 @@ presentation → application → domain ← infrastructure
 | `goal` | 목표 저축 | F000 |
 | `news` | 뉴스 수집·조회 · 북마크 | F000 |
 | ~~`notification`~~ | ~~알림 1종 (지표/추천 갱신) · 읽음~~ **2026-11-06 Kotlin 으로 이전(`SRV-REQ-048` S2c)** — coach 는 `coach.outbox` 이벤트로 알린다 | F000 F006 |
-| `device` | 디바이스 등록 · 푸시 발송 · 앱 버전 게이트 | F007 |
+| ~~`device`~~ | ~~디바이스 등록 · 푸시 발송 · 앱 버전 게이트~~ **2026-11-20 `ADR-012` — RN 앱 폐기.** 웹 푸시 구독 · 발송은 `notification`(Kotlin) 몫으로 `FEATURE-019` 순서 4 에서 | F019 |
 
 ### 조합 컨텍스트
 
