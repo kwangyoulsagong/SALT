@@ -37,8 +37,12 @@ const Band = ({ overview }: { overview: ReturnType<typeof useSavingsOverview> })
   const items: SummaryBandItem[] | null = overview.data ? goalSummaryItems(overview.data) : overview.isError ? GOAL_SUMMARY_FAILED : null;
   // 금액 카드 — 휴대폰 저축 요약과 같은 3D 아이콘(`FE-REQ-076` FR-4)
   if (items) return <SummaryBand items={items} label={GOAL_SUMMARY_MESSAGES.label} icon={<ServiceIcon variant="ranking" />} />;
-  // 금액 카드 높이(20 + 44 + 20) — 도착할 때 아래가 밀리지 않게
-  return <Skeleton height={84} radius="medium" />;
+  // 금액 카드와 같은 높이 — 1280 이상 한 줄 · 아래 폭은 타일이 금액 아래로 접힌다(2회차 실측 112 · 190, 도착할 때 아래가 밀리지 않게)
+  return (
+    <div className={s.summarySkeleton}>
+      <Skeleton height="100%" radius="medium" />
+    </div>
+  );
 };
 
 /**

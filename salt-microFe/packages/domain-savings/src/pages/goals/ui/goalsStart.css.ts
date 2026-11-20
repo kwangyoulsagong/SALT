@@ -41,9 +41,9 @@ export const tile = style({
   columnGap: vars.space.md,
   alignItems: "center",
   padding: vars.space.lg,
-  borderRadius: "12px",
+  // 카드 판 위 흰 카드 — 모서리 20 · 선 0(`FE-REQ-076` FR-2, 전 12 + 안쪽 선)
+  borderRadius: vars.radius.xl,
   background: vars.colors.background.white,
-  boxShadow: SURFACE.hairline,
   color: "inherit",
   textDecoration: "none",
   transition: `background ${vars.motion.duration.instant}, transform ${vars.motion.duration.instant}`,
@@ -84,15 +84,14 @@ export const tileHint = style({
   color: vars.colors.desk.text2,
 });
 
-/** 만든 뒤 모양의 예시 — 회색 · 정보 상자 면, "예시" 표지 */
+/** 만든 뒤 모양의 예시 — 카드 판 위 흰 카드 + "예시" 표지(회색 판 위 회색 상자는 판과 구별이 안 됐다 — `FE-REQ-076` 2회차) */
 export const sample = style({
   display: "flex",
   flexDirection: "column",
   gap: vars.space.md,
-  padding: vars.space.lg,
-  borderRadius: "12px",
-  background: SURFACE.infoFill,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
+  padding: "20px 24px",
+  borderRadius: vars.radius.xl,
+  background: vars.colors.background.white,
 });
 
 export const sampleHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between" });

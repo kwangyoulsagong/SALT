@@ -223,8 +223,8 @@ export const sample = style({
   gap: "8px",
   padding: "16px",
   borderRadius: "12px",
+  // 카드 안이라 면만(카드 안 카드 0 — `FE-REQ-076` 2회차)
   background: SURFACE.infoFill,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
 });
 
 export const sampleHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between" });

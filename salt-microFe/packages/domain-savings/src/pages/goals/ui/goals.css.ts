@@ -46,6 +46,9 @@ export const addLink = style({
 });
 
 /* ── 본문 ─────────────────────────────────────────────────── */
+/** 금액 카드 대기 칸 — 실제 카드 높이(`FE-REQ-076` 2회차 실측: 1280 이상 112 · 아래 190) */
+export const summarySkeleton = style({ height: "190px", "@media": { [WIDE]: { height: "112px" } } });
+
 export const board = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
 export const description = style({ ...label, margin: 0 });
 
