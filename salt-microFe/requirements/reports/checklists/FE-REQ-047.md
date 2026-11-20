@@ -124,3 +124,8 @@
 - 몫: 글자 크기 래칫 `domain-tips` 8 → 0(팁 화면 단 밖 크기 다 걷음) · 틀 컴포넌트 서버 입구 `@repo/web-shared/ui/frame`(같은 `PageFrame` · `SideRow` · `BackNav` · `NavChevron` · `ZoneLink`)
 - 확인: `fontSizeBudget.test.ts` 통과 · zone 5 운영 빌드
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-060` 3단계 확인 2회차
+
+- 몫: 공용 `BackNav` — 지금 화면 이름이 길면 줄지 않아 360 에서 20px 넘침 → `nav` · 마지막 칸 `minWidth: 0` · 말줄임(앞 칸은 줄지 않음). 소비처 저축 · 가계부 · 팁 넘침 0
+- 미검증: 없음(이 REQ 몫)
