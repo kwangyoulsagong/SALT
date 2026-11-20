@@ -104,3 +104,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 한 장 패널(위젯 · 엔티티) CSS 의 웹뷰 선택자를 `/m` 표지로 — 휴대폰 폭 값(누름 44 · 글자 13)은 그대로 `/m/investments/[symbol]` 에서 실측 0 결함. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — 코치 리포트 휴대폰 값 — 섹션 사이 띠 16 · 면책 띠 흐름 배치 · 위젯 제목 숨김(`/m` 표지 안만). 한 장 패널 안 칸은 그대로 |
+| 2026-11-20 | `FE-REQ-074` 검증 2회차가 걸침 — 출처 칩이 휴대폰 320 × 글자 2배에서 줄 끝을 4px 넘음 → `/m` 에서만 칩 폭 = 줄 폭 · 칩 안 줄바꿈 · 누름 `::after` 좌우 0. 데스크톱 변화 0 |
