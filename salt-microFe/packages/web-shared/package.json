@@ -8,6 +8,7 @@
   ],
   "exports": {
     "./api": "./src/api/index.ts",
+    "./api/server": "./src/api/server.ts",
     "./config": "./src/config/index.ts",
     "./i18n": "./src/i18n/index.ts",
     "./lib": "./src/lib/index.ts",
@@ -16,10 +17,10 @@
     "./ui/frame": "./src/ui/frame.ts",
     "./ui/tokens.css": "./src/ui/tokens.css.ts",
     "./ui/surface.css": "./src/ui/surface.css.ts",
-    "./ui/app.css": "./src/ui/app.css.ts",
     "./layout": "./src/layout/index.ts",
     "./layout/sign-in": "./src/layout/SignInForm.tsx",
     "./layout/mobile": "./src/layout/mobile/index.ts",
+    "./layout/mobile/home": "./src/layout/mobile/MobileHomePage.tsx",
     "./layout/globals.css": "./src/layout/globals.css.ts"
   },
   "scripts": {

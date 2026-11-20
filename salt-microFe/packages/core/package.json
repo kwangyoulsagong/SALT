@@ -16,7 +16,6 @@
     "./newsBody": "./src/market/newsBody.ts",
     "./newsTag": "./src/market/newsTag.ts",
     "./sse": "./src/sse/parser.ts",
-    "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",
     "./position": "./src/portfolio/position.ts",
     "./plan": "./src/plan/plan.ts",

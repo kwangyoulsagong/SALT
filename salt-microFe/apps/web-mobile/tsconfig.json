@@ -21,7 +21,39 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/widgets": [
+        "../../packages/domain-savings/src/widgets",
+        "../../packages/domain-household/src/widgets",
+        "../../packages/domain-invest/src/widgets"
+      ],
+      "@/widgets/*": [
+        "../../packages/domain-savings/src/widgets/*",
+        "../../packages/domain-household/src/widgets/*",
+        "../../packages/domain-invest/src/widgets/*"
+      ],
+      "@/features": [
+        "../../packages/domain-savings/src/features",
+        "../../packages/domain-household/src/features",
+        "../../packages/domain-invest/src/features"
+      ],
+      "@/features/*": [
+        "../../packages/domain-savings/src/features/*",
+        "../../packages/domain-household/src/features/*",
+        "../../packages/domain-invest/src/features/*"
+      ],
+      "@/entities": [
+        "../../packages/domain-savings/src/entities",
+        "../../packages/domain-household/src/entities",
+        "../../packages/domain-invest/src/entities"
+      ],
+      "@/entities/*": [
+        "../../packages/domain-savings/src/entities/*",
+        "../../packages/domain-household/src/entities/*",
+        "../../packages/domain-invest/src/entities/*"
+      ]
+    }
   },
   "include": [
     "**/*.ts",

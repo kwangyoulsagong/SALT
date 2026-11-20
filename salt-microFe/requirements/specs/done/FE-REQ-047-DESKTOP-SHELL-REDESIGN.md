@@ -154,3 +154,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-20 | `FE-REQ-060` 3단계 확인 2회차 — 공용 `BackNav` — 지금 화면 이름이 길면 줄지 않아 360 에서 20px 넘침 → `nav` · 마지막 칸 `minWidth: 0` · 말줄임(앞 칸은 줄지 않음). 소비처 저축 · 가계부 · 팁 넘침 0 |
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — 공용 `PageFrame` 앱 웹뷰 여백(16 · 20 · 24) · 제목 t3, 셸 웹뷰 바탕 흰색 · 세그먼트 칸 44. 데스크톱 값 변화 0. 래칫 시험에 `appType` 은 웹뷰 선택자 안에서만 칸 |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 글자 래칫에 휴대폰 표면 칸 — `appType` 만 허용 · 데스크톱 예산에서 뺌 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 데스크톱 틀(`PageFrame`)에서 웹뷰 분기(본문 여백 · 제목 · 사이드 숨김)를 뺐다 — 데스크톱 값 그대로(main 과 나란히 11화면 상자 비교 다른 줄 0). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

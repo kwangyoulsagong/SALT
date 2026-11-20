@@ -372,3 +372,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - layer-check 시험 케이스 +5(휴대폰 zone 3 · 배럴 밖 입구 2) — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- 레이어 규칙에 도메인 패키지 `mobile` 레이어(pages 의 형제 · `mobile-pages` 차단 · 레지스트리 여섯) · 위젯 `goal-tools` · 배럴 밖 입구 다섯 — 훅 시험 차단 22 · 통과 15
+- 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
+- 미충족: 없음(이 REQ 몫 변경은 위 한 줄)

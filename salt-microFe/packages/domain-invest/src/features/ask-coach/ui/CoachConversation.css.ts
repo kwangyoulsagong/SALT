@@ -1,6 +1,6 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 import { TEXT_MAX_WIDTH } from "@repo/web-shared/config";
 
@@ -20,7 +20,7 @@ export const root = style({
   margin: "0 auto",
   height: "calc(100dvh - 208px)",
   minHeight: "480px",
-  selectors: { [IN_APP_WEBVIEW]: { height: "calc(100dvh - 120px)", minHeight: "420px" } },
+  selectors: { [ON_MOBILE]: { height: "calc(100dvh - 120px)", minHeight: "420px" } },
 });
 
 export const logFrame = style({ position: "relative", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" });

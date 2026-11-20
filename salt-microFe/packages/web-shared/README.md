@@ -8,7 +8,9 @@
 | `@repo/web-shared/config` | 라우트 · env(`ZONE_APP` 포함) · 네트워크 · SEO · zone 판정 재수출 |
 | `@repo/web-shared/i18n` · `lib` · `model` · `ui` | 도메인 무관 문구 · 포맷터(`useZoneNavigate` 포함) · 공통 타입 · `BlockBoundary` · `CrossZoneLink` · `ZoneLink` · `NavChevron` |
 | `@repo/web-shared/ui/tokens.css` · `ui/surface.css` | vanilla-extract 토큰(세그먼트 내부 경로 예외) |
-| `@repo/web-shared/layout` | zone 루트 레이아웃이 같이 쓰는 것 — `ZoneProviders` · `AppShell`(폭 · 768 미만 안내) · `ProfileMenu` · `NotFoundPage` · `EMBED_SCRIPT` · `rootMetadata` |
+| `@repo/web-shared/layout` | zone 루트 레이아웃이 같이 쓰는 것 — `ZoneProviders` · `AppShell`(폭 · 768 미만 안내) · `ProfileMenu` · `NotFoundPage` · `rootMetadata` |
+| `@repo/web-shared/layout/mobile` · `layout/mobile/home` | 휴대폰 `/m` 틀 · 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction`) · 홈(서버 전용 — 배럴 밖, `FE-REQ-072`) |
+| `@repo/web-shared/api/server` | 서버 컴포넌트 BFF 조회 `serverBffRead`(`next/headers` — 배럴 밖, `FE-REQ-072`) |
 | `@repo/web-shared/layout/globals.css` | 전역 스타일 |
 
 - 규칙: `.claude/rules/fsd-shared.md`. 이 패키지는 위 레이어(`@/entities` …) · `domain-*` 를 import 하지 않는다(훅 · lint). 세그먼트끼리는 상대 경로

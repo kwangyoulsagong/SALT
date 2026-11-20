@@ -5,7 +5,7 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(셸 zone, 3100 — 2026-11-20 3000 에서, 3000 은 다른 업무 프로젝트) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/web-mobile`(휴대폰 PWA `/m/*`, 3006 — `ADR-012` · 골격 2026-11-20 `FE-REQ-071`: 매니페스트 · 서비스 워커 · 하단 탭 · `/m/login`, 탭 화면은 `FE-REQ-072` · RN 앱은 폐기)
+- Apps: `apps/web`(셸 zone, 3100 — 2026-11-20 3000 에서, 3000 은 다른 업무 프로젝트) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), ~~가계부 · 팁은 빈 골격~~ **정정 2026-11-05** 가계부 zone 은 가계부 화면(2026-11-04 `FE-REQ-057`), 팁 zone 은 공개 금융 팁(2026-11-05 `FE-REQ-058` — `PublicShell` · 공개 플래그 꺼짐), `apps/web-mobile`(휴대폰 PWA `/m/*`, 3006 — `ADR-012` · 골격 2026-11-20 `FE-REQ-071`: 매니페스트 · 서비스 워커 · 하단 탭 · `/m/login`, 화면은 2026-11-20 `FE-REQ-072` — 도메인 패키지 `src/mobile` 진입점 · 앱 웹뷰 계약 걷음 · RN 앱은 폐기)
 - **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **투자 화면은 `packages/domain-invest` → `apps/web-investment`(2026-11-02 `FE-REQ-053`), 저축 화면은 `packages/domain-savings` → `apps/web-savings`(2026-11-03 `FE-REQ-056`)** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
 - Framework: Next.js 15, React 18, TypeScript strict
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
@@ -23,7 +23,7 @@
 > 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —
 > **홈·세금 콕핏·청구서의 화면 단위 판정은 그 화면이 생길 때 다시 한다.**
 > 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
-> 휴대폰은 PWA zone `apps/web-mobile`(`/m/*`)이 `FE-REQ-071` 에서 생겼다(2026-11-20 — 틀 · 이동 미들웨어 · 로그인) — RN 앱(`apps/mobile` · `packages/ui-native`)은 만들지 않는다(`ADR-012`).
+> 휴대폰은 PWA zone `apps/web-mobile`(`/m/*`)이 `FE-REQ-071` 에서 생겼고(2026-11-20 — 틀 · 이동 미들웨어 · 로그인) `FE-REQ-072` 가 화면(홈 · 저축 · 가계부 · 투자 상세 · 코치 리포트)을 옮겼다 — RN 앱(`apps/mobile` · `packages/ui-native`)은 만들지 않는다(`ADR-012`).
 
 ## Commands
 
@@ -42,7 +42,7 @@ pnpm --filter @repo/ui test
 pnpm --filter @repo/core test
 pnpm --filter @repo/ui storybook
 pnpm static:merge               # 운영 빌드 뒤 zone 정적 파일을 셸 .next/static 에 합친다(같은 이름 · 다른 내용이면 실패, FE-REQ-054 · ADR-005 규칙 7) — 운영 빌드로 zone 을 띄우기 전에 필수
-pnpm test:layer-check           # layer-check 훅 위반 케이스 19(레이어 7 + 도메인 4 + 패키지 안 5 + 휴대폰 zone 3 — `FE-REQ-071`) + 통과 케이스 14
+pnpm test:layer-check           # layer-check 훅 위반 케이스 22(레이어 7 + 도메인 4 + 패키지 안 5 + 휴대폰 zone 3 + 휴대폰 진입점 3 — `FE-REQ-072`) + 통과 케이스 15
 ```
 
 ## 구조 원칙
@@ -92,7 +92,9 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 19(레이어 
 - `.claude/rules/canvas.md` — 고부하 시 Canvas 도입 기준
 - `.claude/rules/design-system.md` — `@repo/ui` 디자인 시스템
 - `.claude/rules/screen-desktop.md` — 데스크톱 화면 틀 · 글자 위계 · 컨트롤 값(실측 근거)
-- `.claude/rules/screen-mobile.md` — 모바일(PWA `/m` · ~~앱 웹뷰~~ `FE-REQ-072` 까지) 글자 토큰 · 배치 · 컴포넌트 · 라이팅
+- `.claude/rules/mobile-design.md` — 휴대폰 `/m` 배치 · 부품(탭 화면 카드 · 상세 흰 섹션 · 금액 행 · 아이콘 판 · 회색 알약 · 글래스 탭 · 떠 있는 시트) — 2026-11-20
+- `.claude/rules/mobile-motion.md` — 휴대폰 마이크로 인터랙션(누름 · 자리 바뀜 · 등장) — 2026-11-20
+- `.claude/rules/screen-mobile.md` — 휴대폰 PWA `/m` 글자 토큰 · 배치 · 컴포넌트 · 라이팅 · `src/mobile` 진입점 · `/m` 표지(앱 웹뷰 계약은 2026-11-20 `FE-REQ-072` 로 지움)
 - `.claude/rules/a11y-policy.md` — 접근성
 - `.claude/rules/i18n-policy.md` — 문구/i18n 정책
 - `.claude/rules/requirements-management.md` — 요구사항/리포트 관리

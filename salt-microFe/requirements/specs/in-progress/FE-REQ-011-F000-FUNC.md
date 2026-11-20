@@ -201,6 +201,7 @@ created: 2026-09-09
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 세션 갱신 실패 뒤 로그인 이동(FR-62 후반)의 공개 경로 예외가 `isPublicPath`(접두) — 공개 금융 팁 글에서는 세션만 비우고 제자리 (`cf93acb1`) |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-80 정정(`?q=` 는 `/search` 로 연 모달만) · FR-83 칩마다 × · **결함 고침** 최근 검색 저장이 setState 업데이터 안이라 모달 언마운트로 사라졌다 → 바로 저장 |
 | 2026-11-18 | 파일만 걸침(`feat/f006-alerts-screen`) — `@repo/ui` 표 정렬 화살표 색을 `text.tertiary` → `neutral.500`(같은 옛 hex — 토큰이 바뀌어도 모양 그대로). 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
+| 2026-11-20 | `FE-REQ-072` 가 걸침 — 표 호버 주석에서 기준 서비스 이름을 지웠다(사용자 2026-11-20 "토스 언급 지우고" — 이름 검사 `check-done.mjs` 6번 목록에 넣음). 값 · 동작 변경 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/features/toggle-watchlist/ui/WatchlistStarButton.tsx` — 게스트 ★ → 로그인 링크(모든 ★ 자리 한 곳)
   - `salt-microFe/packages/web-shared/src/api/apiFetch.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용

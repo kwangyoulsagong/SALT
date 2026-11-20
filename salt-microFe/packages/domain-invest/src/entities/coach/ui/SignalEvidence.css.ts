@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -134,3 +136,7 @@ export const evidenceLink = style({
   ":hover": { color: vars.colors.neutral[900] },
   selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px", borderRadius: "4px" } },
 });
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+globalStyle(`${MOBILE_ROOT} ${evidenceLink}`, { fontSize: "13px", lineHeight: "20px" });
+globalStyle(`${MOBILE_ROOT} ${evidenceLink}`, { minHeight: "44px", display: "inline-flex", alignItems: "center" });

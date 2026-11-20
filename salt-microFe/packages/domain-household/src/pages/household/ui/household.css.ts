@@ -1,6 +1,5 @@
-import { globalStyle, style } from "@vanilla-extract/css";
+import { style } from "@vanilla-extract/css";
 
-import { EMBED_APP, EMBED_ATTRIBUTE, IN_APP_WEBVIEW } from "@repo/core/embed";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
@@ -44,8 +43,6 @@ export const navButton = style({
   transition: `background-color ${vars.motion.duration.instant}`,
   ":hover": { background: vars.colors.desk.line },
   ":focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px" },
-  // 앱 웹뷰 터치 대상 44(`FE-REQ-060` FR-M5)
-  selectors: { [IN_APP_WEBVIEW]: { width: "44px", height: "44px" } },
 });
 export const navDisabled = style([navButton, { color: vars.colors.desk.nonText3, pointerEvents: "none" }]);
 export const textButton = style({
@@ -60,20 +57,18 @@ export const textButton = style({
   textDecoration: "none",
   ":hover": { background: vars.colors.desk.line },
   ":focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "2px" },
-  selectors: { [IN_APP_WEBVIEW]: { height: "44px" } },
 });
 
 /* ── 본문 ─────────────────────────────────────────────────── */
 export const board = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
 export const description = style({ ...label, margin: 0 });
 
-/** 1024 미만 · 앱 웹뷰 — 사이드가 없거나 아래라 도구 링크를 본문 위에 한 줄로 */
+/** 1024 미만 — 사이드가 아래라 도구 링크를 본문 위에 한 줄로 */
 export const toolsInline = style({
   display: "flex",
   gap: "8px",
   flexWrap: "wrap",
   "@media": { [DESKTOP]: { display: "none" } },
-  selectors: { [IN_APP_WEBVIEW]: { display: "flex" } },
 });
 export const chipLink = style({
   ...label,
@@ -87,7 +82,6 @@ export const chipLink = style({
   fontWeight: vars.deskType.body.fontWeight,
   textDecoration: "none",
   whiteSpace: "nowrap",
-  selectors: { [IN_APP_WEBVIEW]: { height: "44px", fontSize: vars.appType.caption.fontSize } },
 });
 
 export const asks = style({ display: "flex", flexDirection: "column", gap: "12px", minWidth: 0, selectors: { "&:empty": { display: "none" } } });
@@ -104,12 +98,8 @@ export const section = style({ display: "flex", flexDirection: "column", gap: "8
 export const sectionHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minHeight: "32px" });
 export const sectionTitle = style({
   ...title,
-  // 앱 웹뷰 섹션 머리 = `t5`(`screen-mobile.md` §3)
-  selectors: {
-    [IN_APP_WEBVIEW]: { fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, fontWeight: vars.appType.body.fontWeight, color: vars.colors.text.primary },
-  },
 });
-export const hint = style({ ...label, margin: 0, selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } } });
+export const hint = style({ ...label, margin: 0 });
 
 /** 고른 날 칸 — 정보 상자. 날을 바꾸면 새 칸이 8px 아래에서 올라온다(`key` = 날짜, 블록 등장 장치 — `motion.md` §1) */
 export const dayDetail = style({
@@ -136,13 +126,11 @@ export const moreGrid = style({
 export const sideBlock = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
 export const sideHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" });
 export const sideTitle = style(title);
-export const sideLink = style({ ...label, display: "inline-flex", alignItems: "center", selectors: { [IN_APP_WEBVIEW]: { minHeight: "44px", minWidth: "44px", justifyContent: "center", fontSize: vars.appType.caption.fontSize } }, color: vars.colors.desk.text1, fontWeight: vars.deskType.body.fontWeight, textDecoration: "none", ":hover": { textDecoration: "underline" } });
+export const sideLink = style({ ...label, display: "inline-flex", alignItems: "center", color: vars.colors.desk.text1, fontWeight: vars.deskType.body.fontWeight, textDecoration: "none", ":hover": { textDecoration: "underline" } });
 export const dayRows = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
 
 /** 한 줄 상태(FR-13) — 실패 + 다시 불러오기 · 빈 목록은 쓴 내역 칸 높이를 조금 지킨다 */
 export const statusRow = style({ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", minHeight: "120px" });
-// 앱 웹뷰 — 상태 줄의 "다시 불러오기"(데스크톱 버튼 32)를 터치 대상 44 로(`FE-REQ-060` FR-M5, route 실패 확인에서 찾음)
-globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] ${statusRow} button`, { minHeight: "44px" });
 export const emptyRow = style({ display: "flex", alignItems: "center", minHeight: "96px", padding: "0 8px" });
 
 /**
@@ -157,8 +145,6 @@ export const card = style({
   borderRadius: "12px",
   background: vars.colors.background.white,
   boxShadow: SURFACE.hairline,
-  // 앱 웹뷰는 흰 바탕 한 열 — 카드 면 · 선 · 안쪽 여백을 걷는다(FR-M1 · 모바일 표 "면")
-  selectors: { [IN_APP_WEBVIEW]: { padding: 0, background: "transparent", boxShadow: "none" } },
 });
 
 /** 차트 두 칸 — 날마다(넓게) · 분류. 1280 미만은 위아래 */
@@ -168,7 +154,6 @@ export const chartRow = style({
   gap: "16px",
   alignItems: "stretch",
   "@media": { [WIDE]: { gridTemplateColumns: "minmax(0, 3fr) minmax(0, 2fr)" } },
-  selectors: { [IN_APP_WEBVIEW]: { gridTemplateColumns: "minmax(0, 1fr)" } },
 });
 
 /** 달력 보기 — 달력 | 고른 날 */
@@ -218,7 +203,7 @@ const linkButton = {
   textDecoration: "none",
 } as const;
 
-/** 화면당 주 버튼 하나 — 지출 적기. 앱 웹뷰는 하단 고정 "지출 적기"가 같은 일이라 숨긴다(정보 영역 안 큰 버튼 0 — FR-M1) */
+/** 화면당 주 버튼 하나 — 지출 적기. 휴대폰 하단 고정 "지출 적기"는 `/m/household`(FE-REQ-072) */
 export const primaryLink = style({
   ...linkButton,
   background: vars.colors.brand.primary,
@@ -226,7 +211,6 @@ export const primaryLink = style({
   selectors: {
     "&:hover": { background: vars.colors.brand.hover },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
-    [IN_APP_WEBVIEW]: { display: "none" },
   },
 });
 
@@ -237,8 +221,6 @@ export const weakLink = style({
   selectors: {
     "&:hover": { background: vars.colors.neutral[200] },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
-    // 앱 웹뷰 터치 대상 44(FR-M5)
-    [IN_APP_WEBVIEW]: { height: "44px" },
   },
 });
 
@@ -261,8 +243,6 @@ export const sampleBadge = style({
   fontSize: vars.deskType.label.fontSize,
   lineHeight: "20px",
   color: vars.colors.desk.text2,
-  // 앱 웹뷰 글자 13 이상(`ADR-012` 로 PWA `/m` 에 옮김 · `FE-REQ-060` FR-M)
-  selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 
 export const sampleBars = style({ display: "flex", alignItems: "flex-end", gap: "3px", height: "96px", boxShadow: `inset 0 -1px 0 ${vars.colors.desk.line}` });

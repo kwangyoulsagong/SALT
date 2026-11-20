@@ -303,8 +303,8 @@ export const tokens = {
   },
 
   /**
-   * 모바일 글자(앱 웹뷰 · RN — `screen-mobile.md` §1, `FE-REQ-060` FR-M). 값은 `typography` 단 그대로, 이름은 쓰는 자리.
-   * 웹에서는 **앱 웹뷰 선택자(`IN_APP_WEBVIEW`) 안에서만** 쓴다 — 데스크톱 화면은 `deskType` 다섯 단(`fontSizeBudget.test.ts` 가 센다)
+   * 모바일 글자(휴대폰 PWA `/m` — `screen-mobile.md` §1, `FE-REQ-060` FR-M → `FE-REQ-072`). 값은 `typography` 단 그대로, 이름은 쓰는 자리.
+   * 웹에서는 **휴대폰 표면(`/m` — 휴대폰 틀 · 도메인 `src/mobile`)과 같이 쓰는 조각의 `ON_MOBILE` 선택자 안에서만** 쓴다(`FE-REQ-072`) — 데스크톱 화면은 `deskType` 다섯 단(`fontSizeBudget.test.ts` 가 센다)
    */
   appType: {
     /** t1 30/40 — 화면의 주인공 금액 한 줄 */

@@ -52,6 +52,8 @@ export const Button = ({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
+      // 표면이 누름 칸을 고를 수 있게 하는 표지(휴대폰 `/m` 은 작은 단 → 44 — `FE-REQ-072`)
+      data-button-size={size}
       onClick={onClick}
       {...rest}
     >

@@ -303,6 +303,15 @@ importers:
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@repo/domain-household':
+        specifier: workspace:*
+        version: link:../../packages/domain-household
+      '@repo/domain-invest':
+        specifier: workspace:*
+        version: link:../../packages/domain-invest
+      '@repo/domain-savings':
+        specifier: workspace:*
+        version: link:../../packages/domain-savings
       '@repo/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens

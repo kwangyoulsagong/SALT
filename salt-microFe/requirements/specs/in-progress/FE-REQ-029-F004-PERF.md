@@ -199,3 +199,4 @@ created: 2026-09-09
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 판단 카드와 같이 죽은 스타일(점수 줄 · 요약 줄 · 구간 머리 · 거래소 줄 · 꼬리표 줄) 지움(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
 | 2026-11-18 | 이 REQ 머리의 파일에 F006 코치 대화 1단계가 더해졌다(대화 경로 · 메뉴 한 줄 · 엔드포인트 등) — 이 REQ 범위 · 계약 변경 0. 루트 `requirements/specs/in-progress/F006-coach-conversation-slice.md` |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — `CoachBlock.css.ts` 막힌 카드 보조 글 색(`FE-REQ-047` FR-13). 이 REQ 동작 무변경 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 코치 카드 근거 줄(`CoachBlock` `claimItem`)에 `/m` 값(글자 13)만 더했다 — 데스크톱 값 그대로. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

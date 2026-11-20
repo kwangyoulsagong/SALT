@@ -72,6 +72,4 @@ export const ONBOARDING_COMPLETE_HEADLINE = ["준비가", "끝났어요"] as con
 export const ONBOARDING_CARD_MESSAGES = {
   title: "시작하기를 마저 끝내 주세요",
   cta: "이어서 하기",
-  /** 앱 웹뷰 한 줄 배너의 닫기(`FE-REQ-060` FR-M3) — 이번 방문 동안만 숨긴다 */
-  close: "시작하기 안내 닫기",
 } as const;

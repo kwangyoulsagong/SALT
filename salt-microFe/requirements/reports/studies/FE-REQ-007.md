@@ -89,7 +89,7 @@ Next에 **async boundary가 없어서** webpack이 share scope를 조율하는 �
 
 **그런데 같은 발표문이 RSC 지원을 "실험적 저수준 빌드 지원"이라고 적는다.** stability 선언이 없고, `next-rspack`의 상태가 명시되지 않는다.
 
-버린 진짜 이유는 기술이 아니라 **인력**이었다. 우리는 지금부터 REQ 145개와 모바일 앱을 이 위에 올린다. 그 전부의 실패 원인이 빌드 층에서 나올 수 있는 조합을 기반으로 깔 수 없다. 빌드 툴체인 전담이 없다 — 토스는 RN 플랫폼 팀이 4명이다.
+버린 진짜 이유는 기술이 아니라 **인력**이었다. 우리는 지금부터 REQ 145개와 모바일 앱을 이 위에 올린다. 그 전부의 실패 원인이 빌드 층에서 나올 수 있는 조합을 기반으로 깔 수 없다. 빌드 툴체인 전담이 없다 — 참고한 대형 금융 앱은 RN 플랫폼 팀이 4명이다.
 
 > **다시 볼 조건:** `next-rspack` 안정 선언 + `@module-federation/enhanced`의 App Router 공식 지원. 그때는 `web-tax` zone **하나만** 실험 대상으로 삼을 수 있다 — Multi-Zones가 그 실험을 zone 단위로 격리해 준다는 것도 C의 장점이다.
 
@@ -451,7 +451,7 @@ REQ가 "착수 전 확정 필요"로 표시했던 항목이다. **자체 호스�
 - [Vanilla Extract](https://vanilla-extract.style/) — `createGlobalTheme`이 왜 RN에서 안 되는지
 - [Turborepo](https://turbo.build/repo/docs) · [pnpm Workspaces](https://pnpm.io/workspaces) — `workspace:*`, `transpilePackages`
 - [Writing ESLint Rules](https://eslint.org/docs/latest/extend/custom-rules) — AST 방문자, `meta.schema`, `messageId`
-- [Toss Tech — Frontend](https://toss.tech/tech?category=frontend) · [Frontend Fundamentals](https://frontend-fundamentals.com/)
+- [Frontend Fundamentals](https://frontend-fundamentals.com/)
 
 ---
 

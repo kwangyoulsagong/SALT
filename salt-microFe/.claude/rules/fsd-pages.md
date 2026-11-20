@@ -39,7 +39,7 @@ zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain
 
 ### `apps/web-mobile`(휴대폰 PWA `/m/*` — `ADR-012`, `FE-REQ-071` 에서 생긴다)
 
-`src/pages` 없음 — 루트 `app/m/**` 이 `@repo/domain-<x>/mobile/<page>` 를 re-export 한다(`domain-*/pages` · 배럴은 레이어 규칙 `mobile-domain` 이 막는다). 탭 넷(홈 · 저축 · 가계부 · 투자, `app/m/(tabs)` — **2026-11-20 `FE-REQ-071` 은 자리 한 장 `MobilePendingPage`, 화면은 `FE-REQ-072`**) + `/m/login`(`@repo/web-shared/layout/mobile` `MobileLoginPage`). ~~`apps/mobile`(RN)~~ 폐기
+`src/pages` 없음 — 루트 `app/m/**` 이 `@repo/domain-<x>/mobile/<page>` 를 re-export 한다(`domain-*/pages` · 배럴은 레이어 규칙 `mobile-domain` 이 막는다). 화면(2026-11-20 `FE-REQ-072`): 탭 넷 `app/m/(tabs)` — `/m/home`(`@repo/web-shared/layout/mobile/home` — BFF 카드) · `/m/goals` · `/m/goals/[id]`(`domain-savings` `mobile/goals` · `goal-detail`) · `/m/household`(`domain-household` `mobile/household`) · `/m/investments` · `/m/investments/[symbol]` · `/m/coach/report`(`domain-invest` `mobile/investments` · `investment-detail` · `coach`, 리포트는 투자 탭) + `/m/login`(`MobileLoginPage`). 데스크톱 주소 → `/m` 대응은 레지스트리 `mobileRedirects`. ~~`apps/mobile`(RN)~~ 폐기
 
 ## 원칙
 

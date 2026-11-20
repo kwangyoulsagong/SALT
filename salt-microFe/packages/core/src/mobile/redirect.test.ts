@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { MobileRedirect } from "../zones/registry";
+import { MOBILE_REDIRECTS, type MobileRedirect } from "../zones/registry";
 
-import { MOBILE_REDIRECT_MATCHER_SOURCE, isPhone, mobilePathOf, mobileRedirectOf, type MobileRedirectRequest } from "./redirect";
+import { MOBILE_PATHS, MOBILE_REDIRECT_MATCHER_SOURCE, MOBILE_ROUTES, isPhone, mobilePathOf, mobileRedirectOf, toMobileHref, type MobileRedirectRequest } from "./redirect";
 
 /** 휴대폰 → /m 이동 경계 표 (`FE-REQ-071` FR-7) — 표 하나로 허용 · 거절을 같이 본다 */
 const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 Version/18.4 Mobile/15E148 Safari/604.1";
@@ -97,10 +97,42 @@ describe("mobilePathOf · isPhone", () => {
     expect(mobilePathOf("/goals/3", table)).toBe("/m/goals/3");
   });
 
-  it("레지스트리 대응표 — 로그인 화면만(FE-REQ-071)", () => {
+  it("prefix 행의 except — 아래 경로라도 /m 화면이 없으면 보내지 않는다(FE-REQ-072)", () => {
+    const table: MobileRedirect[] = [{ from: "/goals", to: "/m/goals", prefix: true, except: ["/goals/new"], by: "t" }];
+    expect(mobilePathOf("/goals", table)).toBe("/m/goals");
+    expect(mobilePathOf("/goals/3", table)).toBe("/m/goals/3");
+    expect(mobilePathOf("/goals/new", table)).toBeNull();
+  });
+
+  it("레지스트리 대응표 — 로그인(FE-REQ-071) · 탭 넷 · 목표 상세 · 종목 상세 · 코치 리포트(FE-REQ-072)", () => {
     expect(mobilePathOf("/")).toBe("/m/login");
     expect(mobilePathOf("/login")).toBe("/m/login");
-    expect(mobilePathOf("/home")).toBeNull();
+    expect(mobilePathOf("/home")).toBe("/m/home");
+    expect(mobilePathOf("/goals")).toBe("/m/goals");
+    expect(mobilePathOf("/goals/abc")).toBe("/m/goals/abc");
+    expect(mobilePathOf("/household")).toBe("/m/household");
+    expect(mobilePathOf("/investments")).toBe("/m/investments");
+    expect(mobilePathOf("/investments/KRW-BTC")).toBe("/m/investments/KRW-BTC");
+    expect(mobilePathOf("/coach/report")).toBe("/m/coach/report");
+    // `/m` 화면이 없는 것 — 768 미만 안내 그대로
+    for (const path of ["/goals/new", "/goals/addgoals", "/household/budget", "/coach/chat", "/coach/settings", "/portfolio", "/plan", "/settings", "/alerts", "/tips"]) {
+      expect(mobilePathOf(path), path).toBeNull();
+    }
+  });
+
+  it("toMobileHref — 서버가 준 데스크톱 주소를 /m 짝으로(쿼리 · 조각 그대로) · 없으면 그대로", () => {
+    expect(toMobileHref("/goals")).toBe("/m/goals");
+    expect(toMobileHref("/goals/g1?from=home")).toBe("/m/goals/g1?from=home");
+    expect(toMobileHref("/coach/report#risk")).toBe("/m/coach/report#risk");
+    expect(toMobileHref("/goals/new")).toBe("/goals/new");
+    expect(toMobileHref("/tips")).toBe("/tips");
+    expect(toMobileHref("https://example.com/goals")).toBe("https://example.com/goals");
+    expect(toMobileHref("//evil/goals")).toBe("//evil/goals");
+  });
+
+  it("대응표의 /m 주소는 전부 휴대폰 화면 주소(MOBILE_ROUTES · 로그인)다", () => {
+    const screens = new Set<string>([MOBILE_PATHS.login, MOBILE_ROUTES.home, MOBILE_ROUTES.goals, MOBILE_ROUTES.household, MOBILE_ROUTES.investments, MOBILE_ROUTES.coachReport]);
+    for (const row of MOBILE_REDIRECTS) expect(screens.has(row.to), row.to).toBe(true);
   });
 
   it("UA 만으로 — iPod 도 휴대폰", () => {

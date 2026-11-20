@@ -76,8 +76,22 @@ export const mobilePathOf = (
 ): string | null => {
   const exact = table.find((row) => row.from === pathname);
   if (exact) return exact.to;
-  const prefixed = table.find((row) => row.prefix && row.from !== "/" && pathname.startsWith(`${row.from}/`));
+  const prefixed = table.find(
+    (row) => row.prefix && row.from !== "/" && pathname.startsWith(`${row.from}/`) && !row.except?.includes(pathname)
+  );
   return prefixed ? `${prefixed.to}${pathname.slice(prefixed.from.length)}` : null;
+};
+
+/**
+ * `/m` 화면에서 서버가 준 데스크톱 주소(홈 카드 `href` · 최근 기록 …)를 고친다(`FE-REQ-072`) — 대응표에 있으면 `/m` 짝(쿼리 · 조각은 그대로), 없으면 그대로.
+ * 그대로면 다른 zone 문서 이동이다 — 휴대폰이면 미들웨어가 768 미만 안내를 보인다
+ */
+export const toMobileHref = (href: string, table: readonly MobileRedirect[] = MOBILE_REDIRECTS): string => {
+  if (!href.startsWith("/") || href.startsWith("//")) return href;
+  const cut = href.search(/[?#]/);
+  const pathname = cut < 0 ? href : href.slice(0, cut);
+  const to = mobilePathOf(pathname, table);
+  return to ? `${to}${cut < 0 ? "" : href.slice(cut)}` : href;
 };
 
 /**
@@ -113,6 +127,20 @@ export const MOBILE_PATHS = {
   serviceWorker: "/m/sw.js",
   /** PWA 아이콘 — `pnpm brand:icons` 가 `apps/web-mobile/public/m/icons/` 에 굽는다 */
   icons: "/m/icons",
+} as const;
+
+/**
+ * 휴대폰 화면 주소(`FE-REQ-072`) — 탭 넷은 `APP_TABS` 의 `/m` 짝(`mobileTabHref`), 그 아래 화면은 여기 한 벌.
+ * 데스크톱 `ROUTES` 를 `/m` 화면에서 쓰지 않는다 — 다른 zone 으로 문서 이동했다가 미들웨어가 되돌려 보낸다
+ */
+export const MOBILE_ROUTES = {
+  home: "/m/home",
+  goals: "/m/goals",
+  goal: (id: string) => `/m/goals/${encodeURIComponent(id)}`,
+  household: "/m/household",
+  investments: "/m/investments",
+  investment: (symbol: string) => `/m/investments/${encodeURIComponent(symbol)}`,
+  coachReport: "/m/coach/report",
 } as const;
 
 /** Next `NextRequest` 의 판정에 필요한 모양만 — core 는 Next 를 모른다 */

@@ -2,7 +2,9 @@
 
 근거: 기준 금융 앱의 **공개 디자인 시스템 문서**(모바일 파운데이션 · 컴포넌트 · 소비자 UX 가이드 · 라이팅 원칙, 2026-10-30 조사).
 값이 공개된 것만 옮겼다. 공개되지 않은 값(내비 바 높이 · 버튼 px · 간격 스케일 · 다크 hex)은 **지어내지 않고** §6 에 남긴다.
-문서 · 코드 · 커밋에 기준 서비스 이름을 쓰지 않는다. 웹 768 미만은 안내만 보인다(`FE-REQ-043`) — 이 규칙의 대상은 휴대폰 PWA zone `/m/*`(`ADR-012` — RN 앱은 폐기, 앱 웹뷰 배치는 `FE-REQ-072` 에서 이 zone 으로 옮긴다).
+문서 · 코드 · 커밋에 기준 서비스 이름을 쓰지 않는다. 웹 768 미만은 안내만 보인다(`FE-REQ-043`) — 이 규칙의 대상은 휴대폰 PWA zone `/m/*`(`ADR-012` — RN 앱은 폐기, 앱 웹뷰 배치는 2026-11-20 `FE-REQ-072` 로 이 zone 에 옮겼다).
+
+> 배치 · 부품은 `mobile-design.md`, 마이크로 인터랙션은 `mobile-motion.md`(2026-11-20). 이 문서는 글자 · 색 · 쓰기 · 공개 값.
 
 ## 1. 글자 — 토큰 이름으로, 고정 px 로 쓰지 않는다
 
@@ -19,9 +21,9 @@
 - 굵기 5단: Light · Regular · Medium · Semibold · Bold
 - **기기 글자 크기를 따른다** — 160% · 200% 에서 배치가 깨지지 않게(금액은 잘리지 않고 줄바꿈, 시트 · 목록 머리는 세로로 쌓임). 토큰 값을 컴포넌트에 숫자로 박지 않는다
 - 숫자는 고정폭 숫자
-- **휴대폰 표면(`@repo/web-shared/layout/mobile` · `apps/web-mobile`)은 `vars.appType.*` 만** — 숫자 · `deskType` · 옛 토큰을 쓰면 `fontSizeBudget.test.ts` 가 막는다(2026-11-20 `FE-REQ-071`). 입력은 `appType.body`(17 — 16 이상이라 iOS 가 확대하지 않는다)
-- **앱 웹뷰(웹 코드)는 토큰 `vars.appType.*`**(hero 30 · title 22 · sheetTitle 20 · body 17 · desc 15 · caption 13 — 2026-11-20 `FE-REQ-060` FR-M) — `IN_APP_WEBVIEW` 선택자 안에서만. 밖에서 쓰면 `fontSizeBudget.test.ts` 가 막는다
-- 웹뷰 배치는 데스크톱과 **같은 HTML 에 두고 CSS 로 고른다**(`@repo/web-shared/ui/app.css` `deskOnly` · `AppSummary`). 붙일지를 가를 때만 `useInAppWebview` — 하단 고정 버튼 → 시트는 `AppSheetAction`(뒤로로 닫힘)
+- **휴대폰 표면(`@repo/web-shared/layout/mobile` · `apps/web-mobile` · `domain-*/src/mobile`)은 `vars.appType.*` 만**(hero 30 · title 22 · sheetTitle 20 · body 17 · desc 15 · caption 13) — 숫자 · `deskType` · 옛 토큰을 쓰면 `fontSizeBudget.test.ts` 가 막는다(`FE-REQ-071` · `072`). 입력은 `appType.body`(17 — iOS 확대 없음)
+- **휴대폰 화면은 `domain-*/src/mobile/<page>`**(pages 의 형제 — 레이어 규칙 `mobile`) — 데스크톱 화면(`pages`)을 가져오지 않고 entities · features · widgets 를 쓴다. 조각 `MobileScreen` · `MobileHead`(뒤로) · `MobileSection` · `MobileSummary` · `MobileSheetAction`(하단 고정 버튼 → 시트, 뒤로로 닫힘 · 탭 위) — `@repo/web-shared/layout/mobile`. 홈은 `layout/mobile/home`(BFF 카드)
+- **같이 쓰는 조각의 휴대폰 값은 `/m` 표지로** — `<html data-surface="mobile">`(서버 HTML 고정) · `@repo/core/mobile` `ON_MOBILE`(style `selectors`) · `MOBILE_ROOT`(`globalStyle`). 데스크톱 `pages` 는 쓰지 않는다(시험이 센다). 디자인 시스템 작은 단(배지 sm · 버튼 · `Text body` · 고지 칸)은 크기 표지(`data-badge` …)로 틀이 한 번에 키운다(2026-11-20 `FE-REQ-072` — 옛 앱 웹뷰 UA 계약은 지웠다)
 
 ## 2. 색
 
@@ -29,7 +31,7 @@
 |---|---|
 | grey50 · 100 · 200 · 300 · 400 | `#F9FAFB` · `#F2F4F6` · `#E5E8EB` · `#D1D6DB` · `#B0B8C1` |
 | grey500 · 600 · 700 · 800 · 900 | `#8B95A1` · `#6B7684` · `#4E5968` · `#333D4B` · `#191F28` |
-| 바탕 | 화면 `#FFFFFF`, 회색 바탕 = grey100 |
+| 바탕 | **탭 화면 = grey100 `#F2F4F6` 위 흰 카드**(모서리 20 · 안쪽 20 · 좌우 15 · 사이 14 — 사용자 Figma "홈") · **상세 = 흰 섹션 꽉 찬 폭 + 회색 띠 16**(`MobileScreen variant="detail"` · `MobileDetailTop`). 시트 · 로그인 = 흰색. 근거 `requirements/reports/research/2026-11-20-mobile-reference-screens.md` |
 | 위험 | `#F04452` (오류만 — 하락 표시와 섞지 않는다) |
 
 - 우리 브랜드 주색은 `tokens.brand.primary`(`#7949FF`) — 주 버튼 · 선택 표시. 상승 · 하락 색은 기존 토큰 그대로
@@ -53,11 +55,13 @@
 | 컴포넌트 | 규칙 |
 |---|---|
 | 내비 바 | 상단 고정. 왼쪽 뒤로 + 제목, 오른쪽 더보기 또는 닫기 하나(모노톤) |
+| 금액 행(탭 화면) | 아이콘 판 44 · 모서리 12 · grey100 면 + 3D 그림 28 · 금액 `t3` Bold 위 · 이름 `t6` 아래 · 오른쪽 회색 알약(grey100 · 모서리 12 · `t6` Semibold) — 카드 전체가 링크면 알약은 모양만 |
+| 하단 탭 | 떠 있는 글래스 알약(좌우 16 · 아래 12 + 안전 영역 · 높이 64 · 반투명 흰 + 흐림 20 · 테두리 · 그림자) · 고른 칸 회색 알약 |
 | 하단 고정 CTA | 화면 맨 아래 고정, 버튼 하나 또는 둘(좌 보조 · 우 주). 긴 스크롤 · 키보드 입력 중에도 닿는다 |
 | 버튼 | 크기 4단(small~xlarge, 기본 xlarge) · 채움/옅음 · 주/어둠/위험/밝음 · 인라인/블록/전체 |
 | 탭 | 4개까지 고정 폭, 그 이상은 가로 스크롤. 새 소식은 점 하나 |
 | 하단 탭바 | ~~우리는 3탭(홈 · 코치 · 자산)~~ **정정 2026-11-03: 4탭(홈 · 저축 · 가계부 · 투자) — 순서 · 이름 · 아이콘 이름은 `@repo/core/navigation` `APP_TABS`** — 늘리지 않는다(`fsd-pages.md`) |
-| 바텀 시트 | 제목 `t4` · 설명 `t6` · 본문과 CTA 사이 34. 바깥 누름 · 뒤로로 닫힌다. 키보드가 열리면 시트도 올라간다 |
+| 바텀 시트 | **떠 있다**(좌우 · 아래 10 · 모서리 32 — `MobileSheetAction`) · 제목 `t4` · 설명 `t6` · 본문과 CTA 사이 34. 바깥 누름 · 뒤로로 닫힌다. 키보드가 열리면 시트도 올라간다 |
 | 배지 | 크기 xsmall~large · 채움/옅음 — 색만으로 뜻을 전하지 않는다(글자 병기) |
 | 다이얼로그 | 왼쪽 버튼은 "닫기"("취소"는 진행 중인 일을 취소하는 것으로 읽힌다) |
 

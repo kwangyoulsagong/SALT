@@ -25,5 +25,9 @@ export const Text = ({
   color = "primary",
   children,
 }: TextProps) => {
-  return <p className={textVariant({ variant, color })}>{children}</p>;
+  return (
+    <p className={textVariant({ variant, color })} data-text={variant}>
+      {children}
+    </p>
+  );
 };

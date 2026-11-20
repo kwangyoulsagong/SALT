@@ -20,7 +20,7 @@ export const DisclosureSlot = ({ lines, label, className }: DisclosureSlotProps)
     <ul className={listStyles}>
       {lines.map((line, index) =>
         line.trim() === "" ? null : (
-          <li key={index} className={itemStyles}>
+          <li key={index} className={itemStyles} data-disclosure-item="">
             {line}
           </li>
         ),

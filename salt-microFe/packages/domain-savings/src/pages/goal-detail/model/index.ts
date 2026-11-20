@@ -22,8 +22,6 @@ export const GOAL_DETAIL_PAGE = {
   tabs: { progress: "진행", history: "기록", review: "회고" },
   /** 고정 열 360 — 1280 미만에선 마지막 탭 */
   aside: "넣기",
-  /** 앱 웹뷰 — 넣기가 하단 시트로 빠진 마지막 탭(비상시 · 저울, `FE-REQ-060` FR-M2) */
-  asideMore: "더 보기",
   statusTitle: "이번 달 · 도달 · 넣지 않은 달",
   balance: "목표 저울",
   balanceHint: "여러 목표의 월 계획을 옮겨 보기",

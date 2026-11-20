@@ -6,7 +6,7 @@ SALT는 **네 서피스**로 구성된다. 같은 원칙을 쓰고 각자의 언
 |---|---|---|---|
 | 웹 (default zone) | `apps/web` | **FSD** | `shared` → `entities` → `features` → `widgets` → `pages` → `app` |
 | 웹 (도메인 zone 4) | `apps/web-{investment,savings,household,tips}` — 얇은 앱, 화면은 `packages/domain-*`(`ADR-005` · `microfrontend.md`) | **FSD**(패키지 안) | 동일 |
-| 웹 (휴대폰 PWA) | `apps/web-mobile` — `/m/*` 표면 zone, 화면은 `domain-*` 의 `mobile` 진입점(`ADR-012`) | **FSD**(패키지 안) | 동일 (`mobile` = pages 의 휴대폰 형제) |
+| 웹 (휴대폰 PWA) | `apps/web-mobile` — `/m/*` 표면 zone, 화면은 `domain-*/src/mobile/<page>`(`ADR-012` · `FE-REQ-072`) — 한 빌드가 도메인 셋을 조립해 `@/…` 는 `tsconfig` 폴백 배열로 푼다(슬라이스 이름 레이어별 유일 — `mobileAlias.test.ts`) | **FSD**(패키지 안) | 동일 (`mobile` = pages 의 형제 · 높이 4 · `pages` import 금지) |
 | BFF | `bff/src` | 레이어드 | `routes` → `controllers` → `services` |
 | 서버 | `salt-server/src` | **DDD** | `{context}/{domain · application · infrastructure · presentation}` |
 
@@ -44,7 +44,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 **피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
 **규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
-미러가 아니다. 위반 케이스 19개(레이어 7 + 도메인 4 + 패키지 안 5 + 휴대폰 zone 3, `FE-REQ-052` · `053` · `071` — RN 교차는 2026-11-20 `ADR-012` 로 뺐다)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
+미러가 아니다. 위반 케이스 22개(레이어 7 + 도메인 4 + 패키지 안 5 + 휴대폰 zone 3 + 휴대폰 진입점 3, `FE-REQ-052` · `053` · `071` · `072` — RN 교차는 2026-11-20 `ADR-012` 로 뺐다)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
 **훅이 막으면 우회하지 말고 구조를 고친다.**
 
@@ -59,10 +59,11 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | `apps/web-*/src/{entities,features,widgets}` | zone 앱은 얇다 — 화면은 `domain-*` |
 | `packages/domain-*/src/{shared,app}` · `web-shared` 에서 `@/…` | shared 는 `@repo/web-shared`, app 은 zone 앱 — shared 는 위를 모른다 |
 | `apps/web-mobile` → `domain-*/pages/*` | 휴대폰 화면은 `domain-*/mobile/*` 진입점으로만(`FE-REQ-071` FR-2) |
+| `domain-*/src/mobile` → `pages` · 다른 `mobile` | 같이 쓰는 것은 widgets 이하로(`FE-REQ-072` — `mobile-pages`) |
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
 
-**예외 — `*.css` 토큰 모듈 · 배럴 밖 입구 셋(`ui/frame` · `layout/sign-in` · `layout/mobile`, `fsd-shared.md`).** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
+**예외 — `*.css` 토큰 모듈 · 배럴 밖 입구 다섯(`ui/frame` · `layout/sign-in` · `layout/mobile` · `layout/mobile/home` · `api/server`, `fsd-shared.md`).** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
 `.css.ts`는 빌드 타임에 node에서 평가되므로 barrel로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
@@ -103,6 +104,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `weekly-plan` | plan + `complete-weekly-plan` + `edit-plan-settings` — `/plan` 밴드 적립 본문(F003 v2, 2026-11-19) |
+| `goal-tools` | goal + `record-deposit` + `rebalance-goals` — 저축 도구(나눠 넣기 · 저울 · 엽서), `/goals` 사이드 · `/m/goals`(`FE-REQ-072`) |
 | `coach-panel` · `symbol-analysis` | market + coach (투자 우측 미리보기 · 상세 — 개요 탭(차트 + 페이지가 끼운 한 장 패널) · 일정 탭 · 고정 열 내 거래, 2026-11-19 `FE-REQ-049`) |
 | `scenario-panel` | coach(패널 칸 · 해설) + market(원인 칸 · 지난 가격) + `check-trade-odds` — 종목 상세 한 장 패널(F017 v4 `FE-REQ-064` FR-8, 2026-11-13) |
 | `judgment-overview` | coach + market(관심 종목) — 투자 화면 머리 아래 **요약 띠**(위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션 — ~~목표 비중~~ 2026-11-17 뺐다) + 같은 두 칸 · 관심 종목의 **오른쪽 사이드** `InvestSide`(2026-11-19 `FE-REQ-047` FR-7). 본문은 `coach-console` (F010, 2026-09-29) |

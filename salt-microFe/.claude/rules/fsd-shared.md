@@ -27,7 +27,7 @@ shared/
 ```
 
 공개 단위는 **세그먼트**다: `@repo/web-shared/api` · `@repo/web-shared/config` · … . 그 안쪽 경로
-(`@repo/web-shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈과 **배럴 밖 입구 셋**(레이어 규칙 `WEB_SHARED_DIRECT_ENTRIES`): `@repo/web-shared/ui/frame`(서버 페이지 틀 — `PageFrame` · `SideBlock`/`SideRow` · `BackNav` · `NavChevron` · `ZoneLink`, 2026-11-20 `FE-REQ-060` 3단계) · `layout/sign-in`(로그인 폼 — 셸 `/` · 휴대폰 `/m/login`) · `layout/mobile`(휴대폰 틀 — 둘 다 2026-11-20 `FE-REQ-071`, 레이아웃 배럴에 두면 데스크톱 zone 다섯 번들에 딸려 간다). 서버 컴포넌트가 `ui` 배럴을 값으로 읽으면 배럴의 클라이언트 모듈이 전부 그 페이지 번들에 딸려 간다(공개 팁 글 118 → 152 kB) — 서버 페이지가 틀만 쓰면 이 입구로. 이 입구에 클라이언트 상태 · 조회 · 모션을 더하지 않는다
+(`@repo/web-shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈과 **배럴 밖 입구 다섯**(레이어 규칙 `WEB_SHARED_DIRECT_ENTRIES`): `@repo/web-shared/ui/frame`(서버 페이지 틀 — `PageFrame` · `SideBlock`/`SideRow` · `BackNav` · `NavChevron` · `ZoneLink`, 2026-11-20 `FE-REQ-060` 3단계) · `layout/sign-in`(로그인 폼 — 셸 `/` · 휴대폰 `/m/login`) · `layout/mobile`(휴대폰 틀 · 조각 — 둘 다 2026-11-20 `FE-REQ-071`, 레이아웃 배럴에 두면 데스크톱 zone 다섯 번들에 딸려 간다) · `layout/mobile/home` · `api/server`(서버 전용 `next/headers` — 휴대폰 홈 · `serverBffRead`, 클라이언트 잎이 읽는 배럴에 두면 빌드가 깨진다, `FE-REQ-072`). 서버 컴포넌트가 `ui` 배럴을 값으로 읽으면 배럴의 클라이언트 모듈이 전부 그 페이지 번들에 딸려 간다(공개 팁 글 118 → 152 kB) — 서버 페이지가 틀만 쓰면 이 입구로. 이 입구에 클라이언트 상태 · 조회 · 모션을 더하지 않는다
 (`layered-architecture.md` §3).
 
 ## 원칙

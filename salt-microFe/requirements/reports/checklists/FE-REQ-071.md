@@ -35,3 +35,9 @@
 | 결함 주입(사본) | 6 중 6 잡힘 | 태블릿 · RSC · 쿠키 · prefix 슬래시 · GET · `/m` 되돌림 — **`/m` 되돌림 가드는 처음엔 살아남았다**(시험 대응표에 `/m` 행이 없어서) → "한 방향" 경계 3 더해 잡힘 |
 
 미검증 추가: 로그인 실패 문구가 해요체가 아니다("맞지 않습니다") — 셸과 같은 공용 문구라 바꾸면 데스크톱도 바뀐다. 언제 닫히나: `FE-REQ-072`(휴대폰 문구 해요체 정리와 같이, `screen-mobile.md` §5).
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- `/m` 탭 넷 자리 화면(`MobilePendingPage`)을 실제 화면으로 바꿨다 · 레이아웃에 표면 표지 `data-surface` · 휴대폰 틀에 조각(`MobileScreen` · `MobileHead` · `MobileSection` · `MobileSummary` · `MobileSheetAction` — 하단 탭 위) · 홈 입구 `layout/mobile/home` · 디자인 시스템 크기 표지 규칙
+- 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
+- 미충족: 없음(이 REQ 몫 변경은 위 한 줄)

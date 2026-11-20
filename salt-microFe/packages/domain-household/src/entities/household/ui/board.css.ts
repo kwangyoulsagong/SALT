@@ -1,9 +1,9 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 import { vars } from "@repo/ui/tokens";
 
-/** 앱 웹뷰 글자(`screen-mobile.md` §1 · `FE-REQ-060` 모바일 표 "목록 행") — 이름 · 금액 t5, 보조 t7 */
+/** 휴대폰(`/m`) 글자(`screen-mobile.md` §1 · `FE-REQ-060` 모바일 표 "목록 행") — 이름 · 금액 t5, 보조 t7 */
 const appBody = { fontSize: vars.appType.body.fontSize, lineHeight: vars.appType.body.lineHeight, fontWeight: vars.appType.body.fontWeight, color: vars.colors.text.primary } as const;
 const appCaption = { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight, fontWeight: vars.appType.caption.fontWeight, color: vars.colors.text.tertiary } as const;
 
@@ -38,7 +38,7 @@ export const groupHead = style({
   fontVariantNumeric: "tabular-nums",
   // 글자를 키우면 날짜 · 그날 합이 세로로 쌓인다(FR-M4)
   flexWrap: "wrap",
-  selectors: { [IN_APP_WEBVIEW]: { ...appCaption, padding: "8px 4px 4px" } },
+  selectors: { [ON_MOBILE]: { ...appCaption, padding: "8px 4px 4px" } },
 });
 
 export const rows = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none", minWidth: 0 });
@@ -52,8 +52,8 @@ export const row = style({
   padding: "6px 8px",
   borderRadius: "8px",
   ":hover": { background: vars.colors.desk.line },
-  // 앱 웹뷰 목록 행 — 세로 여백 12 · 호버 면 없음(터치). 글자를 키우면 금액이 다음 줄로(FR-M4)
-  selectors: { [IN_APP_WEBVIEW]: { padding: "12px 4px", gap: "12px", flexWrap: "wrap", background: "transparent" } },
+  // 휴대폰(`/m`) 목록 행 — 세로 여백 12 · 호버 면 없음(터치). 글자를 키우면 금액이 다음 줄로(FR-M4)
+  selectors: { [ON_MOBILE]: { padding: "12px 4px", gap: "12px", flexWrap: "wrap", background: "transparent" } },
 });
 
 /** 분류 판 — 그림 자산이 없어 분류 첫 글자(`FE-REQ-060` 범위 밖 표 "분류 아이콘 그림") */
@@ -69,16 +69,16 @@ export const plate = style({
   // 가계부 도메인 색 옅은 판 + 분류 선 아이콘(2026-11-20). 도메인 색은 작은 표지에만
   background: "rgba(232, 89, 12, 0.1)",
   color: vars.colors.domain.household,
-  // 앱 웹뷰 목록 왼쪽 그림 = 원 40(`screen-mobile.md` §3)
-  selectors: { [IN_APP_WEBVIEW]: { width: "40px", height: "40px", borderRadius: "999px" } },
+  // 휴대폰(`/m`) 목록 왼쪽 그림 = 원 40(`screen-mobile.md` §3)
+  selectors: { [ON_MOBILE]: { width: "40px", height: "40px", borderRadius: "999px" } },
 });
 
-// 앱 웹뷰 — 이름 칸이 96 아래로 줄면 금액이 다음 줄로 내려간다(글자 160 · 200%, FR-M4)
-export const rowMain = style({ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, selectors: { [IN_APP_WEBVIEW]: { flex: "1 1 96px" } } });
-export const rowTitle = style({ ...body, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", selectors: { [IN_APP_WEBVIEW]: appBody } });
-export const rowCaption = style({ ...label, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", selectors: { [IN_APP_WEBVIEW]: appCaption } });
-export const rowSide = style({ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, selectors: { [IN_APP_WEBVIEW]: { marginLeft: "auto", flexWrap: "wrap", justifyContent: "flex-end" } } });
-export const amount = style({ ...body, fontVariantNumeric: "tabular-nums", textAlign: "right", selectors: { [IN_APP_WEBVIEW]: { ...appBody, fontWeight: "700", overflowWrap: "anywhere" } } });
+// 휴대폰(`/m`) — 이름 칸이 96 아래로 줄면 금액이 다음 줄로 내려간다(글자 160 · 200%, FR-M4)
+export const rowMain = style({ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, selectors: { [ON_MOBILE]: { flex: "1 1 96px" } } });
+export const rowTitle = style({ ...body, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", selectors: { [ON_MOBILE]: appBody } });
+export const rowCaption = style({ ...label, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", selectors: { [ON_MOBILE]: appCaption } });
+export const rowSide = style({ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, selectors: { [ON_MOBILE]: { marginLeft: "auto", flexWrap: "wrap", justifyContent: "flex-end" } } });
+export const amount = style({ ...body, fontVariantNumeric: "tabular-nums", textAlign: "right", selectors: { [ON_MOBILE]: { ...appBody, fontWeight: "700", overflowWrap: "anywhere" } } });
 export const badge = style({ ...label, padding: "0 6px", borderRadius: "4px", background: vars.colors.desk.line });
 
 /** 봉투 · 비율 막대 — 높이 4 · 표시 비율만(금액 계산 아님) */
@@ -98,7 +98,7 @@ export const ratioPart = styleVariants({
   4: { background: RATIO_TONES[4] },
 });
 export const legend = style({ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" });
-export const legendRow = style({ ...label, display: "flex", alignItems: "center", gap: "8px", minHeight: "28px", padding: "0 8px", selectors: { [IN_APP_WEBVIEW]: { ...appCaption, minHeight: "44px", padding: "0 4px", flexWrap: "wrap" } } });
+export const legendRow = style({ ...label, display: "flex", alignItems: "center", gap: "8px", minHeight: "28px", padding: "0 8px", selectors: { [ON_MOBILE]: { ...appCaption, minHeight: "44px", padding: "0 4px", flexWrap: "wrap" } } });
 export const legendName = style({ flex: 1, minWidth: 0, color: vars.colors.desk.text1 });
 export const legendValue = style({ fontVariantNumeric: "tabular-nums", color: vars.colors.desk.text1, fontWeight: vars.deskType.body.fontWeight });
 export const swatch = styleVariants({

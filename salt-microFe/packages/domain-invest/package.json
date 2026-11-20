@@ -7,7 +7,8 @@
     "**/*.css.ts"
   ],
   "exports": {
-    "./pages/*": "./src/pages/*/index.ts"
+    "./pages/*": "./src/pages/*/index.ts",
+    "./mobile/*": "./src/mobile/*/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

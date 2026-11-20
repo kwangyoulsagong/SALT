@@ -30,6 +30,8 @@ export const Badge = ({
   return (
     <span
       className={`${badgeStyles({ tone, size })} ${className || ""}`}
+      // 표면이 크기를 고를 수 있게 하는 표지(휴대폰 `/m` 은 sm 11 → 13 — `FE-REQ-072`). 디자인 시스템은 표면을 모른다
+      data-badge={size}
       {...rest}
     >
       {leading}

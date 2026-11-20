@@ -292,3 +292,9 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - 레지스트리에 휴대폰 표면 zone `mobile`(`surface` · `/m` · 3006) · 대응표 `mobileRedirects` 를 더했다 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- `@repo/core/mobile` 에 휴대폰 표면 표지(`SURFACE_*` · `ON_MOBILE` · `MOBILE_ROOT`) · 휴대폰 주소 `MOBILE_ROUTES` · `toMobileHref`, 레지스트리 `mobileRedirects` 행 다섯 + `except` · `@repo/core/embed` 삭제(앱 웹뷰 UA 계약). zone 구조 · rewrites 무변경
+- 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
+- 미충족: 없음(이 REQ 몫 변경은 위 한 줄)

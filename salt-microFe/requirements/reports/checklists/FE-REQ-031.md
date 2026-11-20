@@ -86,3 +86,9 @@
 - 몫: 첫 질문 전 배치만 — 조회 · 무한 스크롤 무변경
 - 확인: `FE-REQ-030` 체크리스트 같은 날 절 · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-20 `FE-REQ-072` 가 걸침
+
+- 코치 대화 CSS 의 웹뷰 선택자를 `/m` 표지(`ON_MOBILE`)로 바꿨다 — 값 그대로
+- 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
+- 미충족: 없음(이 REQ 몫 변경은 위 한 줄)

@@ -1,6 +1,3 @@
-import { MobilePendingPage } from "@repo/web-shared/layout/mobile";
-
-/** `/m/home` — 틀만(`FE-REQ-071`). 화면은 F019 순서 2 가 도메인 패키지 `mobile` 진입점으로 바꾼다 */
-export default function Page() {
-  return <MobilePendingPage tab="home" />;
-}
+/** `/m/home` — 휴대폰 홈(`FE-REQ-072`). 홈은 도메인이 아니라 BFF 카드 계약 한 벌 — 휴대폰 틀 입구가 그린다 */
+export { MobileHomePage as default } from "@repo/web-shared/layout/mobile/home";
+export const metadata = { title: "홈" };

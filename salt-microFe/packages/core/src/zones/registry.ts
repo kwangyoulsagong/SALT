@@ -55,6 +55,8 @@ export interface MobileRedirect {
   readonly from: string;
   readonly to: string;
   readonly prefix: boolean;
+  /** prefix 아래지만 `/m` 화면이 없는 경로(정확히 일치) — 보내지 않는다(`FE-REQ-072`, 예: `/goals/new`) */
+  readonly except?: readonly string[];
   /** 이 행을 더한 REQ — 화면을 `/m` 으로 옮긴 곳 */
   readonly by: string;
 }

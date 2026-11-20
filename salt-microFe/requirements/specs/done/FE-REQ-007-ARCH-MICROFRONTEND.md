@@ -77,7 +77,7 @@ Rspack 2.0은 이 방향에 가장 가깝다. RSC 지시어(`"use client"`, 모�
 
 **안 되는 것:** 같은 발표문이 RSC 지원을 **"실험적 저수준 빌드 지원"** 이라고 적는다. 사용 경로가 `rsbuild-plugin-rsc` 또는 수동 설정이고, Next.js와의 관계는 "Next.js가 Rspack을 지원한다"는 언급뿐 `next-rspack`의 상태가 명시되지 않는다. stability 선언이 없다.
 
-**우리에게 안 맞은 이유:** 우리는 지금부터 **REQ 100여 개와 모바일 앱**을 올린다. 그 전부의 실패 원인이 빌드 층에서 나올 수 있는 조합을 기반으로 깔 수 없다. 우리 조직은 빌드 툴체인 전담이 없다(토스는 RN 플랫폼 팀이 4명이다). **실험적 조합을 감당할 인력이 없다는 것이 결정적이었다.**
+**우리에게 안 맞은 이유:** 우리는 지금부터 **REQ 100여 개와 모바일 앱**을 올린다. 그 전부의 실패 원인이 빌드 층에서 나올 수 있는 조합을 기반으로 깔 수 없다. 우리 조직은 빌드 툴체인 전담이 없다(참고한 대형 금융 앱은 RN 플랫폼 팀이 4명이다). **실험적 조합을 감당할 인력이 없다는 것이 결정적이었다.**
 
 > 다시 볼 조건: `next-rspack` 안정 선언 + `@module-federation/enhanced`의 App Router 공식 지원. 그때는 ~~`web-tax`~~ 도메인 zone(**정정 2026-11-02** — `web-tax` 삭제) 하나를 실험 대상으로 삼아 점진적으로 옮길 수 있다 — **Multi-Zones가 그 실험을 zone 단위로 격리해 준다는 것도 C의 장점이다.**
 
@@ -258,3 +258,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — `@repo/tokens` 에 모바일 글자 토큰 `appType`(값은 `typography` 단 그대로) — 웹 어댑터 `vars` 로 그대로 올라간다. RN 이 같은 값을 본다 |
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 레지스트리에 휴대폰 표면 zone `mobile`(`surface` · `/m` · 3006) · 대응표 `mobileRedirects` 를 더했다 |
+| 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — `@repo/core/mobile` 에 휴대폰 표면 표지(`SURFACE_*` · `ON_MOBILE` · `MOBILE_ROOT`) · 휴대폰 주소 `MOBILE_ROUTES` · `toMobileHref`, 레지스트리 `mobileRedirects` 행 다섯 + `except` · `@repo/core/embed` 삭제(앱 웹뷰 UA 계약). zone 구조 · rewrites 무변경. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |

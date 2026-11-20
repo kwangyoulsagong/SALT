@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { EMBED_SCRIPT, PublicShell, rootMetadata, ZoneProviders } from "@repo/web-shared/layout";
+import { PublicShell, rootMetadata, ZoneProviders } from "@repo/web-shared/layout";
 import "@repo/web-shared/layout/globals.css";
 
 /**
@@ -15,11 +15,7 @@ export const metadata: Metadata = { ...rootMetadata, robots: { index: false, fol
 
 export default function TipsZoneLayout({ children }: { children: ReactNode }) {
   return (
-    // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(셸과 같다)
-    <html lang="ko" data-zone="tips" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
-      </head>
+    <html lang="ko" data-zone="tips">
       <body>
         <ZoneProviders>
           <PublicShell>{children}</PublicShell>

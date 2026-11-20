@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
+
+import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -164,3 +166,6 @@ export const previewLine = style({
 });
 
 export const previewQuestion = style([previewLine, { color: vars.colors.text.primary, fontWeight: vars.fontWeights.semibold }]);
+
+/** 휴대폰(`/m`) — 글자 13 · 누름 44(`FE-REQ-072` FR-5 실측). 데스크톱 값은 그대로 */
+globalStyle(`${MOBILE_ROOT} ${mirrorLabel}, ${MOBILE_ROOT} ${mirrorSub}`, { fontSize: "13px", lineHeight: "20px" });

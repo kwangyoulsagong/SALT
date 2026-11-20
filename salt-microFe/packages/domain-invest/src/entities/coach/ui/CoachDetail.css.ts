@@ -1,5 +1,7 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
+import { ON_MOBILE } from "@repo/core/mobile";
+
 // 앱 로컬 토큰(`shared/ui/tokens.css`)은 `@repo/ui/tokens` 로 일원화할 부채다 — 새 파일은 처음부터 이쪽
 import { vars } from "@repo/ui/tokens";
 
@@ -169,5 +171,7 @@ export const caseIdentityName = style({
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   color: vars.colors.text.primary,
+  // 휴대폰(`/m`) — 기기 글자를 키우면(×2) 종목 이름이 줄임표로 잘렸다. 잘리지 않고 줄바꿈(`FE-REQ-072` FR-5)
+  selectors: { [ON_MOBILE]: { overflow: "visible", textOverflow: "clip", whiteSpace: "normal", overflowWrap: "anywhere" } },
 });
 

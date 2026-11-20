@@ -1,7 +1,7 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { ON_MOBILE } from "@repo/core/mobile";
 
 /**
  * 원인 → 근거 → 결과 흐름(`CauseFlow` — 한 장 패널 ② 줄 · 목록 미리보기 원인 칸) · 시장 표 "왜?" 칩.
@@ -64,7 +64,7 @@ export const causeStep = style({
 });
 
 export const causeStepLabel = style({
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.secondary,
@@ -107,7 +107,7 @@ export const sourceChip = style({
   padding: "0 6px",
   borderRadius: "6px",
   background: vars.colors.neutral[100],
-  fontSize: "12px", selectors: { [IN_APP_WEBVIEW]: { fontSize: "13px" } },
+  fontSize: "12px", selectors: { [ON_MOBILE]: { fontSize: "13px" } },
   lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.secondary,
