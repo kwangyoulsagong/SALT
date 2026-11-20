@@ -36,7 +36,7 @@ export interface MarketSummaryHeadlineVM {
   publishedAt: string;
 }
 
-/** 활성 종목의 24시간 오름 · 내림 · 그대로 수 — 서버가 센다 */
+/** 활성 종목의 전일 대비 오름 · 내림 · 그대로 수 — 서버가 센다(코인도 업비트 전일 종가 대비) */
 export interface MarketBreadthVM {
   up: number;
   down: number;
