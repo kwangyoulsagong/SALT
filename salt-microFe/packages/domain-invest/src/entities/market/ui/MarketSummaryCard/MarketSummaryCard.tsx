@@ -168,7 +168,7 @@ const Stats = ({ item }: { item: MarketSummaryItem }) => {
 
 /** 대표 종목 — 이름 · 가격 · 영역 차트 · 고가/저가/거래대금 (`FE-REQ-037` FR-3). **표시 전용.** */
 export const MarketSummaryFeatured = React.memo(
-  ({ item, windowLabel, href, changeBasis = SummaryChangeBasis.Last24h }: MarketSummaryProps) => {
+  ({ item, windowLabel, href, changeBasis = SummaryChangeBasis.CryptoDay }: MarketSummaryProps) => {
     const [chartRef, chartWidth] = useElementWidth<HTMLSpanElement>(
       FEATURED_CHART_FALLBACK.width,
     );
@@ -193,7 +193,7 @@ MarketSummaryFeatured.displayName = "MarketSummaryFeatured";
 
 /** 작은 항목 — 작은 영역 차트 + 이름 · 가격. 태그가 붙으면 옅게 칠한다. **표시 전용.** */
 export const MarketSummaryItemLink = React.memo(
-  ({ item, windowLabel, href, changeBasis = SummaryChangeBasis.Last24h }: MarketSummaryProps) => {
+  ({ item, windowLabel, href, changeBasis = SummaryChangeBasis.CryptoDay }: MarketSummaryProps) => {
     const tinted = item.tags.includes(MarketSummaryTag.WideMove);
     const tint = !tinted
       ? ""

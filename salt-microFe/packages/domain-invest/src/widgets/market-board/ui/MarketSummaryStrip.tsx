@@ -66,7 +66,7 @@ const useCryptoStrip = (enabled: boolean): { data: StripData | undefined; isPend
         breadth: data.breadth,
         headlines: data.headlines,
         schedule: [],
-        changeBasis: SummaryChangeBasis.Last24h,
+        changeBasis: SummaryChangeBasis.CryptoDay,
         regionLabel: MARKET_SUMMARY_MESSAGES.regionLabel,
         marketActions: [],
       },

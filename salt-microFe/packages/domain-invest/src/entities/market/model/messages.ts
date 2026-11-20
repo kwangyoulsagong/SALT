@@ -162,7 +162,7 @@ export const WATCHLIST_ASSET_LABELS: Readonly<Record<string, string>> = {
 export const MARKET_SUMMARY_MESSAGES = {
   regionLabel: "주요 코인 요약",
   tags: {
-    wide_move: { label: "변동 큼", title: "24시간 변동률이 기준보다 크다" },
+    wide_move: { label: "변동 큼", title: "전일 대비 변동률이 기준보다 크다" },
   },
   /** 150 → "2시간 30분" */
   windowLabel: (minutes: number) => {
@@ -180,7 +180,7 @@ export const MARKET_SUMMARY_MESSAGES = {
   /** 스파크라인 첫 값 → 끝 값. 스크린리더가 선 모양 대신 읽는다 */
   sparklineTrend: { up: "오름", down: "내림", flat: "변동 없음" },
   changeTitle: {
-    "24h": "24시간 등락 금액과 변동률",
+    crypto_day: "전일 대비 등락 금액과 변동률 — 코인 하루는 오전 9시에 넘어가요",
     prev_close: "전일 종가 대비 등락과 변동률",
   },
   /** 국내 요약 띠 이름 — 코인은 `regionLabel` */
@@ -193,13 +193,13 @@ export const MARKET_SUMMARY_MESSAGES = {
    */
   briefing: {
     title: "오늘의 시장",
-    window: { "24h": "24시간", prev_close: "전일 대비" },
+    window: { crypto_day: "전일 대비", prev_close: "전일 대비" },
     up: "상승",
     flat: "보합",
     down: "하락",
     count: (count: number) => `${count.toLocaleString("ko-KR")}`,
     barLabel: {
-      "24h": (up: number, flat: number, down: number) =>
+      crypto_day: (up: number, flat: number, down: number) =>
         `활성 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
       prev_close: (up: number, flat: number, down: number) =>
         `코스피 · 코스닥 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,

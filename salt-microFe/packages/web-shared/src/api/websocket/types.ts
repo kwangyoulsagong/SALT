@@ -51,7 +51,7 @@ export interface PriceUpdate {
   currentPrice: number;
   change24h: number;
   /**
-   * 24시간 등락 **금액**(거래소 값, BFF 가 옮긴다). 옛 BFF 는 보내지 않는다 — 없으면 이전 값을 둔다.
+   * 전일 대비 등락 **금액**(거래소 값 — 이름의 24h 는 창이 아니다, `SRV-REQ-061`. BFF 가 옮긴다). 옛 BFF 는 보내지 않는다 — 없으면 이전 값을 둔다.
    */
   change24hAmount?: number;
   timestamp: string;
