@@ -27,7 +27,7 @@ const fetchForMe = async (context: ForMeContext, signal: AbortSignal): Promise<T
  * 내게 맞춘 팁 — 맥락 둘을 서버에 묻는다(무엇을 고를지는 서버, 읽기 전용 — 닫기 · 기록 0). **로그인했을 때만** 부른다:
  * 공개 글 독자에게 401 을 만들지 않는다. 행 · 실패 판정은 `pickForMe`(경계 표 시험)
  */
-export const useTipsForMe = () => {
+export const useTipsForMe = (exclude?: string) => {
   const signedIn = useHasSession();
   const results = useQueries({
     queries: FOR_ME_CONTEXTS.map((context) => ({
@@ -39,7 +39,7 @@ export const useTipsForMe = () => {
     })),
   });
 
-  const { picks, isError } = pickForMe(FOR_ME_CONTEXTS, results);
+  const { picks, isError } = pickForMe(FOR_ME_CONTEXTS, results, exclude);
 
   return {
     picks,

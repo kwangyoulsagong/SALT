@@ -22,8 +22,12 @@ export const row = style({
   borderRadius: "10px",
   color: "inherit",
   textDecoration: "none",
+  // 누름 0.99 — 목록 행과 같은 장치(`motion.md`, 2026-11-20 팁 사이드에서 빠진 것을 찾음 — 홈 사이드도 같이). 줄인 모션이면 끔
+  transition: `background-color ${vars.motion.duration.instant}, transform ${vars.motion.duration.instant}`,
   ":hover": { background: vars.colors.desk.line },
+  ":active": { transform: "scale(0.99)" },
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-2px" },
+  "@media": { "(prefers-reduced-motion: reduce)": { transition: "none", selectors: { "&:active": { transform: "none" } } } },
 });
 
 export const text = style({ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 });

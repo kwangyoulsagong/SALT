@@ -28,8 +28,11 @@ describe("pickForMe — 내게 맞춘 팁 사이드의 행 · 실패 판정", ()
     ["없음이지만 서버 칸 degraded → 실패", [ok(null, true), ok(null)], [], true],
     ["degraded 여도 글이 있으면 그린다", [ok("a", true), ok(null)], ["savings:a"], false],
     ["아직 안 온 결과(data 없음 · 실패 아님) → 행 0 · 실패 아님", [{ isError: false }, { isError: false }], [], false],
-  ] as const)("%s", (_name, results, rows, isError) => {
-    const out = pickForMe(C, results as readonly ForMeResult[]);
+    ["지금 읽는 글은 뺀다 → 다른 맥락 글만", [ok("a"), ok("b")], ["household:b"], false, "a"],
+    ["지금 읽는 글뿐이면 → 행 0 · 실패 아님(없어요)", [ok("a"), ok("a")], [], false, "a"],
+    ["빼는 글이 없는 목록 화면 → 그대로", [ok("a"), ok("b")], ["savings:a", "household:b"], false, undefined],
+  ] as const)("%s", (_name, results, rows, isError, exclude?: string) => {
+    const out = pickForMe(C, results as readonly ForMeResult[], exclude);
     expect(out.picks.map((p) => `${p.context}:${p.tip.slug}`)).toEqual(rows);
     expect(out.isError).toBe(isError);
   });

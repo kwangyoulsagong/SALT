@@ -8,4 +8,5 @@ import dynamic from "next/dynamic";
  */
 const TipsForMePanel = dynamic(() => import("./TipsForMePanel").then((mod) => mod.TipsForMePanel), { ssr: false, loading: () => null });
 
-export const TipsForMeSlot = () => <TipsForMePanel />;
+/** `exclude` — 글 화면이면 지금 읽는 글 slug(그 글 자신을 권하지 않는다) */
+export const TipsForMeSlot = ({ exclude }: { exclude?: string }) => <TipsForMePanel exclude={exclude} />;

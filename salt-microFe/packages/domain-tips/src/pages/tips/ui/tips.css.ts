@@ -42,9 +42,15 @@ export const row = style({
   borderRadius: "8px",
   color: vars.colors.desk.text1,
   textDecoration: "none",
+  // 호버 면 · 누름 0.99 — 저축 목표 행과 같은 장치(`motion.md` 누름, 줄인 모션이면 끔)
+  transition: `background-color ${vars.motion.duration.instant}, transform ${vars.motion.duration.instant}`,
   ":hover": { background: vars.colors.desk.line },
+  ":active": { transform: "scale(0.99)" },
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-2px" },
-  "@media": { [DESKTOP]: { gridTemplateColumns: "minmax(0, 1fr) auto auto", gap: vars.space.lg } },
+  "@media": {
+    [DESKTOP]: { gridTemplateColumns: "minmax(0, 1fr) auto auto", gap: vars.space.lg },
+    "(prefers-reduced-motion: reduce)": { transition: "none", selectors: { "&:active": { transform: "none" } } },
+  },
 });
 
 export const rowText = style({ display: "flex", flexDirection: "column", gap: vars.space.xs, minWidth: 0 });

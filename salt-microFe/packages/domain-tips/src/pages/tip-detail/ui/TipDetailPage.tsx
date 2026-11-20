@@ -29,7 +29,7 @@ export const TipDetailPage = async ({ params }: Params) => {
       side={
         <>
           <TipsCollectSide />
-          <TipsForMeSlot />
+          <TipsForMeSlot exclude={tip.slug} />
         </>
       }
     >

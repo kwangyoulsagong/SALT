@@ -21,8 +21,9 @@ const TITLE_ID = "tips-for-me-title";
  * 오른쪽 사이드 "내게 맞춘 팁"(`FE-REQ-060` FR-10) — 서버가 맥락마다 고른 글을 사이드 행(52 · 아이콘 · 제목 · 왜 골랐나 · 셰브론)으로.
  * 상태는 한 줄(FR-13): 로그아웃 · 없음 · 실패(+ 다시 불러오기 하나) · 받는 중 = 행 모양 자리. 금액 0 — 공개 화면 곁 칸이다
  */
-export const TipsForMePanel = () => {
-  const forMe = useTipsForMe();
+/** `exclude` — 지금 읽는 글 slug(글 화면). 그 글을 다시 권하지 않는다 */
+export const TipsForMePanel = ({ exclude }: { exclude?: string }) => {
+  const forMe = useTipsForMe(exclude);
 
   const body = forMe.isSignedOut ? (
     <StatusLine kind="blocked">{M.signedOut}</StatusLine>
@@ -41,15 +42,13 @@ export const TipsForMePanel = () => {
   ) : forMe.picks.length === 0 ? (
     <StatusLine kind="empty">{M.empty}</StatusLine>
   ) : (
-    forMe.picks.map(({ context, tip }) => (
-      <SideRow
-        key={tip.slug}
-        href={ROUTES.tip(tip.slug)}
-        icon={<ServiceIcon variant={CONTEXT_ICON[context]} />}
-        label={tip.title}
-        hint={M.because[context]}
-      />
-    ))
+    <div className={s.picks}>
+      {forMe.picks.map(({ context, tip }) => (
+        <div key={tip.slug} className={s.pick}>
+          <SideRow href={ROUTES.tip(tip.slug)} icon={<ServiceIcon variant={CONTEXT_ICON[context]} />} label={tip.title} hint={M.because[context]} />
+        </div>
+      ))}
+    </div>
   );
 
   return (
