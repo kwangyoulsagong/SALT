@@ -5,7 +5,7 @@
  */
 export { MobileShell } from "./MobileShell";
 export { MobileLoginPage } from "./MobileLoginPage";
-export { MobileCard, MobileHead, MobileScreen, MobileSection } from "./MobileScreen";
+export { MobileCard, MobileDetailTop, MobileHead, MobileScreen, MobileSection } from "./MobileScreen";
 export { MobileSummary, type MobileSummaryProps } from "./MobileSummary";
 export { MobileSheetAction, type MobileSheetActionProps } from "./MobileSheetAction";
 export { DesktopViewLink } from "./DesktopViewLink";

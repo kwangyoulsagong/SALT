@@ -71,3 +71,6 @@ export const foldSummary = style({
   },
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
 });
+
+/** 상세 화면 흰 섹션 밖 글 · 대기 — 좌우 20 */
+export const pad = style({ padding: "0 20px" });

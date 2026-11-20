@@ -9,7 +9,7 @@ import Link from "next/link";
 import { MOBILE_PATHS, MOBILE_ROUTES } from "@repo/core/mobile";
 import { hasApiStatus } from "@repo/web-shared/api";
 import { labelOr } from "@repo/web-shared/lib";
-import { MobileHead, MobileSection, MobileSheetAction, MobileSummary } from "@repo/web-shared/layout/mobile";
+import { MobileDetailTop, MobileHead, MobileSection, MobileSheetAction, MobileSummary } from "@repo/web-shared/layout/mobile";
 
 import {
   formatWon,
@@ -55,7 +55,9 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
   if (query.isSignedOut) {
     return (
       <>
-        <MobileHead title={M.fallbackTitle} back={back} />
+        <MobileDetailTop>
+          <MobileHead title={M.fallbackTitle} back={back} />
+        </MobileDetailTop>
         <StatusLine kind="blocked">{M.signedOut}</StatusLine>
         <Link href={MOBILE_PATHS.login} className={s.textLink}>
           {M.signIn}
@@ -66,7 +68,9 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
   if (query.isError && !query.data) {
     return (
       <>
-        <MobileHead title={M.fallbackTitle} back={back} />
+        <MobileDetailTop>
+          <MobileHead title={M.fallbackTitle} back={back} />
+        </MobileDetailTop>
         <StatusLine kind="error">{hasApiStatus(query.error, 404) ? M.notFound : GOAL_MESSAGES.loadFailed}</StatusLine>
       </>
     );
@@ -74,8 +78,12 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
   if (!query.data) {
     return (
       <>
-        <MobileHead title={M.fallbackTitle} back={back} />
-        <Skeleton height={480} />
+        <MobileDetailTop>
+          <MobileHead title={M.fallbackTitle} back={back} />
+        </MobileDetailTop>
+        <div className={s.pad}>
+          <Skeleton height={480} />
+        </div>
       </>
     );
   }
@@ -87,6 +95,7 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
 
   return (
     <>
+      <MobileDetailTop>
       <MobileHead title={goal.title} back={back} />
       <MobileSummary
         label={goal.title}
@@ -102,6 +111,7 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
           { key: "target", label: GOAL_MESSAGES.target, value: formatWon(goal.targetAmount) },
         ]}
       />
+      </MobileDetailTop>
 
       <MobileSection title={M.planTitle}>
         <div className={s.planRow}>
@@ -189,7 +199,7 @@ export const GoalDetailMobile = ({ goalId, initial }: { goalId: string; initial:
           <DepositForm goalId={goal.id} />
         </MobileSheetAction>
       ) : (
-        <p className={s.muted}>{GOAL_MESSAGES.completed}</p>
+        <p className={`${s.muted} ${s.pad}`}>{GOAL_MESSAGES.completed}</p>
       )}
     </>
   );

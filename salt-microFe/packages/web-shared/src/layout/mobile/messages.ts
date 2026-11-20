@@ -28,5 +28,7 @@ export const MOBILE_HOME_MESSAGES = {
   upcomingEmpty: "다가오는 일이 없어요. 매달 나가는 돈이나 목표 기한을 정하면 여기 보여요.",
   unavailable: "지금은 불러오지 못했어요",
   expenseFallback: "지출",
+  /** 도메인 카드 오른쪽 회색 알약 — 그 도메인의 다음 행동(누르면 카드 전체와 같은 곳) */
+  pill: { savings: "넣기", household: "적기", invest: "보기", tips: "보기" },
   feedSub: (detail: string, date: string) => `${detail} · ${date}`,
 } as const;

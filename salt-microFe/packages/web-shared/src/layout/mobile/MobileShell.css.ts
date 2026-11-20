@@ -7,7 +7,11 @@ import { vars } from "@repo/ui/tokens";
  * 휴대폰 틀(`FE-REQ-071` FR-5) — 한 열 · `100dvh`(주소창이 접혀도 높이가 맞는다) · 노치 · 홈 표시줄 안전 영역 ·
  * 당겨 새로고침 끔(iOS 는 남을 수 있다 — WebKit 275947). 글자는 `appType` 만(`fontSizeBudget.test.ts`).
  */
-export const TAB_BAR_HEIGHT = "56px";
+export const TAB_BAR_HEIGHT = "64px";
+/** 떠 있는 탭과 화면 아래 끝 사이(안전 영역 위) */
+export const TAB_BAR_GAP = "12px";
+/** 탭이 차지하는 아래 공간 전체 — 본문 끝 비우기 · 하단 고정 버튼 위치가 같이 쓴다 */
+export const TAB_BAR_SPACE = `calc(${TAB_BAR_HEIGHT} + ${TAB_BAR_GAP} + env(safe-area-inset-bottom, 0px))`;
 
 export const frame = style({
   minHeight: "100dvh",
@@ -24,28 +28,44 @@ export const frame = style({
 
 export const content = style({
   flex: 1,
-  // 하단 탭 + 홈 표시줄만큼 비운다 — 마지막 행이 탭 아래로 숨지 않게
-  paddingBottom: `calc(${TAB_BAR_HEIGHT} + env(safe-area-inset-bottom, 0px))`,
+  // 떠 있는 탭 + 홈 표시줄만큼 비운다 — 마지막 카드가 탭 아래로 숨지 않게
+  paddingBottom: `calc(${TAB_BAR_SPACE} + 8px)`,
 });
 
+/**
+ * 하단 탭 — 화면 위에 떠 있는 글래스 알약(사용자 "카드랑 저런 아이콘 그리고 글래스 느낌", 2026-11-20 `FE-REQ-072`).
+ * 반투명 흰 면 + 뒤 흐림 · 옅은 테두리 · 부드러운 그림자(떠 있는 요소만 그림자). 흐림을 못 하는 브라우저는 거의 불투명 흰 면
+ */
 export const tabBar = style({
   position: "fixed",
-  left: 0,
-  right: 0,
-  bottom: 0,
+  left: `calc(16px + env(safe-area-inset-left, 0px))`,
+  right: `calc(16px + env(safe-area-inset-right, 0px))`,
+  bottom: `calc(${TAB_BAR_GAP} + env(safe-area-inset-bottom, 0px))`,
   zIndex: vars.zIndices.fixed,
   display: "flex",
-  background: vars.colors.background.white,
-  boxShadow: `inset 0 1px 0 ${vars.colors.neutral[200]}`,
-  paddingBottom: "env(safe-area-inset-bottom, 0px)",
-  paddingLeft: "env(safe-area-inset-left, 0px)",
-  paddingRight: "env(safe-area-inset-right, 0px)",
+  gap: "4px",
+  height: TAB_BAR_HEIGHT,
+  padding: "6px",
+  boxSizing: "border-box",
+  borderRadius: "999px",
+  background: "rgba(255, 255, 255, 0.94)",
+  border: "1px solid rgba(255, 255, 255, 0.7)",
+  boxShadow: "0 8px 28px rgba(2, 32, 71, 0.12), inset 0 0 0 0.5px rgba(2, 32, 71, 0.06)",
+  "@supports": {
+    "(backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))": {
+      background: "rgba(255, 255, 255, 0.66)",
+      backdropFilter: "blur(20px) saturate(180%)",
+      WebkitBackdropFilter: "blur(20px) saturate(180%)",
+    },
+  },
 });
 
+/** 탭 칸 — 고른 칸은 옅은 회색 알약(높이 52 — 누름 칸 44 이상) */
 export const tab = style({
   flex: 1,
   minWidth: 0,
-  height: TAB_BAR_HEIGHT,
+  height: "100%",
+  borderRadius: "999px",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -58,7 +78,7 @@ export const tab = style({
   fontWeight: vars.fontWeights.medium,
   WebkitTapHighlightColor: "transparent",
   selectors: {
-    '&[aria-current="page"]': { color: vars.colors.text.primary, fontWeight: vars.fontWeights.bold },
+    '&[aria-current="page"]': { color: vars.colors.text.primary, fontWeight: vars.fontWeights.bold, background: "rgba(2, 32, 71, 0.06)" },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "-4px" },
   },
 });

@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 import { useCallback, useState, type ReactNode } from "react";
 
 import { useBackCloses } from "../../lib";
-import { aboveTabs, sheetBody, spacer } from "./MobileSheetAction.css";
+import { aboveTabs, floatingSheet, sheetBody, spacer } from "./MobileSheetAction.css";
 
 export interface MobileSheetActionProps {
   /** 하단 고정 버튼 글자 — 누른 뒤 일이 보이게(`screen-mobile.md` §5) */
@@ -36,7 +36,7 @@ export const MobileSheetAction = ({ label, title, children }: MobileSheetActionP
           {label}
         </Button>
       </BottomCTA>
-      <BottomSheet open={open} onClose={close} title={title}>
+      <BottomSheet open={open} onClose={close} title={title} className={floatingSheet}>
         {open ? <div className={sheetBody}>{typeof children === "function" ? children(close) : children}</div> : null}
       </BottomSheet>
     </>

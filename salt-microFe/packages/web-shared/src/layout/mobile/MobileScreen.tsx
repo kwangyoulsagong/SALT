@@ -2,15 +2,22 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { MOBILE_MESSAGES } from "./messages";
-import { backLink, card, head, headTitle, screen, section, sectionHead, sectionTitle } from "./MobileScreen.css";
+import { backLink, card, detailScreen, detailTop, head, headTitle, screen, section, sectionHead, sectionTitle } from "./MobileScreen.css";
 
 /**
  * 휴대폰 화면 조각(`FE-REQ-072` FR-2 · `screen-mobile.md` §3 · §4) — 도메인 패키지 `src/mobile` 진입점이 같이 쓴다.
  * 서버 컴포넌트(상태 0). 글자는 `appType` 만
  */
 
-/** 화면 한 장 — 좌우 24 · 위아래 16, 칸 사이 24 */
-export const MobileScreen = ({ children }: { children: ReactNode }) => <div className={screen}>{children}</div>;
+/**
+ * 화면 한 장. `tab`(기본) = 회색 바탕 위 카드 쌓기(탭 화면) · `detail` = 흰 섹션 + 회색 띠(상세 — 머리는 `MobileDetailTop` 에)
+ */
+export const MobileScreen = ({ children, variant = "tab" }: { children: ReactNode; variant?: "tab" | "detail" }) => (
+  <div className={variant === "detail" ? detailScreen : screen}>{children}</div>
+);
+
+/** 상세 머리 칸 — 흰 면(뒤로 · 이름 · 큰 숫자). 상세 화면 첫 칸 */
+export const MobileDetailTop = ({ children }: { children: ReactNode }) => <div className={detailTop}>{children}</div>;
 
 /**
  * 화면 머리 — 제목 `t3`. 탭 안 push 화면(상세)은 왼쪽 뒤로 하나(`screen-mobile.md` §4 내비 바).

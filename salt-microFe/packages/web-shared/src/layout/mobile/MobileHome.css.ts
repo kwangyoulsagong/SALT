@@ -20,8 +20,6 @@ export const row = style({
   WebkitTapHighlightColor: "transparent",
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px", borderRadius: "8px" },
 });
-// 3D 아이콘 = 원 40 자리(목록 왼쪽 그림)
-globalStyle(`${row} > :first-child:not(span)`, { width: "40px", height: "40px", flexShrink: 0 });
 
 export const rowMain = style({ display: "flex", flexDirection: "column", gap: "2px", flex: "1 1 128px", minWidth: 0 });
 
@@ -46,11 +44,6 @@ export const rowValue = style({
   lineHeight: vars.appType.body.lineHeight,
   fontWeight: vars.fontWeights.bold,
 });
-
-/** 값 + 셰브론 — 오른쪽 끝에 붙어 같이 움직인다 */
-export const rowEnd = style({ display: "inline-flex", alignItems: "center", gap: "8px", marginLeft: "auto" });
-
-export const chevron = style({ flexShrink: 0, color: vars.colors.neutral[400] });
 
 export const note = style({
   margin: 0,
@@ -106,3 +99,63 @@ export const profileSub = style({
   lineHeight: vars.appType.caption.lineHeight,
   color: vars.colors.text.tertiary,
 });
+
+/** 아이콘 판 — 44 · 모서리 12 · 옅은 회색 면, 3D 그림 28(기준 화면 분석 §11) */
+export const iconTile = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  width: "44px",
+  height: "44px",
+  borderRadius: "12px",
+  background: vars.colors.neutral[100],
+});
+globalStyle(`${iconTile} img`, { width: "28px", height: "28px" });
+
+/** 주인공 금액 — `t3` 22 Bold. 없음 · 받지 못함은 보조 크기(0 과 없음을 가른다) */
+export const lead = style({
+  fontSize: vars.appType.title.fontSize,
+  lineHeight: vars.appType.title.lineHeight,
+  fontWeight: vars.appType.title.fontWeight,
+  fontVariantNumeric: "tabular-nums",
+  color: vars.colors.text.primary,
+});
+export const leadQuiet = style({
+  fontSize: vars.appType.body.fontSize,
+  lineHeight: vars.appType.body.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.neutral[600],
+});
+
+/** 회색 알약 — grey100 · 모서리 12 · 15 Semibold. 카드 전체가 누름 칸이라 알약은 모양만 */
+export const pill = style({
+  display: "inline-flex",
+  alignItems: "center",
+  flexShrink: 0,
+  marginLeft: "auto",
+  minHeight: "36px",
+  padding: "0 14px",
+  borderRadius: "12px",
+  background: vars.colors.neutral[100],
+  fontSize: vars.appType.desc.fontSize,
+  lineHeight: vars.appType.desc.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.neutral[700],
+  whiteSpace: "nowrap",
+});
+
+/** 카드 바닥 줄 — 위 1px 선 · 보조 값 한 줄(이름 · 값) */
+export const cardFoot = style({
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "space-between",
+  gap: "2px 12px",
+  margin: "4px 0 0",
+  padding: "12px 0 8px",
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+  fontSize: vars.appType.desc.fontSize,
+  lineHeight: vars.appType.desc.lineHeight,
+  color: vars.colors.neutral[600],
+});
+export const cardFootValue = style({ fontWeight: vars.fontWeights.semibold, color: vars.colors.neutral[800], fontVariantNumeric: "tabular-nums" });

@@ -16,7 +16,7 @@ export const DetailMobilePage = async ({ params }: { params: Promise<{ symbol: s
   if (!SYMBOL_PATTERN.test(raw)) notFound();
   const symbol = raw.toUpperCase();
   return (
-    <MobileScreen>
+    <MobileScreen variant="detail">
       <BlockBoundary name={M.blockName} minHeight={480}>
         <DetailMobileBody symbol={symbol} asset={isKrStockCode(symbol) ? "kr" : "crypto"} />
       </BlockBoundary>

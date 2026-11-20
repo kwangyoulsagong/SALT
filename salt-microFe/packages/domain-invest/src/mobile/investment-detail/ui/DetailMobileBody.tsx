@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { DesktopViewLink } from "@repo/web-shared/layout/mobile";
+import { DesktopViewLink, MobileDetailTop } from "@repo/web-shared/layout/mobile";
 import { BlockBoundary } from "@repo/web-shared/ui";
 
 import { INVESTMENT_DETAIL_MOBILE as M } from "../model/messages";
@@ -24,14 +24,16 @@ const ScenarioPanel = dynamic(() => import("@/widgets/scenario-panel").then((mod
  */
 export const DetailMobileBody = ({ symbol, asset }: { symbol: string; asset: "crypto" | "kr" }) => (
   <>
-    <DetailMobileHead symbol={symbol} asset={asset} />
+    <MobileDetailTop>
+      <DetailMobileHead symbol={symbol} asset={asset} />
+    </MobileDetailTop>
     {/* 패널 지연 청크가 실패해도 머리(이름 · 가격)는 남는다 — 패널 칸만 한 줄(실측: 청크 abort 에 머리까지 사라졌다) */}
     <div className={s.panel}>
       <BlockBoundary name={M.panelName} minHeight={480}>
         <ScenarioPanel symbol={symbol} asset={asset} />
       </BlockBoundary>
     </div>
-    <div>
+    <div className={s.foot}>
       <p className={s.note}>{M.more}</p>
       <DesktopViewLink to={ROUTES.investmentDetail(symbol)} />
     </div>

@@ -42,34 +42,35 @@ const RowLink = ({ href, className, children }: { href: string; className: strin
   );
 };
 
-const Chevron = () => (
-  <svg className={s.chevron} width="16" height="16" viewBox="0 0 24 24" aria-hidden focusable="false">
-    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const CardRow = ({ card }: { card: HomeSummaryCard }) => (
-  <li className={s.cardItem}>
-    <RowLink href={card.href} className={s.row}>
-      <ServiceIcon variant={DOMAIN_ICON[card.domain]} />
-      <span className={s.rowMain}>
-        <span className={s.rowTitle}>{card.title}</span>
-        {card.state === "degraded" ? (
-          <span className={s.rowSub}>{M.degraded}</span>
-        ) : card.primary ? (
-          <span className={s.rowSub}>{card.secondary ? `${card.primary.label} · ${card.secondary.label} ${card.secondary.value}` : card.primary.label}</span>
-        ) : card.action ? (
-          <span className={s.rowSub}>{card.action}</span>
-        ) : null}
-      </span>
-      {/* 값 · 셰브론은 한 묶음 — 값이 길면 둘이 같이 다음 줄로(셰브론만 떨어지지 않게) */}
-      <span className={s.rowEnd}>
-        {card.state !== "degraded" && card.primary ? <span className={s.rowValue}>{card.primary.value}</span> : null}
-        <Chevron />
-      </span>
-    </RowLink>
-  </li>
-);
+/**
+ * 도메인 카드 행(기준 화면 분석 §11) — 왼쪽 아이콘 판 44 · **금액이 주인공**(22 Bold) · 그 아래 이름 · 오른쪽 회색 알약(그 도메인의 다음 행동).
+ * 카드 전체가 링크라 알약은 글자 모양이다(링크 안에 링크를 두지 않는다). 값 문구는 BFF 그대로
+ */
+const CardRow = ({ card }: { card: HomeSummaryCard }) => {
+  const degraded = card.state === "degraded";
+  const lead = degraded ? M.degraded : card.primary?.value ?? card.action ?? "";
+  const sub = [card.title, !degraded && card.primary ? card.primary.label : null].filter(Boolean).join(" · ");
+  return (
+    <li className={s.cardItem}>
+      <RowLink href={card.href} className={s.row}>
+        <span className={s.iconTile}>
+          <ServiceIcon variant={DOMAIN_ICON[card.domain]} />
+        </span>
+        <span className={s.rowMain}>
+          <span className={degraded || card.state === "empty" ? s.leadQuiet : s.lead}>{lead}</span>
+          <span className={s.rowSub}>{sub}</span>
+        </span>
+        <span className={s.pill}>{card.state === "empty" && card.action ? card.action : M.pill[card.domain]}</span>
+      </RowLink>
+      {card.secondary && !degraded ? (
+        <p className={s.cardFoot}>
+          <span>{card.secondary.label}</span>
+          <span className={s.cardFootValue}>{card.secondary.value}</span>
+        </p>
+      ) : null}
+    </li>
+  );
+};
 
 const FeedRow = ({ item }: { item: HomeRecentItem | HomeUpcomingItem }) => (
   <li>

@@ -47,3 +47,4 @@ source: 사용자 "웹뷰 배치를 PWA로 전환" · ADR-012
 | 2026-11-20 | 신규(to-do) — `ADR-012` 순서 2 |
 | 2026-11-20 | **done**(`feat/fe-req-072-mobile-screens`) — FR-1~5. 홈은 BFF 카드 계약(셸 엔티티를 패키지로 옮기지 않음) · 저축 도구 `widgets/goal-tools` · 요약 칸 엔티티로(`goalSummaryItems` · `householdSummaryItems`) · `/m` 표지 `data-surface` 로 웹뷰 선택자 대체 · 디자인 시스템 크기 표지 넷 · 서버 조회 입구 `api/server`. 투자 탭 `/m/investments` 는 FR 에 없던 탭 화면(관심 종목 · 리포트 행)이라 더했다. 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | 사용자 "모바일 디자인은 원래 내가 만들어놓았던 형식으로" · "카드 레이아웃이랑 배경 배치만" — 사용자 Figma "홈"(390) 실측으로 탭 화면 바탕 grey100 위 흰 카드(모서리 20 · 안쪽 20 · 좌우 15 · 사이 14). 카드 안 내용은 그대로 |
+| 2026-11-20 | 사용자 기준 화면 13장("이렇게 만들어야돼" · "카드랑 저런 아이콘 그리고 글래스 느낌") — 분석 `requirements/reports/research/2026-11-20-mobile-reference-screens.md`. 글래스 하단 탭 · 홈 금액 행(아이콘 판 44 · 금액 22 · 회색 알약 · 바닥 줄) · 상세 세 화면 흰 섹션 + 회색 띠 · 떠 있는 시트(모서리 32) · 홈 머리 프로필. 주문 버튼 · 호재/악재 이름표는 옮기지 않음. 390 · 360 22화면 넘침 · 13 미만 · 44 미만 0 |

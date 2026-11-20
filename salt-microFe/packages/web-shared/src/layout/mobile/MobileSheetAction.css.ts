@@ -2,7 +2,7 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { TAB_BAR_HEIGHT } from "./MobileShell.css";
+import { TAB_BAR_SPACE } from "./MobileShell.css";
 
 /**
  * 하단 고정 버튼 자리 — 고정 버튼이 마지막 내용을 덮지 않게 같은 높이를 본문 끝에 비워 둔다(버튼 48 + 위아래 12 · 12).
@@ -17,8 +17,23 @@ export const spacer = style({ height: "72px", flexShrink: 0 });
 export const aboveTabs = style({
   selectors: {
     "&&": {
-      bottom: `calc(${TAB_BAR_HEIGHT} + env(safe-area-inset-bottom, 0px))`,
+      bottom: TAB_BAR_SPACE,
       paddingBottom: vars.space.md,
+    },
+  },
+});
+
+/**
+ * 떠 있는 시트(기준 화면 분석 §9 — `requirements/reports/research/2026-11-20-mobile-reference-screens.md`) — 좌우 · 아래 10 떨어져 모서리 32.
+ * `BottomSheet` 의 꽉 찬 폭 · 위 모서리만 둥근 값을 휴대폰에서만 이긴다(`&&`)
+ */
+export const floatingSheet = style({
+  selectors: {
+    "&&": {
+      width: "calc(100% - 20px)",
+      margin: "0 10px calc(10px + env(safe-area-inset-bottom, 0px))",
+      paddingBottom: vars.space.md,
+      borderRadius: "32px",
     },
   },
 });

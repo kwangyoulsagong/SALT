@@ -25,8 +25,11 @@ export const up = style({ color: vars.colors.special.up });
 export const down = style({ color: vars.colors.special.down });
 export const flat = style({ color: vars.colors.text.tertiary });
 
-/** 한 장 패널 자리 — 흰 카드 한 장(Figma 홈 카드: 모서리 20 · 안쪽 20) */
-export const panel = style({ minWidth: 0, padding: "20px", borderRadius: "20px", background: vars.colors.background.white });
+/** 한 장 패널 자리 — 상세 화면의 흰 섹션(꽉 찬 폭 · 모서리 0 · 위아래 24 · 좌우 20) */
+export const panel = style({ minWidth: 0, padding: "24px 20px", background: vars.colors.background.white });
+
+/** 바닥 — 회색 바탕 위 고지 · 데스크톱 링크(기준 화면 분석 §2 바닥 고지 자리) */
+export const foot = style({ padding: "8px 20px 0" });
 
 export const note = style({
   margin: 0,

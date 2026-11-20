@@ -12,7 +12,7 @@ export const GoalDetailMobilePage = async ({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const initial = await serverBffRead<SavingsGoalDetail>(`/api/app/savings/goals/${encodeURIComponent(id)}`);
   return (
-    <MobileScreen>
+    <MobileScreen variant="detail">
       <BlockBoundary name={M.blockName} minHeight={480}>
         <GoalDetailMobile goalId={id} initial={initial} />
       </BlockBoundary>
