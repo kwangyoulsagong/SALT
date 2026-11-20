@@ -1,6 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
-import { IN_APP_WEBVIEW } from "@repo/core/embed";
+import { EMBED_APP, EMBED_ATTRIBUTE, IN_APP_WEBVIEW } from "@repo/core/embed";
 import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
@@ -141,6 +141,8 @@ export const dayRows = style({ display: "flex", flexDirection: "column", margin:
 
 /** 한 줄 상태(FR-13) — 실패 + 다시 불러오기 · 빈 목록은 쓴 내역 칸 높이를 조금 지킨다 */
 export const statusRow = style({ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", minHeight: "120px" });
+// 앱 웹뷰 — 상태 줄의 "다시 불러오기"(데스크톱 버튼 32)를 터치 대상 44 로(`FE-REQ-060` FR-M5, route 실패 확인에서 찾음)
+globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] ${statusRow} button`, { minHeight: "44px" });
 export const emptyRow = style({ display: "flex", alignItems: "center", minHeight: "96px", padding: "0 8px" });
 
 /**

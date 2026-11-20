@@ -57,7 +57,8 @@ const Band = ({ overview }: { overview: ReturnType<typeof useSavingsOverview> })
     return (
       <>
         <SummaryBand items={items} label={M.summaryLabel} className={deskOnly} />
-        <AppSummary items={items} label={M.summaryLabel} />
+        {/* 실패면 "불러오지 못했어요"를 30 큰 숫자로 보이지 않는다 — 주인공 없이 한 줄(FR-13, 2026-11-20 route 실패 확인에서 찾음) */}
+        <AppSummary items={overview.data ? items : items.map((item) => ({ ...item, hero: false }))} label={M.summaryLabel} />
       </>
     );
   }
