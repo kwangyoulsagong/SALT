@@ -214,3 +214,7 @@
 
 - 주의 칸 불변식 정정: "늘 채움" → "규칙 주의가 있을 때만"(`explanationQuality.test.ts` 빈 칸 기준 · `explainRouting.test.ts` 채움 칸) — 옛 문구로 되돌리면 2건 실패(변이)
 - "마감" · 서버 원인 줄 경계 표 `explanationGate.test.ts` 17건 · 규칙을 끄면 각각 실패(변이 4종). 상세 `SRV-REQ-060` 체크리스트
+
+## 2026-11-20 시세 등락 기준 걸침
+
+- [x] 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 — 확인은 `salt-server` 짝 REQ 체크리스트(`SRV-REQ-061` · `FE-REQ-075`)

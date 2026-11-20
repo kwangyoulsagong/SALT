@@ -197,3 +197,7 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 
 - `investment.routes.ts` 코인 why-moved Swagger 에 `cause` · 코인 원인 순서
 - 회고 본문은 루트 `requirements/reports/retrospects/F017-v4-stage1-panel.md`
+
+## 2026-11-20 시세 등락 기준 걸침
+
+- 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0. 새 할 일 없음

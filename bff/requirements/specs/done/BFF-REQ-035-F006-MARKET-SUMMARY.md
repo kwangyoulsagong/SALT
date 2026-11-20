@@ -30,3 +30,4 @@ created: 2026-09-22
 - 2026-10-30: 파일만 걸침 — 웹 `endpoints.ts` 에 검색 경로 추가(시장 요약 경로 옆). 계약 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 `ChartPeriod.Week`. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 | 2026-11-09 | 코인 시장 화면 컨트롤러에 why-moved 경로(F016 단계 C `BFF-REQ-051`) — 시장 요약 띠 경로 무변경 |
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |

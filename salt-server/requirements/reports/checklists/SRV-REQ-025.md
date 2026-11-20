@@ -576,3 +576,7 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 - `GetCoachDetail.ts`(머리 주인) — 변동성 · 추천 카드 `Promise.all`. 기존 상세 시험 통과 · 실측 쿼리 11 · 서버 p95 5.0ms · BFF p95 9.1ms
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절
+
+## 2026-11-20 시세 등락 기준 걸침
+
+- [x] 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 — 확인은 `salt-server` 짝 REQ 체크리스트(`SRV-REQ-061` · `FE-REQ-075`)

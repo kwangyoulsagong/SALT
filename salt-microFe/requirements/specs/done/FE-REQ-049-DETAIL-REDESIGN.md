@@ -131,3 +131,4 @@ FR-2 의 알약 탭(차트 · 코치 판단 · 자세히 · 내 거래)과 11-17
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 상세 패널 CSS 의 웹뷰 선택자를 `/m` 표지로 · 출처 칩에 `/m` 누름 자리(투명 `::after` 44)를 더했다 — 데스크톱 상세 무변경(main 비교: 가격 글만 다름). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | `FE-REQ-074` 검증 2회차가 걸침 — 한 장 패널 출처 칩의 `/m` 값(칩 폭 = 줄 폭 · 칩 안 줄바꿈 · 누름 `::after` 좌우 0). 데스크톱 변화 0 |
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |

@@ -79,3 +79,9 @@ created: 2026-09-22
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 심리 · 스마트 머니 조회 훅(`useMarketIntelligencePreview`) 지움(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/entities/market/api/useMarketQueries.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |
