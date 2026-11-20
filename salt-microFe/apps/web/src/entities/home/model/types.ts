@@ -4,7 +4,14 @@
  */
 export type {
   AppHomeVM,
+  HomeCardBars,
+  HomeCardPreview,
+  HomeCardProgress,
+  HomeCardProgressItem,
   HomeCardState,
+  HomeCardTrend,
+  HomeRecentItem,
+  HomeUpcomingItem,
   HomeCardValue,
   HomeDomain,
   HomeSummaryCard,

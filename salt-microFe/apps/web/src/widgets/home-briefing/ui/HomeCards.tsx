@@ -7,10 +7,10 @@ import { StatusLine } from "@repo/ui/statusLine";
 
 import { countUsage } from "@repo/web-shared/api";
 
-import { HOME_CARD_MESSAGES, HomeSummaryCardView, useHomeCards } from "@/entities/home";
+import { HOME_CARD_MESSAGES, HomeRecentList, HomeSummaryCardView, HomeUpcomingList, useHomeCards } from "@/entities/home";
 
 import { HOME_BLOCK_MIN_HEIGHT } from "../model/messages";
-import { cardList, skeletonCell } from "./HomeCards.css";
+import { cardList, feedGrid, stack, skeletonCell } from "./HomeCards.css";
 
 /**
  * 도메인 요약 카드 목록 (`FE-REQ-055` FR-2). 순서는 BFF `order` 그대로, `hidden` 은 그리지 않는다.
@@ -24,8 +24,8 @@ export const HomeCards = () => {
   if (home.isPending) {
     return (
       <div role="status" aria-busy="true" aria-label={HOME_CARD_MESSAGES.loading} className={cardList}>
-        {/* 카드 자리 넷 — 2열 격자 그대로(도착할 때 자리가 튀지 않게) */}
-        {[0, 1, 2, 3].map((index) => (
+        {/* 카드 자리 셋 — 격자 그대로(도착할 때 자리가 튀지 않게, 카드는 저축 · 가계부 · 투자) */}
+        {[0, 1, 2].map((index) => (
           <div key={index} className={skeletonCell}>
             <Skeleton height={HOME_BLOCK_MIN_HEIGHT.card} radius="medium" />
           </div>
@@ -42,12 +42,19 @@ export const HomeCards = () => {
     .filter((card) => card !== undefined);
 
   return (
-    <ul className={cardList}>
-      {cards.map((card) => (
-        <li key={card.domain}>
-          <HomeSummaryCardView card={card} onOpen={() => countUsage(card.domain, "card_click")} />
-        </li>
-      ))}
-    </ul>
+    <div className={stack}>
+      <ul className={cardList}>
+        {cards.map((card) => (
+          <li key={card.domain}>
+            <HomeSummaryCardView card={card} onOpen={() => countUsage(card.domain, "card_click")} />
+          </li>
+        ))}
+      </ul>
+      {/* 둘째 줄 — 최근 기록 · 다가오는 일(`FE-REQ-048` FR-13). 같은 응답이라 요청 · 경계가 늘지 않는다 */}
+      <div className={feedGrid}>
+        <HomeRecentList items={home.data.recent} />
+        <HomeUpcomingList items={home.data.upcoming} />
+      </div>
+    </div>
   );
 };
