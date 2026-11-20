@@ -27,7 +27,7 @@ shared/
 ```
 
 공개 단위는 **세그먼트**다: `@repo/web-shared/api` · `@repo/web-shared/config` · … . 그 안쪽 경로
-(`@repo/web-shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈 하나다
+(`@repo/web-shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈과 **`@repo/web-shared/ui/frame`**(서버 페이지 틀 입구 — `PageFrame` · `SideBlock`/`SideRow` · `BackNav` · `NavChevron` · `ZoneLink`, 2026-11-20 `FE-REQ-060` 3단계). 서버 컴포넌트가 `ui` 배럴을 값으로 읽으면 배럴의 클라이언트 모듈이 전부 그 페이지 번들에 딸려 간다(공개 팁 글 118 → 152 kB) — 서버 페이지가 틀만 쓰면 이 입구로. 이 입구에 클라이언트 상태 · 조회 · 모션을 더하지 않는다
 (`layered-architecture.md` §3).
 
 ## 원칙

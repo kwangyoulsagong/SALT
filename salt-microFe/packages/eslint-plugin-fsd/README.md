@@ -40,7 +40,7 @@ FSD 레이어 경계와 도메인 경계를 lint 로 강제한다 (`FE-REQ-009` 
 
 판정 로직과 레지스트리는 **`layer-rules.cjs`** 에만 있다.
 `.claude/hooks/layer-check.mjs` 가 같은 파일을 읽는다 — 미러가 아니라 같은 파일이다.
-훅 실행 테스트 `pnpm test:layer-check` — 차단 16(레이어 8 + 도메인 4 + 패키지 안 4) · 통과 10.
+훅 실행 테스트 `pnpm test:layer-check` — 차단 16(레이어 8 + 도메인 4 + 패키지 안 4) · 통과 11(2026-11-20 `ui/frame` 입구).
 
 CommonJS 인 이유: 앱이 eslintrc 모드를 쓰고, eslintrc 는 ESM 플러그인을 로드하지 못한다.
 `FE-REQ-009` FR-20 은 `layer-rules.mjs` 를 적었지만 그러면 표가 두 벌이 된다.
