@@ -151,7 +151,7 @@ export const explanationFactCatalog = (input: CoachExplanationInput, asOf: Date)
       fact(input.change24h, "percent"),
       magnitude(input.tradeValue24h),
       magnitude(Math.round(input.tradeValue24h / 1e8) * 1e8),
-      // "24시간 변동 · 거래대금" 의 24시간은 시세의 창이다 — 판단 기간("판단 뒤 24시간")보다 먼저 맞춘다
+      // "24시간 거래대금" 의 24시간(시세 창) · "판단 뒤 24시간"(판단 기간). 등락률은 전일 대비라 24시간이 아니다(`SRV-REQ-061`)
       fact(24, "hour"),
     ],
   });

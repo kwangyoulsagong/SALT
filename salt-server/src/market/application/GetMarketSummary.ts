@@ -28,12 +28,12 @@ export interface MarketSummaryItem {
   logoUrl: string;
   currentPrice: number;
   change24h: number;
-  /** 24시간 등락 금액. 반올림 전 값이다 — 원 단위 반올림은 `presentation` 이 한다. */
+  /** 전일 대비 등락 금액. 반올림 전 값이다 — 원 단위 반올림은 `presentation` 이 한다. */
   change24hAmount: number | null;
   tags: MarketSummaryTag[];
   /** 종가(시간순). 거래소 조회가 실패하면 `null` — 항목은 남는다(부분 실패). */
   sparkline: number[] | null;
-  /** 24시간 고가 · 저가 · 거래대금 — 저장 시세 그대로. 대표 칸 아래 줄이 쓴다 */
+  /** 당일 고가 · 저가(업비트 하루 — 오전 9시부터) · 24시간 거래대금 — 저장 시세 그대로. 대표 칸 아래 줄이 쓴다 */
   high24h: number;
   low24h: number;
   tradeValue24h: number;

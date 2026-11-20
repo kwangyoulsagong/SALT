@@ -702,7 +702,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
           assetType: "kr_stock" as const,
           koreanName: q.name,
           currentPrice: q.price,
-          // 전일 종가 대비(%) — 코인의 24시간 변동률 자리. 장기 판단은 이 값과 일봉 RSI 만 쓴다
+          // 전일 종가 대비(%) — 코인 변동률(이것도 전일 종가 대비)과 같은 자리. 장기 판단은 이 값과 일봉 RSI 만 쓴다
           change24h: q.changeRate,
           tradeValue24h: q.tradeValue,
           priceUpdatedAt: q.priceUpdatedAt,

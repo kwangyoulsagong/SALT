@@ -14,7 +14,7 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
 describe("periodBaseline", () => {
-  it("실시간은 기준을 찾지 않는다 — 거래소 24시간 변동률이 곧 값이다", () => {
+  it("실시간은 기준을 찾지 않는다 — 거래소 전일 대비 변동률이 곧 값이다", () => {
     assert.equal(periodBaseline(MarketOverviewPeriod.Realtime, NOW), null);
   });
 
