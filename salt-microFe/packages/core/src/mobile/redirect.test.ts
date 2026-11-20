@@ -80,6 +80,13 @@ describe("mobileRedirectOf — 그대로 두는 것", () => {
   });
 });
 
+describe("한 방향 — 대응표가 잘못 /m 을 가리켜도 /m 문서는 되돌리지 않는다", () => {
+  it.each(["/m", "/m/goals", "/m/login"])("%s", (path) => {
+    const bad: MobileRedirect[] = [{ from: path, to: "/m/home", prefix: true, by: "test" }];
+    expect(mobileRedirectOf(request({ path }), bad)).toBeNull();
+  });
+});
+
 describe("mobilePathOf · isPhone", () => {
   it("정확히 일치가 prefix 보다 먼저", () => {
     const table: MobileRedirect[] = [
