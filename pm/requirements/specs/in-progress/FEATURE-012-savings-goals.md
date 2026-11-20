@@ -2,7 +2,7 @@
 
 > 초안 2026-10-30. 읽기 쉬운 판: `pm/docs/2026-10-30-money-domains-spec.html`(리서치 출처 전부). 아키텍처: `salt-microFe/docs/architecture/2026-10-30-domain-zones.html` · `salt-server/docs/2026-10-30-msa-kotlin-migration.html`.
 
-> 영역 REQ(2026-10-30): `DB-REQ-037` · `SRV-REQ-045` · `BFF-REQ-047` · `FE-REQ-056` · `RN-REQ-033` · `FC-REQ-024`. 결정 `ADR-005` · `ADR-006` · `ADR-007`, 전 영역 계획 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
+> 영역 REQ(2026-10-30): `DB-REQ-037` · `SRV-REQ-045` · `BFF-REQ-047` · `FE-REQ-056` · ~~`RN-REQ-033`~~(→ F019 `/m` · `ADR-012`) · `FC-REQ-024`. 결정 `ADR-005` · `ADR-006` · `ADR-007`, 전 영역 계획 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
 
 ## TL;DR
 

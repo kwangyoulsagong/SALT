@@ -33,7 +33,7 @@ export const BOUNDARY_MESSAGES = {
 } as const;
 
 /**
- * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 앱(`RN-REQ-001`)이 맡는다.
+ * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 PWA `/m` zone 이 맡는다(`ADR-012`).
  * 주문을 실행하는 서비스가 아니라 "거래"라고 쓰지 않는다(공통 수용 기준 2).
  */
 export const NARROW_SCREEN_MESSAGES = {

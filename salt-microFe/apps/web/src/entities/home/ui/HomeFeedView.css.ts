@@ -68,7 +68,7 @@ export const rowSub = style({
   lineHeight: vars.deskType.label.lineHeight,
   fontWeight: vars.deskType.label.fontWeight,
   color: vars.colors.desk.text2,
-  // 앱 웹뷰 보조 = `t7` 13(웹뷰 글자 13 이상 — `RN-REQ-032` FR-7)
+  // 앱 웹뷰 보조 = `t7` 13(웹뷰 글자 13 이상 — `ADR-012` 로 PWA `/m` 에 옮김)
   selectors: { [IN_APP_WEBVIEW]: { fontSize: vars.appType.caption.fontSize, lineHeight: vars.appType.caption.lineHeight } },
 });
 

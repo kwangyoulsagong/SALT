@@ -284,3 +284,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-11-20 `FE-REQ-060` 4단계 앱 웹뷰가 걸침
 
 - [x] `@repo/tokens` `appType` 추가 — 웹 `vars.appType.*` 생성 확인(웹뷰 실화면 글자 30 · 22 · 17 · 15 · 13)
+
+## 2026-11-20 파일만 걸침(`F019-s0-decision-slice.md`)
+
+- 주석 · 문서의 RN REQ 참조 → `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`). 동작 변경 0 — 타입 · 린트 · 레이어 훅 시험(차단 15 · 통과 11) 통과

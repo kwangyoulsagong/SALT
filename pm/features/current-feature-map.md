@@ -192,7 +192,7 @@ flowchart LR
 ### 관련 문서
 
 - 글로벌 계획: `requirements/specs/in-progress/salt-solo-rebuild-global-plan.md`
-- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-007-mobile-app.md` (**FEATURE-005는 결번**)
+- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-019-mobile-pwa.md` (**FEATURE-005는 결번** · ~~`FEATURE-007-mobile-app.md`~~ 삭제 2026-11-20 `ADR-012`)
 - 요구사항 지도: `requirements/specs/in-progress/salt-requirements-master-index.md`
 - 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md` · `ADR-002-drop-ledger-invoice-tax.md`
 - 스토리보드 갭 감사와 결정: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`

@@ -11,7 +11,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 ## Summary
 
-신규 zone. 웹은 붙여넣기 · 월 화면 · 예산 편집이 강하고, 빠른 입력의 주 무대는 RN(`RN-REQ-034`)이다.
+신규 zone. 웹은 붙여넣기 · 월 화면 · 예산 편집이 강하고, 빠른 입력의 주 무대는 RN(~~`RN-REQ-034`~~(→ F019 `/m` · `ADR-012`))이다.
 
 ## FR
 

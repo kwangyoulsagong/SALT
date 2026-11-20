@@ -11,7 +11,6 @@ FSD 레이어 경계와 도메인 경계를 lint 로 강제한다 (`FE-REQ-009` 
 | 슬라이스·세그먼트 내부 경로 직접 참조 | FR-4 |
 | 같은 슬라이스를 alias 로 참조 | FR-22 |
 | `apps/*` 끼리 `src` 직접 import (zone 교차) | FR-23 |
-| `apps/mobile` → `@repo/ui` | FR-24 |
 | 루트 `app/**`·`pages/**` 에서 `@/pages`·`@/app` 외 import | FR-25 |
 | 레지스트리에 없는 슬라이스 | FR-26 |
 

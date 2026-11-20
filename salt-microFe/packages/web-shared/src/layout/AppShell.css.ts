@@ -24,7 +24,7 @@ globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"], html[${EMBED_ATTRIBUTE}="$
 globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] [role="radiogroup"] > [role="radio"]`, { minHeight: "44px", minWidth: "44px" });
 
 /**
- * 앱 웹뷰는 네이티브 탭 · 머리가 따로 있다(`RN-REQ-032` FR-2 · FR-3) — 웹 내비게이션을 통째로 숨긴다.
+ * 앱 웹뷰는 네이티브 탭 · 머리가 따로 있다(앱은 2026-11-20 `ADR-012` 로 폐기 — PWA `/m` 으로 옮기며 이 분기를 지운다) — 웹 내비게이션을 통째로 숨긴다.
  * 조각은 `@repo/ui/app-navigation` 이 단 `data-app-navigation` 으로 찾는다.
  */
 globalStyle(`html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] [data-app-navigation]`, { display: "none" });

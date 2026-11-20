@@ -256,3 +256,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/core/src/auth/keys.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — `@repo/tokens` 에 모바일 글자 토큰 `appType`(값은 `typography` 단 그대로) — 웹 어댑터 `vars` 로 그대로 올라간다. RN 이 같은 값을 본다 |
+| 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |

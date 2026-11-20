@@ -224,7 +224,7 @@
 | `apps/web` | `entities/market` | `KrStockQuote` 타입 · 세션 · 이니셜 아이콘 · 원화 정수 포맷터(표시만) |
 | `apps/web` | `features/manage-watchlist` · `features/record-transaction` | 종목 검색(마스터) · 자산군 `kr_stock` · 호가 단위 안내 |
 | `apps/web` | `entities/coach` messages | `insufficient_history` · `stale_data` 문구, 성적표 자산군 라벨. **v2(11-10):** 종목 판단은 꼬리표 사실 문장("이력 80/120일" · "n일 전 값") (`FEATURE-017` v2) |
-| `apps/mobile` | — | 이번 범위 밖(웹 계약 확정 뒤) |
+| ~~`apps/mobile`~~(→ F019 `/m` · `ADR-012`) | — | 이번 범위 밖(웹 계약 확정 뒤) |
 
 영역 REQ: `FE-REQ-041-F011-KR-STOCK`. FSD 슬라이스 이름은 서버 컨텍스트 `market` 과 같다.
 

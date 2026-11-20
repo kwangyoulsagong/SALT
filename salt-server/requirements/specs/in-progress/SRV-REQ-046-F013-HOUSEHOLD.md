@@ -54,7 +54,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 ## 계약 영향
 
-- DB `DB-REQ-038` · BFF `BFF-REQ-048` · 프론트 `FE-REQ-057` · RN `RN-REQ-034` · savings `SRV-REQ-045` FR-17
+- DB `DB-REQ-038` · BFF `BFF-REQ-048` · 프론트 `FE-REQ-057` · RN ~~`RN-REQ-034`~~(→ F019 `/m` · `ADR-012`) · savings `SRV-REQ-045` FR-17
 
 ## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/done/MONEY-S1-household-entry-slice.md`)
 

@@ -2,7 +2,7 @@
 
 > 초안 2026-10-30. 읽기 쉬운 판 · 출처: `pm/docs/2026-10-30-money-domains-spec.html`. 도메인 이름은 `household`(ADR-002의 `ledger` 원장과 구분).
 
-> 영역 REQ(2026-10-30): `DB-REQ-038` · `SRV-REQ-046` · `BFF-REQ-048` · `FE-REQ-057` · `RN-REQ-034` · `FC-REQ-024`(착지 채점). 결정 `ADR-005` · `ADR-006` · `ADR-007`, 전 영역 계획 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
+> 영역 REQ(2026-10-30): `DB-REQ-038` · `SRV-REQ-046` · `BFF-REQ-048` · `FE-REQ-057` · ~~`RN-REQ-034`~~(→ F019 `/m` · `ADR-012`) · `FC-REQ-024`(착지 채점). 결정 `ADR-005` · `ADR-006` · `ADR-007`, 전 영역 계획 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
 
 ## TL;DR
 

@@ -118,7 +118,7 @@ Status: In Progress
 F012~F015 는 영역당 한 파일(F011 이후 관례) — 종류는 파일 안 FR 표로 나눈다. F008 온톨로지 · 에이전트는 `FC-REQ-022` · `023`.
 
 파일명 규칙: `<AREA>-REQ-<NNN>-<F기능>-<종류>.md`
-예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md` · `RN-REQ-024-F006-UI.md`
+예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md`
 
 ## 3. 규칙 문서 (하네스)
 
@@ -264,7 +264,7 @@ flowchart TB
 | `FE-REQ-052` zone = 도메인(F0) | **done** 2026-11-02 | zone 앱 5(도메인 4 ~~빈 골격~~ — **정정 2026-11-02 F1: 투자 zone 이 투자 화면 서비스(`FE-REQ-053`), 셋은 골격**) · 레지스트리 `registry.json`(TS · CommonJS + 대조 테스트) · `hostedIn`(~~화면은 아직 셸~~ 저축만 셸 — 정정 2026-11-02) · 셸 rewrites 생성(경로 `fallback`) · lint/훅 도메인 축 4 · `web-tax` 삭제. 셸 공용 청크 105 → 105 kB. 남은 것은 `checklists/FE-REQ-052.md` §4 — 화면 이전 `FE-REQ-053` · `056` |
 | `FE-REQ-053` 투자 zone 분리(F1) | **done** 2026-11-02 | 투자 슬라이스 25 → `packages/domain-invest`(369 R100) · `apps/web-investment` 서비스 · `invest.hostedIn = web-investment` · shared → `packages/web-shared` · zone 공용 레이아웃(`@repo/web-shared/layout`) · `/coach/settings` · 이동 실측 Chromium 455 · WebKit 447ms(dev). 같이 고친 기존 결함 7 |
 | `FE-REQ-054` 앱 내비게이션(F2) | **done** 2026-11-03 | 이름 `AppNavigation`(사용자 결정) · 왼쪽 레일 72 / 하단 탭 / 머리 52 · 면 글리프(기준 레일 실측) · 탭 한 벌 `@repo/core/navigation` · prerender 규칙(로그인 · 다른 zone 탭) · 문서 간 전환 · `@repo/config-next` · 계측. 남은 것: ~~prerender 적중 · 녹화(`QA-001`)~~(2026-11-03 확인 — 적중 10/10 · 깜빡임 0) · ~~공용 청크 캐시 공유(`OPS-001` — 같은 청크 5개 · 117 KB 다시 받음)~~(같은 날 닫음 — `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12). `MONEY-F2-app-navigation-slice.md` |
-| `FE-REQ-051` 로고 | **done** 2026-11-04 | 소금 물방울(물결) · 은회색 입체 + 단색 두 벌(기준 원본 실측) · "Salt"(Poppins ExtraBold 경로) · `@repo/ui/logo` · 머리 첫 칸 24 · zone 5 `icon.svg` · `apple-icon.png` · `favicon.ico`(`pnpm brand:icons`). 남은 것: `ui-native` 로고(`RN-REQ-001`) · 상표 검색(사용자) · 실기기 홈 아이콘(`QA-001`) |
+| `FE-REQ-051` 로고 | **done** 2026-11-04 | 소금 물방울(물결) · 은회색 입체 + 단색 두 벌(기준 원본 실측) · "Salt"(Poppins ExtraBold 경로) · `@repo/ui/logo` · 머리 첫 칸 24 · zone 5 `icon.svg` · `apple-icon.png` · `favicon.ico`(`pnpm brand:icons`). 남은 것: ~~`ui-native` 로고(`RN-REQ-001`)~~(RN 폐기 `ADR-012` — PWA 아이콘은 `FE-REQ-071` FR-3) · 상표 검색(사용자) · 실기기 홈 아이콘(`QA-001`) |
 | `FE-REQ-055` 셸 홈 카드 · `BFF-REQ-046` 홈 계약 | **in-progress** 2026-11-02 | `HomeSummaryCard[]`(BFF 조립 · 글자 대조 테스트 · 카드당 800ms · 401 은 홈 401) · 저축 · 투자 카드(숨김 끔 손익률 / 켬 종목 수 + "오늘 처음 본다면"). 남은 것: 순서 · 숨김 편집 · 온보딩 · 내 데이터 · 알림(S3) |
 | `SRV-REQ-043` Kotlin 플랫폼(S0) | **done** 2026-11-03 | `salt-platform/`(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2 · JDK 21) · 빈 서비스 `ping` 종단 · 경계 Modulith + ArchUnit(변이 5) · Express 골든 4 · Compose(BFF · Jaeger). FR-8 인스턴스 연결은 `SRV-REQ-049` |
 | `SRV-REQ-044` 이벤트 · 아웃박스 | **in-progress** 2026-11-03 | 서비스 스키마별 아웃박스 · 릴레이(포기 · 순서) · 계약 검증 · 멱등 · 데드레터 · 지표. 남은 것: 13종(단계마다) · 프로젝션 · 내부 REST · 경보 |

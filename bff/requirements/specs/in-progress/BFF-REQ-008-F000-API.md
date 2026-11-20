@@ -176,7 +176,7 @@ type AlertVM = {
 ## Dependencies
 
 - **선행:** `BFF-REQ-007` · `SRV-REQ-009`
-- **소비:** `FE-REQ-012`(F000 API) · `RN-REQ-006`(F000 API)
+- **소비:** `FE-REQ-012`(F000 API) · ~~`RN-REQ-006`~~(→ F019 `/m` · `ADR-012`)(F000 API)
 
 ## Open Questions
 
