@@ -16,3 +16,5 @@
 ## 2026-11-20 `FE-REQ-074` 걸침
 
 - 이 REQ 파일을 `/m` 값 때문에 고쳤다 — `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다. 새 할 일 없음
+
+- 2026-11-20 걸침(`FE-REQ-076` 1단계): 휴대폰 홈 알약 문구를 `@repo/core/labels` `HOME_CARD_PILL_LABEL` 로 옮김(데스크톱 홈과 한 벌) — 값 그대로 — 할 일 없음

@@ -221,3 +221,4 @@
 - [x] 첫 로드: `/goals/new` 130 kB · `/household/new` 164 → 140 · `/household/budget` 162 → 156(서버 틀 입구) · `/household/templates` 146 · `/household/challenges` 170 · `/household/revolving` 169 · `/household/people` 171 · `/household` 178 → 180
 - 미검증: 없음 — 임시 계정은 앱 삭제 경로로 지움 · 초대 코드 지움
 
+- 2026-11-20 걸침(`FE-REQ-076` 1단계): `/household` 카드 판 · 금액 카드 · 지출 행 판 40 · 묶음 카드 모서리 20 — 데이터 · 동작 그대로 — 검증은 `checklists/FE-REQ-076.md`
