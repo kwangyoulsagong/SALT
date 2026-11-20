@@ -5,12 +5,12 @@ import { vars } from "@repo/ui/tokens";
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /** 내 숫자 — 맞혀 보기 상자와 같은 면(같은 폭 · 같은 둥글기). 휴대폰 폭에서 숫자 줄은 라벨 위 · 값 아래로 접힌다 */
-export const panel = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.weakFill });
+export const panel = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
 
 /** 상태 칸(aria-live) 안의 숫자 · 요건 · 각주 — 패널의 gap 은 바로 아래 자식에만 걸려 안쪽 블록이 붙었다(390 실측) */
 export const body = style({ display: "flex", flexDirection: "column", gap: "12px" });
 
-export const title = style({ margin: 0, fontSize: "16px", lineHeight: "24px", fontWeight: 600, color: vars.colors.text.primary });
+export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 
 export const line = style({ margin: 0, fontSize: "14px", lineHeight: "22px", color: vars.colors.text.primary, wordBreak: "keep-all", maxWidth: "720px" });
 
@@ -30,7 +30,7 @@ export const figure = style({
 
 export const figureLabel = style({ margin: 0, fontSize: "14px", lineHeight: "22px", color: vars.colors.desk.text2, wordBreak: "keep-all" });
 
-export const figureValue = style({ margin: 0, fontSize: "15px", lineHeight: "22px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
+export const figureValue = style({ margin: 0, fontSize: "14px", lineHeight: "22px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 
 export const checksTitle = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 

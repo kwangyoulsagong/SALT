@@ -8,11 +8,11 @@ import { SURFACE } from "@repo/web-shared/ui/surface.css";
  * 읽기 전에 맞혀 보기 — 바로 위 메타 상자와 같은 폭(면 상자끼리 오른쪽 끝을 맞춘다 — 720 상한을 두면 1280 에서 16px 어긋났다).
  * 문장 한 줄 720 상한은 안쪽 글이 지킨다. 휴대폰 폭에서 보기는 한 줄에 하나
  */
-export const quiz = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.weakFill });
+export const quiz = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
 
 export const eyebrow = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 600, color: vars.colors.desk.text2 });
 
-export const question = style({ margin: 0, fontSize: "16px", lineHeight: "24px", fontWeight: 600, color: vars.colors.text.primary, wordBreak: "keep-all" });
+export const question = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary, wordBreak: "keep-all" });
 
 export const choices = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "8px", maxWidth: "720px" });
 
@@ -24,9 +24,9 @@ const choiceBase = style({
   border: "1px solid rgba(22, 31, 46, 0.16)",
   background: "#ffffff",
   color: vars.colors.text.primary,
-  fontSize: "15px",
-  lineHeight: "22px",
-  fontWeight: 500,
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: 600,
   textAlign: "left",
   wordBreak: "keep-all",
   cursor: "pointer",

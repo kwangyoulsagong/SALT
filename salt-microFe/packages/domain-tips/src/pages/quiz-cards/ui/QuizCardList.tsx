@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 
-import { EmptyState } from "@repo/ui/emptyState";
+import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { hasApiStatus } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
@@ -19,16 +20,33 @@ import * as s from "./quizCards.css";
 export const QuizCardList = () => {
   const view = useQuizCards();
   // 세션이 만료돼 갱신까지 실패한 401 도 로그아웃이다 — "불러오지 못했어요"는 서버 고장으로 읽힌다(공개 zone 은 로그인으로 보내지 않는다)
-  if (view.isSignedOut || (view.isError && hasApiStatus(view.error, 401))) return <EmptyState title={M.signedOut} />;
-  if (view.isError) return <EmptyState title={M.loadFailed} tone="error" />;
-  if (!view.data) return <Skeleton height={240} />;
+  // 상태는 한 줄(`FE-REQ-060` FR-13) — 큰 빈 그림 · 빈 카드 0. 실패는 다시 불러오기 하나
+  if (view.isSignedOut || (view.isError && hasApiStatus(view.error, 401))) return <StatusLine kind="blocked">{M.signedOut}</StatusLine>;
+  if (view.isError) {
+    return (
+      <div className={s.statusRow}>
+        <StatusLine kind="error">{M.loadFailed}</StatusLine>
+        <Button size="desk" variant="weak" onClick={() => void view.refetch()}>
+          {M.retry}
+        </Button>
+      </div>
+    );
+  }
+  if (!view.data) {
+    return (
+      <div className={s.list} role="status" aria-label={M.loading}>
+        <Skeleton height={180} radius="medium" />
+        <Skeleton height={180} radius="medium" />
+      </div>
+    );
+  }
   const { available, cards } = view.data;
-  if (available === 0) return <EmptyState title={M.notPublic} />;
+  if (available === 0) return <StatusLine kind="empty">{M.notPublic}</StatusLine>;
   return (
     <>
       <p className={s.count}>{M.count(cards.length, available)}</p>
       {cards.length === 0 ? (
-        <EmptyState title={M.emptyTitle} description={M.emptyDescription} />
+        <StatusLine kind="empty">{`${M.emptyTitle} — ${M.emptyDescription}`}</StatusLine>
       ) : (
         <ul className={s.list}>
           {cards.map((card) => (

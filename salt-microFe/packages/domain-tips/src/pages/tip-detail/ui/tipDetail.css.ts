@@ -2,28 +2,44 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-export const page = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  width: "100%",
-  maxWidth: "768px",
-  margin: "0 auto",
-  padding: "20px 16px 40px",
-  boxSizing: "border-box",
+const DESKTOP = "screen and (min-width: 1024px)";
+
+/** 글 한 단 — 문장 · 상자 모두 최대 720(`screen-desktop.md` §2). 틀(`PageFrame`)이 여백 · 사이드를 맡는다 */
+export const article = style({ display: "flex", flexDirection: "column", gap: vars.space.lg, width: "100%", maxWidth: "720px", minWidth: 0 });
+
+/** 글 제목 18/700 — 화면 제목 단(`deskType.title`) */
+export const title = style({
+  margin: 0,
+  fontSize: vars.deskType.title.fontSize,
+  lineHeight: vars.deskType.title.lineHeight,
+  fontWeight: vars.deskType.title.fontWeight,
+  color: vars.colors.desk.text1,
+  wordBreak: "keep-all",
 });
 
-export const title = style({ margin: 0, fontSize: "18px", lineHeight: "24px", fontWeight: 700, color: vars.colors.text.primary, wordBreak: "keep-all" });
+export const summary = style({ margin: "-8px 0 0", fontSize: "14px", lineHeight: "22px", fontWeight: 500, color: vars.colors.desk.text2, wordBreak: "keep-all" });
 
-export const summary = style({ margin: 0, fontSize: "15px", lineHeight: "24px", color: vars.colors.desk.text2, wordBreak: "keep-all", maxWidth: "720px" });
+export const section = style({ display: "flex", flexDirection: "column", gap: vars.space.sm });
 
-export const section = style({ display: "flex", flexDirection: "column", gap: "8px" });
+export const sectionTitle = style({
+  margin: 0,
+  fontSize: vars.deskType.body.fontSize,
+  lineHeight: vars.deskType.body.lineHeight,
+  fontWeight: vars.deskType.body.fontWeight,
+  color: vars.colors.desk.text1,
+});
 
-export const sectionTitle = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
+export const disclaimer = style({
+  margin: 0,
+  fontSize: vars.deskType.label.fontSize,
+  lineHeight: vars.deskType.label.lineHeight,
+  fontWeight: vars.deskType.label.fontWeight,
+  color: vars.colors.desk.text2,
+});
 
-export const disclaimer = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.desk.text2, maxWidth: "720px" });
-
-/** 공식 링크 — 32 높이 버튼 모양(`screen-desktop.md` §3), 44 누름 칸은 줄 높이로 */
+/**
+ * 공식 링크 — 이 화면의 주 버튼 하나. 1024 이상 32 · 모서리 8 · 14/600(`screen-desktop.md` §3), 그 아래는 누름 칸 44(휴대폰 폭 공개 글)
+ */
 export const official = style({
   alignSelf: "flex-start",
   display: "inline-flex",
@@ -33,8 +49,10 @@ export const official = style({
   borderRadius: "8px",
   background: vars.colors.text.primary,
   color: "#FFFFFF",
-  fontSize: "14px",
-  lineHeight: "20px",
-  fontWeight: 600,
+  fontSize: vars.deskType.section.fontSize,
+  lineHeight: vars.deskType.section.lineHeight,
+  fontWeight: vars.deskType.section.fontWeight,
   textDecoration: "none",
+  ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
+  "@media": { [DESKTOP]: { minHeight: "32px", padding: "0 12px" } },
 });

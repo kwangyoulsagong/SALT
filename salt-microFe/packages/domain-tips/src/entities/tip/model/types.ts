@@ -136,3 +136,9 @@ export interface TipList {
   public: boolean;
   tips: TipSummary[];
 }
+
+/** 때맞춘 팁 한 건(`BFF-REQ-049` `TipForMeVM`) — 화면 맥락 하나에 서버가 고른 0~1건. 무엇을 고를지는 서버(트리거 · 닫은 것 · 공개 플래그) */
+export interface TipForMe {
+  tip: { slug: string; title: string; summary: string; trigger: string; sourceUrl: string; sourceName: string; validUntil: string } | null;
+  degraded: boolean;
+}

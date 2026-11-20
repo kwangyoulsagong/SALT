@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { apiFetch, readApiError, useHasSession } from "@repo/web-shared/api";
+import { apiFetch, readApiError, retryWhileRetriable, useHasSession } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { tipQueryKeys, type QuizCards } from "@/entities/tip";
@@ -24,6 +24,10 @@ export const useQuizCards = () => {
     queryKey: tipQueryKeys.quizCards,
     queryFn: ({ signal }) => fetchQuizCards(signal),
     enabled: signedIn === true,
+    // 모은 카드는 풀이(같은 화면 밖)로만 바뀐다 — 포커스마다 다시 부르지 않는다. 풀이가 키를 무효화한다
+    staleTime: 60_000,
+    // 기본 3회 재시도면 실패 한 줄이 7초 넘게 늦었다(2026-11-20 실패 주입) — 서버 오류만 한 번
+    retry: retryWhileRetriable(1),
   });
   return { ...query, isSignedOut: signedIn === false };
 };

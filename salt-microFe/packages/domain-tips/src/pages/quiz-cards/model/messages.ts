@@ -2,7 +2,11 @@
 export const QUIZ_CARDS_PAGE = {
   title: "맞힌 카드",
   description: "글을 읽기 전에 맞힌 문제가 여기 모여요. 한 번 모은 카드는 다시 틀려도 남아요",
-  back: "금융 팁",
+  back: "금융 팁 목록으로",
+  trailLabel: "이동 경로",
+  trailTips: "금융 팁",
+  retry: "다시 불러오기",
+  loading: "맞힌 카드를 불러오는 중",
   count: (collected: number, available: number) => `${available}문제 중 ${collected}장`,
   emptyTitle: "아직 모은 카드가 없어요",
   emptyDescription: "글 위의 '읽기 전에 맞혀 보기'를 맞히면 카드가 생겨요",
