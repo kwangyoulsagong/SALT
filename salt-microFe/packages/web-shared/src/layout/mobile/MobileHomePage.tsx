@@ -11,6 +11,7 @@ import { serverBffRead } from "../../api/server";
 import { DesktopViewLink } from "./DesktopViewLink";
 import { MobileCardPreview } from "./MobileCardPreview";
 import { MobileInstallCard } from "./MobileInstallCard";
+import { MobilePushCard } from "./MobilePushCard";
 import { MobileOfflineFallback, MobileOfflineSave } from "./MobileOffline";
 import { MOBILE_HOME_MESSAGES as M } from "./messages";
 import { MobileProfileHead } from "./MobileProfileHead";
@@ -227,6 +228,8 @@ export const MobileHomePage = async () => {
       <MobileOfflineSave snapshot={homeOfflineSnapshot(cards, home)} />
       {/* 설치 안내 — 첫 진입엔 0 · 설정 자리(맨 아래) · 닫으면 다시 안 뜸(`FE-REQ-073` FR-4) */}
       <MobileInstallCard />
+      {/* 알림 — 설치한 앱에서 도메인별 켬/끔 · 이 기기 구독(`FE-REQ-078`). 서버 푸시가 꺼져 있거나 로그인 전이면 0 */}
+      <MobilePushCard />
       {/* 홈 카드 순서 · 숨김은 데스크톱 설정(`arrange-home`) — 문서 이동 + "데스크톱 화면으로 보기" 쿠키 */}
       <a className={s.settingsPill} href={`${MOBILE_PATHS.desktop}?to=${encodeURIComponent("/settings")}`}>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden focusable="false">
