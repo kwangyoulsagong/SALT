@@ -88,3 +88,4 @@ DART 공시 수집 허용(사용자 확인, Open Questions Q1)이 있어야 시�
 | 2026-10-30 | 신규(to-do). 근거: 국내 주식 화면에 일정 정보가 없다는 사용자 요구("국장이니까 … 주요 증시 일정") |
 | 2026-11-02 | **1단계 구현 · in-progress.** FR-1~10. 정정: FR-6(기본 종목) · FR-10(작업 자리) · Q2 · Q3 닫힘. 국내 일봉 끊김을 반응 · 평소 분포 둘 다에서 뺀다(`reaction` · `stats` `break_cum`, FC-REQ-020 FR-10 과 같은 규칙). 실데이터: 31종목 + KR-EW 렌더 가능 636행 · 005930 금통위 1일 통계 SQL 재계산과 소수점까지 같음 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — **2단계 구현 — FR-11~15.** 정정 넷(FR-11 `kr_ir` = 확정 실적 일정 · FR-12 기준 = 공시일 전 거래일 종가 · FR-14 유형별 창 + 워크포워드 채점 + 월간 공시 빼기 · FR-15 수집 주인 서버). 실행 34,290행 · 창 27(렌더 24) · 사건 1,108 · 확정 일정 104 |
+| 2026-11-21 | 날마다 다른 국내 장 시간 짝(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`) — `tests/domain/test_kr_events.py` 시험 상수만 — 옛 공개 상수를 평상일 값으로 시험 안에. 동작 무변경 |
