@@ -3,13 +3,15 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { AppHomeVM, HomeDomain, HomeRecentItem, HomeSummaryCard, HomeUpcomingItem } from "@repo/core/home";
-import { MOBILE_PATHS, MOBILE_ROUTES, toMobileHref } from "@repo/core/mobile";
+import { MOBILE_PATHS, MOBILE_ROUTES, toMobileHref, type OfflineSnapshot } from "@repo/core/mobile";
 import { ServiceIcon, type ServiceIconVariant } from "@repo/ui/serviceicon";
 
 import { serverBffRead } from "../../api/server";
 
 import { DesktopViewLink } from "./DesktopViewLink";
 import { MobileCardPreview } from "./MobileCardPreview";
+import { MobileInstallCard } from "./MobileInstallCard";
+import { MobileOfflineFallback, MobileOfflineSave } from "./MobileOffline";
 import { MOBILE_HOME_MESSAGES as M } from "./messages";
 import { MobileProfileHead } from "./MobileProfileHead";
 import { MobileShortcuts } from "./MobileShortcuts";
@@ -146,6 +148,28 @@ const Feed = ({ title, items, empty }: { title: string; items: (HomeRecentItem |
 );
 
 /**
+ * 홈 한 벌(`FE-REQ-073` FR-1) — 화면이 보인 글자 그대로: 도메인 카드(이름 · 주인공 값) · 최근 기록 · 다가오는 일. 불러오지 못한 카드는 담지 않는다
+ */
+const homeOfflineSnapshot = (cards: HomeSummaryCard[], home: AppHomeVM): OfflineSnapshot => {
+  const feed = (items: (HomeRecentItem | HomeUpcomingItem)[] | null) =>
+    (items ?? []).map((item) => ({ label: item.title ?? M.expenseFallback, value: item.amount ?? "", sub: M.feedSub(item.detail, item.date) }));
+  return {
+    screen: "home",
+    title: M.title,
+    sections: [
+      {
+        title: M.cardsLabel,
+        rows: cards
+          .filter((card) => card.state !== "degraded")
+          .map((card) => ({ label: card.title, value: card.primary?.value ?? card.action ?? "", ...(card.primary ? { sub: card.primary.label } : {}) })),
+      },
+      { title: M.recentTitle, rows: feed(home.recent) },
+      { title: M.upcomingTitle, rows: feed(home.upcoming) },
+    ],
+  };
+};
+
+/**
  * 휴대폰 홈 `/m/home`(`FE-REQ-072` FR-1 · FR-2 ← `FE-REQ-060` FR-M3) — **BFF 카드 계약으로** 그린다. 셸 `entities/home` 을 패키지로 옮기지 않았다:
  * 홈은 도메인이 아니고 셸 코드는 `/m` 이 가져올 수 없다(앱 `src` 경계). 같은 응답(`GET /api/app/home`)을 서버에서 받아 행으로만.
  *
@@ -162,10 +186,13 @@ export const MobileHomePage = async () => {
     return (
       <MobileScreen>
         <MobileHead title={M.title} />
-        <p className={s.note}>{onboarding === null ? M.signedOutOrFailed : M.loadFailed}</p>
-        <Link href={MOBILE_PATHS.login} className={s.textLink}>
-          {M.signIn}
-        </Link>
+        {/* 받기 실패 — 이 기기에 그 사용자의 한 벌이 있으면 그것을(`FE-REQ-073` FR-2), 없으면 원래 안내 */}
+        <MobileOfflineFallback screen="home">
+          <p className={s.note}>{onboarding === null ? M.signedOutOrFailed : M.loadFailed}</p>
+          <Link href={MOBILE_PATHS.login} className={s.textLink}>
+            {M.signIn}
+          </Link>
+        </MobileOfflineFallback>
       </MobileScreen>
     );
   }
@@ -197,6 +224,9 @@ export const MobileHomePage = async () => {
       <Shortcuts hidden={hidden} />
       <Feed title={M.recentTitle} items={home.recent} empty={M.recentEmpty} />
       <Feed title={M.upcomingTitle} items={home.upcoming} empty={M.upcomingEmpty} />
+      <MobileOfflineSave snapshot={homeOfflineSnapshot(cards, home)} />
+      {/* 설치 안내 — 첫 진입엔 0 · 설정 자리(맨 아래) · 닫으면 다시 안 뜸(`FE-REQ-073` FR-4) */}
+      <MobileInstallCard />
       {/* 홈 카드 순서 · 숨김은 데스크톱 설정(`arrange-home`) — 문서 이동 + "데스크톱 화면으로 보기" 쿠키 */}
       <a className={s.settingsPill} href={`${MOBILE_PATHS.desktop}?to=${encodeURIComponent("/settings")}`}>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden focusable="false">

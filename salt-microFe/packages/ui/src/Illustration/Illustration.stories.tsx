@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Illustration } from "./Illustration";
 
-const SCENES = ["coinPouch", "candles", "scale", "coachBubble", "target", "ledger"] as const;
+const SCENES = ["coinPouch", "candles", "scale", "coachBubble", "target", "ledger", "addToHome"] as const;
 
 const meta = {
   title: "Components/Illustration",
@@ -14,7 +14,7 @@ const meta = {
     scene: {
       control: "select",
       options: SCENES,
-      description: "장면 — 적립 · 분석 · 비중 · 코치 · 목표 · 거래 기록",
+      description: "장면 — 적립 · 분석 · 비중 · 코치 · 목표 · 거래 기록 · 홈 화면에 추가",
     },
     size: {
       control: "inline-radio",

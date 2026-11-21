@@ -11,7 +11,14 @@ import { useCallback } from "react";
 import { MOBILE_PATHS } from "@repo/core/mobile";
 import { ROUTES } from "@repo/web-shared/config";
 import { todayInKorea } from "@repo/web-shared/lib";
-import { DesktopViewLink, MobileSection, MobileSheetAction, MobileSummary } from "@repo/web-shared/layout/mobile";
+import {
+  DesktopViewLink,
+  MobileOfflineFallback,
+  MobileOfflineSave,
+  MobileSection,
+  MobileSheetAction,
+  MobileSummary,
+} from "@repo/web-shared/layout/mobile";
 
 import {
   BOARD_MESSAGES as B,
@@ -36,6 +43,7 @@ import { MarkNoSpendButton } from "@/features/mark-no-spend";
 import { DeleteExpenseButton, QuickEntryForm } from "@/features/record-expense";
 
 import { HOUSEHOLD_MOBILE as M } from "../model/messages";
+import { householdOfflineSnapshot } from "../model/offline";
 import * as s from "./householdMobile.css";
 
 /** 세그먼트가 사는 주소 — `?view=`(없으면 목록). 고른 날은 `?day=` — 데스크톱과 같은 이름 */
@@ -74,17 +82,28 @@ export const HouseholdMobile = ({ ym, initial }: { ym: string; initial: Househol
       </div>
     );
   }
+  // 받기 실패 · 끊겨 멈춘 조회 — 이 기기의 한 벌이 있으면 그것(`FE-REQ-073` FR-2), 없으면 원래 실패 · 뼈대
   if (month.isError && !month.data) {
     return (
-      <div className={s.status}>
-        <StatusLine kind="error">{E.loadFailed}</StatusLine>
-        <Button size="md" variant="weak" onClick={() => void month.refetch()}>
-          {M.retry}
-        </Button>
-      </div>
+      <MobileOfflineFallback screen="household">
+        <div className={s.status}>
+          <StatusLine kind="error">{E.loadFailed}</StatusLine>
+          <Button size="md" variant="weak" onClick={() => void month.refetch()}>
+            {M.retry}
+          </Button>
+        </div>
+      </MobileOfflineFallback>
     );
   }
-  if (!month.data) return <Skeleton height={480} />;
+  if (!month.data) {
+    return month.fetchStatus === "paused" ? (
+      <MobileOfflineFallback screen="household">
+        <Skeleton height={480} />
+      </MobileOfflineFallback>
+    ) : (
+      <Skeleton height={480} />
+    );
+  }
   const m = month.data;
 
   const view = readView(params?.get(VIEW_PARAM) ?? null);
@@ -94,6 +113,8 @@ export const HouseholdMobile = ({ ym, initial }: { ym: string; initial: Househol
 
   return (
     <CategoryNamesProvider categories={m.categories}>
+      {/* 이번 달만 한 벌로 — 휴대폰 가계부는 늘 이번 달이지만 지난 달 응답이 오면 덮지 않는다 */}
+      {m.current ? <MobileOfflineSave snapshot={householdOfflineSnapshot(m)} /> : null}
       <MobileSummary items={householdSummaryItems(m)} label={HOUSEHOLD_SUMMARY_MESSAGES.label} icon="household" />
       {m.current ? (
         <div className={s.asks}>

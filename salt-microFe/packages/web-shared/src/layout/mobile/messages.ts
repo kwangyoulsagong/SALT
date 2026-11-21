@@ -12,6 +12,28 @@ export const MOBILE_MESSAGES = {
   offlineTitle: "연결이 끊겼어요",
   offlineBody: "다시 연결되면 이어서 볼 수 있어요",
   offlineRetry: "다시 시도",
+  /** 마지막 화면 한 벌 띠(`FE-REQ-073` FR-2) — 끊김이면 "오프라인", 연결은 됐는데 받기 실패면 그 사실대로 */
+  offlineStamp: (time: string) => `오프라인 · ${time} 기준`,
+  failedStamp: (time: string) => `불러오지 못했어요 · ${time} 기준`,
+  snapshotNote: "마지막으로 본 숫자예요. 연결되면 새로 받아요",
+  /** 오프라인 한 장 아래 — 한 벌이 있는 다른 탭으로(문서 이동 → 서비스 워커가 같은 장을 준다) */
+  offlineNavLabel: "마지막으로 본 화면",
+  offlineNav: { home: "홈", goals: "저축", household: "가계부" },
+  /** 쓰기 막힘(`FE-REQ-073` FR-3) — 큐 · 낙관적 갱신 없이 이유 한 줄 */
+  writeOffline: "연결이 끊겨 지금은 적을 수 없어요. 연결되면 다시 눌러 주세요",
+} as const;
+
+/** 설치 안내(`FE-REQ-073` FR-4) — 첫 진입에 띄우지 않고 · 닫으면 다시 안 뜸 · 설치한 앱(standalone)에선 0 */
+export const MOBILE_INSTALL_MESSAGES = {
+  title: "홈 화면에 추가하기",
+  body: "앱처럼 바로 열고, 연결이 끊겨도 마지막으로 본 숫자를 볼 수 있어요",
+  install: "홈 화면에 추가",
+  howTo: "추가하는 법 보기",
+  close: "설치 안내 닫기",
+  sheetTitle: "홈 화면에 추가하는 법",
+  steps: ["아래쪽 공유 버튼을 눌러요", "‘홈 화면에 추가’를 골라요", "오른쪽 위 ‘추가’를 눌러요"],
+  sheetClose: "닫기",
+  figureLabel: "공유 버튼과 홈 화면에 추가 메뉴",
 } as const;
 
 /** 휴대폰 홈 문구(`FE-REQ-072`) — 카드 제목 · 값은 BFF 가 준다. 데스크톱 홈(`entities/home` · `onboarding-flow`)과 같은 말 */

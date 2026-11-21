@@ -40,3 +40,16 @@ export const floatingSheet = style({
 
 /** 시트 안 본문 — 시트가 이미 좌우 여백을 준다 */
 export const sheetBody = style({ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 });
+
+/** 오프라인 이유 한 줄(`FE-REQ-073` FR-3) — 막힌 버튼 바로 위 · `t7`. 오류가 아니라 사실이라 빨강 0 */
+export const offlineReason = style({
+  margin: "0 0 8px",
+  fontSize: vars.appType.caption.fontSize,
+  lineHeight: vars.appType.caption.lineHeight,
+  color: vars.colors.neutral[700],
+  textAlign: "center",
+  wordBreak: "keep-all",
+});
+
+/** 시트 안 입력을 통째로 막는 묶음 — `fieldset disabled` 가 안의 입력 · 제출을 브라우저 기본으로 막는다. 테두리 · 여백 0 */
+export const offlineFieldset = style({ border: 0, margin: 0, padding: 0, minWidth: 0, display: "contents" });

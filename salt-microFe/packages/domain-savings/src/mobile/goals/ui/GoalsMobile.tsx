@@ -9,7 +9,7 @@ import { useCallback } from "react";
 
 import { MOBILE_PATHS, MOBILE_ROUTES } from "@repo/core/mobile";
 import { ROUTES } from "@repo/web-shared/config";
-import { DesktopViewLink, MobileSection, MobileSummary } from "@repo/web-shared/layout/mobile";
+import { DesktopViewLink, MobileOfflineFallback, MobileOfflineSave, MobileSection, MobileSummary } from "@repo/web-shared/layout/mobile";
 
 import {
   GOAL_MESSAGES,
@@ -26,6 +26,7 @@ import {
 import { GOAL_TOOLS_MESSAGES, GoalTools } from "@/widgets/goal-tools";
 
 import { GOALS_MOBILE as M } from "../model/messages";
+import { goalsOfflineSnapshot } from "../model/offline";
 import * as s from "./goalsMobile.css";
 
 /** 요약 금액 카드 높이(390 실측 214 — 금액 행 + 바닥 줄 셋) — 뼈대가 실제 카드와 같아야 카드가 올 때 아래가 밀리지 않는다 */
@@ -51,17 +52,28 @@ export const GoalsMobile = ({ initialGoals, initialOverview }: { initialGoals: S
       </div>
     );
   }
+  // 받기 실패 · 끊겨 멈춘 조회 — 이 기기의 한 벌이 있으면 그것(`FE-REQ-073` FR-2), 없으면 원래 실패 · 뼈대
   if (goals.isError && !goals.data) {
     return (
-      <div className={s.status}>
-        <StatusLine kind="error">{GOAL_MESSAGES.loadFailed}</StatusLine>
-        <Button size="md" variant="weak" onClick={() => void goals.refetch()}>
-          {M.retry}
-        </Button>
-      </div>
+      <MobileOfflineFallback screen="goals">
+        <div className={s.status}>
+          <StatusLine kind="error">{GOAL_MESSAGES.loadFailed}</StatusLine>
+          <Button size="md" variant="weak" onClick={() => void goals.refetch()}>
+            {M.retry}
+          </Button>
+        </div>
+      </MobileOfflineFallback>
     );
   }
-  if (!goals.data) return <Skeleton height={480} />;
+  if (!goals.data) {
+    return goals.fetchStatus === "paused" ? (
+      <MobileOfflineFallback screen="goals">
+        <Skeleton height={480} />
+      </MobileOfflineFallback>
+    ) : (
+      <Skeleton height={480} />
+    );
+  }
   const list = goals.data;
   if (list.length === 0) {
     return (
@@ -77,6 +89,7 @@ export const GoalsMobile = ({ initialGoals, initialOverview }: { initialGoals: S
 
   return (
     <>
+      <MobileOfflineSave snapshot={goalsOfflineSnapshot(list, overview.data ?? null)} />
       {summary ? <MobileSummary items={summary} label={GOAL_SUMMARY_MESSAGES.label} icon="ranking" /> : <Skeleton height={SUMMARY_SKELETON} />}
       <MobileSection title={M.list}>
         <ul className={goalRows}>
