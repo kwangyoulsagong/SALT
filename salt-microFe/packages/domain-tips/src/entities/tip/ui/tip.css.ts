@@ -2,21 +2,21 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox, SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /** 공개 글 — 휴대폰 폭부터(FE-REQ-058 FR-7). 한 줄 최대 720(`screen-desktop.md` §2) */
-export const meta = style({
-  display: "grid",
-  gridTemplateColumns: "max-content minmax(0, 1fr)",
-  gap: "4px 12px",
-  margin: 0,
-  padding: "12px 16px",
-  borderRadius: "12px",
-  background: SURFACE.infoFill,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
-  fontSize: "12px",
-  lineHeight: "16px",
-});
+/** 메타 다섯 칸 — 폼 상자 모양(카드 판의 글 카드 안에선 선 없는 정보 상자 — `FE-REQ-076` 2단계) */
+export const meta = style([
+  formBox,
+  {
+    display: "grid",
+    gridTemplateColumns: "max-content minmax(0, 1fr)",
+    gap: "4px 12px",
+    margin: 0,
+    fontSize: "12px",
+    lineHeight: "16px",
+  },
+]);
 
 export const metaName = style({ color: vars.colors.desk.text2, fontWeight: 500 });
 

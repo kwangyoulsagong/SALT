@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+import { card } from "@repo/web-shared/ui/surface.css";
+
 /** 1024 이상 = 데스크톱 행(오른쪽 칸에 출처 · 유효기한), 그 아래 = 요약 아래 한 줄(`FE-REQ-060` FR-10 · FR-12) */
 const DESKTOP = "screen and (min-width: 1024px)";
 
@@ -90,3 +92,6 @@ export const rowTrailing = style({
 
 /** 확인 필요 — 글자 표지(색만으로 전하지 않는다), 제목 앞 */
 export const badge = style({ ...label, marginRight: vars.space.sm, fontWeight: 600, color: vars.colors.status.warningDark });
+
+/** 목록 카드(`FE-REQ-076` 2단계) — 카드 판 위 흰 카드 하나. 폭은 목록 단 920 + 카드 안쪽 좌우 24 */
+export const listCard = style([card, { width: "100%", maxWidth: "968px" }]);

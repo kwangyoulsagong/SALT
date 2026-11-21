@@ -4,7 +4,7 @@ import { MOBILE_ROOT } from "@repo/core/mobile";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox } from "@repo/web-shared/ui/surface.css";
 
 export const form = style({ display: "flex", flexDirection: "column", gap: "12px" });
 
@@ -22,7 +22,7 @@ export const compare = style({ display: "grid", gridTemplateColumns: "repeat(2, 
 export const compact = style({});
 globalStyle(`${compact} ${inputs}, ${compact} ${compare}`, { gridTemplateColumns: "1fr" });
 
-export const side = style({ display: "flex", flexDirection: "column", gap: "4px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: SURFACE.hairline });
+export const side = style([formBox, { gap: "4px" }]);
 
 export const value = style({ fontSize: "13px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary, fontVariantNumeric: "tabular-nums" });
 

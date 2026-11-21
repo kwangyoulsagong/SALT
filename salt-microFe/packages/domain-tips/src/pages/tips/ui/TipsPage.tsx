@@ -50,6 +50,7 @@ export const TipsPage = async () => {
   const isPublic = Boolean(list?.public);
   return (
     <PageFrame
+      surface="cards"
       title={M.title}
       sideLabel={TIP_MESSAGES.sideLabel}
       side={
@@ -62,17 +63,19 @@ export const TipsPage = async () => {
       }
     >
       <p className={s.description}>{M.description}</p>
-      {!list?.public ? (
-        <StatusLine kind="empty">{`${M.notPublicTitle} — ${M.notPublicDescription}`}</StatusLine>
-      ) : list.tips.length === 0 ? (
-        <StatusLine kind="empty">{M.emptyTitle}</StatusLine>
-      ) : (
-        <ul className={s.list} aria-label={M.listLabel}>
-          {list.tips.map((tip) => (
-            <TipRow key={tip.slug} tip={tip} />
-          ))}
-        </ul>
-      )}
+      <div className={s.listCard}>
+        {!list?.public ? (
+          <StatusLine kind="empty">{`${M.notPublicTitle} — ${M.notPublicDescription}`}</StatusLine>
+        ) : list.tips.length === 0 ? (
+          <StatusLine kind="empty">{M.emptyTitle}</StatusLine>
+        ) : (
+          <ul className={s.list} aria-label={M.listLabel}>
+            {list.tips.map((tip) => (
+              <TipRow key={tip.slug} tip={tip} />
+            ))}
+          </ul>
+        )}
+      </div>
     </PageFrame>
   );
 };

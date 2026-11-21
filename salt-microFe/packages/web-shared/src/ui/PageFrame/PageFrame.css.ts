@@ -2,7 +2,7 @@ import { globalStyle, style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { detailPanel, panel } from "../surface.css";
+import { card, detailPanel, formBox, lineCard, panel, SURFACE, toolEmpty } from "../surface.css";
 
 /**
  * 데스크톱 화면 한 장의 틀(`FE-REQ-047` FR-2 · FR-7 · FR-12 · FR-17, `screen-desktop.md` §1).
@@ -98,3 +98,40 @@ globalStyle(`${cardsSurface} ${side} > *:empty`, { display: "none" });
  * 화면마다 덮지 않고 판이 한 번에 바꾼다(휴대폰 `/m` 이 같은 패널을 흰 섹션으로 바꾸는 것과 같은 방식 — `FE-REQ-074` FR-7)
  */
 globalStyle(`${cardsSurface} ${panel}, ${cardsSurface} ${detailPanel}`, { borderRadius: vars.radius.xl, boxShadow: "none" });
+
+/**
+ * 카드 판 위 폼 상자 · 선 카드 · 빈 목록 상자 = 흰 카드(모서리 20 · 선 0 · 20 × 24 — `FE-REQ-076` 2단계). 하위 화면(챌린지 · 리볼빙 · 사람 장부 ·
+ * 매달 · 예산 · 지출 적기 · 이야기)의 폼과 목록 카드가 각자 선 상자였다 — 기능은 자기가 판 위인지 카드 안인지 모르므로 판이 한 번에 정한다
+ */
+globalStyle(`${cardsSurface} ${formBox}, ${cardsSurface} ${lineCard}, ${cardsSurface} ${toolEmpty}`, {
+  padding: "20px 24px",
+  borderRadius: vars.radius.xl,
+  background: vars.colors.background.white,
+  boxShadow: "none",
+});
+
+/**
+ * 카드 안(카드 · 공용 패널 · 상세 패널 · 사이드 묶음 · 다른 폼 상자 안)의 폼 상자 · 선 카드 = 선 없는 정보 상자 — 카드 안에 카드를 두지 않는다
+ * (`screen-desktop.md` §1-1). 가계부 "이 달 더 보기" 안 이 달 닫기 · 근무 시간 폼 · 명세서 고치기가 여기 걸린다
+ */
+const IN_CARD = [card, panel, detailPanel, formBox, lineCard].map((c) => `${cardsSurface} ${c}`).concat(`${cardsSurface} ${side} > *`);
+globalStyle(
+  IN_CARD.flatMap((parent) => [`${parent} ${formBox}`, `${parent} ${lineCard}`]).join(", "),
+  { padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: "none" },
+);
+
+/**
+ * 사이드 직계 자식이 폼 상자 · 선 카드면 사이드 카드 값(안쪽 16 · 사이드 폭 그대로)이 이긴다 — 위 판 규칙과 같은 우선이라 순서로 갈리던 것.
+ * 폭 상한(근무 시간 폼 560)은 본문 안 글 폭이라 사이드 카드엔 안 맞다 — 768~1023 에서 사이드가 본문 아래로 내려가면 그 카드만 좁았다(2026-11-21 900 실측)
+ */
+globalStyle(`${cardsSurface} ${side} > ${formBox}, ${cardsSurface} ${side} > ${lineCard}`, { padding: vars.space.lg, maxWidth: "none" });
+
+/**
+ * 판 위 대기 칸 = 흰 카드 모양(`FE-REQ-076` 2단계). `Skeleton` 면(grey100)이 판과 같은 색이라 로딩 중 칸이 통째로 안 보였다(챌린지 · 리볼빙 ·
+ * 사람 장부 · 예산 — Playwright `route` 지연 실측). 카드 안 대기 칸은 회색 그대로 — 표지 `data-skeleton` 은 `@repo/ui` `Skeleton` 이 단다
+ */
+const CARD_PARENTS = [card, panel, detailPanel, formBox, lineCard].join(", ");
+globalStyle(`${cardsSurface} [data-skeleton]:not(:is(${CARD_PARENTS}, ${side} > *) [data-skeleton])`, {
+  background: vars.colors.background.white,
+  borderRadius: vars.radius.xl,
+});

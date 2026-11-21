@@ -9,7 +9,7 @@ import { BudgetBoard, BudgetSide } from "./BudgetBoard";
  * 예산 `/household/budget`(`FE-REQ-057` FR-6 → `FE-REQ-060` FR-7) — 데스크톱 틀: 뒤로 + 이동 경로 · 본문 = 방식 · 봉투 행, 오른쪽 사이드 = 내 분류 · 근무 시간
  */
 export const BudgetPage = () => (
-  <PageFrame side={<BudgetSide />} sideLabel={M.side}>
+  <PageFrame side={<BudgetSide />} sideLabel={M.side} surface="cards">
     <BackNav
       label={M.back}
       trailLabel={M.trailLabel}

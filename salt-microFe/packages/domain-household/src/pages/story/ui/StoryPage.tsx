@@ -26,7 +26,7 @@ export const StoryPage = async ({
   const initial = await serverStory(period);
   const year = period.slice(0, 4);
   return (
-    <PageFrame>
+    <PageFrame surface="cards">
       <BackNav
         label={M.back}
         trailLabel={HOUSEHOLD_TRAIL.label}

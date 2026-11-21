@@ -180,7 +180,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           <DepositForm goalId={goal.id} compact />
         </section>
       ) : (
-        <p className={s.muted}>{GOAL_MESSAGES.completed}</p>
+        <p className={`${s.asideBlock} ${s.muted}`}>{GOAL_MESSAGES.completed}</p>
       )}
       {goal.saved > 0 ? (
         <section className={s.asideBlock} aria-label={EMERGENCY_MESSAGES.title}>
@@ -188,7 +188,9 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           <EmergencyCompare goalId={goal.id} compact />
         </section>
       ) : null}
-      <SideRow href={ROUTES.goals} icon={null} label={M.balance} hint={M.balanceHint} />
+      <div className={s.asideBlock}>
+        <SideRow href={ROUTES.goals} icon={null} label={M.balance} hint={M.balanceHint} />
+      </div>
     </div>
   );
 

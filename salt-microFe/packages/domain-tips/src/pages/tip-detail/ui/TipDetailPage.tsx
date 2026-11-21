@@ -25,6 +25,7 @@ export const TipDetailPage = async ({ params }: Params) => {
   if (!tip) notFound();
   return (
     <PageFrame
+      surface="cards"
       sideLabel={TIP_MESSAGES.sideLabel}
       side={
         <>
@@ -42,21 +43,23 @@ export const TipDetailPage = async ({ params }: Params) => {
         />
         <h1 className={s.title}>{tip.title}</h1>
         <p className={s.summary}>{tip.summary}</p>
-        {tip.status === TipStatus.NeedsCheck ? <NeedsCheckBand /> : null}
-        <TipMetaList meta={tip.meta} />
-        {tip.quiz ? <AnswerQuiz slug={tip.slug} quiz={tip.quiz} /> : null}
-        <TipBody blocks={tip.body} />
-        {tip.myNumbers ? <MyNumbersSlot slug={tip.slug} /> : null}
-        <a className={s.official} href={tip.meta.sourceUrl} target="_blank" rel="noopener noreferrer">
-          {M.officialLink}
-        </a>
-        <p className={s.disclaimer}>{TIP_MESSAGES.disclaimer}</p>
-        {tip.revisions.length > 0 ? (
-          <section className={s.section}>
-            <h2 className={s.sectionTitle}>{TIP_MESSAGES.revisions}</h2>
-            <RevisionList revisions={tip.revisions} />
-          </section>
-        ) : null}
+        <div className={s.body}>
+          {tip.status === TipStatus.NeedsCheck ? <NeedsCheckBand /> : null}
+          <TipMetaList meta={tip.meta} />
+          {tip.quiz ? <AnswerQuiz slug={tip.slug} quiz={tip.quiz} /> : null}
+          <TipBody blocks={tip.body} />
+          {tip.myNumbers ? <MyNumbersSlot slug={tip.slug} /> : null}
+          <a className={s.official} href={tip.meta.sourceUrl} target="_blank" rel="noopener noreferrer">
+            {M.officialLink}
+          </a>
+          <p className={s.disclaimer}>{TIP_MESSAGES.disclaimer}</p>
+          {tip.revisions.length > 0 ? (
+            <section className={s.section}>
+              <h2 className={s.sectionTitle}>{TIP_MESSAGES.revisions}</h2>
+              <RevisionList revisions={tip.revisions} />
+            </section>
+          ) : null}
+        </div>
       </div>
     </PageFrame>
   );

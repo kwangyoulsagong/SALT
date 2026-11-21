@@ -13,7 +13,7 @@ import * as s from "./newExpense.css";
  * 데스크톱 틀: 뒤로 + 이동 경로 · 본문 = 방법 셋 · 오른쪽 사이드 = 이 달 최근 쓴 내역(방금 적은 것이 거기 보인다)
  */
 export const NewExpensePage = () => (
-  <PageFrame side={<RecentExpenses />} sideLabel={M.recent}>
+  <PageFrame side={<RecentExpenses />} sideLabel={M.recent} surface="cards">
     <BackNav
       label={M.back}
       trailLabel={M.trailLabel}

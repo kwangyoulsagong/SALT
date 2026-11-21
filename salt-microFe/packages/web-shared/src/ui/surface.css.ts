@@ -118,6 +118,31 @@ export const pill = style({
   whiteSpace: "nowrap",
 });
 
+/**
+ * 폼 상자 — 옅은 면 · 안쪽 선 · 모서리 12 · 12 × 16. 기능 폼 · 묻는 카드(챌린지 · 리볼빙 · 사람 장부 · 봉투 · 근무 시간 · 이 달 닫기 …)가
+ * 같은 값을 화면마다 복사해 쓰던 것을 한 벌로(`FE-REQ-076` 2단계). 카드 판(`PageFrame surface="cards"`) 위에선 판이 흰 카드로,
+ * 카드 안에선 선 없는 정보 상자로 바꾼다(`PageFrame.css`) — 기능은 자기가 어디 놓이는지 모른다. 휴대폰 · 다른 면에선 이 값 그대로
+ */
+export const formBox = style({
+  display: "flex",
+  flexDirection: "column",
+  padding: "12px 16px",
+  borderRadius: "12px",
+  background: SURFACE.infoFill,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
+});
+
+/** 선 카드 — 흰 면 · 안쪽 선 · 모서리 12 · 20. 카드 판 위에선 `card` 모양, 카드 안에선 정보 상자(`formBox` 와 같은 규칙) */
+export const lineCard = style({
+  display: "flex",
+  flexDirection: "column",
+  padding: "20px",
+  borderRadius: "12px",
+  background: vars.colors.background.white,
+  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
+  minWidth: 0,
+});
+
 /** 옅은 회색 면 상자 — 안내 · 요약 · 지표 칸 */
 export const weakBox = style({
   borderRadius: "12px",
@@ -212,15 +237,7 @@ export const toolAside = style({
   "@media": { "screen and (min-width: 1280px)": { order: 1, position: "sticky", top: "16px" } },
 });
 
-export const toolCard = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  padding: "20px",
-  borderRadius: "12px",
-  background: vars.colors.background.white,
-  boxShadow: SURFACE.hairline,
-});
+export const toolCard = style([lineCard, { gap: "12px" }]);
 
 /** 목록이 비었을 때 — 패널 높이를 지키는 정보 상자(무엇이 여기 생기는지 · 어떻게 채우는지) */
 export const toolEmpty = style({
