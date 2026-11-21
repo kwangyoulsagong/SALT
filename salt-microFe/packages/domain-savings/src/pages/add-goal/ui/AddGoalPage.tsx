@@ -15,7 +15,7 @@ export const AddGoalPage = async ({ searchParams }: { searchParams?: Promise<{ t
   const params = (await searchParams) ?? {};
   const template = typeof params.template === "string" ? params.template : undefined;
   return (
-    <PageFrame>
+    <PageFrame surface="cards">
       <BackNav
         label={ADD_GOAL_PAGE.back}
         trailLabel={ADD_GOAL_PAGE.trailLabel}

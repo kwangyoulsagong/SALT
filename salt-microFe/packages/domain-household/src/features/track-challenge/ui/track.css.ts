@@ -2,10 +2,10 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox } from "@repo/web-shared/ui/surface.css";
 
 /** 챌린지 카드 — 가계부 표면과 같은 값. 끝난 카드도 같은 색(끝 ≠ 실패) */
-export const card = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
+export const card = style([formBox, { gap: "12px" }]);
 
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" });
 

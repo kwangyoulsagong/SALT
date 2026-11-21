@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+import { card } from "@repo/web-shared/ui/surface.css";
+
 const DESKTOP = "screen and (min-width: 1024px)";
 
 /** 글 한 단 — 문장 · 상자 모두 최대 720(`screen-desktop.md` §2). 틀(`PageFrame`)이 여백 · 사이드를 맡는다 */
@@ -56,3 +58,6 @@ export const official = style({
   ":focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
   "@media": { [DESKTOP]: { minHeight: "32px", padding: "0 12px" } },
 });
+
+/** 글 카드(`FE-REQ-076` 2단계) — 뒤로 · 제목 · 요약은 판 위, 확인 필요 띠부터 바뀐 것까지 흰 카드 하나. 안의 메타 · 맞혀 보기 · 내 숫자 상자는 선 없는 정보 상자 */
+export const body = style([card, { gap: vars.space.lg }]);

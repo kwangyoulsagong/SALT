@@ -2,10 +2,10 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox } from "@repo/web-shared/ui/surface.css";
 
 /** 해 봉투 — 넘어도 같은 색(빨강 · 경고 색 0, 음수는 부호 글자로만) */
-export const form = style({ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "720px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
+export const form = style([formBox, { gap: "8px", maxWidth: "720px" }]);
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 

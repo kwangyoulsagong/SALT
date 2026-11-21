@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+import { card, lineCard } from "@repo/web-shared/ui/surface.css";
+
 /** 예산 화면 사이드 묶음(`FE-REQ-060` FR-7) — 제목 13/600 */
 export const sideBlock = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
 
@@ -22,14 +24,7 @@ export const split = style({
   "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 720px) minmax(0, 1fr)" } },
 });
 
-export const ratioCard = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  minWidth: 0,
-  padding: "20px",
-  borderRadius: "12px",
-  background: vars.colors.background.white,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
-  "@media": { "screen and (min-width: 1280px)": { position: "sticky", top: "16px" } },
-});
+export const ratioCard = style([lineCard, { gap: "12px", "@media": { "screen and (min-width: 1280px)": { position: "sticky", top: "16px" } } }]);
+
+/** 예산 칸 카드(`FE-REQ-076` 2단계) — 카드 판 위 흰 카드. 방식 세그먼트 · 봉투 행 · 저장이 한 카드 */
+export const editorCard = style([card, { gap: "16px" }]);

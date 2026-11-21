@@ -2,10 +2,10 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox, SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /** 리볼빙 명세서 — 가계부 표면과 같은 값(경고 색 0) */
-export const form = style({ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "720px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
+export const form = style([formBox, { gap: "12px", maxWidth: "720px" }]);
 
 export const card = style([form, { gap: "8px" }]);
 

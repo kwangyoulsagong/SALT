@@ -9,7 +9,7 @@ export const GoalDetailPage = async ({ params }: { params: Promise<{ id: string 
   const { id } = await params;
   const initial = await serverGoal(id);
   return (
-    <PageFrame>
+    <PageFrame surface="cards">
       <BlockBoundary name={M.blockName} minHeight={480}>
         <GoalDetailView goalId={id} initial={initial} />
       </BlockBoundary>

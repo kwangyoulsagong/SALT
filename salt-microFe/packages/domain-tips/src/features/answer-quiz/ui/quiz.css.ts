@@ -2,13 +2,13 @@ import { style, styleVariants } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox } from "@repo/web-shared/ui/surface.css";
 
 /**
  * 읽기 전에 맞혀 보기 — 바로 위 메타 상자와 같은 폭(면 상자끼리 오른쪽 끝을 맞춘다 — 720 상한을 두면 1280 에서 16px 어긋났다).
  * 문장 한 줄 720 상한은 안쪽 글이 지킨다. 휴대폰 폭에서 보기는 한 줄에 하나
  */
-export const quiz = style({ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
+export const quiz = style([formBox, { gap: "12px", padding: "16px" }]);
 
 export const eyebrow = style({ margin: 0, fontSize: "12px", lineHeight: "16px", fontWeight: 600, color: vars.colors.desk.text2 });
 

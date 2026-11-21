@@ -19,7 +19,7 @@ export const PeoplePage = async ({
   const year = readYear(q.year);
   const person = readPerson(q.person);
   return (
-    <PageFrame>
+    <PageFrame surface="cards">
       <BackNav
         label={M.back}
         trailLabel={HOUSEHOLD_TRAIL.label}

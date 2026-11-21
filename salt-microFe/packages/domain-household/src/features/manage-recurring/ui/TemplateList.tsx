@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/button";
 import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
-import { toolAside, toolCard, toolEmpty, toolEmptyBody, toolEmptyTitle, toolGrid, toolMain } from "@repo/web-shared/ui/surface.css";
+import { card, toolAside, toolCard, toolEmpty, toolEmptyBody, toolEmptyTitle, toolGrid, toolMain } from "@repo/web-shared/ui/surface.css";
 
 import { CategoryIcon, formatMonth, formatWon, useCategoryLabel, useRecurringTemplates, type RecurringTemplate } from "@/entities/household";
 
@@ -53,33 +53,35 @@ export const TemplateList = () => {
             <p className={toolEmptyBody}>{M.emptyHint}</p>
           </div>
         ) : (
-          <ul className={s.list}>
-            {templates.map((t) => (
-              <li key={t.id} className={s.row}>
-                <span className={s.iconPlate} aria-hidden="true">
-                  <CategoryIcon category={t.category} />
-                </span>
-                <span className={s.rowMain}>
-                  <span className={s.line}>
-                    {t.name} · {formatWon(t.amount)}
+          <div className={card}>
+            <ul className={s.list}>
+              {templates.map((t) => (
+                <li key={t.id} className={s.row}>
+                  <span className={s.iconPlate} aria-hidden="true">
+                    <CategoryIcon category={t.category} />
                   </span>
-                  <span className={s.label}>
-                    {M.dayOf(t.dayOfMonth)} · {label.category(t.category)}
-                    {t.thisMonth ? ` · ${M.stage[t.thisMonth.stage]}` : ` · ${M.startsNext(formatMonth(t.startsMonth))}`}
+                  <span className={s.rowMain}>
+                    <span className={s.line}>
+                      {t.name} · {formatWon(t.amount)}
+                    </span>
+                    <span className={s.label}>
+                      {M.dayOf(t.dayOfMonth)} · {label.category(t.category)}
+                      {t.thisMonth ? ` · ${M.stage[t.thisMonth.stage]}` : ` · ${M.startsNext(formatMonth(t.startsMonth))}`}
+                    </span>
                   </span>
-                </span>
-                <span className={s.actions}>
-                  {t.confirmRequired ? null : <Badge>{M.autoBadge}</Badge>}
-                  <Button size="xs" variant="weak" onClick={() => setEditing(t)}>
-                    {M.edit}
-                  </Button>
-                  <Button size="xs" variant="weak" disabled={end.isPending} onClick={() => end.mutate(t.id)}>
-                    {M.end}
-                  </Button>
-                </span>
-              </li>
-            ))}
-          </ul>
+                  <span className={s.actions}>
+                    {t.confirmRequired ? null : <Badge>{M.autoBadge}</Badge>}
+                    <Button size="xs" variant="weak" onClick={() => setEditing(t)}>
+                      {M.edit}
+                    </Button>
+                    <Button size="xs" variant="weak" disabled={end.isPending} onClick={() => end.mutate(t.id)}>
+                      {M.end}
+                    </Button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         {end.isError ? (
           <p className={s.note} role="status">
