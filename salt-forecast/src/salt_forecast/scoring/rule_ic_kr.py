@@ -16,6 +16,7 @@ from datetime import UTC, date, datetime
 import numpy as np
 from numpy.typing import NDArray
 
+from salt_forecast.domain.calendar import krx_close_known, krx_closed_day
 from salt_forecast.domain.ic import IcResult, cross_sectional_ic, summarize_cross_section
 from salt_forecast.domain.kr_breaks import KRX_UP_BREAK_RATIO
 from salt_forecast.domain.kr_regime import HIGH_VOL_2026, NORMAL, SHORT_BAN, kr_regime
@@ -23,7 +24,7 @@ from salt_forecast.domain.kr_universe import RULE as KR_UNIVERSE
 from salt_forecast.domain.labels import class_ratio, ewma_sigma, triple_barrier
 from salt_forecast.domain.panel import Mat, Panel, build_panel, forward_log_return, lag, rolling_sum
 from salt_forecast.domain.rule_items import MODES, contributions
-from salt_forecast.domain.series import OhlcvSeries
+from salt_forecast.domain.series import DAY, OhlcvSeries
 from salt_forecast.scoring.rule_ic import Protocol
 
 RULE_VERSION = "mode-decision@2"
@@ -31,7 +32,6 @@ RULE_VERSION = "mode-decision@2"
 REGIME_KEYS: dict[str, str] = {NORMAL: "kr_normal", SHORT_BAN: "kr_short_ban", HIGH_VOL_2026: "kr_high_vol_2026"}
 REGIMES = ("all", *REGIME_KEYS.values())
 SIGNAL_WINDOW = 14  # RSI 창 — 신호가 보는 봉 수
-KR_CLOSE_UTC_OFFSET = 7 * 3600  # kis available_at = 16:00 KST = 07:00 UTC
 
 
 @dataclass(slots=True)
@@ -44,19 +44,20 @@ class KrRunOutput:
 
 
 def session_panel(ohlcv: Mapping[str, OhlcvSeries], start: int, end: int) -> Panel:
-    """거래일 격자 패널. 봉 시각(07:00 UTC)을 그날 00:00 UTC 로 옮겨 하루 격자를 만든 뒤 **봉이 하나도 없는 날을 뺀다**.
+    """거래일 격자 패널. 봉 시각(그날 종가 공개 — 평상일 07:00 · 수능일 08:00 UTC)을 그날 00:00 UTC 로 옮겨
+    하루 격자를 만든 뒤 **봉이 하나도 없는 날을 뺀다**. 행 시각은 다시 그날 종가 공개 시각(`krx_close_known`).
     `listed_at` 은 거래일 행 번호(격자 전 상장은 음수가 아니라 0 — 대상 판정은 봉 수로 한다)."""
     shifted = {
-        s: OhlcvSeries(s, o.available_at - KR_CLOSE_UTC_OFFSET, o.open, o.high, o.low, o.close, o.volume)
+        s: OhlcvSeries(s, o.available_at // DAY * DAY, o.open, o.high, o.low, o.close, o.volume)
         for s, o in ohlcv.items()
     }
-    p = build_panel(shifted, start - KR_CLOSE_UTC_OFFSET, end - KR_CLOSE_UTC_OFFSET)
+    p = build_panel(shifted, krx_closed_day(start), krx_closed_day(end))
     keep = np.any(~np.isnan(p.close), axis=1)
     rows = np.flatnonzero(keep)
     has = ~np.isnan(p.close[rows])
     first = np.where(has.any(axis=0), has.argmax(axis=0), rows.size).astype(np.int64)
     return Panel(
-        p.dates[rows] + KR_CLOSE_UTC_OFFSET, p.symbols, p.high[rows], p.low[rows], p.close[rows], p.volume[rows], first,
+        krx_close_known(p.dates[rows]), p.symbols, p.high[rows], p.low[rows], p.close[rows], p.volume[rows], first,
         None if p.open is None else p.open[rows],
     )  # fmt: skip
 

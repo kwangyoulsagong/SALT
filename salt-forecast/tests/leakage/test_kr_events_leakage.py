@@ -4,10 +4,12 @@ from datetime import UTC, date, datetime, timedelta
 
 import numpy as np
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE
 from salt_forecast.domain.events import HORIZONS, ScheduledEvent, reaction, scheduled, stats
 from salt_forecast.domain.kr_breaks import up_limit_breaks
 from salt_forecast.domain.series import OhlcvSeries
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 
 def _days(n: int) -> list[date]:

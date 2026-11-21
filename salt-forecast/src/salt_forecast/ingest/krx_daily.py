@@ -1,8 +1,8 @@
 """국내 주식 일봉 — 서버가 KIS 에서 받아 `public.price_history` 에 둔 것을 `forecast.price_bar` 로 옮긴다(FC-REQ-009).
 
 외부 호출이 없는 유일한 수집이다 — 키 보유처를 서버 한 곳으로 둔다(FEATURE-011 FR-80).
-available_at = 거래일 16:00 KST(15:30 마감 + 정정 여유 30분, 서버 확정 작업은 15:45). 그 전에 본 봉은 장중
-미확정이라 버린다(time-and-leakage.md §1).
+available_at = 거래일 마감 + 정정 여유 30분(평상일 16:00 KST · 수능일 17:00 — `krx_close_available`).
+그 전에 본 봉은 장중 미확정이라 버린다(time-and-leakage.md §1).
 """
 
 from __future__ import annotations
@@ -10,22 +10,22 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime, timedelta
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, krx_session
+from salt_forecast.domain.calendar import krx_close_available, krx_close_minute, krx_session
 from salt_forecast.store.kr_stock import KrDailyRow
 from salt_forecast.store.prices import Bar
 
 SOURCE = "kis"
 INTERVAL = "1d"
-# 봉 시작 = 거래일 00:00 KST, 마감 = 15:30 KST
+# 봉 시작 = 거래일 00:00 KST, 마감 = 그날 종가 단일가(평상일 15:30 · 수능일 16:30 KST)
 _OPEN_OFFSET = timedelta(hours=-9)
-_CLOSE_OFFSET = timedelta(hours=6, minutes=30)
+_KST = timedelta(hours=9)
 
 
 def to_bars(rows: Iterable[KrDailyRow], now: datetime) -> Iterator[Bar]:
-    """now 에 아직 공개 전(16:00 KST 전)인 봉은 버린다."""
+    """now 에 아직 공개 전(그날 `krx_close_available` 전)인 봉은 버린다."""
     for r in rows:
         session = datetime.fromtimestamp(krx_session(r.trade_date), tz=UTC)
-        available = session + timedelta(seconds=KRX_CLOSE_AVAILABLE)
+        available = session + timedelta(seconds=krx_close_available(r.trade_date))
         if available > now:
             continue
         yield Bar(
@@ -33,7 +33,7 @@ def to_bars(rows: Iterable[KrDailyRow], now: datetime) -> Iterator[Bar]:
             r.code,
             INTERVAL,
             session + _OPEN_OFFSET,
-            session + _CLOSE_OFFSET,
+            session - _KST + timedelta(minutes=krx_close_minute(r.trade_date)),
             available,
             r.open,
             r.high,

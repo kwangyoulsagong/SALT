@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 import numpy as np
 from sqlalchemy import Engine, text
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, krx_session
+from salt_forecast.domain.calendar import krx_close_available, krx_session
 from salt_forecast.domain.move_beta import KR_MARKET_INDEX, MoveBeta, kr_sector_index_code
 from salt_forecast.domain.series import CloseSeries
 from salt_forecast.store.bulk import bulk_upsert
@@ -22,8 +22,8 @@ from salt_forecast.store.tables import move_beta
 
 
 def kr_index_daily(engine: Engine) -> dict[str, CloseSeries]:
-    """지수 · 업종 일별 종가 — available_at = 그 거래일 종가를 아는 시각(16:00 KST, 국내 일봉과 같은 관례). 시점
-    자르기는 호출자가 `as_of`."""
+    """지수 · 업종 일별 종가 — available_at = 그 거래일 종가를 아는 시각(`krx_close_available` — 국내 일봉과
+    같은 관례). 시점 자르기는 호출자가 `as_of`."""
     with engine.connect() as conn:
         rows = conn.execute(
             text("SELECT code, trade_date, close FROM public.kr_sector_index_daily ORDER BY code, trade_date")
@@ -31,7 +31,7 @@ def kr_index_daily(engine: Engine) -> dict[str, CloseSeries]:
     grouped: dict[str, tuple[list[int], list[float]]] = {}
     for code, d, close in rows:
         t, v = grouped.setdefault(str(code), ([], []))
-        t.append(krx_session(d) + KRX_CLOSE_AVAILABLE)
+        t.append(krx_session(d) + krx_close_available(d))
         v.append(float(close))
     return {
         c: CloseSeries(c, np.asarray(t, dtype=np.int64), np.asarray(v, dtype=np.float64))

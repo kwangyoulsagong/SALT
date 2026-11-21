@@ -19,7 +19,7 @@ import numpy as np
 from sqlalchemy import Engine
 
 from salt_forecast.domain.base_rate import CRYPTO_ROUND_TRIP, kr_round_trip
-from salt_forecast.domain.calendar import report_day
+from salt_forecast.domain.calendar import krx_close_available, report_day
 from salt_forecast.domain.series import DAY
 from salt_forecast.domain.short_direction import (
     CRYPTO_SPECS,
@@ -86,12 +86,12 @@ def model_version(sha: str) -> str:
 
 
 def next_kr_close(as_of: datetime, closed: set[date]) -> datetime:
-    """기준 거래일 16:00 KST 다음 거래일 16:00 KST — 주말 · 휴장 공시 표를 건너뛴다."""
+    """기준 거래일 다음 거래일의 종가 공개 시각(평상일 16:00 · 수능일 17:00 KST) — 주말 · 휴장 공시 표를 건너뛴다."""
     kst = as_of + timedelta(hours=9)
     d = kst.date() + timedelta(days=1)
     while d.weekday() >= 5 or d in closed:
         d += timedelta(days=1)
-    return datetime(d.year, d.month, d.day, 7, tzinfo=UTC)
+    return datetime(d.year, d.month, d.day, tzinfo=UTC) + timedelta(seconds=krx_close_available(d))
 
 
 def _register(eng: object, path: Path, sha: str) -> None:
@@ -334,7 +334,8 @@ def main(argv: list[str] | None = None) -> int:
             done_kr = written_as_of(eng, KEY, "kr", "1d", since)
             for d in krx_open_dates(eng, (now + KST).date()):
                 session = datetime(d.year, d.month, d.day, tzinfo=UTC)  # 국내 예측의 기준 시각(패널 행)
-                at = session + timedelta(hours=7, minutes=30)  # 16:30 KST — 그날 봉이 공개된 뒤
+                # 그날 봉 공개 30분 뒤(평상일 16:30 · 수능일 17:30 KST)
+                at = session + timedelta(seconds=krx_close_available(d), minutes=30)
                 if since <= at and at < now and session not in done_kr:
                     targets.append(("kr", at, int(session.timestamp())))
         for market, at, expect in targets:

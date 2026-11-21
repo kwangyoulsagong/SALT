@@ -9,11 +9,12 @@ from __future__ import annotations
 import json
 import math
 from collections.abc import Sequence
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, cast
 
 from sqlalchemy import Engine, text
 
+from salt_forecast.domain.calendar import krx_close_minute
 from salt_forecast.domain.ontology import (
     AliasRow,
     CandidateRow,
@@ -471,7 +472,8 @@ def load_flows(engine: Engine, *, as_of: datetime) -> list[FlowRow]:
         {"t": t},
     )
     for code, d, ind, fo, ins, col in inv:
-        day = datetime(d.year, d.month, d.day, 6, 30, tzinfo=UTC)  # 15:30 KST 마감
+        # 그날 마감(평상일 15:30 · 수능일 16:30 KST)
+        day = datetime(d.year, d.month, d.day, tzinfo=UTC) + timedelta(minutes=krx_close_minute(d) - 9 * 60)
         for attr, v in (("flow.individual_value", ind), ("flow.foreign_value", fo), ("flow.institution_value", ins)):
             if v is not None:
                 out.append(FlowRow(str(code), attr, float(v), day, _utc(col)))

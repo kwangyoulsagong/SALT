@@ -7,10 +7,13 @@ from datetime import UTC, datetime
 import numpy as np
 import pytest
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions
+from salt_forecast.domain.calendar import KrxSessions
 from salt_forecast.domain.series import DAY, CloseSeries
 from salt_forecast.domain.volatility import ANNUAL_DAYS, KR_ANNUAL_DAYS, estimate
 from tests.synthetic import krx_universe
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 SESSIONS, UNIVERSE = krx_universe(1, 900)
 CAL = KrxSessions(SESSIONS)
