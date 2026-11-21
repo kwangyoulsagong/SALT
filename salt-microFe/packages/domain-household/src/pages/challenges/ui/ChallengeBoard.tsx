@@ -12,11 +12,13 @@ import { ChallengeCard } from "@/features/track-challenge";
 
 import { CHALLENGES_PAGE as M } from "../model";
 import {
+  card,
   toolAside,
   toolEmpty,
   toolEmptyBody,
   toolEmptyTitle,
   toolGrid,
+  toolCard,
   toolMain,
 } from "@repo/web-shared/ui/surface.css";
 
@@ -41,12 +43,12 @@ export const ChallengeBoard = () => {
         {data.canStart ? (
           <StartChallengeForm list={data} />
         ) : (
-          <p className={s.note}>{START_CHALLENGE_MESSAGES.limit(data.limit)}</p>
+          <p className={`${toolCard} ${s.note}`}>{START_CHALLENGE_MESSAGES.limit(data.limit)}</p>
         )}
       </aside>
       <div className={toolMain}>
         {data.items.length === 0 ? (
-          <div className={toolEmpty}>
+          <div className={`${toolEmpty} ${s.empty}`}>
             <p className={toolEmptyTitle}>{M.empty}</p>
             <p className={toolEmptyBody}>{M.emptyHint}</p>
           </div>
@@ -65,7 +67,7 @@ export const ChallengeBoard = () => {
           </ul>
         ) : null}
         {ended.length > 0 ? (
-          <section aria-label={M.ended}>
+          <section className={card} aria-label={M.ended}>
             <h2 className={s.sectionTitle}>{M.ended}</h2>
             <ul className={s.list}>
               {ended.map((c) => (

@@ -16,13 +16,15 @@ export const metadata = quizCardsMetadata;
  * 데스크톱 틀: 뒤로(금융 팁 › 맞힌 카드) · 제목 → 카드 격자(정보 상자) + 오른쪽 사이드(내게 맞춘 팁)
  */
 export const QuizCardsPage = () => (
-  <PageFrame sideLabel={TIP_MESSAGES.sideLabel} side={<TipsForMeSlot />}>
+  <PageFrame sideLabel={TIP_MESSAGES.sideLabel} side={<TipsForMeSlot />} surface="cards">
     <BackNav label={M.back} trailLabel={M.trailLabel} fallbackHref={ROUTES.tips} crumbs={[{ label: M.trailTips, href: ROUTES.tips }, { label: M.title }]} />
     <h1 className={s.title}>{M.title}</h1>
     <p className={s.description}>{M.description}</p>
-    <BlockBoundary name={M.blockName} minHeight={240}>
-      <QuizCardList />
-    </BlockBoundary>
+    <div className={s.board}>
+      <BlockBoundary name={M.blockName} minHeight={240}>
+        <QuizCardList />
+      </BlockBoundary>
+    </div>
   </PageFrame>
 );
 

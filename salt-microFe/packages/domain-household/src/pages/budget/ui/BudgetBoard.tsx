@@ -63,7 +63,9 @@ export const BudgetBoard = () => {
     <CategoryNamesProvider categories={month.data?.categories ?? []}>
       {/* 예산 칸 | 이번 달 분류별로 쓴 돈(2026-11-20 — 칸을 정할 때 볼 숫자가 옆에, 오른쪽이 비어 있었다). 1280 미만은 위아래 */}
       <div className={s.split}>
-        <BudgetEditor budget={budget.data} spent={spent} />
+        <div className={s.editorCard}>
+          <BudgetEditor budget={budget.data} spent={spent} />
+        </div>
         {month.data ? (
           <section className={s.ratioCard} aria-labelledby="budget-ratio">
             <h2 id="budget-ratio" className={s.sideTitle}>

@@ -33,11 +33,15 @@ export const RecentExpenses = () => {
             {M.recentAll}
           </Link>
         </div>
-        <ul className={s.rows}>
-          {m.expenses.slice(0, SHOWN).map((e) => (
-            <ExpenseRow key={e.id} expense={e} />
-          ))}
-        </ul>
+        {m.expenses.length === 0 ? (
+          <p className={s.sideEmpty}>{M.recentEmpty}</p>
+        ) : (
+          <ul className={s.rows}>
+            {m.expenses.slice(0, SHOWN).map((e) => (
+              <ExpenseRow key={e.id} expense={e} />
+            ))}
+          </ul>
+        )}
       </section>
     </CategoryNamesProvider>
   );

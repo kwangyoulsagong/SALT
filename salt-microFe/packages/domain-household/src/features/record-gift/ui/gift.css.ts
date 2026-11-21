@@ -2,10 +2,10 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@repo/web-shared/ui/surface.css";
+import { formBox, SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /** 사람 장부 — 가계부 표면과 같은 값. 준 돈 · 받은 돈은 글자로만 가른다(색으로 가르지 않는다) */
-export const form = style({ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "720px", padding: "12px 16px", borderRadius: "12px", background: SURFACE.infoFill, boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}` });
+export const form = style([formBox, { gap: "12px", maxWidth: "720px" }]);
 
 export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fontWeight: 600, color: vars.colors.text.primary });
 

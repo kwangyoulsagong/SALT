@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+import { card } from "@repo/web-shared/ui/surface.css";
+
 /** 목표 상세(`FE-REQ-060` FR-9) — 틀은 `DetailTabs`(알약 탭 · 고정 열 360). 글자는 데스크톱 4단 토큰만 */
 const WIDE = "screen and (min-width: 1280px)";
 
@@ -79,5 +81,6 @@ export const depositRow = style({
 export const depositMain = style({ display: "flex", flexDirection: "column", minWidth: 0 });
 
 /** 고정 열 — 넣기 → 비상시 → 저울 링크 */
-export const aside = style({ display: "flex", flexDirection: "column", gap: "20px", minWidth: 0 });
-export const asideBlock = style({ display: "flex", flexDirection: "column", gap: "8px" });
+export const aside = style({ display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 });
+/** 고정 열 묶음 하나 = 흰 카드(카드 판 사이드 카드와 같은 안쪽 16 — `FE-REQ-076` 2단계) */
+export const asideBlock = style([card, { gap: "8px", padding: vars.space.lg }]);

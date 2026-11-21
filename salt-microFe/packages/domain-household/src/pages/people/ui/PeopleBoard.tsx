@@ -30,41 +30,43 @@ export const PeopleBoard = ({ year, person }: { year: number | null; person: str
     <div className={s.grid}>
       <div className={s.column}>
         <GiftForm key={v.person ?? "_"} occasions={v.occasions} today={v.today} person={v.person} />
-        {v.person ? (
-          <>
-            <div className={s.nav}>
-              <h2 className={s.sectionTitle}>{M.personTitle(v.person)}</h2>
-              <Link href={peopleHref(base, { year: v.year })} className={s.link}>
-                {M.backToYear}
-              </Link>
-            </div>
-            <span className={s.label}>
-              {M.allYears} · {M.yearTotals(formatWon(v.gave), formatWon(v.received))}
-            </span>
-          </>
-        ) : (
-          <>
-            <nav className={s.nav} aria-label={M.year(v.year)}>
-              {v.year > v.yearMin ? (
-                <Link href={peopleHref(base, { year: v.year - 1 })} className={s.link}>
-                  {M.prevYear}
+        <div className={s.block}>
+          {v.person ? (
+            <>
+              <div className={s.nav}>
+                <h2 className={s.sectionTitle}>{M.personTitle(v.person)}</h2>
+                <Link href={peopleHref(base, { year: v.year })} className={s.link}>
+                  {M.backToYear}
                 </Link>
-              ) : null}
-              <span>{M.year(v.year)}</span>
-              {v.year < v.yearMax ? (
-                <Link href={peopleHref(base, { year: v.year + 1 })} className={s.link}>
-                  {M.nextYear}
-                </Link>
-              ) : null}
-            </nav>
-            <span className={s.label}>{M.yearTotals(formatWon(v.gave), formatWon(v.received))}</span>
-          </>
-        )}
-        <GiftList entries={v.entries} occasions={v.occasions} today={v.today} />
+              </div>
+              <span className={s.label}>
+                {M.allYears} · {M.yearTotals(formatWon(v.gave), formatWon(v.received))}
+              </span>
+            </>
+          ) : (
+            <>
+              <nav className={s.nav} aria-label={M.year(v.year)}>
+                {v.year > v.yearMin ? (
+                  <Link href={peopleHref(base, { year: v.year - 1 })} className={s.link}>
+                    {M.prevYear}
+                  </Link>
+                ) : null}
+                <span>{M.year(v.year)}</span>
+                {v.year < v.yearMax ? (
+                  <Link href={peopleHref(base, { year: v.year + 1 })} className={s.link}>
+                    {M.nextYear}
+                  </Link>
+                ) : null}
+              </nav>
+              <span className={s.label}>{M.yearTotals(formatWon(v.gave), formatWon(v.received))}</span>
+            </>
+          )}
+          <GiftList entries={v.entries} occasions={v.occasions} today={v.today} />
+        </div>
       </div>
       <div className={s.column}>
         {v.person ? null : <OccasionEnvelopeEditor key={`${v.year}-${v.envelope?.amount ?? "none"}`} year={v.year} envelope={v.envelope} />}
-        <section aria-label={M.people}>
+        <section className={s.block} aria-label={M.people}>
           <h2 className={s.sectionTitle}>{M.people}</h2>
           {v.people.length === 0 ? (
             <p className={s.note}>{M.peopleEmpty}</p>

@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
+import { lineCard } from "@repo/web-shared/ui/surface.css";
+
 export const board = style({ display: "flex", flexDirection: "column", gap: "16px" });
 
 export const controls = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 16px", maxWidth: "480px" });
@@ -9,17 +11,16 @@ export const controls = style({ display: "flex", flexWrap: "wrap", alignItems: "
 export const links = style({ display: "flex", flexWrap: "wrap", gap: "8px 16px" });
 
 /** 공개 전 — 안내 | 예시 카드(2026-11-20) */
-export const pending = style({
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  gap: "24px",
-  alignItems: "center",
-  padding: "24px",
-  borderRadius: "12px",
-  background: vars.colors.background.white,
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
-  "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 360px)" } },
-});
+export const pending = style([
+  lineCard,
+  {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr)",
+    gap: "24px",
+    alignItems: "center",
+    "@media": { "screen and (min-width: 1280px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 360px)" } },
+  },
+]);
 export const pendingText = style({ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 });
 export const pendingTitle = style({
   margin: 0,
@@ -43,7 +44,6 @@ export const sampleCard = style({
   padding: "20px",
   borderRadius: "16px",
   background: "rgba(13, 25, 74, 0.02)",
-  boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
 });
 export const sampleBadge = style({
   position: "absolute",

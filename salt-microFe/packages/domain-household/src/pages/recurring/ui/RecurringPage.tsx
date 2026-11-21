@@ -12,7 +12,7 @@ import { RECURRING_PAGE as M } from "../model";
 
 /** 매달 나가는 돈 `/household/templates`(`FE-REQ-057` FR-4, 가계부 S1b) — 서버 셸 + 목록 잎 */
 export const RecurringPage = () => (
-  <PageFrame>
+  <PageFrame surface="cards">
     <BackNav
       label={M.back}
       trailLabel={HOUSEHOLD_TRAIL.label}

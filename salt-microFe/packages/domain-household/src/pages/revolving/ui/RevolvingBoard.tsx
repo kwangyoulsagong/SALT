@@ -17,11 +17,13 @@ import {
 
 import { REVOLVING_PAGE as M } from "../model";
 import {
+  card,
   toolAside,
   toolEmpty,
   toolEmptyBody,
   toolEmptyTitle,
   toolGrid,
+  toolCard,
   toolMain,
 } from "@repo/web-shared/ui/surface.css";
 
@@ -44,14 +46,14 @@ export const RevolvingBoard = () => {
         {data.canAdd ? (
           <RevolvingForm list={data} />
         ) : (
-          <p className={s.note}>
+          <p className={`${toolCard} ${s.note}`}>
             {MANAGE_REVOLVING_MESSAGES.limit(data.limit)}
           </p>
         )}
       </aside>
       <div className={toolMain}>
         {data.open.length === 0 ? (
-          <div className={toolEmpty}>
+          <div className={`${toolEmpty} ${s.empty}`}>
             <p className={toolEmptyTitle}>{M.empty}</p>
             <p className={toolEmptyBody}>{M.emptyHint}</p>
           </div>
@@ -66,7 +68,7 @@ export const RevolvingBoard = () => {
           </ul>
         ) : null}
         {data.ended.length > 0 ? (
-          <section aria-label={MANAGE_REVOLVING_MESSAGES.ended}>
+          <section className={card} aria-label={MANAGE_REVOLVING_MESSAGES.ended}>
             <h2 className={s.sectionTitle}>
               {MANAGE_REVOLVING_MESSAGES.ended}
             </h2>
