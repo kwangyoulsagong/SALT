@@ -225,3 +225,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 - 2026-11-20: `FE-REQ-048` FR-12 · 13 대시보드 홈(`feat/fe-req-048-home-card-preview`)이 이 REQ 머리 파일(`HomeCards.tsx`)을 걸침 — 카드 미리보기 · 둘째 줄은 같은 홈 응답이라 요청 · 경계 수 그대로. 토큰 · 조회 동작 변화 없음. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md`
 - 2026-11-20: `FE-REQ-071` 짝 — 셸 미들웨어 앞에 휴대폰 문서 이동 판정(`@repo/core/mobile`) — matcher 를 `/` 에서 문서 경로 전체로 넓힘. 표지 쿠키 판정은 `/` 에서만 그대로
 - 2026-11-21: 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `clearSession` 이 휴대폰 마지막 화면 한 벌(IndexedDB `salt-m-offline`)도 지운다 — 로그아웃 · 세션 죽음 한 곳
+- 2026-11-21: 걸침 — `FE-REQ-078`(`feat/f019-s4-web-push`): `clearSession` 이 이 기기 푸시 구독도 뺀다(쿠키 지우기와 나란히 기다림 · 실패는 삼킴). 세션 · 갱신 규칙 변화 0
