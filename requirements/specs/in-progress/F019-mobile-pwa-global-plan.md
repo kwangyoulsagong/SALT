@@ -25,7 +25,8 @@ created: 2026-11-20
 | 1 | zone 골격 · 매니페스트 · 서비스 워커 · 하단 탭 · `/m/login` · 데스크톱 → `/m` 이동 — **done 2026-11-20**(`F019-s1-mobile-zone-slice.md`) | `FE-REQ-071` | FE |
 | 2 | 화면 옮기기(홈 · 저축 · 가계부 · 투자 상세) · 웹뷰 계약 걷기 — **done 2026-11-20**(`F019-s2-mobile-screens-slice.md`) | `FE-REQ-072` | FE |
 | 2b | 탭 · 상세 안쪽을 홈 수준으로(금액 카드 · 아이콘 판 · 흰 섹션) — **done 2026-11-20**(`F019-s2b-mobile-interiors-slice.md`) | `FE-REQ-074` | FE |
-| 3 | 오프라인 마지막 화면 · 설치 안내 | `FE-REQ-073` | FE |
+| 3 | 오프라인 마지막 화면 · 설치 안내 — **done 2026-11-21**(`F019-s3-mobile-offline-install-slice.md`) | `FE-REQ-073` | FE |
+| 3b | 휴대폰 배터리 — 숨은 화면 소켓 쉼 · 흐림 측정 — **done 2026-11-21**(`F019-s3b-mobile-battery-slice.md`, 순서 3 과 한 PR) | `FE-REQ-077` | FE |
 | 4 | 웹 푸시(구독 · 발송 · 알림 누름) | 착수 때 — 서버 · BFF · DB · FE | 전 영역 |
 
 순서 1~3 은 서버 · BFF 변경 0(같은 계약 · 같은 쿠키).

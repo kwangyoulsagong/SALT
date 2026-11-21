@@ -47,3 +47,7 @@
 - [x] `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다 — 확인은 `checklists/FE-REQ-074.md`(390 · 360 측정 · 1280 데스크톱 대조)
 
 - 2026-11-20 걸침(`FE-REQ-076` 1단계): 휴대폰 홈 알약 문구를 `@repo/core/labels` `HOME_CARD_PILL_LABEL` 로 옮김(데스크톱 홈과 한 벌) — 값 그대로 — 검증은 `checklists/FE-REQ-076.md`
+
+## 2026-11-21 `FE-REQ-073` 걸침
+
+- [x] 서비스 워커 오프라인 한 장이 그 경로의 한 벌을 그린다(인라인 스크립트 · `offlinePage.ts` 로 옮김) · 루트 레이아웃 잎이 설치 사건을 붙잡는다 · `@repo/core/mobile` 에 `offline` 계약 — 확인: 오프라인 문서 이동 세 화면 한 벌 · 원래 한 장(한 벌 없음) 그대로(`checklists/FE-REQ-073.md`)
