@@ -55,6 +55,33 @@ export class AppAlertsController {
       next(error);
     }
   }
+
+  /** 웹 푸시(`BFF-REQ-056`) — 설정 · 구독 넣기 · 빼기. 넣기 · 빼기는 본문 없음(204) */
+  async getPushConfig(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.set("Cache-Control", "no-store").json(await appAlertsService.getPushConfig(req.token!));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async savePushSubscription(req: Request, res: Response, next: NextFunction) {
+    try {
+      await appAlertsService.savePushSubscription(req.token!, req.body);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async removePushSubscription(req: Request, res: Response, next: NextFunction) {
+    try {
+      await appAlertsService.removePushSubscription(req.token!, req.body?.endpoint);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const appAlertsController = new AppAlertsController();
