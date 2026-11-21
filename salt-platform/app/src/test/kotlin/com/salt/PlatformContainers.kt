@@ -19,6 +19,15 @@ object PlatformContainers {
     const val COACH_PASSWORD = "coach-test-password"
     const val IDENTITY_PASSWORD = "identity-test-password"
     const val JWT_SECRET = "test-secret-at-least-32-bytes-long-0123456789"
+
+    /** 웹 푸시 VAPID 시험 키 — 실행마다 새로(`SRV-REQ-062`) */
+    private val PUSH_KEYS = com.salt.notification.infrastructure.P256.generate()
+    val PUSH_PUBLIC_KEY: String = com.salt.notification.infrastructure.P256.encode(
+        com.salt.notification.infrastructure.P256.raw(PUSH_KEYS.public as java.security.interfaces.ECPublicKey),
+    )
+    val PUSH_PRIVATE_KEY: String = com.salt.notification.infrastructure.P256.encode(
+        com.salt.notification.infrastructure.P256.raw(PUSH_KEYS.private as java.security.interfaces.ECPrivateKey),
+    )
     const val JWT_REFRESH_SECRET = "test-refresh-secret-at-least-32-bytes-long-01234"
 
     /** 옛 HS 를 받는 마지막 시각 — 테스트 동안은 열려 있다(끝난 뒤 401 은 `DualTokenVerifierSpec` 이 시계를 옮겨 본다) */
@@ -85,6 +94,13 @@ object PlatformContainers {
         registry.add("salt.identity.max-accounts") { "100000" }
         // 금융 팁 공개 플래그 — 기본은 꺼짐(법무 확인 전). 통합 테스트는 켠 채로 한 컨텍스트를 같이 쓴다(꺼짐 동작은 `ContentSettingsSpec`)
         registry.add("salt.content.public-enabled") { "true" }
+        // 웹 푸시(`SRV-REQ-062`) — 켠 채로(컨텍스트 하나). 보내기 포트는 `TestPushSender` 가짜라 밖으로 나가지 않는다. 꺼짐 동작은 `SendPendingPushesSpec`
+        registry.add("salt.notification.push.enabled") { "true" }
+        registry.add("salt.notification.push.vapid-public-key") { PUSH_PUBLIC_KEY }
+        registry.add("salt.notification.push.vapid-private-key") { PUSH_PRIVATE_KEY }
+        registry.add("salt.notification.push.subject") { "https://salt.example" }
+        registry.add("salt.notification.push.public-origin") { "https://salt.example" }
+        registry.add("salt.notification.push.interval") { "300ms" }
         registry.add("spring.rabbitmq.host") { rabbit.host }
         registry.add("spring.rabbitmq.port") { rabbit.amqpPort }
         registry.add("spring.rabbitmq.username") { rabbit.adminUsername }
