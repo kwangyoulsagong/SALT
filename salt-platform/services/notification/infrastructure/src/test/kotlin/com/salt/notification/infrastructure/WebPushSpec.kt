@@ -115,6 +115,25 @@ class WebPushSpec : StringSpec({
         HttpPushSender(vapid, "https://salt.example", jsonMapper)
             .send(PushSubscription.stored("http://127.0.0.1:1/push", P256.encode(uaPublic), P256.encode(auth)), PushMessage("a", "b", "/m/home")) shouldBe PushOutcome.FAILED
     }
+
+    "곡선 밖 점 — 저장 관문(길이 · 0x04)은 지나도 보내기는 사라짐 · 요청 0(회차를 멈추지 않는다)" {
+        var calls = 0
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
+            createContext("/push") { ex -> calls++; ex.sendResponseHeaders(201, -1); ex.close() }
+            start()
+        }
+        try {
+            val keys = P256.generate()
+            val vapid = Vapid(P256.encode(P256.raw(keys.public as ECPublicKey)), P256.encode(privateRaw(keys)), "https://salt.example", clock)
+            val offCurve = P256.encode(byteArrayOf(4) + ByteArray(64) { 1 })
+            val device = PushSubscription.of("https://fcm.googleapis.com/fcm/send/x", offCurve, P256.encode(ByteArray(16))) // 관문 통과
+            HttpPushSender(vapid, "https://salt.example", jsonMapper)
+                .send(PushSubscription.stored("http://127.0.0.1:${server.address.port}/push", device.p256dh, device.auth), PushMessage("a", "b", "/m/home")) shouldBe PushOutcome.GONE
+            calls shouldBe 0
+        } finally {
+            server.stop(0)
+        }
+    }
 })
 
 private fun privateRaw(keys: KeyPair): ByteArray = P256.raw(keys.private as java.security.interfaces.ECPrivateKey)

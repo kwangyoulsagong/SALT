@@ -1,5 +1,6 @@
 package com.salt.notification.application
 
+import com.salt.notification.domain.NotificationPrefsStore
 import com.salt.notification.domain.PendingPush
 import com.salt.notification.domain.PushDisabled
 import com.salt.notification.domain.PushMessage
@@ -38,15 +39,23 @@ open class ManagePushSubscription(private val subscriptions: PushSubscriptions, 
 data class PushBatch(val items: List<Pair<PendingPush, List<PushSubscription>>>, val skipped: Int)
 
 /** 짧은 쓰기 하나 — 오래된 것 건너뜀 · 표시 · 기기 읽기. 보내기(외부 I/O)는 이 트랜잭션 밖(`performance-server.md` §2) */
-open class ClaimPushes(private val queue: PushQueue, private val subscriptions: PushSubscriptions, private val clock: Clock) {
+open class ClaimPushes(
+    private val queue: PushQueue,
+    private val subscriptions: PushSubscriptions,
+    private val prefs: NotificationPrefsStore,
+    private val clock: Clock,
+) {
     @Transactional(transactionManager = NOTIFICATION_TX)
     open fun execute(): PushBatch {
         val now = clock.instant()
         val since = PushPolicy.cutoff(now)
         val skipped = queue.skipStale(since, now)
         val pending = queue.claim(since, now, PushPolicy.BATCH)
-        val devices = subscriptions.of(pending.map { it.userId }.toSet())
-        return PushBatch(pending.map { it to devices[it.userId].orEmpty() }, skipped)
+        // 보낼 때 다시 본다(불변식 6) — 알림이 생긴 뒤 끈 도메인은 기기 0(표시는 이미 됐으니 다시 오지 않는다)
+        val on = pending.map { it.userId }.toSet().associateWith { prefs.of(it) }
+        val live = pending.filter { on.getValue(it.userId).isOn(it.kind.domain) }
+        val devices = subscriptions.of(live.map { it.userId }.toSet())
+        return PushBatch(live.map { it to devices[it.userId].orEmpty() }, skipped + pending.size - live.size)
     }
 }
 
@@ -70,7 +79,8 @@ open class SendPendingPushes(private val claim: ClaimPushes, private val drop: D
         batch.items.forEach { (push, devices) ->
             val message = PushMessage.of(push.kind)
             devices.forEach { device ->
-                when (sender.send(device, message)) {
+                // 기기 하나의 뜻밖 오류가 회차를 멈추지 않게 — 이미 표시한 남의 푸시를 잃는다
+                when (runCatching { sender.send(device, message) }.getOrDefault(PushOutcome.FAILED)) {
                     PushOutcome.DELIVERED -> delivered++
                     PushOutcome.GONE -> gone += device.endpoint
                     PushOutcome.FAILED -> failed++

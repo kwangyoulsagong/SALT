@@ -121,8 +121,12 @@ class NotificationComposition {
 
     // 트랜잭션 유스케이스 둘은 빈이어야 한다(`@Transactional` 프록시) — 보내기 유스케이스가 안에서 `new` 하면 트랜잭션이 없다
     @Bean
-    fun notificationPushClaim(@Qualifier("notificationDatabase") database: ServiceDatabase, subscriptions: JooqPushSubscriptions, clock: Clock): ClaimPushes =
-        ClaimPushes(JooqPushQueue(database.dsl), subscriptions, clock)
+    fun notificationPushClaim(
+        @Qualifier("notificationDatabase") database: ServiceDatabase,
+        subscriptions: JooqPushSubscriptions,
+        prefs: JooqNotificationPrefs,
+        clock: Clock,
+    ): ClaimPushes = ClaimPushes(JooqPushQueue(database.dsl), subscriptions, prefs, clock)
 
     @Bean
     fun notificationPushDrop(subscriptions: JooqPushSubscriptions): DropGoneSubscriptions = DropGoneSubscriptions(subscriptions)

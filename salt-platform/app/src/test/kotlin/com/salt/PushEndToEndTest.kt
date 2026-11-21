@@ -69,6 +69,21 @@ class PushEndToEndTest : ContentHttp() {
     }
 
     @Test
+    fun `기기 상한 10 — 열한 번째를 넣으면 가장 오래 안 연 기기가 빠진다 · 다시 넣은(연) 기기는 남는다`() {
+        val user = "push-cap-${UUID.randomUUID()}"
+        val devices = (1..11).map { device() }
+        devices.take(10).forEach { call("PUT", "/api/notifications/push/subscription", user, subscription(it)).statusCode() shouldBe 200; Thread.sleep(5) }
+        // 첫 기기를 다시 열었다(대조) — 이제 가장 오래 안 연 것은 둘째
+        call("PUT", "/api/notifications/push/subscription", user, subscription(devices[0])).statusCode() shouldBe 200
+        Thread.sleep(5)
+        call("PUT", "/api/notifications/push/subscription", user, subscription(devices[10])).statusCode() shouldBe 200
+        val left = notificationDatabase.dsl.fetch("SELECT endpoint FROM push_subscription WHERE user_id = ?", user).map { it.get(0, String::class.java) }.toSet()
+        left.size shouldBe 10
+        (devices[1] in left) shouldBe false
+        (devices[0] in left && devices[10] in left) shouldBe true
+    }
+
+    @Test
     fun `저축 목표 도달 — 기기 둘에 한 번씩 · 문장에 이름 · 금액 0 · 410 기기는 지움 · 끈 사람 · 오래된 알림은 0`() {
         val user = "push-goal-${UUID.randomUUID()}"
         val (phone, gone) = device() to device()

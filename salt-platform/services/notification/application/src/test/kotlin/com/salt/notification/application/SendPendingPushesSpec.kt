@@ -1,6 +1,9 @@
 package com.salt.notification.application
 
+import com.salt.notification.domain.NotificationDomain
 import com.salt.notification.domain.NotificationKind
+import com.salt.notification.domain.NotificationPrefs
+import com.salt.notification.domain.NotificationPrefsStore
 import com.salt.notification.domain.PendingPush
 import com.salt.notification.domain.PushDisabled
 import com.salt.notification.domain.PushMessage
@@ -31,6 +34,12 @@ class SendPendingPushesSpec : StringSpec({
         override fun removeGone(endpoints: Set<String>) { removed += endpoints; endpoints.forEach { rows.remove(it) } }
     }
 
+    /** 켠 도메인 — 사람마다. 기본은 다 켬 */
+    class FakePrefs(val off: Map<String, Set<NotificationDomain>> = emptyMap()) : NotificationPrefsStore {
+        override fun of(userId: String) = NotificationPrefs(NotificationDomain.entries.toSet() - off[userId].orEmpty())
+        override fun set(userId: String, domain: NotificationDomain, enabled: Boolean, at: Instant) = Unit
+    }
+
     fun device(name: String) = PushSubscription.stored("https://fcm.googleapis.com/fcm/send/$name", key, "AAAAAAAAAAAAAAAAAAAAAA")
 
     "기기마다 한 번 · 410 은 지우고 실패는 남긴다 · 기기 없는 사람은 보내지 않는다" {
@@ -50,7 +59,7 @@ class SendPendingPushesSpec : StringSpec({
         }
         val sent = mutableListOf<Pair<String, PushMessage>>()
         val outcome = mapOf("a" to PushOutcome.DELIVERED, "b" to PushOutcome.GONE, "c" to PushOutcome.FAILED)
-        val run = SendPendingPushes(ClaimPushes(queue, subs, clock), DropGoneSubscriptions(subs)) { d, m ->
+        val run = SendPendingPushes(ClaimPushes(queue, subs, FakePrefs(), clock), DropGoneSubscriptions(subs)) { d, m ->
             sent += d.endpoint.substringAfterLast('/') to m
             outcome.getValue(d.endpoint.substringAfterLast('/'))
         }.execute()
@@ -61,6 +70,32 @@ class SendPendingPushesSpec : StringSpec({
         subs.removed shouldBe listOf(setOf("https://fcm.googleapis.com/fcm/send/b"))
         subs.rows.keys.map { it.substringAfterLast('/') } shouldBe listOf("a", "c")
         queue.skippedSince shouldBe Instant.parse("2026-11-20T23:30:00Z")
+    }
+
+    "보낼 때 도메인이 꺼져 있으면 0 · 기기 하나가 던져도 회차는 끝까지(불변식 3 · 6)" {
+        val subs = FakeSubs().apply {
+            save("u1", device("a"), clock.instant())
+            save("u2", device("b"), clock.instant())
+            save("u3", device("c"), clock.instant())
+        }
+        val queue = object : PushQueue {
+            override fun claim(since: Instant, now: Instant, limit: Int) = listOf(
+                PendingPush("n1", "u1", NotificationKind.GOAL_REACHED), // u1 은 저축을 방금 껐다
+                PendingPush("n2", "u2", NotificationKind.SIGNAL_UPDATE), // u2 기기가 던진다
+                PendingPush("n3", "u3", NotificationKind.FIXED_COST_INCREASED),
+            )
+            override fun skipStale(since: Instant, now: Instant) = 0
+        }
+        val sent = mutableListOf<String>()
+        val run = SendPendingPushes(ClaimPushes(queue, subs, FakePrefs(mapOf("u1" to setOf(NotificationDomain.SAVINGS))), clock), DropGoneSubscriptions(subs)) { d, _ ->
+            val name = d.endpoint.substringAfterLast('/')
+            if (name == "b") error("뜻밖")
+            sent += name
+            PushOutcome.DELIVERED
+        }.execute()
+        sent shouldBe listOf("c")
+        run shouldBe PushRun(notifications = 2, delivered = 1, gone = 0, failed = 1, skipped = 1)
+        subs.rows.size shouldBe 3 // 던진 기기는 지우지 않는다
     }
 
     "구독 — 꺼져 있으면 넣지 않는다 · 같은 주소를 다른 사람이 넣으면 주인이 바뀐다 · 빼기는 본인 것만" {

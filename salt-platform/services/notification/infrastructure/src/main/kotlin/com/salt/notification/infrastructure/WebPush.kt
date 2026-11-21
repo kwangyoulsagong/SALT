@@ -180,7 +180,12 @@ class HttpPushSender(
         )
 
     override fun send(subscription: PushSubscription, message: PushMessage): PushOutcome {
-        val body = WebPushCrypto.encrypt(payload(message), subscription.p256dhBytes, subscription.authBytes)
+        // 곡선 밖 점 · 깨진 키는 고쳐질 일이 없다 — 사라짐으로(구독 삭제). 던지면 회차가 멈춰 같은 회차 남의 푸시까지 잃는다
+        val body = runCatching { WebPushCrypto.encrypt(payload(message), subscription.p256dhBytes, subscription.authBytes) }
+            .getOrElse {
+                log.warn("Push key unusable host={} error={}", URI(subscription.endpoint).host, it.javaClass.simpleName)
+                return PushOutcome.GONE
+            }
         val request = HttpRequest.newBuilder(URI(subscription.endpoint))
             .timeout(Duration.ofSeconds(10))
             .header("Authorization", vapid.header(subscription.endpoint))

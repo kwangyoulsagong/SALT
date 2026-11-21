@@ -16,7 +16,9 @@ import java.util.Base64
  * 2. **보내는 곳은 알려진 푸시 서비스뿐** — 구독 주소는 브라우저가 주지만 요청 본문으로 온다. 서버가 그 주소로 POST 하니
  *    허용 목록 밖 호스트 · https 아님 · 포트 지정은 거절한다(서버가 아무 주소나 부르게 되는 길을 막는다)
  * 3. **한 알림은 많아야 한 번** — 보내기 전에 표시(`pushed_at`)부터. 보내다 죽으면 그 푸시는 잃는다(목록에는 남는다) — 잠금 화면 중복보다 낫다
- * 4. **사라진 구독(404 · 410)은 지운다** — 다음 회차에 다시 부르지 않는다
+ * 4. **사라진 구독(404 · 410)은 지운다** — 다음 회차에 다시 부르지 않는다. 풀 수 없는 키(곡선 밖 점)도 사라짐으로 — 그 기기 하나가 회차를 멈추지 않는다
+ * 5. **사람 하나에 기기 [PushPolicy.DEVICES_PER_USER] 개까지** — 넘으면 가장 오래 안 연 기기를 뺀다(가짜 주소 수천 개로 알림 한 건이 요청 수천 개가 되지 않게)
+ * 6. **보낼 때 도메인이 꺼져 있으면 보내지 않는다** — 알림이 생긴 뒤 회차 전(10초 안)에 끈 경우
  */
 class PushSubscription private constructor(
     val endpoint: String,
@@ -91,6 +93,9 @@ object PushPolicy {
     /** 한 회차에 표시할 알림 수 — 넘치면 다음 회차 */
     const val BATCH = 100
 
+    /** 사람 하나의 기기 상한(불변식 5) — 휴대폰 · 태블릿 · 브라우저 몇 개면 충분하다 */
+    const val DEVICES_PER_USER = 10
+
     /** 푸시 서비스가 못 전하면 들고 있을 시간(`TTL` 머리) — 종류 수명과 상관없이 하루 */
     val TTL: Duration = Duration.ofHours(24)
 
@@ -99,6 +104,7 @@ object PushPolicy {
 
 /** 구독 저장(`notification.push_subscription`). 주소 하나에 행 하나 — 같은 기기에 다른 사람이 로그인하면 주인이 바뀐다 */
 interface PushSubscriptions {
+    /** 넣고, 그 사람 기기가 [PushPolicy.DEVICES_PER_USER] 를 넘으면 가장 오래 안 연 것부터 뺀다 */
     fun save(userId: String, subscription: PushSubscription, at: Instant)
 
     /** 본인 것만 지운다 */

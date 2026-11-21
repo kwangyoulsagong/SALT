@@ -2,6 +2,7 @@ package com.salt.notification.infrastructure
 
 import com.salt.notification.domain.NotificationKind
 import com.salt.notification.domain.PendingPush
+import com.salt.notification.domain.PushPolicy
 import com.salt.notification.domain.PushQueue
 import com.salt.notification.domain.PushSubscription
 import com.salt.notification.domain.PushSubscriptions
@@ -29,6 +30,14 @@ class JooqPushSubscriptions(private val dsl: DSLContext) : PushSubscriptions {
             .set(PUSH_SUBSCRIPTION.P256DH, subscription.p256dh)
             .set(PUSH_SUBSCRIPTION.AUTH, subscription.auth)
             .set(PUSH_SUBSCRIPTION.LAST_SEEN_AT, at.utc())
+            .execute()
+        // 상한(불변식 5) — 방금 넣은 것은 last_seen 이 가장 새로워 남는다
+        val keep = dsl.select(PUSH_SUBSCRIPTION.ENDPOINT).from(PUSH_SUBSCRIPTION)
+            .where(PUSH_SUBSCRIPTION.USER_ID.eq(userId))
+            .orderBy(PUSH_SUBSCRIPTION.LAST_SEEN_AT.desc(), PUSH_SUBSCRIPTION.ENDPOINT)
+            .limit(PushPolicy.DEVICES_PER_USER)
+        dsl.deleteFrom(PUSH_SUBSCRIPTION)
+            .where(PUSH_SUBSCRIPTION.USER_ID.eq(userId).and(PUSH_SUBSCRIPTION.ENDPOINT.notIn(keep)))
             .execute()
     }
 
