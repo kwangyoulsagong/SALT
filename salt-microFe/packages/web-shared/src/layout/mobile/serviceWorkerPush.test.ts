@@ -43,10 +43,12 @@ const boot = () => {
     listeners[type]!({ ...event, waitUntil: (p: Promise<unknown>) => waits.push(p) });
     await Promise.all(waits);
   };
-  const addWindow = (url: string) =>
+  const addWindow = (url: string, controlled = true) =>
     windows.push({
       url,
+      // 다스리지 않는 창의 navigate 는 거절된다(서비스 워커 명세)
       navigate: async (u: string) => {
+        if (!controlled) throw new TypeError("not controlled");
         navigated.push(u);
         return null;
       },
@@ -94,6 +96,14 @@ describe("서비스 워커 — notificationclick", () => {
     sw.addWindow(`${ORIGIN}/m/home`);
     await sw.fire("notificationclick", note(`${ORIGIN}/m/goals`));
     expect(sw.navigated).toEqual([`${ORIGIN}/m/goals`]);
+  });
+
+  it("다스리지 않는 /m 창이면 navigate 가 거절 — 새 창으로(누름이 아무것도 안 여는 일 0)", async () => {
+    const sw = boot();
+    sw.addWindow(`${ORIGIN}/m/home`, false);
+    await sw.fire("notificationclick", note(`${ORIGIN}/m/goals`));
+    expect(sw.navigated).toEqual([]);
+    expect(sw.opened).toEqual([`${ORIGIN}/m/goals`]);
   });
 
   it.each([

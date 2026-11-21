@@ -2,10 +2,11 @@
  * 웹 푸시 브라우저 쪽(`FE-REQ-078` FR-2 · FR-4) — 브라우저에서만 부른다(효과 · 누름 처리기 안). 판정은 `@repo/core/mobile` `push`.
  * BFF `/api/app/me/push`(`BFF-REQ-056`) · `/api/app/me/notifications`(도메인별 켬/끔 — 데스크톱 설정과 같은 값).
  */
-import { MOBILE_PATHS, base64UrlToBytes, sameServerKey, type PushEnvironment } from "@repo/core/mobile";
+import { MOBILE_PATHS, base64UrlToBytes, pushReconcileAction, sameServerKey, type PushEnvironment } from "@repo/core/mobile";
 
 import { apiFetch, readApiError } from "../../api";
 import { INVESTMENTS_BASE_URL } from "../../config";
+import { dropBrowserPushSubscription, readPushOwner, readSessionUserId, writePushOwner } from "../../lib";
 
 import { isAppleTouch, isStandalone } from "./installPrompt";
 
@@ -87,6 +88,7 @@ export const subscribeDevice = async (publicKey: string): Promise<boolean> => {
       ? existing
       : await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(publicKey) });
   await sendSubscription(subscription);
+  writePushOwner(readSessionUserId());
   return true;
 };
 
@@ -96,17 +98,22 @@ export const unsubscribeDevice = async (): Promise<void> => {
   if (!subscription) return;
   await dropSubscription(subscription.endpoint).catch(() => undefined);
   await subscription.unsubscribe();
+  writePushOwner(null);
 };
 
 /**
- * 앱이 열릴 때 대조(FR-4) — `pushsubscriptionchange` 에 기대지 않는다. 설치 앱 · 권한 있음 · 구독 있음일 때만 서버에 다시 넣는다
- * (같은 주소면 행 하나 · 다른 사람이 로그인했으면 주인이 바뀐다). 서버 키가 바뀌었으면 다시 구독. 실패는 조용히 — 다음에 열 때 다시
+ * 앱이 열릴 때 대조(FR-4) — `pushsubscriptionchange` 에 기대지 않는다. 설치 앱 · 권한 있음 · 구독 있음일 때만, 그리고 **구독한 사람 = 지금 사람**일 때만
+ * 서버에 다시 넣는다(FR-5 — 다르면 뺀다. 주인을 몰래 옮기지 않는다). 서버 키가 바뀌었으면 다시 구독. 실패는 조용히 — 다음에 열 때 다시
  */
 export const reconcilePush = async (): Promise<void> => {
   const env = pushEnvironment(true);
   if (!env.standalone || !env.supported || env.permission !== "granted") return;
   const subscription = await currentSubscription();
   if (!subscription) return;
+  if (pushReconcileAction(readPushOwner(), readSessionUserId()) === "drop") {
+    await dropBrowserPushSubscription();
+    return;
+  }
   const config = await readPushConfig();
   if (!config.enabled || !config.publicKey) return;
   if (sameServerKey(subscription.options.applicationServerKey, config.publicKey)) await sendSubscription(subscription);

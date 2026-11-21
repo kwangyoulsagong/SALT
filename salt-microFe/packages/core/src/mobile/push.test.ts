@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { base64UrlToBytes, pushAvailability, pushNavigateTarget, pushStepsFor, pushToggleOn, sameServerKey, type PushEnvironment } from "./push";
+import { base64UrlToBytes, pushAvailability, pushReconcileAction, pushNavigateTarget, pushStepsFor, pushToggleOn, sameServerKey, type PushEnvironment } from "./push";
 
 /** 웹 푸시 판정(`FE-REQ-078`) — 허용 · 거절 경계 표 */
 describe("pushAvailability", () => {
@@ -76,5 +76,17 @@ describe("pushNavigateTarget — 우리 origin 의 /m 만", () => {
     [42, "https://salt.example/m/home"],
   ])("%s → %s", (navigate, expected) => {
     expect(pushNavigateTarget(navigate, origin)).toBe(expected);
+  });
+});
+
+describe("pushReconcileAction — 주인을 몰래 옮기지 않는다", () => {
+  it.each([
+    ["u1", "u1", "refresh"],
+    ["u1", "u2", "drop"], // 다른 사람이 이 기기에 로그인
+    ["u1", null, "drop"], // 로그아웃 뒤 열기
+    [null, "u1", "drop"], // 주인을 모른다(옛 구독 · 저장 실패)
+    [null, null, "drop"],
+  ] as const)("구독 %s · 지금 %s → %s", (owner, current, action) => {
+    expect(pushReconcileAction(owner, current)).toBe(action);
   });
 });

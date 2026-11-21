@@ -25,6 +25,7 @@ import {
   GUEST_HINT_COOKIE,
 } from "../config";
 import { clearOfflineSnapshots } from "../lib/offlineSnapshot";
+import { dropBrowserPushSubscription } from "../lib/pushDevice";
 
 /** 표지 쿠키가 있나 — 렌더 중에 부르지 않는다(서버는 모른다 — `useHasSession`) */
 export const hasSession = (): boolean => {
@@ -88,7 +89,12 @@ export const clearSession = async (): Promise<void> => {
   // 휴대폰 마지막 화면 한 벌도 그 자리에서 — 다음 사람이 이 기기에서 앞 사람 숫자를 보지 않는다(`FE-REQ-073` FR-1)
   clearOfflineSnapshots();
   removeLegacyTokens();
-  await fetch(SESSION_ROUTE, { method: "DELETE", credentials: "same-origin" }).catch(() => undefined);
+  // 이 기기 푸시 구독도 — 다음 사람이 앞 사람 알림을 받지 않게(`FE-REQ-078` FR-5). 쿠키 지우기와 나란히 기다린다:
+  // 로그아웃은 끝나자마자 문서를 옮기므로(`ProfileMenu`) 기다리지 않으면 구독 빼기가 중간에 끊긴다. 빼기는 실패를 삼켜 로그아웃을 막지 않는다
+  await Promise.all([
+    dropBrowserPushSubscription(),
+    fetch(SESSION_ROUTE, { method: "DELETE", credentials: "same-origin" }).catch(() => undefined),
+  ]);
 };
 
 /**

@@ -138,8 +138,9 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
       const open = windows.find((client) => new URL(client.url).pathname.startsWith("/m"));
-      if (open) return open.navigate(target).then((client) => (client || open).focus());
-      return self.clients.openWindow(target);
+      if (!open) return self.clients.openWindow(target);
+      // navigate 는 이 워커가 다스리는 창에서만 된다 — 아니면 거절되므로 새 창으로(누름이 아무것도 안 여는 일 0)
+      return open.navigate(target).then((client) => (client || open).focus()).catch(() => self.clients.openWindow(target));
     })
   );
 });

@@ -58,6 +58,13 @@ export const pushStepsFor = (input: {
   return [...(input.domainEnabled ? (["disable"] as const) : []), ...(input.otherEnabled === 0 && input.deviceSubscribed ? (["unsubscribe"] as const) : [])];
 };
 
+/**
+ * 앱이 열릴 때 대조에서 할 일(`FE-REQ-078` FR-5) — 구독한 사람(이 기기에 적어 둔 id)과 지금 세션 사람이 같을 때만 서버에 다시 넣는다.
+ * 로그아웃(지금 사람 없음) · 다른 사람 · 주인 모름이면 브라우저 구독을 뺀다 — 서버가 주인을 몰래 옮기지 않게
+ */
+export const pushReconcileAction = (owner: string | null, current: string | null): "refresh" | "drop" =>
+  owner !== null && owner === current ? "refresh" : "drop";
+
 /** base64url(채움 없음 · 있음 둘 다) → 바이트 — `applicationServerKey` 로 넘긴다 */
 export const base64UrlToBytes = (value: string): Uint8Array<ArrayBuffer> => {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/").replace(/=+$/, "");
