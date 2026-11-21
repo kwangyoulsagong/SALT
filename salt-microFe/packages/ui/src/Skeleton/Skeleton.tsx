@@ -26,6 +26,7 @@ export const Skeleton = ({
         {Array.from({ length: lines }, (_, index) => (
           <span
             key={index}
+            data-skeleton=""
             className={blockClassName}
             style={{
               width: index === lines - 1 ? "60%" : width,
@@ -40,6 +41,7 @@ export const Skeleton = ({
   return (
     <span
       aria-hidden="true"
+      data-skeleton=""
       className={blockClassName}
       style={{ width, height }}
     />
