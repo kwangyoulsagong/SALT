@@ -219,3 +219,4 @@ source: requirements/reports/research/reports/국내 주식 코치 전망 설계
 | 2026-11-09 | KIS 클라이언트 테스트에 기간별 지수 시세 파싱(F016 단계 C) — 국내 정확도 코드 무변경 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `domain/events.reaction` 머리 설명 한 줄(끊김 규칙 그대로) · 기준 시각 `anchor` 인자 추가(국내 실적 공시만 씀, 끊김 판정 무변경) |
 | 2026-11-18 | 서버 `kisClient.test.ts`(머리에 이 REQ 언급) 우선순위 시험에 지난 날 분봉 · 일봉 백필 줄(`SRV-REQ-057` FR-9). 예측 무변경 — 전 종목 일봉 백필이 굶지 않아 공시 뒤 반응 표본(아래 미검증)이 다시 찬다 |
+| 2026-11-21 | 날마다 다른 국내 장 시간 짝(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`) — `jobs/_data.py` · `models/kr_scale.py` — 봉 → 거래일을 `available_at − 16:00` 대신 날짜 내림 · 종가 공개 시각을 `KrxSessions.close_known`(수능일 17:00). 평상일 결과 무변경 |

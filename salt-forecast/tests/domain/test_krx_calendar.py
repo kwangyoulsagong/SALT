@@ -8,8 +8,21 @@ import numpy as np
 import pytest
 
 from salt_forecast.domain.baselines import random_walk_normal
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session, presumed_weekdays
+from salt_forecast.domain.calendar import (
+    KrxSessions,
+    krx_close_available,
+    krx_close_known,
+    krx_close_minute,
+    krx_closed_day,
+    krx_regular_minutes,
+    krx_session,
+    krx_shifted_days,
+    presumed_weekdays,
+)
 from salt_forecast.domain.series import DAY, CloseSeries
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 # 2026-09-28(월) ~ 2026-10-16(금). 실제 휴장: 10-05(월) 대체 · 10-09(금) 한글날
 _DATES = [
@@ -142,3 +155,48 @@ def test_report_day_rejects_naive() -> None:
 
     with pytest.raises(ValueError):
         report_day(datetime(2026, 11, 11))  # noqa: DTZ001 — naive 를 거절하는지가 시험 대상
+
+
+# ── 날마다 다른 장 시간 — 수능일 · 새해 첫 개장일 (2026-11-21) ──
+
+
+def test_close_available_per_day_csat_is_one_hour_later() -> None:
+    assert krx_close_available(date(2026, 11, 18)) == 7 * 3600  # 16:00 KST
+    assert krx_close_available(date(2026, 11, 19)) == 8 * 3600  # 수능일 17:00 KST
+    assert krx_close_available(date(2025, 11, 13)) == 8 * 3600
+    days = [date(2026, 11, 18), date(2026, 11, 19), date(2026, 11, 20)]
+    ss = np.asarray([krx_session(d) for d in days], dtype=np.int64)
+    assert (krx_close_known(ss) - ss).tolist() == [7 * 3600, 8 * 3600, 7 * 3600]
+    assert KrxSessions(ss).close_known.tolist() == krx_close_known(ss).tolist()
+
+
+def test_close_minute_and_regular_minutes() -> None:
+    assert krx_close_minute(date(2026, 11, 18)) == 930
+    assert krx_close_minute(date(2026, 11, 19)) == 990
+    none: set[date] = set()
+    assert krx_regular_minutes(date(2026, 11, 18), none) == (540, 930)
+    assert krx_regular_minutes(date(2026, 11, 19), none) == (600, 990)
+    assert krx_regular_minutes(date(2026, 1, 2), none) == (600, 930)  # 새해 첫 개장일(금)
+    assert krx_regular_minutes(date(2026, 1, 5), none) == (540, 930)
+    assert krx_regular_minutes(date(2027, 1, 4), none) == (600, 930)  # 1월 2 · 3일 주말 → 월요일
+    # 1월 2일이 휴장이면 다음 개장일이 첫날
+    assert krx_regular_minutes(date(2026, 1, 2), {date(2026, 1, 2)}) == (540, 930)
+    assert krx_regular_minutes(date(2026, 1, 5), {date(2026, 1, 2)}) == (600, 930)
+
+
+def test_shifted_days_lists_only_special_days() -> None:
+    got = krx_shifted_days(date(2025, 12, 29), date(2026, 1, 9), set())
+    assert got == [(date(2026, 1, 2), 600, 930)]
+    got = krx_shifted_days(date(2026, 11, 16), date(2026, 11, 22), set())
+    assert got == [(date(2026, 11, 19), 600, 990)]
+
+
+def test_closed_day_matches_old_rule_on_normal_days_and_waits_on_csat() -> None:
+    def at(d: date, h: int, m: int = 0) -> int:
+        return krx_session(d) + h * 3600 + m * 60
+
+    d18, d19 = date(2026, 11, 18), date(2026, 11, 19)
+    for t in (at(d18, 6, 59), at(d18, 7), at(d18, 12)):
+        assert krx_closed_day(t) == (t - 7 * 3600) // DAY * DAY  # 평상일 = 옛 규칙
+    assert krx_closed_day(at(d19, 7, 30)) == krx_session(d18)  # 수능일 16:30 KST — 아직 전날까지
+    assert krx_closed_day(at(d19, 8)) == krx_session(d19)

@@ -4,7 +4,6 @@ from datetime import UTC, date, datetime, timedelta
 
 import numpy as np
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE
 from salt_forecast.domain.events import (
     MIN_SAMPLE,
     RULE_ANNOUNCE_LEAD,
@@ -19,6 +18,9 @@ from salt_forecast.domain.events import (
 )
 from salt_forecast.domain.kr_breaks import up_limit_breaks
 from salt_forecast.domain.series import DAY, OhlcvSeries
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 # 2024-01-01(월) 부터 평일만 — 국내 일봉은 그날 07:00 UTC(16:00 KST)에 닫힌다
 START = date(2024, 1, 1)

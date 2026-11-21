@@ -7,10 +7,13 @@ from datetime import date
 import numpy as np
 import pytest
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session
+from salt_forecast.domain.calendar import KrxSessions, krx_session
 from salt_forecast.domain.har import build_panel, forward_log_return
 from salt_forecast.domain.kr_breaks import up_limit_breaks, with_breaks
 from salt_forecast.domain.series import CloseSeries
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 # 011000 실측 모양(2026-07): 534 로 정지 → 재개일 2670(×5, KIS 수정주가 미반영)
 _CLOSE = np.asarray([520.0, 530.0, 534.0, 534.0, 534.0, 2670.0, 2700.0, 2650.0, 2600.0, 2620.0])

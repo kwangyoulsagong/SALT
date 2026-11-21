@@ -188,3 +188,8 @@
 - 검증: `ruff` · `format` · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전부 · 누수 따로
 - 미검증: 예측 코드가 바뀐 머지 뒤 실시간 가드가 막고 → 다시 적합 → 다음 회차 행 > 0 — `OPS-005` FR-7(머지 뒤)
 - 검증 2회차: 가드를 `jobs/code_guard.py` 로 뗌 — `vol_range` 가 단타 모듈을 import 해 단타 모듈이 흔들림의 '불러온 예측 코드'로 잡혔다(지금 42개 · 단타 0). 실 DB 로 흔들림 재생(쓰기 가로챔): 가드 '바뀜' → 1시각 건너뜀 · '같음' → 480행 · git 한 번(적합 커밋당). 단타 실시간 dry-run(개발 트리): 칸 4 전부 `skipped_code_changed` · 재생 대상 0
+
+## 2026-11-21 날마다 다른 국내 장 시간(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`)
+
+- 이 REQ 머리 파일을 지나감 — 검증 표는 `FC-REQ-009` 체크리스트(pytest 780 · leakage 53). 평상일 결과 무변경
+- 미충족: 없음(이 REQ 몫)

@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import numpy as np
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions
+from salt_forecast.domain.calendar import KrxSessions
 from salt_forecast.domain.kr_universe import LiquidityRule, eligible_at
 from salt_forecast.domain.series import OhlcvSeries
 from salt_forecast.models.engine import WalkForward
 from salt_forecast.models.kr_stock import kr_providers
 from tests.synthetic import krx_universe
+
+# 평상일 국내 종가 공개 16:00 KST = 거래일 00:00 UTC + 7시간 — 이 시험의 날은 모두 평상일
+KRX_CLOSE_AVAILABLE = 7 * 3600
 
 RULE = LiquidityRule(window_sessions=20, min_turnover_krw=1e9, min_bars=250)
 

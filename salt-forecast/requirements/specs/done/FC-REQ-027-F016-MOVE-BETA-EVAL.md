@@ -55,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 사용자 결정 — 평가는 켜기 문턱이 아니라 운영 모니터링 |
 | 2026-11-09 | in-progress — 단계 C(FR-1~3) done. σ60 을 export 뷰에 더함(카드 조건 재료) |
 | 2026-11-12 | **done** — 단계 D FR-4~6(운영 주간 리포트). 정정: FR-5 의 정직률 · 몫 분포는 이 뷰 밖(위 표) |
+| 2026-11-21 | 날마다 다른 국내 장 시간 짝(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`) — `store/move_beta.py` 지수 · 업종 일별 종가 공개 시각을 그날 값으로(`krx_close_available` — 수능일 17:00) |

@@ -54,6 +54,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §F FR-80~
 
 ## Changelog
 
+- 2026-11-21: **날마다 다른 국내 장 시간**(`fix/fc-kr-shifted-session`, 루트 `requirements/specs/in-progress/F011-kr-shifted-session-slice.md` 2단계) — 일봉 공개 시각을 고정 16:00 KST 에서 **그날 값**으로(`calendar.krx_close_available` · `krx_close_known` — 수능일 17:00, 표 `KRX_DELAYED_SESSIONS` 2021~2026). 고정이던 때 수능일 16:00~16:30 as_of 가 아직 안 닫힌 종가를 아는 것으로 읽었다(누수). 상수는 비공개로 — 바깥에서 더하고 빼던 열 곳(달력 · 척도 패널 · 규칙 패널 · 단타 만기 · 지수 일봉 · 수급 사실)을 함수로, 봉 → 거래일은 날짜 내림. 5분봉은 그날 정규장으로 거르고(수능일 10:00~16:30 · 새해 첫 개장일 10:00) 그런 날의 장 밖 봉을 지운다(`store/prices.delete_bars_outside_hours`). 평상일 결과 무변경(평상일 경계 시험이 옛 규칙과 같음)
 - 2026-11-12: 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0
 - 2026-10-26: `kr_backtest` 리포트에 국면별 꼬리 커버리지 절 추가(`FC-REQ-020` FR-14) — 예측 · 채점 · 게이트 무변경, 새 절 앞 리포트 main 과 바이트 동일
 - 2026-10-23: 국내 일봉 옮기기 · 달력 라벨에 수정주가 재작성 · 원천 끊김(`FC-REQ-020` FR-10) — `ingest_kr_stock` 이 서버 이력보다 앞선 `forecast.price_bar` 봉을 지운다(`store/prices.delete_bars_before`) · `KrxSessions.realized` 는 끊김을 걸친 라벨을 None 으로. 일봉 공개 시각 · 격자 · 기간 정의 무변경

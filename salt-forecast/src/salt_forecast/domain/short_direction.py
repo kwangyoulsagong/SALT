@@ -28,7 +28,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.base_rate import holm
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE
+from salt_forecast.domain.calendar import krx_close_known
 from salt_forecast.domain.logistic import LogitFit, Standardizer, fit_logistic, sigmoid
 from salt_forecast.domain.panel import Mat, Panel, forward_log_return, lag, rolling_sum
 from salt_forecast.domain.prob_calibration import (
@@ -54,7 +54,9 @@ MIN_UP_CALLS = 30
 # 전진 시험의 생명 — 예측은 결과를 알기 전에 기록한다.
 # 코인: 기준 봉 마감 뒤 이 안에만 · 국내: 다음 거래일 장 시작(09:00 KST) 전에만
 CRYPTO_WRITE_LAG_S = 15 * 60
-KR_OPEN_BEFORE_CLOSE_S = 7 * 3600  # 16:00 만기 − 7시간 = 그날 09:00 KST
+# 만기(그날 종가 공개) − 7시간 = 그날 개장 — 평상일 09:00 · 수능일 10:00 KST 둘 다 공개 7시간 전.
+# 새해 첫 개장일(10:00 개장)은 09:00 으로 한 시간 일찍 닫는다(보수)
+KR_OPEN_BEFORE_CLOSE_S = 7 * 3600
 
 
 # ── @4 동결 재생(2026-11-16) — 맥이 평일 업무 시간에만 켜져 놓친 시각의 예측을 깨어난 뒤 다시 만든다.
@@ -100,7 +102,9 @@ def written_in_time(market: str, as_of: int, expires_at: int, now: int) -> bool:
 
 
 def kr_bar_move_due(open_dates: list[int], moved_last: int | None, now: int) -> bool:
-    """매시 회차가 국내 일봉을 지금 옮겨야 하나 — 공개된(그날 16:00 KST) 마지막 거래일 봉이 forecast 에 아직 없을 때.
+    """매시 회차가 국내 일봉을 지금 옮겨야 하나 — 공개된 마지막 거래일 봉이 forecast 에 아직 없을 때.
+
+    공개 = 그날 `krx_close_known`(평상일 16:00 · 수능일 17:00 KST).
 
     `open_dates` · `moved_last` 는 거래일 as_of(`calendar.krx_session`, 그날 09:00 KST) — `moved_last` 는 forecast 에
     옮겨진 마지막 국내 봉의 거래일. 국내 예측은 다음 장 09:00 전에만 쓴다(`written_in_time`) — 일봉 옮기기를 매일
@@ -108,7 +112,8 @@ def kr_bar_move_due(open_dates: list[int], moved_last: int | None, now: int) -> 
     **작업이 돌았나가 아니라 봉이 있나로 본다** — 맥이 깬 직후 서버가 그날 일봉을 채우기 전에 옮기면 작업은 성공인데
     봉은 없다. 서버가 채울 때까지 매시 다시 옮긴다(약 100초).
     """
-    published = [d for d in open_dates if d + KRX_CLOSE_AVAILABLE <= now]
+    known = krx_close_known(np.asarray(open_dates, dtype=np.int64))
+    published = [d for d, k in zip(open_dates, known.tolist(), strict=True) if k <= now]
     if not published:
         return False
     return moved_last is None or moved_last < published[-1]

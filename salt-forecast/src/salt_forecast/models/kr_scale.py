@@ -19,7 +19,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.baselines import RawForecast
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions
+from salt_forecast.domain.calendar import KrxSessions
 from salt_forecast.domain.har import (
     CLOSE_WINDOWS,
     MARKET_WINDOW,
@@ -35,7 +35,7 @@ from salt_forecast.domain.har import (
 )
 from salt_forecast.domain.kr_breaks import up_limit_breaks
 from salt_forecast.domain.quantiles import Z_SCORES, QuantileForecast
-from salt_forecast.domain.series import WEEK, CloseSeries, OhlcvSeries
+from salt_forecast.domain.series import DAY, WEEK, CloseSeries, OhlcvSeries
 
 KEY = "kr-scale@1"
 TRAIN_WEEKS = 156
@@ -77,7 +77,7 @@ def _matrices(
     breaks = np.zeros((len(symbols), days.size), dtype=np.bool_)
     for k, sym in enumerate(symbols):
         b = bars[sym]
-        day = b.available_at - KRX_CLOSE_AVAILABLE
+        day = b.available_at // DAY * DAY  # 거래일(00:00 UTC) — 공개 시각은 늘 그날 안이라 수능일(17:00 KST)도 같은 날
         pos = np.searchsorted(days, day)
         ok = (pos < days.size) & (days[np.minimum(pos, days.size - 1)] == day)
         for m, col in zip(mats, (b.open, b.high, b.low, b.close, b.volume), strict=True):
@@ -108,7 +108,7 @@ class KrScalePanel:
         self.symbols, (o, hi, lo, c, v), breaks = _matrices(bars, schedule)
         self._row = {s: i for i, s in enumerate(self.symbols)}
         self.panel: DailyPanel = build_panel(o, hi, lo, c, v, breaks)
-        self._close_known = schedule.sessions + KRX_CLOSE_AVAILABLE
+        self._close_known = schedule.close_known
         n_days = {h: schedule.days_per_week * h for h in horizons}
         self._target = {h: forward_log_mean(self.panel.r**2, n) for h, n in n_days.items()}
         self._ret = {h: forward_log_return(self.panel.close, n, breaks) for h, n in n_days.items()}

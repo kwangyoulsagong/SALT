@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Protocol
@@ -92,9 +92,92 @@ class WeeklyUtc:
 
 COIN = WeeklyUtc()
 
-# KRX 정규장 15:30 KST 마감 + 정정 여유 30분 = 16:00 KST = 07:00 UTC(FEATURE-011 FR-80)
-KRX_CLOSE_AVAILABLE = 7 * 3600
+# 평상일 KRX 정규장 15:30 KST 마감 + 정정 여유 30분 = 16:00 KST = 07:00 UTC(FEATURE-011 FR-80).
+# **날마다 다르다** — 바깥에서 이 값에 더하거나 빼지 않는다. 그날 값은 `krx_close_available` · `krx_close_known`,
+# 봉 → 거래일은 `floor_day`(공개 시각은 늘 그날 안이다). 고정 16:00 이던 때 수능일(마감 16:30) 16:00~16:30 as_of 가
+# 아직 안 닫힌 종가를 아는 것으로 읽었다(2026-11-21, time-and-leakage.md §1)
+_KRX_NORMAL_CLOSE_AVAILABLE = 7 * 3600
+_KRX_CLOSE_GRACE = 30 * 60
 KRX_DAYS_PER_WEEK = 5
+
+# 장 시간이 통째로 늦춰지는 날 — 대학수학능력시험일은 KRX 가 정규장 · 동시호가 · 시간외를 모두 1시간 늦춘다
+# (10:00 ~ 16:30). 교육부가 해마다 정하므로 서버 `KRX_DELAYED_SESSIONS`(salt-server `market/domain/KrStock.ts`)와
+# **같은 날을** 해마다 한 줄 더한다.
+# 국내 일봉 이력(5년) 안의 날을 전부 적는다 — 빠진 해는 그날 종가를 30분 일찍 아는 것으로 읽는다
+KRX_DELAYED_SESSIONS: dict[date, int] = {
+    date(2021, 11, 18): 3600,
+    date(2022, 11, 17): 3600,
+    date(2023, 11, 16): 3600,
+    date(2024, 11, 14): 3600,
+    date(2025, 11, 13): 3600,
+    date(2026, 11, 19): 3600,
+}
+_KRX_OPEN_MIN = 9 * 60
+_KRX_CLOSE_MIN = 15 * 60 + 30
+_KRX_FIRST_DAY_OPEN_MIN = 10 * 60
+
+
+def krx_close_available(d: date) -> int:
+    """거래일 d 의 종가를 아는 시각 − d 00:00 UTC(초). 평상일 7시간(16:00 KST) · 수능일 8시간(17:00 KST)."""
+    return _KRX_NORMAL_CLOSE_AVAILABLE + KRX_DELAYED_SESSIONS.get(d, 0)
+
+
+_DELAYED_SESSIONS_UTC = np.asarray(
+    sorted(int(datetime(d.year, d.month, d.day, tzinfo=UTC).timestamp()) for d in KRX_DELAYED_SESSIONS), dtype=np.int64
+)
+_DELAYED_SHIFTS = np.asarray([KRX_DELAYED_SESSIONS[d] for d in sorted(KRX_DELAYED_SESSIONS)], dtype=np.int64)
+
+
+def krx_close_known(sessions: NDArray[np.int64]) -> NDArray[np.int64]:
+    """거래일 as_of(`krx_session`) 배열 → 그날 종가 공개 시각 배열. `krx_close_available` 의 벡터판."""
+    s = np.asarray(sessions, dtype=np.int64)
+    out = s + _KRX_NORMAL_CLOSE_AVAILABLE
+    pos = np.searchsorted(_DELAYED_SESSIONS_UTC, s)
+    n = _DELAYED_SESSIONS_UTC.size
+    hit = (pos < n) & (_DELAYED_SESSIONS_UTC[np.minimum(pos, n - 1)] == s)
+    out[hit] += _DELAYED_SHIFTS[pos[hit]]
+    return out
+
+
+def krx_closed_day(t: int) -> int:
+    """t 에 종가를 이미 아는 마지막 날(00:00 UTC, 휴장 무시 — 하루 격자용). 평상일엔 `floor_day(t − 7시간)` 과 같다."""
+    d = floor_day(t)
+    return d if int(krx_close_known(np.asarray([d], dtype=np.int64))[0]) <= t else d - DAY
+
+
+def krx_close_minute(d: date) -> int:
+    """거래일 d 의 정규장 마감(종가 단일가) — KST 분. 평상일 930(15:30) · 수능일 990(16:30)."""
+    return _KRX_CLOSE_MIN + KRX_DELAYED_SESSIONS.get(d, 0) // 60
+
+
+def krx_regular_minutes(d: date, closed: Collection[date]) -> tuple[int, int]:
+    """거래일 d 의 정규장(동시호가 포함) [시작, 마감) — KST 분. 평상일 540 · 930.
+
+    수능일은 둘 다 1시간 늦다. 새해 첫 개장일(1월 1일은 늘 휴장 — 그해 1월 2일부터 주말 · `closed` 를 건너뛴 첫 날)은
+    KRX 개장식으로 10:00 에 열고 마감은 그대로다.
+    """
+    shift = KRX_DELAYED_SESSIONS.get(d, 0) // 60
+    if shift:
+        return _KRX_OPEN_MIN + shift, _KRX_CLOSE_MIN + shift
+    first = date(d.year, 1, 2)
+    while first.weekday() >= 5 or first in closed:
+        first += timedelta(days=1)
+    return (_KRX_FIRST_DAY_OPEN_MIN if d == first else _KRX_OPEN_MIN), _KRX_CLOSE_MIN
+
+
+def krx_shifted_days(start: date, end: date, closed: Collection[date]) -> list[tuple[date, int, int]]:
+    """[start, end] 안에서 정규장이 평상일(09:00 ~ 15:30)과 다른 날 — (날, 시작 분, 마감 분).
+
+    수능일 · 새해 첫 개장일."""
+    out: list[tuple[date, int, int]] = []
+    d = start
+    while d <= end:
+        if d.weekday() < 5 and d not in closed:
+            hours = krx_regular_minutes(d, closed)
+            if hours != (_KRX_OPEN_MIN, _KRX_CLOSE_MIN):
+                out.append((d, *hours))
+        d += timedelta(days=1)
+    return out
 
 
 def presumed_weekdays(known: Iterable[int], through: date) -> list[date]:
@@ -134,6 +217,8 @@ class KrxSessions:
     days_per_week: int = KRX_DAYS_PER_WEEK
     max_gap: int | None = None
     _grid: frozenset[int] = field(default=frozenset(), init=False)
+    # 거래일마다 종가 공개 시각(`krx_close_known`) — 수능일만 1시간 늦다. 오름차순(늦어도 그날 안이다)
+    close_known: NDArray[np.int64] = field(default_factory=lambda: np.zeros(0, dtype=np.int64), init=False)
 
     def __post_init__(self) -> None:
         s = self.sessions
@@ -143,6 +228,7 @@ class KrxSessions:
         first = np.ones(s.size, dtype=bool)
         first[1:] = weeks[1:] != weeks[:-1]
         object.__setattr__(self, "_grid", frozenset(int(t) for t in s[first]))
+        object.__setattr__(self, "close_known", krx_close_known(s))
 
     @classmethod
     def from_dates(cls, dates: Iterable[date]) -> KrxSessions:
@@ -157,14 +243,14 @@ class KrxSessions:
 
     def _base(self, as_of: int) -> int:
         """as_of 에 종가를 아는 마지막 거래일 위치. 없으면 -1."""
-        return int(np.searchsorted(self.sessions + KRX_CLOSE_AVAILABLE, as_of, side="right")) - 1
+        return int(np.searchsorted(self.close_known, as_of, side="right")) - 1
 
     def label_end(self, as_of: int, horizon_weeks: int) -> int | None:
         i = self._base(as_of)
         j = i + self.days_per_week * horizon_weeks
         if i < 0 or j >= self.sessions.size:
             return None
-        return int(self.sessions[j]) + KRX_CLOSE_AVAILABLE
+        return int(self.close_known[j])
 
     def realized(self, series: CloseSeries, as_of: int, horizon_weeks: int) -> float | None:
         """코인과 같은 정의 — 기준 종가는 as_of 에 알던 것, 끝 종가는 기간 끝에 알던 것."""
@@ -189,12 +275,12 @@ class KrxSessions:
         """
         i = self._base(as_of) - slack
         last = series.last_at()
-        return i >= 0 and last is not None and last >= int(self.sessions[i]) + KRX_CLOSE_AVAILABLE
+        return i >= 0 and last is not None and last >= int(self.close_known[i])
 
     def known_closes(self, as_of: int, n: int) -> NDArray[np.int64]:
         """as_of 에 종가를 아는 마지막 거래일 n 개의 종가 공개 시각(오름차순). 모자라면 있는 만큼."""
         i = self._base(as_of)
-        return self.sessions[max(0, i - n + 1) : i + 1] + KRX_CLOSE_AVAILABLE
+        return self.close_known[max(0, i - n + 1) : i + 1]
 
     def latest_session(self, now: int) -> int | None:
         """now 이전에 시작한 마지막 거래일 — 매일 작업의 as_of."""

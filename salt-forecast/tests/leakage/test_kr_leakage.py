@@ -5,7 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
-from salt_forecast.domain.calendar import KrxSessions
+import numpy as np
+
+from salt_forecast.domain.calendar import KrxSessions, krx_session
 from salt_forecast.domain.series import CloseSeries
 from salt_forecast.ingest.krx_daily import to_bars
 from salt_forecast.models.engine import POOL_WEEKS, WalkForward
@@ -92,3 +94,26 @@ def test_ingest_drops_bar_before_close_is_public() -> None:
     assert bar.open_time == datetime(2026, 10, 7, 15, 0, tzinfo=UTC)  # 10-08 00:00 KST
     assert bar.close_time == datetime(2026, 10, 8, 6, 30, tzinfo=UTC)  # 15:30 KST
     assert bar.available_at == after
+
+
+def test_csat_daily_bar_is_not_public_until_17_kst() -> None:
+    """수능일(2026-11-19, 마감 16:30)은 17:00 KST 전엔 옮기지 않는다 — 고정 16:00 이던 때 장중 값을 종가로 읽었다."""
+    p = Decimal(100)
+    row = KrDailyRow("005930", date(2026, 11, 19), p, p, p, p, Decimal(1))
+    assert list(to_bars([row], datetime(2026, 11, 19, 7, 30, tzinfo=UTC))) == []  # 16:30 KST — 종가 단일가 막 끝
+    assert list(to_bars([row], datetime(2026, 11, 19, 7, 59, tzinfo=UTC))) == []
+    (bar,) = to_bars([row], datetime(2026, 11, 19, 8, 0, tzinfo=UTC))
+    assert bar.close_time == datetime(2026, 11, 19, 7, 30, tzinfo=UTC)  # 16:30 KST
+    assert bar.available_at == datetime(2026, 11, 19, 8, 0, tzinfo=UTC)  # 17:00 KST
+
+
+def test_csat_close_is_not_known_before_17_kst() -> None:
+    """달력 쪽 — 수능일 16:30 KST as_of 의 기준 거래일은 전날, 17:00 부터 그날."""
+    cal = KrxSessions.from_dates([date(2026, 11, 18), date(2026, 11, 19), date(2026, 11, 20)])
+    ts = np.asarray([krx_session(date(2026, 11, d)) for d in (18, 19, 20)], dtype=np.int64)
+    close = CloseSeries("X", cal.close_known, np.asarray([100.0, 101.0, 102.0]))
+    at_1630 = int(datetime(2026, 11, 19, 7, 30, tzinfo=UTC).timestamp())
+    at_1700 = int(datetime(2026, 11, 19, 8, 0, tzinfo=UTC).timestamp())
+    assert cal.known_closes(at_1630, 5).tolist() == [int(ts[0]) + 7 * 3600]
+    assert cal.known_closes(at_1700, 5).tolist() == [int(ts[0]) + 7 * 3600, int(ts[1]) + 8 * 3600]
+    assert close.close_at_or_before(at_1630) == 100.0

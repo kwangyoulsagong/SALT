@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from itertools import pairwise
 from typing import Any
@@ -89,6 +89,43 @@ def delete_bars_before(engine: Engine, source: str, interval: str, first_open: d
         result = conn.execute(
             stmt,
             {"symbols": symbols, "firsts": [first_open[s] for s in symbols], "source": source, "interval": interval},
+        )
+    return int(result.rowcount)
+
+
+def delete_bars_outside_hours(
+    engine: Engine, source: str, interval: str, symbols: Collection[str], days: Sequence[tuple[date, int, int]]
+) -> int:
+    """종목 × 날마다 그날 정규장 [시작 분, 마감 분)(KST) 밖 봉을 지운다.
+
+    장 시간이 평상일과 다른 날(`krx_shifted_days`)만 넘긴다. 고정 09:00 ~ 15:30 으로 옮기던 때 수능일 동시호가
+    예상가 봉(09:30 · 09:35)이 남았다. upsert 는 지우지 않으므로 여기서.
+    종목 × 날 쌍마다 기본 키 (source, symbol, interval, open_time) 범위 — 표를 훑지 않는다.
+    """
+    if not symbols or not days:
+        return 0
+    syms = sorted(symbols)
+    pairs = [(s, d, o, c) for s in syms for d, o, c in days]
+    stmt = text(
+        "DELETE FROM forecast.price_bar pb USING unnest(CAST(:symbols AS text[]), CAST(:days AS date[]), "
+        "CAST(:opens AS int[]), CAST(:closes AS int[])) AS k(symbol, day, open_min, close_min) "
+        "WHERE pb.source = :source AND pb.interval = :interval AND pb.symbol = k.symbol "
+        "AND pb.open_time >= (k.day::timestamp AT TIME ZONE 'Asia/Seoul') "
+        "AND pb.open_time < ((k.day + 1)::timestamp AT TIME ZONE 'Asia/Seoul') "
+        "AND (EXTRACT(HOUR FROM pb.open_time AT TIME ZONE 'Asia/Seoul') * 60 "
+        "+ EXTRACT(MINUTE FROM pb.open_time AT TIME ZONE 'Asia/Seoul') NOT BETWEEN k.open_min AND k.close_min - 1)"
+    )
+    with engine.begin() as conn:
+        result = conn.execute(
+            stmt,
+            {
+                "symbols": [p[0] for p in pairs],
+                "days": [p[1] for p in pairs],
+                "opens": [p[2] for p in pairs],
+                "closes": [p[3] for p in pairs],
+                "source": source,
+                "interval": interval,
+            },
         )
     return int(result.rowcount)
 

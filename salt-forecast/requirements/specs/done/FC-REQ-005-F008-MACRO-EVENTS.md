@@ -61,3 +61,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-16 | F017 v4 순서 4 짝(루트 `requirements/specs/in-progress/F017-v4-stage4-experiment-slice.md`) — `store/tables.py`(머리 주인)에 예측 실험 표 넷 선언(`DB-REQ-043` FR-14) — 사건 일정 · 반응 표 무변경 |
 | 2026-11-16 | F017 v4 순서 5 짝(루트 `requirements/specs/in-progress/F017-v4-stage5-ontology-slice.md`) — `store/tables.py`(머리 주인)에 온톨로지 표 여섯 · 채점 표 하나 선언(`FC-REQ-022` · `DB-REQ-043` FR-15) — 사건 일정 · 반응 표 무변경 |
 | 2026-11-17 | F008 슬라이스 24 2단계(`feat/f008-slice24-s2-earnings-window`, 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`) — 짝 — `events` 국내 묶음에 종목 실적 · `reaction` 에 기준 시각(`anchor`, `event_at` 보다 늦으면 예외) 인자 |
+| 2026-11-21 | 날마다 다른 국내 장 시간 짝(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`) — `domain/events.py` 머리 주석만 — 국내 일봉 닫힘 시각이 날마다 다르다(`krx_close_available`). 동작 무변경 |

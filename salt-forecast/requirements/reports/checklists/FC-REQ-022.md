@@ -32,3 +32,8 @@
 
 - FR-11 관문 행: 실 DB 2행(kr 0.975 · 0.886 통과 · crypto 1.000 · 0.957 통과) · `--dry-run` 뒤 행 수 그대로 · `test_schema_contract.py` 통과
 - FR-4 3홉 p95: 옛 2,392ms(최대 69초 — 코스피 시작) → 33ms(최대 319ms), 실 DB 200 시작점 · 결과 대조 EXCEPT 양방향 0(허브 아닌 6) · `test_ontology_asof.py` 통과
+
+## 2026-11-21 날마다 다른 국내 장 시간(`fix/fc-kr-shifted-session`, 주인 `FC-REQ-009`)
+
+- 이 REQ 머리 파일을 지나감 — 검증 표는 `FC-REQ-009` 체크리스트(pytest 780 · leakage 53). 평상일 결과 무변경
+- 미충족: 없음(이 REQ 몫)

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 from sqlalchemy import Engine
 
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session, presumed_weekdays
+from salt_forecast.domain.calendar import KrxSessions, floor_day, krx_session, presumed_weekdays
 from salt_forecast.domain.kr_breaks import with_breaks
 from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.features.build import MarketContext
@@ -43,7 +43,7 @@ def load_kr(engine: Engine, now: datetime) -> tuple[dict[str, CloseSeries], KrxS
     series = {
         s: with_breaks(c.as_of(t)) for s, c in load_close_series(engine, krx_daily.SOURCE, krx_daily.INTERVAL).items()
     }
-    sessions = {int(x) - KRX_CLOSE_AVAILABLE for c in series.values() for x in c.available_at}
+    sessions = {floor_day(int(x)) for c in series.values() for x in c.available_at}
     today = now.astimezone(KST).date()
     sessions |= {krx_session(d) for d in krx_open_dates(engine, today)}
     # 원천이 멈춘 뒤의 평일은 거래일로 가정 — 멈춘 가격을 신선하다고 읽지 않게(presumed_weekdays)
