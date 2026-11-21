@@ -58,3 +58,5 @@
 
 - 짝 — `identity.UserRegistered` 첫 발행 · application.yml identity 설정. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
 - Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로
+
+- 2026-11-21 걸침(`SRV-REQ-062`) — 할 일 없음

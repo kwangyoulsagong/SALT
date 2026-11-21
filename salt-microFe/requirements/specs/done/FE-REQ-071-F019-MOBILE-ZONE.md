@@ -55,3 +55,4 @@ source: 사용자 "pwa에도 전용 마이크로프론트엔드로 하고 서로
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — `layout/mobile` 입구에 `DesktopViewFoot`(바닥 안내 + 회색 알약) · `MobileShortcuts`(바로가기 목록 카드 — 홈에서 꺼냄)를 더했다 |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 휴대폰 홈 알약 문구를 `@repo/core/labels` `HOME_CARD_PILL_LABEL` 로 옮김(데스크톱 홈과 한 벌) — 값 그대로 |
 | 2026-11-21 | 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): 서비스 워커 오프라인 한 장이 그 경로의 한 벌을 그린다(인라인 스크립트 · `offlinePage.ts` 로 옮김) · 루트 레이아웃 잎이 설치 사건을 붙잡는다 · `@repo/core/mobile` 에 `offline` 계약 |
+| 2026-11-21 | 걸침 — `FE-REQ-078`(`feat/f019-s4-web-push`): 서비스 워커에 `push` · `notificationclick` · 등록 뒤 푸시 구독 대조 · `@repo/core/mobile` 에 `push` 판정. 범위 · 캐시 규칙 변화 0 |

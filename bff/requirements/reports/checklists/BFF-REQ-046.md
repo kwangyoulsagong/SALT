@@ -124,3 +124,5 @@
 | 미충족 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 코드 주석 FR 번호 — `home-card.viewmodel.ts` · `app-home.service.ts` · 시험 두 파일 · `home-feed.viewmodel.ts` · `@repo/core` `homeSummaryCard.ts` 가 `BFF-REQ-046` FR-8 · 9 로 적음 | FR-8(알림 설정) · FR-9(옛 블록 삭제)는 이미 있다 — 스펙은 FR-12 · 13 | PR 전 주석 고침 |
+
+- 2026-11-21 걸침(`BFF-REQ-056`): 알림 컨트롤러 · `me.routes` 에 푸시 경로 셋 — FR-8 설정 시험 그대로 통과(`npm test` 615)

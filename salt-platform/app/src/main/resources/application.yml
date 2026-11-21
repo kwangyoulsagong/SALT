@@ -56,6 +56,14 @@ salt:
     legacy-refresh-secret: ${JWT_REFRESH_SECRET}
     max-accounts: ${INVITE_MAX_ACCOUNTS:10}
     public-market-guest: ${PUBLIC_MARKET_GUEST:true}
+  # 웹 푸시(`SRV-REQ-062`, F019 순서 4) — 기본 꺼짐. 켜면 키 둘 · subject · 공개 주소가 다 있어야 기동한다(`PushProperties`). 키는 `node ops/vapid-keys.mjs`
+  notification:
+    push:
+      enabled: ${PUSH_ENABLED:false}
+      vapid-public-key: ${PUSH_VAPID_PUBLIC_KEY:}
+      vapid-private-key: ${PUSH_VAPID_PRIVATE_KEY:}
+      subject: ${PUSH_SUBJECT:}
+      public-origin: ${PUBLIC_ORIGIN:}
   # 금융 팁 공개 플래그 — 법무 확인 기록 전엔 꺼짐(`SRV-REQ-047` 수용 기준 3). 기본값을 켜지 않는다
   content:
     public-enabled: ${CONTENT_PUBLIC:false}

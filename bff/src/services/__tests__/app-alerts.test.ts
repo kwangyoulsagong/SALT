@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
-import { appAlertsService, toNotificationPrefs } from "../app-alerts.service";
+import { appAlertsService, toNotificationPrefs, toPushConfig, toPushSubscriptionBody } from "../app-alerts.service";
 import { backendApi } from "../backend-api.service";
 
 /** 알림 · 알림 설정 계약 (`BFF-REQ-046` FR-8 · `SRV-REQ-048` FR-5) — 경로는 Kotlin notification, 설정 순서 · 목록은 서버 것 */
@@ -57,5 +57,38 @@ describe("AppAlertsService", () => {
     await appAlertsService.markRead("t", "a/b");
     await appAlertsService.markAllRead("t");
     assert.deepEqual(seen, ["GET /notifications/unread-count", "PATCH /notifications/a%2Fb/read", "PATCH /notifications/read-all"]);
+  });
+
+  it("웹 푸시 설정(BFF-REQ-056) — 켜짐은 공개키 문자열이 있을 때만 · 꺼지면 키 null", () => {
+    assert.deepEqual(toPushConfig({ enabled: true, publicKey: "BPk" }), { enabled: true, publicKey: "BPk" });
+    assert.deepEqual(toPushConfig({ enabled: true, publicKey: "" }), { enabled: false, publicKey: null });
+    assert.deepEqual(toPushConfig({ enabled: true, publicKey: 3 }), { enabled: false, publicKey: null });
+    assert.deepEqual(toPushConfig({ enabled: false, publicKey: "BPk" }), { enabled: false, publicKey: null });
+    assert.deepEqual(toPushConfig({ enabled: "true", publicKey: "BPk" }), { enabled: false, publicKey: null });
+    assert.deepEqual(toPushConfig(null), { enabled: false, publicKey: null });
+  });
+
+  it("구독 본문 — 서버가 쓰는 세 칸만 · 나머지 버림 · 값 판정은 서버", () => {
+    assert.deepEqual(
+      toPushSubscriptionBody({ endpoint: "https://fcm.googleapis.com/x", expirationTime: null, keys: { p256dh: "k", auth: "a", extra: 1 }, userId: "other" }),
+      { endpoint: "https://fcm.googleapis.com/x", keys: { p256dh: "k", auth: "a" } },
+    );
+    assert.deepEqual(toPushSubscriptionBody(null), { endpoint: undefined, keys: { p256dh: undefined, auth: undefined } });
+  });
+
+  it("구독 넣기 · 빼기 · 설정 — 서버 경로 1:1", async () => {
+    const seen: unknown[][] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (...args: unknown[]) => {
+      seen.push(args.slice(0, 4));
+      return { data: { data: { enabled: true, publicKey: "BPk" } } } as never;
+    });
+    assert.deepEqual(await appAlertsService.getPushConfig("t"), { enabled: true, publicKey: "BPk" });
+    await appAlertsService.savePushSubscription("t", { endpoint: "e", keys: { p256dh: "k", auth: "a" } });
+    await appAlertsService.removePushSubscription("t", "e");
+    assert.deepEqual(seen, [
+      ["GET", "/notifications/push/config", "t"],
+      ["PUT", "/notifications/push/subscription", "t", { endpoint: "e", keys: { p256dh: "k", auth: "a" } }],
+      ["DELETE", "/notifications/push/subscription", "t", { endpoint: "e" }],
+    ]);
   });
 });

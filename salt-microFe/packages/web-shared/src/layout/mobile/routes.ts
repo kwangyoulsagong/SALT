@@ -101,6 +101,49 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+/* 웹 푸시(FE-REQ-078) — 본문은 Declarative Web Push 모양({ web_push: 8030, notification: { title, body, navigate } }).
+   Declarative 를 아는 브라우저(iOS 18.4+)는 event.notification 을 이미 들고 오고, 여기서 띄우지 않으면 그것을 그대로 띄운다.
+   모르는 브라우저는 같은 JSON 을 읽어 띄운다 — 푸시마다 알림 하나(조용한 푸시 0). */
+const ICON = ${JSON.stringify(MOBILE_ICONS.any192)};
+const navigateTarget = (navigate) => {
+  const fallback = self.location.origin + "/m/home";
+  if (typeof navigate !== "string") return fallback;
+  try {
+    const url = new URL(navigate, self.location.origin);
+    return url.origin === self.location.origin && (url.pathname === "/m" || url.pathname.startsWith("/m/")) ? url.href : fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+self.addEventListener("push", (event) => {
+  if (event.notification) return;
+  let note = null;
+  try {
+    note = event.data ? event.data.json().notification : null;
+  } catch (error) {
+    note = null;
+  }
+  const title = note && typeof note.title === "string" ? note.title : "SALT";
+  const body = note && typeof note.body === "string" ? note.body : "";
+  event.waitUntil(
+    self.registration.showNotification(title, { body, icon: ICON, badge: ICON, lang: "ko-KR", data: { navigate: navigateTarget(note && note.navigate) } })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = navigateTarget((event.notification.data && event.notification.data.navigate) || event.notification.navigate);
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => new URL(client.url).pathname.startsWith("/m"));
+      if (!open) return self.clients.openWindow(target);
+      // navigate 는 이 워커가 다스리는 창에서만 된다 — 아니면 거절되므로 새 창으로(누름이 아무것도 안 여는 일 0)
+      return open.navigate(target).then((client) => (client || open).focus()).catch(() => self.clients.openWindow(target));
+    })
+  );
+});
 `;
 };
 

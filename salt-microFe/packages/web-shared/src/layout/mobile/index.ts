@@ -14,6 +14,7 @@ export { MobileShortcuts, type MobileShortcut } from "./MobileShortcuts";
 export { RegisterServiceWorker } from "./RegisterServiceWorker";
 export { MobileOfflineFallback, MobileOfflineSave, MobileOfflineView } from "./MobileOffline";
 export { MobileInstallCard } from "./MobileInstallCard";
+export { MobilePushCard } from "./MobilePushCard";
 export { MOBILE_TABS, activeMobileTab, mobileTabHref } from "./mobileTabs";
 export {
   MOBILE_ICONS,

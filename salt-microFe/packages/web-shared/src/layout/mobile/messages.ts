@@ -59,3 +59,23 @@ export const MOBILE_HOME_MESSAGES = {
   pill: HOME_CARD_PILL_LABEL,
   feedSub: (detail: string, date: string) => `${detail} · ${date}`,
 } as const;
+
+/**
+ * 알림 칸(`FE-REQ-078`) — 도메인 셋 켬/끔 = 데스크톱 설정과 같은 값(서버 한 벌). 이 휴대폰이 울리는지는 이 기기 구독.
+ * 잠금 화면 문장은 서버가 정한다(금액 · 이름 · 종목 0 — `SRV-REQ-062`)
+ */
+export const MOBILE_PUSH_MESSAGES = {
+  title: "알림",
+  body: "켠 알림은 이 휴대폰으로도 와요. 잠금 화면엔 금액 · 이름을 보이지 않아요",
+  domains: {
+    invest: { label: "투자", hint: "코치 판단이 바뀌면" },
+    savings: { label: "저축", hint: "목표에 닿으면" },
+    household: { label: "가계부", hint: "고정비가 지난번보다 오르면" },
+  } as Record<string, { label: string; hint: string } | undefined>,
+  install: "홈 화면에 추가한 앱에서 켤 수 있어요",
+  unsupported: "이 브라우저에서는 알림을 받을 수 없어요",
+  denied: "알림이 막혀 있어요. 기기 설정 › 알림에서 SALT 를 허용해 주세요",
+  refused: "알림을 허용하지 않아 켜지 않았어요",
+  failed: "저장하지 못했어요. 잠시 후 다시 눌러 주세요",
+  offline: "연결이 끊겨 지금은 바꿀 수 없어요",
+} as const;

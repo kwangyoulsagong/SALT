@@ -17,4 +17,5 @@ export * from "./useScrollRestoreOnBack";
 export * from "./useDesktopViewport";
 export * from "./useBackCloses";
 export * from "./offlineSnapshot";
+export * from "./pushDevice";
 export * from "./useOnline";
