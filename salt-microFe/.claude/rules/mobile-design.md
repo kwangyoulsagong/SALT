@@ -33,6 +33,7 @@
 | 하단 고정 버튼 | 탭 바로 위 · 꽉 찬 폭 · 화면당 하나(기록 버튼만) · **오프라인이면 막힘 + 이유 한 줄**(큐 · 낙관적 갱신 0) | `MobileSheetAction` |
 | 마지막 화면 한 벌 | 홈 · 저축 · 가계부만 — 표시용 글자를 IndexedDB 에, 그 사용자 것만. 띠 grey200 · `t7` "오프라인 · HH:MM 기준"(받기 실패면 "불러오지 못했어요") · 빨강 · 느낌표 0 | `MobileOfflineSave` · `MobileOfflineFallback` · 오프라인 한 장 `offlinePage.ts`(2026-11-21 `FE-REQ-073`) |
 | 설치 안내 | 홈 맨 아래 카드 한 장 — 첫 진입 0 · 닫으면 다시 안 뜸 · standalone 0 · 몸통은 보일 때 받는 청크 | `MobileInstallCard` |
+| 알림 칸 | 홈 설치 안내 다음 카드 — 설치 앱(standalone)에서만 토글 · 도메인 셋 = 데스크톱 설정과 같은 값 · 켜짐 = 도메인 켬 + 이 기기 구독 · 권한 요청은 누름 안에서만 · 토글 누름 칸 44 | `MobilePushCard` · 판정 `@repo/core/mobile` `push`(2026-11-21 `FE-REQ-078`) |
 
 - 같이 쓰는 조각(entities · features · widgets)의 휴대폰 값은 `/m` 표지(`ON_MOBILE` · `MOBILE_ROOT`)로만 — 데스크톱 `pages` 는 쓰지 않는다(시험)
 - 디자인 시스템 작은 단(배지 sm · 버튼 · `Text body` · 고지 칸)은 크기 표지(`data-badge` …)로 틀이 한 번에 키운다 — 화면마다 덮지 않는다

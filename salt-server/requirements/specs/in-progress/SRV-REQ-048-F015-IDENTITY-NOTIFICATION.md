@@ -79,3 +79,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-19 | 조립 파일(`composition.ts`)이 걸침(`feat/f006-coach-chat-redesign`) — 코치에 `plan` 주간 계획 끼움. identity · notification 변경 0 |
 | 2026-11-19 | 파일만 걸침 — `coach/domain/ports.ts`(머리가 이 REQ) 대화 저장 포트에 보관 한도 두 메서드(`SRV-REQ-028` FR-113). `feat/f006-coach-chat-history` |
 | 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |
+| 2026-11-21 | 걸침 — 웹 푸시(`SRV-REQ-062`, `feat/f019-s4-web-push`): notification 조립 · 내 데이터 목록(`push_subscription` — 내보내기엔 주소 · 시각만) · BFF 알림 서비스 파일. FR-5 알림 · 설정 동작 변화 0(`NotificationEndToEndTest` 4 통과) |

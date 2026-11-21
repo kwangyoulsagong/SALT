@@ -1,0 +1,38 @@
+---
+id: FE-REQ-078
+feature: F019
+area: frontend
+kind: FEATURE
+title: "휴대폰 웹 푸시 — 알림 칸(도메인별 · 설치 앱에서만) · 서비스 워커 push · 누르면 /m · 열 때 구독 대조"
+priority: high
+created: 2026-11-21
+status: done
+source: "사용자 2026-11-21 \"새 브랜치 파고 다음 파이프라인 진행\" — `FEATURE-019` FR-12"
+---
+
+## Summary
+
+`/m/home` 맨 아래 설정 자리에 알림 칸 하나. 도메인 셋 켬/끔은 데스크톱 `/settings` 와 **같은 값**(서버 `notification_pref` 한 벌) — 이 휴대폰이 울리는지는 이 기기 구독이 정한다.
+판정은 `@repo/core/mobile` `push`(플랫폼 무관 · 시험), 브라우저 쪽은 `layout/mobile/pushClient`, 칸은 `MobilePushCard`.
+
+## FR
+
+| FR | 내용 |
+|---|---|
+| FR-1 | 알림 칸 — 서버 푸시 꺼짐 · 로그인 전이면 0. 설치 앱(standalone)이 아니면 토글 없이 "홈 화면에 추가한 앱에서 켤 수 있어요"(iOS 는 설치 전엔 푸시 API 가 없어 "지원 안 함"이 아니라 "설치 먼저") · 막힘이면 기기 설정 안내. 토글 켜짐 = 도메인 켬 **그리고** 이 기기 구독(켜짐으로 보이는데 울리지 않는 일 0) |
+| FR-2 | 누를 때 순서(`pushStepsFor`) — 켜기: 구독(누름 안에서 권한 요청 — 거절이면 도메인을 켜지 않는다) → 도메인 켬. 끄기: 도메인 끔 → 마지막 도메인이면 이 기기 구독 뺌. 낙관적 갱신 0 · 오프라인이면 막고 이유 한 줄 |
+| FR-3 | 서비스 워커 `push` — Declarative 를 아는 브라우저가 알림을 들고 오면 다시 띄우지 않고, 아니면 같은 JSON 으로 알림 하나(본문이 깨져도 하나 — 조용한 푸시 0). `notificationclick` — 열린 `/m` 창을 옮기거나 새 창. 주소는 우리 origin `/m` 만(`pushNavigateTarget` 과 같은 규칙, 시험이 대조) |
+| FR-4 | 앱이 열릴 때 대조 — 등록 뒤 설치 앱 · 권한 · 구독이 다 있으면 서버에 다시 넣는다(`pushsubscriptionchange` 에 기대지 않는다). 서버 키가 바뀌었으면 다시 구독 |
+
+## 측정 (2026-11-21)
+
+| 항목 | 값 |
+|---|---|
+| 누름 칸 | 토글 그림 52×32 → 누르는 자리 56×44(`::after`) — 390 · 360 · 글자 ×2 |
+| 넘침 · 13 미만 글자 | 0 · 0(세 경우) |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-21 | 신규 · **done**(`feat/f019-s4-web-push`). 실경로 11/11(설치 Chrome 영구 프로필 · 실 FCM). iOS 실기기는 `QA-001` Q-9. 루트 `requirements/specs/done/F019-s4-web-push-slice.md` |

@@ -56,3 +56,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-4 새 이벤트 `coach.DecisionChanged`(14번째 — 13종 목록 밖, 옛 signal_update 원인) · **첫 Express 발행** — `coach.outbox` 는 Kotlin Flyway, 행은 Express, 릴레이는 플랫폼(svc_coach). 쓰기 시점 스키마 검증을 지나지 않아 Express 테스트가 계약 파일과 맞춘다. 첫 notification 구독 셋 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음 — identity 는 S3a 발행 0(아웃박스 표만 · `UserRegistered` 는 S3b FR-9) |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 플랫폼 `application.yml`(머리 주인) — identity 설정 · 공개 경로 여섯 · 옛 HS 끝 시각. 이벤트 `identity.UserRegistered` 첫 발행(계약 파일 · 스키마 검사 · 아웃박스 같은 트랜잭션) |
+| 2026-11-21 | 걸침 — 웹 푸시(`SRV-REQ-062`, `feat/f019-s4-web-push`): 플랫폼 `application.yml`(머리 주인)에 `salt.notification.push.*`(기본 꺼짐). 아웃박스 · 이벤트 변화 0 |

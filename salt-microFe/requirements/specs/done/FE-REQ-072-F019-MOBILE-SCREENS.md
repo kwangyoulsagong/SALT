@@ -51,3 +51,4 @@ source: 사용자 "웹뷰 배치를 PWA로 전환" · ADR-012
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — 탭 · 상세 안쪽을 홈 수준으로 — 요약 금액 카드(`MobileSummary icon`) · 목록 판 44 · 투자 탭 바로가기 카드 · 상세 머리 · 리포트 흰 섹션 |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 가계부 · 저축 요약에 `icon` 을 넘기는 데스크톱 화면만 바뀜 — `/m` 배치 변화 0(390 대조) |
 | 2026-11-21 | 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `MobileSheetAction` 오프라인이면 막힘 + 이유 한 줄 · 저축 · 가계부 · 홈이 한 벌을 저장하고 받기 실패 자리에 그린다 |
+| 2026-11-21 | 걸침 — `FE-REQ-078`(`feat/f019-s4-web-push`): 휴대폰 홈 맨 아래 설치 안내 다음에 알림 칸(`MobilePushCard`). 다른 칸 변화 0 |
