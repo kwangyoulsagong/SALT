@@ -24,6 +24,7 @@ import {
   USER_KEY,
   GUEST_HINT_COOKIE,
 } from "../config";
+import { clearOfflineSnapshots } from "../lib/offlineSnapshot";
 
 /** 표지 쿠키가 있나 — 렌더 중에 부르지 않는다(서버는 모른다 — `useHasSession`) */
 export const hasSession = (): boolean => {
@@ -84,6 +85,8 @@ export const clearSession = async (): Promise<void> => {
   } catch {
     // 지울 수 없으면 다음 인증 호출이 401 이다
   }
+  // 휴대폰 마지막 화면 한 벌도 그 자리에서 — 다음 사람이 이 기기에서 앞 사람 숫자를 보지 않는다(`FE-REQ-073` FR-1)
+  clearOfflineSnapshots();
   removeLegacyTokens();
   await fetch(SESSION_ROUTE, { method: "DELETE", credentials: "same-origin" }).catch(() => undefined);
 };

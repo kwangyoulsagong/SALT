@@ -226,3 +226,7 @@
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - 로그인 화면 문구 import 자리만 `@repo/web-shared/layout/sign-in` 으로 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)
+
+## 2026-11-21 `FE-REQ-073` 걸침
+
+- [x] `Illustration` 장면 `addToHome`(공유 버튼 → 추가 메뉴 → 더하기) — 휴대폰 설치 안내 시트 — 확인: Storybook 빌드 · 끝 프레임 확인(`checklists/FE-REQ-073.md`)

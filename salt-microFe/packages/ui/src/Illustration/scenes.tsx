@@ -3,7 +3,7 @@ import { m, type Variants } from "framer-motion";
 import { durations, ease, motionTokens, springs } from "../Motion/motionPresets";
 import { vars } from "../styles/tokens.css";
 
-export type IllustrationScene = "coinPouch" | "candles" | "scale" | "coachBubble" | "target" | "ledger";
+export type IllustrationScene = "coinPouch" | "candles" | "scale" | "coachBubble" | "target" | "ledger" | "addToHome";
 
 interface SceneProps {
   /** 본면 그라데이션 `url(#…)` */
@@ -295,6 +295,49 @@ const Ledger = ({ fill }: SceneProps) => (
   </>
 );
 
+// ── 홈 화면에 추가: 휴대폰 아래 공유 버튼이 눌리고 → 메뉴가 올라오고 → 더하기 칸이 한 번 튄다(`FE-REQ-073` FR-4) ──
+const AddToHome = ({ fill }: SceneProps) => (
+  <>
+    <Floor rx={40} />
+    <rect x={62} y={14} width={76} height={132} rx={14} fill={fill} />
+    <rect x={68} y={24} width={64} height={104} rx={6} style={{ fill: white, opacity: 0.94 }} />
+    {[40, 54, 68].map((y) => (
+      <rect key={y} x={76} y={y} width={y === 68 ? 30 : 48} height={6} rx={3} style={{ fill: g.soft }} />
+    ))}
+    {/* 아래 공유 버튼 — 네모 + 위 화살표 */}
+    <m.g
+      style={{ originX: "50%", originY: "50%" }}
+      variants={{
+        hidden: { scale: 1 },
+        shown: { scale: [1, 0.86, 1], transition: { duration: durations.base, delay: durations.base, ease: ease.move } },
+      }}
+    >
+      <circle cx={100} cy={137} r={7} style={{ fill: g.highlight }} />
+      <path d="M100 133 v7 M97 135.5 l3 -3 l3 3" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ stroke: g.primary }} />
+    </m.g>
+    {/* 올라오는 메뉴 — 줄 하나에 더하기 칸 */}
+    <m.g
+      variants={{
+        hidden: { y: 24, opacity: 0 },
+        shown: { y: 0, opacity: 1, transition: { duration: durations.base, delay: durations.base * 2, ease: ease.enter } },
+      }}
+    >
+      <rect x={72} y={86} width={56} height={34} rx={8} style={{ fill: white }} stroke="currentColor" strokeOpacity={0.08} />
+      <rect x={78} y={98} width={26} height={6} rx={3} style={{ fill: g.soft }} />
+      <m.g
+        style={{ originX: "50%", originY: "50%" }}
+        variants={{
+          hidden: { scale: 0.6, opacity: 0 },
+          shown: { scale: 1, opacity: 1, transition: { ...springs.bouncy, delay: durations.base * 3 } },
+        }}
+      >
+        <rect x={110} y={93} width={12} height={12} rx={3} style={{ fill: g.primary }} />
+        <path d="M116 96 v6 M113 99 h6" fill="none" strokeWidth={1.8} strokeLinecap="round" style={{ stroke: white }} />
+      </m.g>
+    </m.g>
+  </>
+);
+
 export const SCENES: Record<IllustrationScene, (props: SceneProps) => JSX.Element> = {
   coinPouch: CoinPouch,
   candles: Candles,
@@ -302,4 +345,5 @@ export const SCENES: Record<IllustrationScene, (props: SceneProps) => JSX.Elemen
   coachBubble: CoachBubble,
   target: Target,
   ledger: Ledger,
+  addToHome: AddToHome,
 };

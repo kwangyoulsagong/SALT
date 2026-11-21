@@ -216,3 +216,7 @@
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - 셸 미들웨어 앞에 휴대폰 문서 이동 판정(`@repo/core/mobile`) — matcher 를 `/` 에서 문서 경로 전체로 넓힘. 표지 쿠키 판정은 `/` 에서만 그대로 — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)
+
+## 2026-11-21 `FE-REQ-073` 걸침
+
+- [x] `clearSession` 이 휴대폰 마지막 화면 한 벌(IndexedDB `salt-m-offline`)도 지운다 — 로그아웃 · 세션 죽음 한 곳 — 확인: 데스크톱 프로필 메뉴 로그아웃 → IndexedDB 0 · 1280 실로그인 다섯 화면 회귀 0(`checklists/FE-REQ-073.md`)

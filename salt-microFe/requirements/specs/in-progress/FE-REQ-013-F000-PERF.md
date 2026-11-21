@@ -224,3 +224,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 - 2026-11-19: `FE-REQ-060` 2단계 저축(파일만 걸침) — `useGoalQueries.ts`(이 REQ 가 머리 주석 주인)에 요약 띠 조회 `useSavingsOverview` — 쿠키 세션 · 첫 숫자 서버 렌더 규칙 그대로(`useHasSession` · `initialData`). 루트 `requirements/specs/in-progress/MONEY-desktop-savings-slice.md`
 - 2026-11-20: `FE-REQ-048` FR-12 · 13 대시보드 홈(`feat/fe-req-048-home-card-preview`)이 이 REQ 머리 파일(`HomeCards.tsx`)을 걸침 — 카드 미리보기 · 둘째 줄은 같은 홈 응답이라 요청 · 경계 수 그대로. 토큰 · 조회 동작 변화 없음. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md`
 - 2026-11-20: `FE-REQ-071` 짝 — 셸 미들웨어 앞에 휴대폰 문서 이동 판정(`@repo/core/mobile`) — matcher 를 `/` 에서 문서 경로 전체로 넓힘. 표지 쿠키 판정은 `/` 에서만 그대로
+- 2026-11-21: 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `clearSession` 이 휴대폰 마지막 화면 한 벌(IndexedDB `salt-m-offline`)도 지운다 — 로그아웃 · 세션 죽음 한 곳

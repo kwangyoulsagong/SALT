@@ -6,7 +6,9 @@ import { MOBILE_PATHS, VIEW_COOKIE, VIEW_COOKIE_MAX_AGE, VIEW_DESKTOP } from "@r
 
 import { SITE_DESCRIPTION, SITE_NAME } from "../../config";
 
-import { MOBILE_MESSAGES } from "./messages";
+import { offlineHtml } from "./offlinePage";
+
+export { offlineHtml };
 
 /**
  * 휴대폰 zone 의 Route Handler 몸통 · 메타데이터(`FE-REQ-071` FR-3 · FR-4 · FR-7). 라우팅 파일(`apps/web-mobile/app/m/**`)은
@@ -107,20 +109,6 @@ export const serviceWorkerResponse = (version: string) =>
   new Response(serviceWorkerSource(version), {
     headers: { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-cache" },
   });
-
-const escapeHtml = (text: string) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-
-/**
- * 오프라인 한 장 — 스스로 완결된 HTML(인라인 스타일 · 청크 0). Next 페이지로 만들면 오프라인에서 그 청크가 없을 수 있다.
- * 마지막으로 본 숫자 한 벌은 F019 순서 3.
- */
-export const offlineHtml = (): string => {
-  const t = tokens;
-  const M = MOBILE_MESSAGES;
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${THEME}"><title>${escapeHtml(M.offlineTitle)} | ${escapeHtml(SITE_NAME)}</title>
-<style>body{margin:0;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px;box-sizing:border-box;background:${t.colors.background.white};color:${t.colors.text.primary};font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}h1{margin:0;font-size:${t.appType.title.fontSize};line-height:${t.appType.title.lineHeight};font-weight:${t.appType.title.fontWeight}}p{margin:0;color:${t.colors.neutral[700]};font-size:${t.appType.desc.fontSize};line-height:${t.appType.desc.lineHeight}}button{margin-top:12px;min-height:52px;border:0;border-radius:12px;background:${t.colors.brand.primary};color:${t.colors.background.white};font-size:${t.appType.body.fontSize};font-weight:${t.appType.body.fontWeight}}</style></head>
-<body><h1>${escapeHtml(M.offlineTitle)}</h1><p>${escapeHtml(M.offlineBody)}</p><button type="button" onclick="location.reload()">${escapeHtml(M.offlineRetry)}</button></body></html>`;
-};
 
 export const offlineResponse = () =>
   new Response(offlineHtml(), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" } });

@@ -11,6 +11,7 @@ import { SIGN_IN_NEXT_PARAM, safeNextPath } from "@repo/core/auth";
 
 import { isApiError, signInApi, writeSession, type ApiError, type SignInRequest, type SignInResponse, type SignInUser } from "../api";
 import { USER_KEY } from "../config";
+import { clearOfflineSnapshots } from "../lib";
 
 import { SIGN_IN_ERROR_MESSAGES, SIGN_IN_MESSAGES } from "./messages";
 
@@ -46,6 +47,8 @@ export const SignInForm = ({ homeHref, onSignedIn }: SignInFormProps) => {
     // 쿠키가 심긴 뒤에 이동한다 — 먼저 가면 홈의 첫 호출이 세션 없이 나가 401 이다
     onSuccess: async (data) => {
       await writeSession({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+      // 새 로그인 — 앞 사람(또는 앞 세션)의 휴대폰 마지막 화면 한 벌을 그 자리에서 지운다(`FE-REQ-073` FR-1)
+      clearOfflineSnapshots();
       try {
         localStorage.setItem(USER_KEY, JSON.stringify(data.user));
       } catch {

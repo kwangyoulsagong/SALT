@@ -1,3 +1,5 @@
+import { SURFACE_ATTRIBUTE, SURFACE_MOBILE } from "@repo/core/mobile";
+
 import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "../../config";
 
 import { issueGuestSession, refreshSession } from "../refreshSession";
@@ -23,6 +25,11 @@ const RECONNECT_MAX_MS = 30_000;
 const KR_AUTH_REQUIRED = "KR_STOCK_AUTH_REQUIRED";
 /** 세션 갱신 → 다시 연결은 이 간격에 한 번 */
 const AUTH_RECONNECT_INTERVAL_MS = 60_000;
+/**
+ * 화면이 이만큼 안 보이면 소켓을 닫는다(`FE-REQ-077` FR-1) — 휴대폰은 앱 전환 · 화면 끔이 잦고 라디오가 배터리를 먹는다.
+ * 데스크톱은 길게 — 짧은 탭 전환에 다시 연결하지 않는다(사용자 2026-11-21 "desktop 은 괜찮은데 모바일을 신경써야")
+ */
+export const HIDDEN_CLOSE_MS = { mobile: 10_000, desktop: 300_000 } as const;
 
 type StatusListener = () => void;
 
@@ -49,14 +56,24 @@ type StatusListener = () => void;
  * 또 하나 — 보는 화면이 없으면 끊긴 뒤 다시 열지 않는다(`scheduleReconnect`). 원래는
  * 구독이 0개여도, BFF 가 몇 시간째 꺼져 있어도 3초 간격 그대로 재연결했다. 이제 대기가
  * 두 배씩 늘어 30초에서 멈춘다.
+ *
+ * ## 화면이 안 보이면 쉰다 (`FE-REQ-077` FR-1)
+ *
+ * 탭이 숨은 채 `HIDDEN_CLOSE_MS` 가 지나면 소켓을 닫고 재연결도 걸지 않는다(쉼). 구독(리스너)은 그대로 둔다 — 다시 보이면
+ * 곧바로 연결하고 `onopen` 이 전부 다시 구독한다. 숨은 사이 값은 화면이 돌아올 때의 조회(포커스 재요청)가 채운다.
+ * 사건은 첫 구독 때 붙인다(모듈 최상위에서 `document` 를 읽지 않는다).
  */
-class WSClient {
+export class WSClient {
   private ws: WebSocket | null = null;
   private readonly url: string;
   private status: ConnectionStatus = ConnectionStatus.Idle;
   private reconnectDelay = RECONNECT_TIME_PENDING;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastMessageAt: number | null = null;
+  private hiddenTimer: ReturnType<typeof setTimeout> | null = null;
+  /** 숨은 채 오래 있어 닫았다 — 다시 보일 때까지 연결 · 재연결 0 */
+  private paused = false;
+  private visibilityBound = false;
   private readonly statusListeners = new Set<StatusListener>();
 
   public readonly priceListeners = new Map<string, Set<PriceListener>>();
@@ -129,9 +146,55 @@ class WSClient {
 
   private ensureConnected() {
     if (typeof window === "undefined") return;
-    if (this.ws || this.reconnectTimer) return;
+    this.bindVisibility();
+    if (this.paused || this.ws || this.reconnectTimer) return;
     this.connect();
   }
+
+  // ── 화면 숨김 ────────────────────────────────────────────────
+
+  private bindVisibility() {
+    if (this.visibilityBound || typeof document === "undefined") return;
+    this.visibilityBound = true;
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
+  }
+
+  private hiddenCloseMs(): number {
+    return document.documentElement.getAttribute(SURFACE_ATTRIBUTE) === SURFACE_MOBILE ? HIDDEN_CLOSE_MS.mobile : HIDDEN_CLOSE_MS.desktop;
+  }
+
+  private onVisibilityChange = () => {
+    if (document.visibilityState === "hidden") {
+      if (!this.hiddenTimer && !this.paused) this.hiddenTimer = setTimeout(this.pause, this.hiddenCloseMs());
+      return;
+    }
+    if (this.hiddenTimer) {
+      clearTimeout(this.hiddenTimer);
+      this.hiddenTimer = null;
+    }
+    if (!this.paused) return;
+    this.paused = false;
+    this.reconnectDelay = RECONNECT_TIME_PENDING;
+    if (this.hasListeners() && !this.ws && !this.reconnectTimer) this.connect();
+  };
+
+  private pause = () => {
+    this.hiddenTimer = null;
+    this.paused = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    const ws = this.ws;
+    this.ws = null;
+    if (ws) {
+      // 쉬는 닫기는 재연결을 걸지 않는다 — onclose 를 떼고 닫는다
+      ws.onclose = null;
+      ws.onmessage = null;
+      ws.close();
+    }
+    this.setStatus(ConnectionStatus.Idle);
+  };
 
   private connect() {
     this.reconnectTimer = null;
@@ -177,7 +240,7 @@ class WSClient {
   }
 
   private scheduleReconnect() {
-    if (!this.hasListeners()) {
+    if (this.paused || !this.hasListeners()) {
       // 보는 화면이 없으면 다시 열 이유가 없다. 다음 구독이 연다
       this.setStatus(ConnectionStatus.Idle);
       return;

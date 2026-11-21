@@ -55,3 +55,7 @@
 ## 2026-11-20 셸 포트 3100
 
 - [x] 다섯 zone 다시 빌드 · BFF 재기동 뒤 `localhost:3100` 로그인 · 화면 · 웹소켓 `auth` 연결 확인 · BFF 612 · core 316 통과(상세 루트 `checklists/OPS-002.md`)
+
+## 2026-11-21 `FE-REQ-077` 걸침
+
+- [x] 웹 소켓 숨김 쉼(닫기 → 다시 연결 → 다시 구독) — BFF 쪽 변경 0 · 실브라우저 다시 연결 뒤 3초 안 7프레임(`salt-microFe/requirements/reports/checklists/FE-REQ-077.md`)

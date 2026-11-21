@@ -173,3 +173,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
   - `bff/src/utils/session-cookie.util.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
   - `salt-microFe/packages/web-shared/src/api/websocket/wsClient.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
 | 2026-11-20 | 로컬 셸 포트 3000 → 3100(사용자 "3000번 회사거 해야해서", 주인 `OPS-002`) — 이 REQ 파일에 박힌 3000 만 3100 으로(레지스트리 셸 `devPort` · BFF `WEB_ORIGINS` 기본값 `localhost:3100,127.0.0.1:3100` · 측정 안내 주소 · zone 이름 표 주석). 동작 변경은 포트뿐 |
+| 2026-11-21 | 걸침 — `FE-REQ-077`(`feat/fe-req-073-mobile-offline-install`): 웹 `wsClient` 가 화면이 숨은 채 휴대폰 10초 · 데스크톱 5분이면 연결을 닫고 다시 보이면 새로 연다 — BFF 는 끊김 · 새 연결 · 다시 구독을 이미 받는다(계약 변경 0) |
