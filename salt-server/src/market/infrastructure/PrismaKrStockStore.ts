@@ -396,10 +396,11 @@ export class PrismaKrStockStore implements KrStockStore {
   }
 
   async minuteBarCoverage(codes: string[], from: string) {
-    const coverage = new Map<string, Map<string, { count: number; hasClose: boolean }>>();
+    const coverage = new Map<string, Map<string, { count: number; lastMinute: number }>>();
     if (codes.length === 0) return coverage;
-    const rows = await prisma.$queryRaw<Array<{ symbol: string; d: Date; n: number; has_close: boolean }>>`
-      SELECT symbol, k::date AS d, count(*)::int AS n, bool_or(k::time = '15:25') AS has_close
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; d: Date; n: number; last_minute: number }>>`
+      SELECT symbol, k::date AS d, count(*)::int AS n,
+        max(extract(hour from k) * 60 + extract(minute from k))::int AS last_minute
       FROM (
         SELECT symbol, (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') AS k
         FROM price_history
@@ -409,10 +410,24 @@ export class PrismaKrStockStore implements KrStockStore {
       GROUP BY symbol, k::date`;
     for (const row of rows) {
       const byDate = coverage.get(row.symbol) ?? new Map();
-      byDate.set(row.d.toISOString().slice(0, 10), { count: row.n, hasClose: row.has_close });
+      byDate.set(row.d.toISOString().slice(0, 10), { count: row.n, lastMinute: row.last_minute });
       coverage.set(row.symbol, byDate);
     }
     return coverage;
+  }
+
+  async pruneMinuteCandlesOutside(code: string, date: string, hours: { open: number; close: number }) {
+    // KST 날짜 하루(UTC 로는 전날 15:00 ~ 그날 15:00) 안에서 장 시간 밖 버킷만 — 인덱스(symbol, timeframe, timestamp) 범위 스캔
+    await prisma.$executeRaw`
+      DELETE FROM price_history
+      WHERE symbol = ${code} AND asset_type = 'kr_stock' AND timeframe = '5m'
+        AND timestamp >= (${date}::date - interval '9 hours') AND timestamp < (${date}::date + interval '15 hours')
+        AND (
+          extract(hour from timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') * 60
+            + extract(minute from timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') < ${hours.open}
+          OR extract(hour from timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') * 60
+            + extract(minute from timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= ${hours.close}
+        )`;
   }
 
   async replaceMinuteCandles(code: string, candles: Candle[]) {

@@ -17,22 +17,30 @@ const AFTER_CLOSE = new Date("2026-10-30T07:15:00Z");
 const setup = (
   opts: {
     fail?: (code: string, date: string) => boolean;
-    coverage?: Map<string, Map<string, { count: number; hasClose: boolean }>>;
+    coverage?: Map<string, Map<string, { count: number; lastMinute: number }>>;
     clock?: () => Date;
+    /** 평일 휴장(달력에 isOpen=false) — 새해 첫 개장일 판정용 */
+    closed?: string[];
+    /** KIS 가 돌려줄 1분봉(종목 · 날 · 커서) — 없으면 빈 쪽 */
+    minutes?: (code: string, date: string, hhmmss: string) => Array<{ timestamp: Date; open: number; high: number; low: number; close: number; volume: number }>;
   } = {}
 ) => {
-  const asked: Array<{ code: string; date: string; history?: string }> = [];
+  const asked: Array<{ code: string; date: string; history?: string; hhmmss: string }> = [];
+  const pruned: Array<{ code: string; date: string; hours: { open: number; close: number } }> = [];
   const calendarCalls: Array<{ from: string; to: string }> = [];
   const kis = {
-    dayMinuteCandles: async (code: string, date: string, _hhmmss: string, o: { history?: string } = {}) => {
+    dayMinuteCandles: async (code: string, date: string, hhmmss: string, o: { history?: string } = {}) => {
       if (opts.fail?.(code, date)) throw new Error("EGW00201");
-      asked.push({ code, date, history: o.history });
-      return [];
+      asked.push({ code, date, history: o.history, hhmmss });
+      return opts.minutes?.(code, date, hhmmss) ?? [];
     },
   } as unknown as KrStockQuotePort;
   const store = {
     minuteBarCoverage: async () => opts.coverage ?? new Map(),
     replaceMinuteCandles: async () => {},
+    pruneMinuteCandlesOutside: async (code: string, date: string, hours: { open: number; close: number }) => {
+      pruned.push({ code, date, hours });
+    },
   } as unknown as KrStockStore;
   const calendar = {
     // 평일은 전부 개장 — 창 경계만 본다
@@ -41,13 +49,14 @@ const setup = (
       const out = [];
       for (let t = Date.parse(`${from}T00:00:00Z`); t <= Date.parse(`${to}T00:00:00Z`); t += 86_400_000) {
         const d = new Date(t);
-        out.push({ date: d.toISOString().slice(0, 10), isOpen: d.getUTCDay() !== 0 && d.getUTCDay() !== 6 });
+        const date = d.toISOString().slice(0, 10);
+        out.push({ date, isOpen: d.getUTCDay() !== 0 && d.getUTCDay() !== 6 && !opts.closed?.includes(date) });
       }
       return out;
     },
   } as unknown as KrMarketCalendarStore;
   const universe = { execute: async () => ["005930", "000660"] } as unknown as ResolveKrStockUniverse;
-  return { sync: new SyncKrMinuteBars(kis, store, calendar, universe, opts.clock ?? (() => AT)), asked, calendarCalls };
+  return { sync: new SyncKrMinuteBars(kis, store, calendar, universe, opts.clock ?? (() => AT)), asked, calendarCalls, pruned };
 };
 
 describe("SyncKrMinuteBars", () => {
@@ -120,8 +129,9 @@ describe("SyncKrMinuteBars", () => {
   });
 
   it("종가 봉 없는 날은 최근 개장일 5일까지만 다시 받는다 — KIS 에 종가 1분봉이 없는 날을 30일 내내 받지 않는다", async () => {
-    const full = (hasClose: boolean) => ({ count: 76, hasClose });
-    const byDate = new Map<string, { count: number; hasClose: boolean }>();
+    // 15:25 버킷 = KST 925분 — 종가 봉
+    const full = (hasClose: boolean) => ({ count: 76, lastMinute: hasClose ? 925 : 920 });
+    const byDate = new Map<string, { count: number; lastMinute: number }>();
     for (let t = Date.parse("2026-10-01T00:00:00Z"); t <= Date.parse("2026-10-29T00:00:00Z"); t += 86_400_000) {
       byDate.set(new Date(t).toISOString().slice(0, 10), full(true));
     }
@@ -154,5 +164,72 @@ describe("SyncKrMinuteBars", () => {
     const jp = joiner.asked.filter((a) => a.date < "2026-10-30");
     assert.ok(jp.length > 0 && jp.every((a) => a.history === "backfill"));
     assert.ok(joiner.asked.filter((a) => a.date === "2026-10-30").every((a) => a.history === undefined));
+  });
+
+  describe("날마다 다른 장 시간 — 수능일 · 새해 첫 개장일 (2026-11-21)", () => {
+    /** 2026-11-20(금) 16:15 KST — 수능 다음 날 장 마감 뒤 큰 백필 */
+    const AFTER_CSAT = new Date("2026-11-20T07:15:00Z");
+    const fullDays = (from: string, to: string, over: Record<string, { count: number; lastMinute: number }> = {}) => {
+      const byDate = new Map<string, { count: number; lastMinute: number }>();
+      for (let t = Date.parse(`${from}T00:00:00Z`); t <= Date.parse(`${to}T00:00:00Z`); t += 86_400_000) {
+        const d = new Date(t).toISOString().slice(0, 10);
+        byDate.set(d, over[d] ?? { count: 77, lastMinute: 925 });
+      }
+      return new Map([["005930", byDate], ["000660", byDate]]);
+    };
+
+    it("수능일은 마감 1분 뒤 163100 부터 거슬러 받는다 — 평상일은 153100 그대로", async () => {
+      // 11-19 = 실측 그대로 68봉 · 마지막 15:25(10:00~15:25 + 동시호가 봉 둘) — 16:25 종가 봉이 없다
+      const coverage = fullDays("2025-11-21", "2026-11-20", { "2026-11-19": { count: 68, lastMinute: 925 }, "2026-11-20": { count: 70, lastMinute: 920 } });
+      const { sync, asked } = setup({ coverage, clock: () => AFTER_CSAT });
+      await sync.backfillOffHours();
+      const csat = asked.filter((a) => a.date === "2026-11-19");
+      const normal = asked.filter((a) => a.date === "2026-11-20");
+      assert.ok(csat.length > 0, "수능일을 다시 받는다");
+      assert.ok(csat.every((a) => a.hhmmss === "163100"), csat.map((a) => a.hhmmss).join());
+      assert.ok(normal.length > 0 && normal.every((a) => a.hhmmss === "153100"));
+    });
+
+    it("수능일 종가 봉은 16:25 — 78봉에 16:25 가 있으면 다 찬 날 · 15:25 로 끝나면 다시 받는다", async () => {
+      const done = fullDays("2025-11-21", "2026-11-20", { "2026-11-19": { count: 80, lastMinute: 985 } });
+      const a = setup({ coverage: done, clock: () => AFTER_CSAT });
+      await a.sync.backfillOffHours();
+      assert.ok(!a.asked.some((x) => x.date === "2026-11-19"));
+      // 봉 수는 넉넉해도 16:25 가 없으면(옛 고정 15:25 판정이면 "있다"였다) 최근 5개장일 안이라 다시 받는다
+      const noClose = fullDays("2025-11-21", "2026-11-20", { "2026-11-19": { count: 78, lastMinute: 925 } });
+      const b = setup({ coverage: noClose, clock: () => AFTER_CSAT });
+      await b.sync.backfillOffHours();
+      assert.ok(b.asked.some((x) => x.date === "2026-11-19"));
+    });
+
+    it("새해 첫 개장일(2026-01-02, 10:00 개장)은 66칸 — 65봉이면 다 찬 날이라 다시 받지 않는다", async () => {
+      const at = new Date("2026-01-16T07:15:00Z"); // 01-16(금) 16:15 — 01-02 는 최근 5개장일 밖
+      const coverage = fullDays("2025-01-17", "2026-01-16", { "2026-01-02": { count: 65, lastMinute: 925 } });
+      const { sync, asked } = setup({ coverage, clock: () => at, closed: ["2026-01-01"] });
+      await sync.backfillOffHours();
+      assert.ok(!asked.some((a) => a.date === "2026-01-02"), "고정 70 이던 때는 늘 미완");
+      // 56봉(진짜 빈 날)은 다시 받는다
+      const holey = fullDays("2025-01-17", "2026-01-16", { "2026-01-02": { count: 56, lastMinute: 925 } });
+      const h = setup({ coverage: holey, clock: () => at, closed: ["2026-01-01"] });
+      await h.sync.backfillOffHours();
+      assert.ok(h.asked.some((a) => a.date === "2026-01-02"));
+    });
+
+    it("원천 분봉을 받은 날만 장 시간 밖 봉을 걷는다 — 수능일 [10:00, 16:30) · 못 받은 날은 그대로", async () => {
+      const coverage = fullDays("2025-11-21", "2026-11-20", { "2026-11-19": { count: 68, lastMinute: 925 } });
+      const bar = (hhmm: string) => ({
+        timestamp: new Date(`2026-11-19T${hhmm}:00+09:00`),
+        open: 1, high: 1, low: 1, close: 1, volume: 1,
+      });
+      const { sync, pruned } = setup({
+        coverage,
+        clock: () => AFTER_CSAT,
+        // 005930 만 원천이 온다(쪽 하나 — 첫 봉이 10:00 이라 더 거슬러 가지 않는다)
+        minutes: (code, date) => (code === "005930" && date === "2026-11-19" ? [bar("16:29"), bar("10:00")] : []),
+      });
+      await sync.backfillOffHours();
+      const csat = pruned.filter((p) => p.date === "2026-11-19");
+      assert.deepEqual(csat, [{ code: "005930", date: "2026-11-19", hours: { open: 600, close: 990 } }]);
+    });
   });
 });

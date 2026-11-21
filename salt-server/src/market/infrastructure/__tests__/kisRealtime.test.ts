@@ -100,4 +100,30 @@ describe("krMinutesToFiveMinute — KIS 1분봉 → 5분봉 (장 마감 보정 �
     assert.equal(bars[2].timestamp.toISOString(), "2026-10-06T06:25:00.000Z");
     assert.equal(bars[2].close, 272);
   });
+
+  it("수능일(10:00~16:30)은 그날 장 시간으로 — 09:30 동시호가 분봉은 버리고 · 15:30~16:25 는 살리고 · 16:30 종가는 16:25 로 (2026-11-21)", () => {
+    const csat = { open: 600, close: 990 };
+    const d = (hhmm: string, c: number, v: number) => ({
+      open: c, high: c, low: c, close: c, volume: v, timestamp: new Date(`2026-11-19T${hhmm}:00+09:00`),
+    });
+    const bars = krMinutesToFiveMinute([d("09:30", 190, 1), d("10:00", 191, 2), d("15:31", 195, 3), d("16:30", 196.9, 9)], csat);
+    assert.deepEqual(bars.map((b) => b.timestamp.toISOString()), [
+      "2026-11-19T01:00:00.000Z",
+      "2026-11-19T06:30:00.000Z",
+      "2026-11-19T07:25:00.000Z",
+    ]);
+    assert.equal(bars[2].close, 196.9);
+    // 평상일 기본값이면 같은 분봉의 15:31 · 16:30 은 장 밖이다
+    assert.equal(krMinutesToFiveMinute([d("15:31", 195, 3), d("16:30", 196.9, 9)]).length, 0);
+  });
+
+  it("실시간 집계도 그날 장 시간 — 수능일 16:10 체결은 봉 · 평상일 기본값이면 버린다", () => {
+    const tick = { code: "005930", price: 196_000, tradeVolume: 10, at: new Date("2026-11-19T16:10:00+09:00") } as unknown as KrTick;
+    const csat = new KrMinuteBarBuilder();
+    csat.add(tick, { open: 600, close: 990 });
+    assert.equal(csat.drain(new Date("2026-11-19T07:11:00Z")).length, 1);
+    const normal = new KrMinuteBarBuilder();
+    normal.add(tick);
+    assert.equal(normal.drain(new Date("2026-11-19T07:11:00Z")).length, 0);
+  });
 });
