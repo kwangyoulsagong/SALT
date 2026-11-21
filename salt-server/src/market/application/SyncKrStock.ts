@@ -1,7 +1,8 @@
 import { logger } from "../../shared/config/logger";
 import { mapConcurrent } from "../../shared/lib";
 import {
-  KR_FIVE_MINUTE_BUCKETS_PER_DAY,
+  krFiveMinuteBucketsOn,
+  krRegularHoursOn,
   KR_TOKEN_ISSUE_WARN_PER_DAY,
   addKstDays,
   findDailyRewrite,
@@ -597,7 +598,8 @@ const MINUTE_BACKFILL_CALLS_PER_NIGHT = 20_000;
 /** 하루 1분봉 390개 = 120 × 4 페이지 */
 const MINUTE_PAGES_PER_DAY = 4;
 /** 이만큼 있고 종가 봉(15:25)이 있으면 그날은 채워진 것으로 본다 — 체결 없는 5분이 드물게 있다 */
-const MINUTE_DAY_COMPLETE = KR_FIVE_MINUTE_BUCKETS_PER_DAY - 8;
+/** 다 찼다고 보는 봉 수 — 그날 칸 수(`krFiveMinuteBucketsOn` — 평상일 78 · 새해 첫날 66) − 8. 고정 70 이던 때 새해 첫날(65봉)은 늘 미완이라 회차마다 다시 받았다 */
+const MINUTE_DAY_SLACK = 8;
 /**
  * 종가 봉(15:25)이 없는 날을 다시 받는 기간 — 최근 개장일 이만큼. 15:40 회차엔 15:30 종가 1분봉이 아직 없는 날이 있어
  * 다음 회차가 채운다(10-30 실측). 그런데 KIS 에 종가 1분봉이 아예 없는 날도 있다(10-08 8종목 — 2026-11-02 KIS 직접 조회).
@@ -634,8 +636,11 @@ export class SyncKrMinuteBars {
     // 창 끝 날은 넣지 않는다 — 보관(400일)보다 짧은 1년이라 정리와 겹치지 않지만, 30일 때 끝 날을 넣어 회차마다 다시 받고
     // 정리가 다시 지우던 낭비(2026-11-02 실측: 회차 호출의 절반)를 같은 모양으로 막아 둔다
     const from = addKstDays(today, -(MINUTE_BACKFILL_DAYS - 1));
-    const openDays = (await this.calendar.days(from, today))
-      .filter((d) => d.isOpen && (d.date < today || kstMinutes >= 15 * 60 + 35))
+    const calendarDays = await this.calendar.days(from, today);
+    const calendar = new Map(calendarDays.map((d) => [d.date, d.isOpen]));
+    // 오늘은 마감 5분 뒤부터(평상일 15:35 · 수능일 16:35) — 그 전엔 종가 분봉이 없다
+    const openDays = calendarDays
+      .filter((d) => d.isOpen && (d.date < today || kstMinutes >= krRegularHoursOn(today, calendar).close + 5))
       .map((d) => d.date)
       .sort()
       .reverse();
@@ -647,8 +652,10 @@ export class SyncKrMinuteBars {
     for (const date of openDays) {
       for (const code of codes) {
         const c = coverage.get(code)?.get(date);
-        const missingClose = !c?.hasClose && date >= closeRetryFrom;
-        if (date === today || !c || c.count < MINUTE_DAY_COMPLETE || missingClose) work.push({ code, date });
+        const { close } = krRegularHoursOn(date, calendar);
+        const missingClose = (!c || c.lastMinute < close - 5) && date >= closeRetryFrom;
+        const complete = krFiveMinuteBucketsOn(date, calendar) - MINUTE_DAY_SLACK;
+        if (date === today || !c || c.count < complete || missingClose) work.push({ code, date });
       }
     }
 
@@ -666,7 +673,9 @@ export class SyncKrMinuteBars {
       }
       try {
         const minutes = [];
-        let cursor = "153100";
+        const hours = krRegularHoursOn(date, calendar);
+        // 마감 1분 뒤부터 거슬러 받는다(평상일 153100 · 수능일 163100) — 고정 153100 이던 때 수능일 15:30~16:30 을 영영 못 받았다
+        let cursor = `${String(Math.floor((hours.close + 1) / 60)).padStart(2, "0")}${String((hours.close + 1) % 60).padStart(2, "0")}00`;
         // 오늘만 분봉 줄. 지난 날은 백필 줄 — 새 종목(`only`)은 백필, 유니버스 1년은 그 뒤(`bulk`). 1년 백필이 분봉 줄에 서서
         // 전 종목 일봉 · 시황 제목을 몇 시간 굶겼다(2026-11-17 `SRV-REQ-057` FR-9)
         const history = date === today ? undefined : only ? "backfill" : "bulk";
@@ -677,11 +686,14 @@ export class SyncKrMinuteBars {
           minutes.push(...batch);
           const earliest = batch.reduce((a, b) => (a.timestamp < b.timestamp ? a : b)).timestamp;
           const kst = new Date(earliest.getTime() + 9 * 3_600_000 - 60_000);
-          if (kst.getUTCHours() < 9) break;
+          // 그날 개장보다 앞이면 더 거슬러 가지 않는다(평상일 09:00 · 새해 첫날 · 수능일 10:00)
+          if (kst.getUTCHours() * 60 + kst.getUTCMinutes() < hours.open) break;
           cursor = kst.toISOString().slice(11, 19).replaceAll(":", "");
         }
-        const fiveMinute = krMinutesToFiveMinute(minutes);
+        const fiveMinute = krMinutesToFiveMinute(minutes, hours);
         await this.store.replaceMinuteCandles(code, fiveMinute);
+        // 원천을 받은 날만 장 시간 밖 봉을 걷는다(동시호가 중 실시간 집계가 만든 예상가 봉) — 못 받은 날은 있는 것을 지키고 다음 회차에
+        if (fiveMinute.length > 0) await this.store.pruneMinuteCandlesOutside(code, date, hours);
         bars += fiveMinute.length;
         days++;
       } catch (error) {
@@ -745,7 +757,7 @@ export class SyncKrSlotlessMinuteBars {
     await mapConcurrent(codes, KIS_CONCURRENCY, async (code) => {
       try {
         const minutes = await this.kis.dayMinuteCandles(code, today, cursor);
-        bars.push(...completeFiveMinuteBars(minutes).map((candle) => ({ code, candle })));
+        bars.push(...completeFiveMinuteBars(minutes, session.regularHours).map((candle) => ({ code, candle })));
       } catch (error) {
         failed++;
         logger.warn(`국내 주식 슬롯 밖 5분봉 실패 — ${code}: ${(error as Error).message}`);
@@ -759,9 +771,9 @@ export class SyncKrSlotlessMinuteBars {
 }
 
 /** 1분봉 창 → 5분봉. 창 시작이 버킷 중간이면 첫(가장 오래된) 버킷은 반쪽이라 뺀다 */
-export const completeFiveMinuteBars = (minutes: Candle[]): Candle[] => {
+export const completeFiveMinuteBars = (minutes: Candle[], hours?: { open: number; close: number }): Candle[] => {
   if (minutes.length === 0) return [];
-  const five = krMinutesToFiveMinute(minutes);
+  const five = krMinutesToFiveMinute(minutes, hours);
   const earliest = Math.min(...minutes.map((m) => m.timestamp.getTime()));
   return five.filter((bar) => bar.timestamp.getTime() >= earliest);
 };

@@ -61,12 +61,13 @@ describe("krBackfillWindow — 경계 표", () => {
 });
 
 describe("krBackfillWindow — 불변식 전수(2주 · 5분 간격)", () => {
-  /** 독립 판정 — 개장일이고 08:30 ≤ 분 < 16:00 */
+  /** 독립 판정 — 개장일이고 08:30 ≤ 분 < 16:00(수능일 2026-11-19 은 장후 시간외가 1시간 늦어 17:00 — 2026-11-21) */
   const inQuoteWindow = (at: Date) => {
     const local = new Date(at.getTime() + 9 * 3_600_000);
     const date = local.toISOString().slice(0, 10);
     const minutes = local.getUTCHours() * 60 + local.getUTCMinutes();
-    return (CALENDAR.get(date) ?? false) && minutes >= 8 * 60 + 30 && minutes < 16 * 60;
+    const end = date === "2026-11-19" ? 17 * 60 : 16 * 60;
+    return (CALENDAR.get(date) ?? false) && minutes >= 8 * 60 + 30 && minutes < end;
   };
 
   it("창 안이면 거절, 밖이면 허용 · 멈춤까지 창에 닿지 않고 멈춤은 다음 창 시작", () => {

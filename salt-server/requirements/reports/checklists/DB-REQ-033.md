@@ -184,3 +184,9 @@
 - `salt-server/src/portfolio/domain/ports.ts` — 원장 Port `findLedger` · `lockLedger` · `findOwned` · `LedgerTransaction`(`findForRecalculation` · `findById` 대체). 이 REQ 몫 동작 무변경(국내 주식 기록 시험 통과)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 체크리스트 `requirements/reports/checklists/F006-position-trades.md`
+
+## 2026-11-21 날마다 다른 장 시간(`fix/kr-shifted-session`, `SRV-REQ-040` 짝)
+
+- `minuteBarCoverage` — `hasClose` → `lastMinute`(마지막 버킷 분). 부르는 쪽이 그날 마감으로 종가 봉을 가른다
+- `pruneMinuteCandlesOutside` — 실 DB `EXPLAIN`: `price_history_symbol_timeframe_timestamp_key` Index Scan(종목 · 5m · KST 하루 범위)
+- 미충족: 없음(표 · 열 변경 0). 실데이터 복구 확인은 `SRV-REQ-040` 체크리스트

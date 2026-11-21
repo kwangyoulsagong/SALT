@@ -1,6 +1,7 @@
 import { logger } from "../../shared/config/logger";
 import {
   KrMinuteBarBuilder,
+  KR_NORMAL_REGULAR_HOURS,
   isKrQuoteWindow,
   krFiveMinuteBucket,
   type KrMarketCalendarStore,
@@ -44,6 +45,8 @@ export class RunKrRealtime {
   private flushTimer: NodeJS.Timeout | null = null;
   private flushing = false;
   private lastTickAt: Date | null = null;
+  /** 오늘 장 시간 — 매분 `reconcile` 이 달력으로 맞춘다(수능일 10:00~16:30). 체결 거름 · 5분봉 칸이 이 값을 쓴다 */
+  private regularHours: { open: number; close: number } = KR_NORMAL_REGULAR_HOURS;
 
   constructor(
     private readonly realtime: KrRealtimePort,
@@ -55,6 +58,7 @@ export class RunKrRealtime {
 
   async reconcile() {
     const session = await loadKrSession(this.calendar, this.now());
+    this.regularHours = session.regularHours;
     if (!isKrQuoteWindow(session)) {
       if (this.realtime.state() !== "idle") {
         await this.realtime.disconnect();
@@ -86,13 +90,13 @@ export class RunKrRealtime {
   }
 
   private onTicks(all: KrTick[]) {
-    // 정규장(09:00~15:30) 체결만 — 16:00~18:00 시간외 단일가 체결도 같은 TR 로 온다(2026-10-07 실측). 그것으로 현재가를
+    // 정규장(평상일 09:00~15:30 · 수능일 10:00~16:30 — 그날 장 시간) 체결만 — 16:00~18:00 시간외 단일가 체결도 같은 TR 로 온다(2026-10-07 실측). 그것으로 현재가를
     // 덮으면 정규장 종가 · 등락률이 시간외 값이 된다(FR-27: 섞지 않는다 — 시간외는 별도 필드, 슬라이스 6)
-    const ticks = all.filter((tick) => krFiveMinuteBucket(tick.at) !== null);
+    const ticks = all.filter((tick) => krFiveMinuteBucket(tick.at, this.regularHours) !== null);
     if (ticks.length === 0) return;
     for (const tick of ticks) {
       this.latest.set(tick.code, tick);
-      this.bars.add(tick);
+      this.bars.add(tick, this.regularHours);
     }
     this.lastTickAt = this.now();
     if (this.listeners.size === 0) return;

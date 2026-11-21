@@ -227,10 +227,18 @@ export interface KrStockStore {
   upsertMinuteCandles(bars: Array<{ code: string; candle: Candle }>): Promise<void>;
   /** 실시간 값이 `since` 이후인 종목 — 폴링이 건너뛴다 */
   realtimeFreshCodes(since: Date): Promise<string[]>;
-  /** 종목 · KST 날짜별 5분봉 수와 15:25 버킷(종가 들어가는 봉) 유무 — 보정 · 백필이 빈 날을 고른다 */
-  minuteBarCoverage(codes: string[], from: string): Promise<Map<string, Map<string, { count: number; hasClose: boolean }>>>;
+  /**
+   * 종목 · KST 날짜별 5분봉 수와 마지막 버킷 시작(KST 분) — 보정 · 백필이 빈 날을 고른다. 종가 봉이 있는지는 부르는 쪽이 그날 장 시간으로
+   * 가른다(평상일 15:25 · 수능일 16:25 — `krRegularHoursOn`). 고정 15:25 로 보던 때 수능일은 종가 봉이 있어도 "있다"로 읽을 수 없었다
+   */
+  minuteBarCoverage(codes: string[], from: string): Promise<Map<string, Map<string, { count: number; lastMinute: number }>>>;
   /** KIS 분봉에서 만든 5분봉으로 **덮어쓴다**(실시간 집계보다 원천이 정확하다) */
   replaceMinuteCandles(code: string, candles: Candle[]): Promise<void>;
+  /**
+   * 그 KST 날짜의 장 시간 밖 5분봉을 지운다(`[open, close)` 밖 — KST 분). 보정이 원천 분봉을 받은 날만 부른다 —
+   * 수능일 09:30 · 09:35 처럼 동시호가 중 실시간 집계가 만든 봉(체결 아닌 예상가)이 남지 않게
+   */
+  pruneMinuteCandlesOutside(code: string, date: string, hours: { open: number; close: number }): Promise<void>;
 }
 
 /**
@@ -290,9 +298,9 @@ export type KrSession =
 
 export interface KrSessionView {
   session: KrSession;
-  /** 마지막 정규장 마감(15:30 KST) — 정규장 중이면 `null` */
+  /** 마지막 정규장 마감(평상일 15:30 KST — 그날 장 시간 `krRegularHoursOn`) — 정규장 중이면 `null` */
   lastCloseAt: Date | null;
-  /** 다음 정규장 시작(09:00 KST) — 정규장 중이면 `null` */
+  /** 다음 정규장 시작(평상일 09:00 KST — 그날 장 시간 `krRegularHoursOn`) — 정규장 중이면 `null` */
   nextOpenAt: Date | null;
   /**
    * 오늘 날짜가 달력에 없으면 `false` — 평일 = 개장으로 **추정**했다는 뜻이다. 휴장일 조회가 아직
@@ -304,12 +312,20 @@ export interface KrSessionView {
    * 09:10 관측이 찾은 날)이면 `null`. 이름을 지어내지 않는다
    */
   holidayName: string | null;
+  /**
+   * 오늘(KST) 정규장 시작 · 마감 — KST 분(`krRegularHoursOn`). 평상일 540 · 930, 수능일 600 · 990, 새해 첫날 600 · 930.
+   * 체결 · 1분봉을 5분봉 칸에 넣는 쪽(`krFiveMinuteBucket`)이 이 값으로 그날 칸을 가른다. 응답에는 싣지 않는다(내부용)
+   */
+  regularHours: { open: number; close: number };
 }
 
 const KST_OFFSET_MS = 9 * 3_600_000;
 const DAY_MS = 86_400_000;
 
-/** 장 시간(KST 분) — KRX 정규장 기준. 근거 등급 [약](F011 §KIS 사실) — 슬라이스 1 전 원문 확인 */
+/**
+ * 평상일 장 시간(KST 분) — KRX 정규장 기준. 근거 등급 [약](F011 §KIS 사실) — 슬라이스 1 전 원문 확인.
+ * **날마다 다를 수 있다** — 새해 첫 개장일 · 수능일은 `krSessionBoundsOn` 이 바꾼 표를 준다. 이 표를 직접 읽지 않는다
+ */
 const MIN = (h: number, m: number) => h * 60 + m;
 const SESSION_BOUNDS: Array<{ from: number; to: number; session: KrSession }> = [
   { from: MIN(8, 30), to: MIN(9, 0), session: "pre_open" },
@@ -400,6 +416,66 @@ const opensOn = (date: string, calendar: ReadonlyMap<string, boolean>): boolean 
 /** 달력이 다 비어도 무한 루프를 돌지 않는 상한 — 연휴 최장(추석 + 주말)보다 넉넉히 */
 const MAX_SCAN_DAYS = 20;
 
+// ==================== 날마다 다른 장 시간 ====================
+
+/**
+ * 장 시간이 통째로 늦춰지는 날 — 대학수학능력시험일은 KRX 가 정규장 · 동시호가 · 시간외를 모두 1시간 늦춘다(개장 10:00 · 마감 16:30).
+ * 교육부가 해마다 정해 발표하므로 **휴장 공시 표(`KRX_NOTICE_CLOSURES`)처럼 해마다 한 줄 더한다**(공시 · 발표 뒤).
+ *
+ * 2026-11-21: 이 표가 없어 09:00~15:30 고정으로 받던 수능일(2026-11-19) 5분봉이 15:30~16:30(종가 단일가 포함)을 영영 놓쳤다 —
+ * 5분봉 합 거래량이 일봉의 75% · 마지막 봉 194,500 ≠ 종가 196,900, 보정 회차는 매번 "미완"으로 다시 받고도 못 채웠다.
+ * 1년 5분봉 백필 창(`MINUTE_BACKFILL_DAYS`) 안의 날은 전부 적는다
+ */
+export const KRX_DELAYED_SESSIONS: ReadonlyArray<{ date: string; name: string; shiftMinutes: number }> = [
+  { date: "2025-11-13", name: "대학수학능력시험", shiftMinutes: 60 },
+  { date: "2026-11-19", name: "대학수학능력시험", shiftMinutes: 60 },
+];
+
+/** 새해 첫 개장일 — KRX 개장식으로 정규장이 10:00 에 열린다(마감 15:30 그대로). 1월 1일은 늘 휴장이라 1월 2일부터 센다 */
+const isFirstOpenDayOfYear = (date: string, calendar: ReadonlyMap<string, boolean>): boolean => {
+  if (date.slice(5, 7) !== "01" || !opensOn(date, calendar)) return false;
+  for (let d = `${date.slice(0, 4)}-01-02`; d < date; d = addKstDays(d, 1)) {
+    if (opensOn(d, calendar)) return false;
+  }
+  return true;
+};
+
+/**
+ * 그 날의 장 구간 표(KST 분). **불변식: 장 시간을 쓰는 곳(장 상태 · 시세 창 · 5분봉 보정)은 모두 이 함수로 그날 값을 읽는다** —
+ * 평상일은 `SESSION_BOUNDS` 그대로, 수능일은 전부 늦춘 표, 새해 첫 개장일은 장전이 10:00 까지 · 정규장이 10:00 부터
+ */
+export const krSessionBoundsOn = (
+  date: string,
+  calendar: ReadonlyMap<string, boolean>
+): ReadonlyArray<{ from: number; to: number; session: KrSession }> => {
+  const delayed = KRX_DELAYED_SESSIONS.find((d) => d.date === date);
+  if (delayed) return SESSION_BOUNDS.map((b) => ({ ...b, from: b.from + delayed.shiftMinutes, to: b.to + delayed.shiftMinutes }));
+  if (isFirstOpenDayOfYear(date, calendar)) {
+    return SESSION_BOUNDS.map((b) =>
+      b.session === "pre_open" ? { ...b, to: MIN(10, 0) } : b.session === "regular" ? { ...b, from: MIN(10, 0) } : b
+    );
+  }
+  return SESSION_BOUNDS;
+};
+
+/** 그 날 정규장(동시호가 포함) 시작 · 마감 — KST 분. 평상일 09:00 · 15:30 */
+export const krRegularHoursOn = (date: string, calendar: ReadonlyMap<string, boolean>): { open: number; close: number } => {
+  const bounds = krSessionBoundsOn(date, calendar);
+  const open = bounds.find((b) => b.session === "regular")?.from ?? MIN(9, 0);
+  const close = bounds.find((b) => b.session === "closing_auction")?.to ?? MIN(15, 30);
+  return { open, close };
+};
+
+/** 그 날 5분봉 칸 수 — 평상일 78(09:00~15:25) · 새해 첫날 66 · 수능일 78(10:00~16:25) */
+export const krFiveMinuteBucketsOn = (date: string, calendar: ReadonlyMap<string, boolean>): number => {
+  const { open, close } = krRegularHoursOn(date, calendar);
+  return (close - open) / 5;
+};
+
+/** 시세 창 끝(KST 분) — 장후 시간외 종가가 끝나는 때. 평상일 16:00 · 수능일 17:00 */
+const quoteWindowEndOn = (date: string, calendar: ReadonlyMap<string, boolean>): number =>
+  krSessionBoundsOn(date, calendar).find((b) => b.session === "after_hours_close")?.to ?? QUOTE_WINDOW.to;
+
 export const krMarketSession = (
   now: Date,
   calendar: ReadonlyMap<string, boolean>
@@ -426,29 +502,34 @@ export const krMarketSession = (
   };
 
   const calendarKnown = calendar.has(today);
+  // 마감 · 개장 시각은 그 날의 장 시간으로(수능일 16:30 · 새해 첫날 10:00)
+  const closeAt = (date: string) => kstAt(date, 0, krRegularHoursOn(date, calendar).close);
+  const openAt = (date: string) => kstAt(date, 0, krRegularHoursOn(date, calendar).open);
 
   if (!openToday) {
     return {
       // 주말은 휴장일이 아니다 — 화면이 "휴장" 이 아니라 "정규장 아님" 으로 읽게
       session: isWeekend(today) ? "closed" : "holiday",
-      lastCloseAt: kstAt(prevOpenDay(today), 15, 30),
-      nextOpenAt: kstAt(nextOpenDay(today), 9, 0),
+      lastCloseAt: closeAt(prevOpenDay(today)),
+      nextOpenAt: openAt(nextOpenDay(today)),
       calendarKnown,
       holidayName: isWeekend(today) ? null : krxHolidayName(today),
+      regularHours: krRegularHoursOn(today, calendar),
     };
   }
 
-  const bound = SESSION_BOUNDS.find((b) => minutes >= b.from && minutes < b.to);
+  const bound = krSessionBoundsOn(today, calendar).find((b) => minutes >= b.from && minutes < b.to);
   const session = bound?.session ?? "closed";
   const inRegular = session === "regular" || session === "closing_auction";
-  const beforeOpen = minutes < MIN(9, 0);
+  const beforeOpen = minutes < krRegularHoursOn(today, calendar).open;
 
   return {
     session,
-    lastCloseAt: inRegular ? null : kstAt(beforeOpen ? prevOpenDay(today) : today, 15, 30),
-    nextOpenAt: inRegular ? null : kstAt(beforeOpen ? today : nextOpenDay(today), 9, 0),
+    lastCloseAt: inRegular ? null : closeAt(beforeOpen ? prevOpenDay(today) : today),
+    nextOpenAt: inRegular ? null : openAt(beforeOpen ? today : nextOpenDay(today)),
     calendarKnown,
     holidayName: null,
+    regularHours: krRegularHoursOn(today, calendar),
   };
 };
 
@@ -478,8 +559,10 @@ export const krBackfillWindow = (now: Date, calendar: ReadonlyMap<string, boolea
     }
     return kstAt(d, 8, 30);
   };
-  if (openToday && minutes >= QUOTE_WINDOW.from && minutes < QUOTE_WINDOW.to) {
-    return { open: false, reopensAt: kstAt(today, 16, 0) };
+  // 창 끝은 그 날의 장후 시간외 종가 끝(평상일 16:00 · 수능일 17:00)
+  const windowEnd = quoteWindowEndOn(today, calendar);
+  if (openToday && minutes >= QUOTE_WINDOW.from && minutes < windowEnd) {
+    return { open: false, reopensAt: kstAt(today, 0, windowEnd) };
   }
   return { open: true, stopAt: openToday && minutes < QUOTE_WINDOW.from ? kstAt(today, 8, 30) : nextOpenStart() };
 };
@@ -694,26 +777,37 @@ export const KR_REALTIME_SLOTS = 41;
 
 const FIVE_MINUTES_MS = 5 * 60_000;
 
+/** 평상일 정규장(동시호가 포함) — KST 분. 날마다 다를 수 있다(`krRegularHoursOn`) */
+export const KR_NORMAL_REGULAR_HOURS: Readonly<{ open: number; close: number }> = { open: MIN(9, 0), close: MIN(15, 30) };
+
 /**
- * 정규장 5분 버킷 시작(UTC ms) — 밖이면 `null`.
+ * 정규장 5분 버킷 시작(UTC ms) — 밖이면 `null`. `hours` 는 그날 장 시간(`krRegularHoursOn` · `KrSessionView.regularHours`) —
+ * 수능일엔 10:00~16:30 이다. 고정 09:00~15:30 이던 때 수능일 15:30~16:30 체결 · 분봉을 버리고, 09:30~10:00 동시호가
+ * 예상가를 봉으로 만들었다(2026-11-19 실측).
  *
- * **15:30 은 15:25 버킷에 넣는다.** 15:20~15:30 은 장 마감 동시호가라 체결이 없고, 15:30 에 종가 단일가 체결이 한 번
+ * **마감 시각(평상일 15:30)은 마지막 버킷(15:25)에 넣는다.** 15:20~15:30 은 장 마감 동시호가라 체결이 없고, 15:30 에 종가 단일가 체결이 한 번
  * 찍힌다(2026-10-07 실측: 10/6 삼성전자 15:30 1분봉 거래량 142만 · 종가 272,000 = 일봉 종가). 그것을 버리면 그날
  * 마지막 5분봉의 종가가 일봉 종가와 달라진다 — 첫 판이 그랬다
  */
-export const krFiveMinuteBucket = (at: Date): number | null => {
+export const krFiveMinuteBucket = (
+  at: Date,
+  hours: { open: number; close: number } = KR_NORMAL_REGULAR_HOURS
+): number | null => {
   const kstMinutes = Math.floor(((at.getTime() + KST_OFFSET_MS) % DAY_MS) / 60_000);
-  if (kstMinutes < MIN(9, 0) || kstMinutes > MIN(15, 30)) return null;
-  const minutes = kstMinutes === MIN(15, 30) ? MIN(15, 25) : kstMinutes;
+  if (kstMinutes < hours.open || kstMinutes > hours.close) return null;
+  const minutes = kstMinutes === hours.close ? hours.close - 5 : kstMinutes;
   const dayStart = at.getTime() - (((at.getTime() + KST_OFFSET_MS) % DAY_MS));
   return dayStart + Math.floor(minutes / 5) * 5 * 60_000;
 };
 
-/** 1분봉 → 5분봉(장 마감 보정 · 백필). 시각 오름차순으로 낸다 */
-export const krMinutesToFiveMinute = (minutes: Candle[]): Candle[] => {
+/** 1분봉 → 5분봉(장 마감 보정 · 백필). `hours` 는 그 분봉 날의 장 시간. 시각 오름차순으로 낸다 */
+export const krMinutesToFiveMinute = (
+  minutes: Candle[],
+  hours: { open: number; close: number } = KR_NORMAL_REGULAR_HOURS
+): Candle[] => {
   const buckets = new Map<number, Candle>();
   for (const m of [...minutes].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())) {
-    const start = krFiveMinuteBucket(m.timestamp);
+    const start = krFiveMinuteBucket(m.timestamp, hours);
     if (start === null) continue;
     const bar = buckets.get(start);
     if (!bar) {
@@ -742,8 +836,9 @@ export class KrMinuteBarBuilder {
   private readonly bars = new Map<string, Candle & { firstAt: number; lastAt: number }>();
   private readonly touched = new Set<string>();
 
-  add(tick: KrTick) {
-    const start = krFiveMinuteBucket(tick.at);
+  /** `hours` 는 그 체결 날의 장 시간(`KrSessionView.regularHours`) — 수능일 10:00~16:30 */
+  add(tick: KrTick, hours: { open: number; close: number } = KR_NORMAL_REGULAR_HOURS) {
+    const start = krFiveMinuteBucket(tick.at, hours);
     if (start === null) return;
     const key = `${tick.code}|${start}`;
     const t = tick.at.getTime();

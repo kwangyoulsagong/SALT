@@ -7,7 +7,10 @@ import {
   isKrQuoteWindow,
   krFeedState,
   krLimitState,
+  krBackfillWindow,
+  krFiveMinuteBucketsOn,
   krMarketSession,
+  krRegularHoursOn,
   KR_LOGO_MIN_SHARPNESS,
   krLogoCandidates,
   krLogoSharpness,
@@ -23,6 +26,78 @@ import {
 
 /** KST 시각 → UTC Date */
 const kst = (iso: string) => new Date(`${iso}+09:00`);
+
+describe("날마다 다른 장 시간 — 수능일 · 새해 첫 개장일 (2026-11-21)", () => {
+  // 2026-11-18 수(평상) · 11-19 목(수능) · 11-20 금
+  const nov = new Map([
+    ["2026-11-18", true],
+    ["2026-11-19", true],
+    ["2026-11-20", true],
+  ]);
+  const session = (iso: string, cal: ReadonlyMap<string, boolean> = nov) => krMarketSession(kst(iso), cal).session;
+
+  it("수능일 경계 표 — 전부 1시간 늦다(장전 09:30 · 정규 10:00 · 동시호가 16:20 · 빈 칸 16:30 · 시간외 16:40 · 단일가 17:00 · 19:00 closed)", () => {
+    const cases: Array<[string, string]> = [
+      ["2026-11-19T09:29:00", "closed"],
+      ["2026-11-19T09:30:00", "pre_open"],
+      ["2026-11-19T09:59:00", "pre_open"],
+      ["2026-11-19T10:00:00", "regular"],
+      ["2026-11-19T16:19:00", "regular"],
+      ["2026-11-19T16:20:00", "closing_auction"],
+      ["2026-11-19T16:30:00", "closed"],
+      ["2026-11-19T16:40:00", "after_hours_close"],
+      ["2026-11-19T17:00:00", "after_hours_single"],
+      ["2026-11-19T19:00:00", "closed"],
+    ];
+    for (const [iso, want] of cases) assert.equal(session(iso), want, iso);
+  });
+
+  it("평상일은 그대로 — 수능 전날 · 다음 날 09:00 정규 · 15:30 closed", () => {
+    assert.equal(session("2026-11-18T09:00:00"), "regular");
+    assert.equal(session("2026-11-18T15:30:00"), "closed");
+    assert.equal(session("2026-11-20T09:00:00"), "regular");
+    assert.equal(session("2026-11-20T15:20:00"), "closing_auction");
+  });
+
+  it("마지막 마감 · 다음 개장은 그 날의 장 시간 — 수능 전날 밤 → 다음 개장 10:00 · 수능일 밤 → 마지막 마감 16:30", () => {
+    assert.deepEqual(krMarketSession(kst("2026-11-18T21:00:00"), nov).nextOpenAt, kst("2026-11-19T10:00:00"));
+    assert.deepEqual(krMarketSession(kst("2026-11-19T21:00:00"), nov).lastCloseAt, kst("2026-11-19T16:30:00"));
+    // 수능일 09:30(장전) — 아직 개장 전이라 마지막 마감은 전날 15:30 · 다음 개장은 오늘 10:00
+    const morning = krMarketSession(kst("2026-11-19T09:45:00"), nov);
+    assert.deepEqual(morning.lastCloseAt, kst("2026-11-18T15:30:00"));
+    assert.deepEqual(morning.nextOpenAt, kst("2026-11-19T10:00:00"));
+  });
+
+  it("새해 첫 개장일 — 장전이 10:00 까지 · 정규 10:00 부터 · 마감 15:30 그대로(1월 1일은 늘 휴장)", () => {
+    const jan26 = new Map([["2026-01-01", false], ["2026-01-02", true], ["2026-01-05", true]]);
+    assert.equal(session("2026-01-02T09:30:00", jan26), "pre_open");
+    assert.equal(session("2026-01-02T10:00:00", jan26), "regular");
+    assert.equal(session("2026-01-02T15:30:00", jan26), "closed");
+    assert.equal(session("2026-01-05T09:00:00", jan26), "regular"); // 둘째 개장일은 평상
+    // 2027 — 1월 1일(금) 휴장 · 주말 → 1월 4일(월)이 첫 개장일
+    const jan27 = new Map([["2027-01-01", false], ["2027-01-04", true]]);
+    assert.equal(session("2027-01-04T09:30:00", jan27), "pre_open");
+    assert.equal(session("2027-01-04T10:00:00", jan27), "regular");
+  });
+
+  it("장 시간 · 5분봉 칸 수 — 평상 09:00~15:30 78 · 새해 첫날 10:00~15:30 66 · 수능일 10:00~16:30 78", () => {
+    const cal = new Map([...nov, ["2026-01-01", false], ["2026-01-02", true]]);
+    assert.deepEqual(krRegularHoursOn("2026-11-18", cal), { open: 540, close: 930 });
+    assert.deepEqual(krRegularHoursOn("2026-11-19", cal), { open: 600, close: 990 });
+    assert.deepEqual(krRegularHoursOn("2026-01-02", cal), { open: 600, close: 930 });
+    assert.equal(krFiveMinuteBucketsOn("2026-11-18", cal), 78);
+    assert.equal(krFiveMinuteBucketsOn("2026-11-19", cal), 78);
+    assert.equal(krFiveMinuteBucketsOn("2026-01-02", cal), 66);
+  });
+
+  it("큰 백필 시세 창 — 수능일은 17:00 까지 닫힘(장후 시간외가 늦다) · 평상일은 16:00 에 열림", () => {
+    const csat = krBackfillWindow(kst("2026-11-19T16:30:00"), nov);
+    assert.equal(csat.open, false);
+    if (!csat.open) assert.deepEqual(csat.reopensAt, kst("2026-11-19T17:00:00"));
+    assert.equal(krBackfillWindow(kst("2026-11-19T17:00:00"), nov).open, true);
+    assert.equal(krBackfillWindow(kst("2026-11-18T16:00:00"), nov).open, true);
+  });
+});
 
 describe("krMarketSession — 장 상태는 KST 시계 + 달력 (F011 FR-26)", () => {
   // 2026-10-07 수 · 10-08 목 · 10-09 금(한글날) · 10-10 토
@@ -123,9 +198,9 @@ describe("krxNoticeDays — KRX 휴장일 공시로 미래 달력 채우기 (F01
     assert.equal(temp.holidayName, null);
   });
 
-  it("연말 휴장 · 신정을 건너 다음 개장은 2027-01-04 월요일", () => {
+  it("연말 휴장 · 신정을 건너 다음 개장은 2027-01-04 월요일 10:00(새해 첫 개장일 — 2026-11-21 정정, 옛 기대 09:00)", () => {
     const v = krMarketSession(kst("2026-12-30T16:30:00"), asCalendar("2026-12-01", "2027-01-01"));
-    assert.deepEqual(v.nextOpenAt, kst("2027-01-04T09:00:00"));
+    assert.deepEqual(v.nextOpenAt, kst("2027-01-04T10:00:00"));
   });
 
   it("09:10 관측 전 아침에도 오늘이 달력에 있다 — 예전엔 평일 아침마다 calendarKnown=false 였다", () => {
