@@ -24,7 +24,7 @@ rc=0
   || { echo "[$(ts)] move_news 늦은 사건 기록 실패 — 다음 시에"; rc=1; }
 
 # 3) 국내 백테스트 — 서버 밤 전 종목 일봉 5년(여러 밤)이 다 받은 뒤 한 번. 빈 데이터로 돌면 틀린 성적이 원장에 들어간다.
-#    조건: 마지막 전 종목 회차가 "남음 0"(07:20 멈춤 아님) · 국내 일봉 2,000종목 이상 · 국내 판단 과거 검산 행이 아직 없음.
+#    조건: 마지막 전 종목 회차가 "남음 0"(시세 창 전 멈춤 아님) · 국내 일봉 2,000종목 이상 · 국내 장기 판단 과거 검산 행이 아직 없음.
 #    base_rate · short_direction · events 는 daily.sh 가 매일 다시 돈다 — 여기는 매일 돌지 않는 셋만
 kr_backtest_ready() {
   local line n done_rows
@@ -32,7 +32,8 @@ kr_backtest_ready() {
   [[ $line == *"남음 0"* && $line != *"멈춤"* ]] || return 1
   n=$(psql salt_db -Atc "select count(distinct symbol) from price_history where asset_type='kr_stock' and timeframe='1d'") || return 1
   (( n >= 2000 )) || return 1
-  done_rows=$(psql salt_db -Atc "select count(*) from symbol_judgment_snapshots where sample_origin like 'backtest%' and symbol ~ '^[0-9]{6}$'") || return 1
+  # 국내 장기 과거 검산 행만 센다 — 국내 단타 과거 검산(backtest_price_only)까지 세던 때 11-16 부터 게이트가 영영 닫혔다
+  done_rows=$(psql salt_db -Atqf ops/kr-backtest-done.sql) || return 1
   (( done_rows == 0 ))
 }
 if kr_backtest_ready; then
