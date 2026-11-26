@@ -1,6 +1,8 @@
-import { keyframes, style } from "@vanilla-extract/css";
+import { style } from "@vanilla-extract/css";
 
+import { growInY } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
+import { HOVER_TRANSITION } from "@repo/ui/transition";
 
 /** 날마다 쓴 돈 막대 — 가계부 도메인 색(작은 표지), 높이 120 */
 const HEIGHT = "120px";
@@ -19,6 +21,8 @@ export const col = style({ flex: 1, minWidth: 0, display: "flex", flexDirection:
 export const hit = style({
   all: "unset",
   boxSizing: "border-box",
+  // `all: unset` 이 전역 기본 전환(FE-REQ-062 FR-1)까지 지운다 — 여기서 다시
+  transition: HOVER_TRANSITION,
   display: "flex",
   alignItems: "flex-end",
   justifyContent: "center",
@@ -32,16 +36,12 @@ export const hit = style({
   },
 });
 
-const grow = keyframes({ from: { transform: "scaleY(0)" }, to: { transform: "scaleY(1)" } });
-
 const barBase = {
   display: "block",
   width: "100%",
   maxWidth: "14px",
   borderRadius: "3px 3px 0 0",
-  transformOrigin: "bottom",
-  animation: `${grow} ${vars.motion.duration.slow} ${vars.motion.easing.enter} both`,
-  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+  ...growInY,
 } as const;
 
 export const bar = style({ ...barBase, background: "rgba(232, 89, 12, 0.32)" });

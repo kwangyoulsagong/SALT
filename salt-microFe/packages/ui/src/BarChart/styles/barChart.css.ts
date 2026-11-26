@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
+import { growInY } from "../../Motion/enterReveal.css";
 import { vars } from "../../styles/tokens.css";
 
 export const wrapperStyles = style({
@@ -32,7 +33,8 @@ export const barStyles = recipe({
     minHeight: "2px",
     borderTopLeftRadius: vars.radius.small,
     borderTopRightRadius: vars.radius.small,
-    transition: `height ${vars.transitions.base}`,
+    // 높이는 값 그대로 · 처음 한 번 바닥에서 차오른다(FE-REQ-062 FR-6 — 옛 `height` 전환은 매 프레임 레이아웃)
+    ...growInY,
   },
 
   variants: {

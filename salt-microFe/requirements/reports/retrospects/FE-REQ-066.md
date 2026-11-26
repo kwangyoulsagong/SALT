@@ -33,3 +33,5 @@
 
 - 검색 모달 · 옆 칸 · 행 면 하드코딩을 토큰으로 — 값 같음. 교체 중 옆 칸 테두리가 따옴표 안 `${…}` 로 남아 CSS 가 깨졌던 것을 dev 화면에서 찾아 고침(머지 전)
 - 판단은 `FE-REQ-047` 회고 2026-11-19 절 · 루트 `F000-desktop-shell-slice.md`
+
+- 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 모달 · 시트 등장 길이를 옛 `transitions`(0.2 · 0.3s ease) → `motion` 토큰(`base` · `slow` · `easing.enter`)

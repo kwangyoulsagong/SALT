@@ -173,3 +173,7 @@
 ## 2026-11-20 `FE-REQ-071` 짝
 
 - `zoneNextConfig` 대상에 `mobile` 을 적음(코드 변화 없음) — 검증은 `FE-REQ-071` 체크리스트(check-types · lint · test · zone 여섯 운영 빌드)
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] 같은 zone 안 이동 본문 투명도(`RouteMain`)를 더함 — zone 을 넘는 이동은 문서 간 전환 그대로(첫 마운트는 움직이지 않는다) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

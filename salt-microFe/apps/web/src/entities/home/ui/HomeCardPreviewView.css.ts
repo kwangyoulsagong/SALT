@@ -1,5 +1,6 @@
-import { createVar, globalStyle, keyframes, style, styleVariants } from "@vanilla-extract/css";
+import { createVar, globalStyle, style, styleVariants } from "@vanilla-extract/css";
 
+import { growInY } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 /**
@@ -79,15 +80,11 @@ export const bars = style({
 });
 
 /** 막대가 바닥에서 자란다 — transform 만(`motion.md` §5) · 줄인 모션이면 끔 */
-const grow = keyframes({ from: { transform: "scaleY(0)" }, to: { transform: "scaleY(1)" } });
-
 const barBase = style({
   flex: 1,
   minWidth: 0,
   borderRadius: "2px 2px 0 0",
-  transformOrigin: "bottom",
-  animation: `${grow} ${vars.motion.duration.slow} ${vars.motion.easing.enter} both`,
-  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+  ...growInY,
 });
 
 export const bar = style([barBase, { background: accentSoft }]);

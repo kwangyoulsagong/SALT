@@ -57,6 +57,21 @@ source: 사용자 "우리도 ○○처럼 애니메이션 넣어야돼"
 
 - 호버 = **새 토큰 `duration.hover` 0.2s**(사용자 "베스트 케이스") — 기준 값이 0.2 로 220곳 넘게 통일돼 있다. `motion.md` §3 표에 "신설 예정" 행을 먼저 넣었다
 
+## 결과 (2026-11-26 done)
+
+| FR | 무엇을 했나 | 어디 |
+|---|---|---|
+| FR-1 | 옛 `vars.transitions`(속성 없이 → `all`) 지움 · `HOVER_TRANSITION`(면 `hover` 0.2 · 글자색 `instant`) 한 벌 · 데스크톱 전역 `:where()` 바닥값(특이도 0 — 컴포넌트 값이 이긴다). 전환 있는 비율 44% → 100%(668 → 669 중 669 — 가계부 날마다 막대 4개는 `all: unset` 이 지워 따로) · `all` 180 → 0 · 레이아웃 속성 전환 2 → 0 | `@repo/ui/transition` · `@repo/web-shared/layout/globals.css` |
+| FR-2 | 버튼(옛 아래로 1px · 안쪽 그림자) · 아이콘 버튼 · 목록 행에 누름 0.97, 데스크톱 전역 버튼 · 접힘 머리 바닥값 | `@repo/ui/press` |
+| FR-3 | 본문 목록 행 · 표 행 차례 등장(투명도 + .96 · `base` · 행마다 20ms · 8행 넘으면 같이) — 전역 한 곳 | `globals.css` · `enterRow` |
+| FR-4 | 스켈레톤 반짝임 한 줄 — `::after` 띠를 `transform` 으로(배경 위치 이동 0) · 줄인 모션이면 옅은 면 | `Skeleton` |
+| FR-5 | 요약 주인공 금액이 바뀔 때 굴림 — 포맷된 글자를 숫자로 나눠 굴리고 같은 모양으로(`RolledText`) · 가격 · 등락률 0 | `SummaryBand` · `MobileSummary` · 홈 카드 |
+| FR-6 | `ProgressBar` 값 = `scaleX`(옛 `width` 전환) · 막대 열한 곳 처음 차오름(`growInX` · `growInY` — 크기는 값 그대로, `transform` 만) | `@repo/ui/enterReveal` |
+| FR-7 | `Sparkline` · `PreviewChart` = 바깥 `<svg>` `clip-path: inset()` 넓힘(안쪽 사각형 `scaleX` 는 레이아웃 70 → 248 이라 버림) · `TradingChart` = 기본 캔버스 오른쪽을 덜 지우며 rAF. 처음 한 번 · 실시간 갱신 다시 0 | `chartReveal` · `engine/reveal.ts` |
+| FR-8 | `FilterTabs` 세 변형 미끄러짐(`useSlidingIndicator`) · 시세 표 필터가 대기 분기에 갈아 끼워지던 것 고침 | `FilterTabs` · `RealtimeMarketTable` |
+| FR-9 | `RouteMain` — 경로가 바뀔 때만 본문 투명도 `base`(첫 마운트 · `?tab=` 0) | `@repo/web-shared/layout` |
+| FR-10 | 토큰 `duration.hover` · `loop` · `easing.standard` · `staggerRow` — `motion.md` §3 표 · 3-1 바닥 표 · 기계 검사 `motionBudget.test.ts` | `@repo/tokens` |
+
 ## 검증 계획
 
 - 화면마다 누를 수 있는 요소 중 전환 있는 비율(이번 측정 스크립트) — 목표 100% · `transition: all` 0
@@ -69,3 +84,8 @@ source: 사용자 "우리도 ○○처럼 애니메이션 넣어야돼"
 |---|---|
 | 2026-11-04 | 신규(to-do) — 기준 공개 화면 전환 · 키프레임 실측, 우리 세 화면 전환 비율 실측 |
 | 2026-11-04 | 결정 — 호버 토큰 `duration.hover` 0.2s 신설(사용자 "베스트 케이스"). 적용은 단계마다 그 화면에(D1~D4) |
+| 2026-11-26 | to-do → **done**(`feat/fe-req-062-interaction-motion`, 사용자 "다음 파이프라인" — §4-1 남은 칸 셋 중 고름). FR-1~10 위 결과 표. 측정 · 실화면은 `checklists/FE-REQ-062.md` |
+| 2026-11-26 | 정정 — **카드 · 패널 등장은 `enterReveal` 그대로**(8px 떠오름 · `slow` — 위 측정 표가 "같은 뜻"으로 대응시킨 값, 휴대폰 `mobile-motion.md` §3 과 한 벌). 투명도 + .96 · `base` 는 **목록 행**에(FR-3) — 행은 배경이라 더 짧고 작게 |
+| 2026-11-26 | 정정 — FR-6 "처음 보일 때" → **처음 그릴 때**(CSS 애니메이션 — 서버 HTML 도 끝 상태). 막대는 서버 컴포넌트 안이 많아 보임 관찰을 붙이면 잎마다 클라이언트가 된다 · 화면 밖 CSS 애니메이션은 칠하지 않는다 |
+| 2026-11-26 | 정정 — FR-7 길이는 기준 2000ms 가 아니라 `duration.scene` 0.9s(`motion.md` §4-1 "한 장면은 1초 안") · 곡선은 기준과 같은 `ease`(`easing.standard`) |
+| 2026-11-26 | 정정 — FR-1 · 2 · 3 은 화면마다 붙이지 않고 데스크톱 전역 `:where()` 한 곳(행을 그리는 자리 80곳 가까이 · 전환 없는 링크 372개 — 컴포넌트마다 붙이면 다음 화면에서 다시 빠진다). 휴대폰 `/m` 은 `MobileShell.css.ts` 그대로 |

@@ -253,6 +253,7 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `@repo/core/auth` 에 `isPublicPath` · `PUBLIC_PATHS` 에 `/tips`(공개 zone) (`cf93acb1`) |
 | 2026-11-18 | 파일만 걸침(`feat/f006-alerts-screen`) — `@repo/tokens` `text.tertiary` 값만 `#656D76` 으로(대비, `FE-REQ-047` FR-13). zone 구조 무변경. 루트 `requirements/specs/in-progress/F006-alerts-screen-slice.md` |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — `@repo/tokens` 에 데스크톱 틀 토큰(`colors.desk` · `deskType`) · 바탕 `#F4F5F8` · 글꼴 네 키를 시스템 서체로 — 어댑터 구조(토큰 한 곳 → 웹 변수)는 그대로 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 토큰 — 옛 `transitions`(속성 없이 쓰여 `transition: all`) 지움 · `motion.duration.hover` 0.2 · `loop` 1.5 · `easing.standard` · `staggerRow` 0.02 더함. zone 설정 · 레지스트리 변화 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/core/src/auth/keys.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
 | 2026-11-20 | `FE-REQ-060` 4단계 앱 웹뷰(`feat/fe-req-060-s4-webview-mobile`, 루트 `requirements/specs/done/MONEY-webview-mobile-slice.md`) — `@repo/tokens` 에 모바일 글자 토큰 `appType`(값은 `typography` 단 그대로) — 웹 어댑터 `vars` 로 그대로 올라간다. RN 이 같은 값을 본다 |

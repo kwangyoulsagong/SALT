@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { HeaderBrand } from "./HeaderBrand";
+import { RouteMain } from "./RouteMain";
 import { header, main, shell } from "./PublicShell.css";
 
 /**
@@ -14,7 +15,7 @@ export const PublicShell = ({ children }: { children: ReactNode }) => (
     <header className={header}>
       <HeaderBrand />
     </header>
-    <main className={main}>{children}</main>
+    <RouteMain className={main}>{children}</RouteMain>
   </div>
 );
 

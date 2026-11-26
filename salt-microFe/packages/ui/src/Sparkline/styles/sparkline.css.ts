@@ -1,11 +1,14 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
+import { chartReveal } from "../../Motion/enterReveal.css";
 import { vars } from "../../styles/tokens.css";
 
 export const sparklineStyles = recipe({
   base: {
     display: "block",
     overflow: "visible",
+    // 처음 그릴 때 선이 왼쪽부터 드러난다(FE-REQ-062 FR-7)
+    ...chartReveal,
   },
 
   variants: {

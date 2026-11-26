@@ -205,10 +205,10 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 
 | 토큰 그룹 | 토큰 |
 | --- | --- |
-| `vars.transitions` | `fast`, `base`, `slow`, `slower` — hover · focus 같은 CSS 상태 전환 |
-| `vars.motion.duration` | `instant` 120ms · `base` 240ms · `slow` 400ms · `scene` 900ms — `*.css.ts` keyframes 용 문자열 |
-| `vars.motion.easing` | `enter` · `exit` · `move` · `fall` — `cubic-bezier(…)` 문자열 |
-| `tokens.motion`(`@repo/tokens`, 숫자) | 위 두 그룹 + `spring`(`snappy` · `bouncy` · `gentle`) · `stagger` · `pressScale`. `framer-motion` 은 `@repo/ui/motion` 의 `ease` · `springs` · `durations` 로 읽는다 |
+| ~~`vars.transitions`~~ | **2026-11-26 지움**(`FE-REQ-062`) — 속성 없이 쓰여 `transition: all` 이 됐다. 상태 전환은 `@repo/ui/transition` `HOVER_TRANSITION`(+ `@repo/ui/press` `PRESS_TRANSITION`) |
+| `vars.motion.duration` | `instant` 120ms · `base` 240ms · `slow` 400ms · `scene` 900ms · `hover` 200ms(호버 면) · `loop` 1500ms(스켈레톤 반짝임) — `*.css.ts` 용 문자열 |
+| `vars.motion.easing` | `enter` · `exit` · `move` · `fall` · `standard`(CSS `ease` 곡선 — 상태 전환 · 차트 드러남) — `cubic-bezier(…)` 문자열 |
+| `tokens.motion`(`@repo/tokens`, 숫자) | 위 두 그룹 + `spring`(`snappy` · `bouncy` · `gentle`) · `stagger` · `staggerRow`(행 20ms) · `pressScale`. `framer-motion` 은 `@repo/ui/motion` 의 `ease` · `springs` · `durations` 로 읽는다 |
 | `vars.zIndices` | `base`, `dropdown`, `sticky`, `fixed`, `modalBackdrop`, `modal`, `popover`, `tooltip` |
 
 ## 규칙

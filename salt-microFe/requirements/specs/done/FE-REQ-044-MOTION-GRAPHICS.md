@@ -188,3 +188,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | 2026-11-19 | `FE-REQ-049` 상세 재설계가 걸침 — `Tabs` 알약 변형이 세그먼트와 같은 미끄러지는 선택 면(`useSlidingIndicator`)을 씀 · 누름 피드백을 `@repo/ui/press` 로 공개(머리 버튼이 씀) · 상세 패널 면(`detailPanel`)에 블록 등장(`enterReveal`) |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 로그인 화면 문구 import 자리만 `@repo/web-shared/layout/sign-in` 으로 |
 | 2026-11-21 | 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `Illustration` 장면 `addToHome`(공유 버튼 → 추가 메뉴 → 더하기) — 휴대폰 설치 안내 시트 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): `@repo/ui/enterReveal` 에 막대 차오름(`growInX` · `growInY`) · 행 등장(`enterRow`) · 차트 드러남(`chartReveal` — 바깥 `<svg>` `clip-path`) 더함, `enterReveal` 값 그대로. `useRolledNumber` 이징을 `Motion/bezier.ts` 로 나눔(값 같음). 버튼 · 아이콘 버튼 · 목록 행에 누름 0.97(옛 버튼 아래로 1px) |

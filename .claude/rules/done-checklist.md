@@ -39,6 +39,7 @@
 | 공유 한도 페이서가 순수 우선순위 — 몇 시간짜리 백필이 아래 줄(전 종목 일봉 · 시황 제목)을 굶김(2회차, 2026-11-16 · 11-17) | `salt-server` `pacer.test.ts` 굶는 요청 0(포화에서도 단계 × `agingMs` 안팎) | `npm test` |
 | Swagger 주석 YAML 이 깨져(응답 키 중복) 경로 파일이 문서에서 조용히 빠짐 — 부팅 로그에만(국내 주식 경로 넷 열흘, 2026-11-19) | `salt-server` `swagger.test.ts`(`failOnErrors`) | `npm test` |
 | 데스크톱 글자 크기 사이값(20 · 16 · 15 …)이 화면마다 늘어남 — 규칙 문서만으로 211곳(2026-11-19 `FE-REQ-047` FR-3) | `@repo/ui` `fontSizeBudget.test.ts` 영역별 래칫(늘면 실패 · 줄면 기준을 낮춤) | `pnpm test` |
+| 속성 없는 전환(`vars.transitions` — 브라우저가 `all` 로 읽음, 180곳) · `width` · `height` 전환 · SVG 안 변형 드러남이 매 프레임 레이아웃(2026-11-26 `FE-REQ-062`) | `@repo/ui` `motionBudget.test.ts`(바뀌는 속성만 · 레이아웃 속성 0) · 움직임은 트레이스 레이아웃 횟수를 전환 끈 상태와 나란히 | `pnpm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

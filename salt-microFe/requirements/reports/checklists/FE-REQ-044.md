@@ -230,3 +230,7 @@
 ## 2026-11-21 `FE-REQ-073` 걸침
 
 - [x] `Illustration` 장면 `addToHome`(공유 버튼 → 추가 메뉴 → 더하기) — 휴대폰 설치 안내 시트 — 확인: Storybook 빌드 · 끝 프레임 확인(`checklists/FE-REQ-073.md`)
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] `@repo/ui/enterReveal` 에 막대 차오름(`growInX` · `growInY`) · 행 등장(`enterRow`) · 차트 드러남(`chartReveal` — 바깥 `<svg>` `clip-path`) 더함, `enterReveal` 값 그대로. `useRolledNumber` 이징을 `Motion/bezier.ts` 로 나눔(값 같음). 버튼 · 아이콘 버튼 · 목록 행에 누름 0.97(옛 버튼 아래로 1px) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

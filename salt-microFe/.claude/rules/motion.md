@@ -41,6 +41,8 @@ const { duration, easing, spring } = tokens.motion;
 - `0.3`, `"ease-out"`, `stiffness: 400` 같은 숫자를 컴포넌트에 쓰지 않는다. 새 값이 필요하면 토큰을 추가한다.
 - 2026-09-30 이전 keyframes 중 값이 토큰과 **같은 것만** 토큰으로 바꿨다. 다른 값(해설 · 예측 · 사건 카드의 개별 안무, 등락률 깜빡임)은 이전 결정이라 그대로 둔다 — 새 코드에서 따라 하지 않는다.
 - 블록 등장은 `@repo/ui/enterReveal`(`.css.ts` 전용 — `keyframes` 는 런타임 barrel 에서 내보낼 수 없다)을 base 에 펼친다. `Card` · 앱 `panel` 표면에 이미 있다.
+- **상태 전환은 바뀌는 속성만** — `@repo/ui/transition` `HOVER_TRANSITION`(면 `hover` · 글자색 `instant`), 누름이 있으면 `, ${PRESS_TRANSITION}`.
+  길이만 쓰거나(`transition: vars.motion.duration.base`) `all` · 레이아웃 속성을 쓰면 `@repo/ui` `motionBudget.test.ts` 가 막는다(옛 `vars.transitions` 는 지웠다 — 180곳이 `all` 이었다, 2026-11-26)
 
 | 토큰 | 값 | 쓰는 곳 |
 |---|---|---|
@@ -48,10 +50,25 @@ const { duration, easing, spring } = tokens.motion;
 | `duration.base` | 0.24s | 등장 · 퇴장 · 탭 밑줄 · 숫자 |
 | `duration.slow` | 0.4s | 카드 · 패널 진입 |
 | `duration.scene` | 0.9s | 일러스트 한 장면 |
-| `duration.hover` | 0.2s | 호버 · 포커스 면(배경) — **신설 예정**(`FE-REQ-062` FR-1, 2026-11-04 결정 · 기준 화면 220곳 통일 값). 토큰을 더할 때 이 행의 "예정"을 지운다 |
+| `duration.hover` | 0.2s | 호버 · 포커스 면(배경 · 테두리) — `FE-REQ-062` FR-1(기준 화면 220곳 통일 값) |
+| `duration.loop` | 1.5s | 진행 중 반복 한 바퀴 — 스켈레톤 반짝임(`FE-REQ-062` FR-4) |
+| `easing.standard` | CSS `ease` | 상태 전환(면 · 글자색) · 차트 드러남 |
+| `staggerRow` | 20ms | 목록 행 차례 등장(8행까지, 블록은 `stagger` 40ms) |
 | `spring.snappy` | 튀지 않음 | 누름 복귀 · 칩 |
 | `spring.bouncy` | 한 번 출렁 | 착지 · 체크 · 배지 |
 | `spring.gentle` | 느긋 | 시트 · 큰 면 |
+
+### 3-1. 이미 깔린 바닥 — 화면에서 다시 만들지 않는다 (`FE-REQ-062`, 2026-11-26)
+
+| 무엇 | 어디서 | 화면이 할 일 |
+|---|---|---|
+| 링크 · 버튼 · 접힘 머리 호버 전환 · 버튼 누름 0.97 | 데스크톱 전역 `:where()`(특이도 0 — `@repo/web-shared/layout/globals.css`) | 없음. `all: unset` 을 쓰면 그 요소에 `HOVER_TRANSITION` 을 다시 |
+| 본문 목록 행 · 표 행 차례 등장(.96 · 20ms) | 같은 전역(`main` 안 `ul/ol > li` · `tbody > tr`) | 없음. 카드처럼 자기 등장이 있으면 그것이 이긴다 |
+| 막대 처음 차오름 | `@repo/ui/enterReveal` `growInX` · `growInY` — 크기는 값 그대로 · `transform` 만 | 막대 스타일에 펼친다. 값이 바뀌며 움직여야 하면 `scaleX` 로(`ProgressBar`) |
+| 차트 드러남 | SVG `chartReveal`(바깥 `<svg>` `clip-path: inset()` — 안쪽 사각형 `scaleX` 는 매 프레임 레이아웃이라 버림) · 캔버스 `TradingChart` 지우는 폭 rAF — 처음 한 번 | 없음(`Sparkline` · `PreviewChart` · `TradingChart`) |
+| 요약 주인공 숫자 굴림 | `SummaryBand` · `MobileSummary` 주인공 · 홈 카드 → `@repo/ui/rolledText` | 금액은 글자 그대로 넘긴다(바뀔 때만 굴림) |
+| 선택 면 미끄러짐 | `Tabs pill` · `SegmentedControl` · `FilterTabs` | **고르면 다시 마운트되지 않게** — 대기 분기가 필터까지 갈아 끼우면 첫 측정이라 안 미끄러진다 |
+| 같은 zone 안 이동 | `RouteMain`(본문 투명도 `base`, 경로가 바뀔 때만) | 없음 |
 
 ## 4. 움직임 원칙
 

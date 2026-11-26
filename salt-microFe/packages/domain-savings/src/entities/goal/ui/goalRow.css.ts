@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 
 import { ON_MOBILE } from "@repo/core/mobile";
+import { growInX } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 /**
@@ -83,7 +84,8 @@ export const caption = style({
 
 /** 진척 막대 4 — 길이는 `scaleX`(레이아웃 속성을 바꾸지 않는다) */
 export const bar = style({ display: "block", width: "100%", maxWidth: "240px", height: "4px", borderRadius: "999px", background: vars.colors.desk.line, overflow: "hidden" });
-export const barFill = style({ display: "block", width: "100%", height: "100%", background: vars.colors.domain.savings, transformOrigin: "left center" });
+/** 진척은 `scaleX`(인라인) · 처음 그릴 때 0 에서 한 번 차오른다(FE-REQ-062 FR-6) */
+export const barFill = style({ display: "block", width: "100%", height: "100%", background: vars.colors.domain.savings, ...growInX });
 
 export const side = style({ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px", flexShrink: 0, textAlign: "right", selectors: { [ON_MOBILE]: { marginLeft: "auto" } } });
 

@@ -1,4 +1,5 @@
 import type { SummaryBandItem } from "@repo/ui/summaryBand";
+import { RolledText } from "@repo/ui/rolledText";
 import { ServiceIcon, type ServiceIconVariant } from "@repo/ui/serviceicon";
 
 import * as s from "./MobileSummary.css";
@@ -47,7 +48,7 @@ export const MobileSummary = ({ items, label, icon }: MobileSummaryProps) => {
             {/* 읽는 순서는 이름 → 금액(dt · dd), 보이는 순서는 금액 위(기준 화면 금액 행) */}
             <dl className={s.amountMain}>
               <dt className={s.amountLabel}>{lead.hint ? `${lead.label} · ${lead.hint}` : lead.label}</dt>
-              <dd className={s.amountValue}>{lead.value}</dd>
+              <dd className={s.amountValue}>{typeof lead.value === "string" ? <RolledText text={lead.value} /> : lead.value}</dd>
             </dl>
           </div>
         ) : null}
@@ -61,7 +62,7 @@ export const MobileSummary = ({ items, label, icon }: MobileSummaryProps) => {
       {lead ? (
         <dl className={s.hero}>
           <dt className={s.heroLabel}>{lead.label}</dt>
-          <dd className={s.heroValue}>{lead.value}</dd>
+          <dd className={s.heroValue}>{typeof lead.value === "string" ? <RolledText text={lead.value} /> : lead.value}</dd>
           {lead.hint ? <dd className={s.caption}>{lead.hint}</dd> : null}
         </dl>
       ) : null}

@@ -145,3 +145,5 @@ hover 색이 터치 기기에서 sticky 가 됐다(FR-23). `(hover: hover)` 안�
 ## 2026-11-20 `FE-REQ-072` 가 걸침
 
 - 주석 한 줄 — 서비스 이름은 이제 기계가 막는다
+
+- 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 표 행 `transition: all` → 칸(`td`) 면 전환(`HOVER_TRANSITION`). 터치 기기 호버 판정(`hover: hover`) 그대로

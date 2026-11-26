@@ -8,7 +8,7 @@ import React, {
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Group } from "@visx/group";
 import { Line, Bar } from "@visx/shape";
-import { previewChartWrapper, tooltipBase } from "./styles/previewChart.css";
+import { previewChartWrapper, previewReveal, tooltipBase } from "./styles/previewChart.css";
 import { vars } from "../styles/tokens.css";
 import { FlexBox } from "../FlexBox/FlexBox";
 import { Margin } from "../Margin/Margin";
@@ -264,7 +264,10 @@ export const PreviewChart = React.memo(
 
     return (
       <div className={previewChartWrapper} style={{ width, height }}>
+        {/* 처음 그릴 때 왼쪽부터 한 번 드러난다(FE-REQ-062 FR-7) — 종목을 바꾸면 다시(key), 실시간 봉 갱신은 같은 요소라 그대로 */}
         <svg
+          key={symbol}
+          className={previewReveal}
           ref={svgRef}
           width={width}
           height={height}

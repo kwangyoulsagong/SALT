@@ -374,18 +374,11 @@ export const tokens = {
     wider: "0.05em",
   },
 
-  transitions: {
-    fast: "0.1s ease",
-    base: "0.2s ease",
-    slow: "0.3s ease",
-    slower: "0.5s ease",
-  },
-
   /**
    * 모션 토큰 (FE-REQ-044 FR-1).
    *
-   * `transitions` 는 CSS 문자열(hover · focus 같은 상태 전환)이고, 이쪽은 **숫자**다 —
-   * 웹 `motion`(Framer Motion) 과 RN `reanimated` 가 같은 값을 읽는다.
+   * **숫자**다 — 웹 `motion`(Framer Motion) 과 CSS(`vars.motion` 은 문자열로 바꿔 올린다)가 같은 값을 읽는다.
+   * 옛 `transitions`("0.1s ease" — 속성 없이 쓰여 브라우저가 `transition: all` 로 읽었다)는 2026-11-26 `FE-REQ-062` 에서 지웠다.
    * 길이는 초 단위(`motion` 의 `duration` 과 같은 단위). 새 값은 여기에만 추가한다.
    */
   motion: {
@@ -398,6 +391,10 @@ export const tokens = {
       slow: 0.4,
       /** 일러스트 한 장면(동전 낙하 한 번 등) */
       scene: 0.9,
+      /** 호버 · 포커스 면(배경 · 테두리) — 기준 화면 220곳 통일 값(FE-REQ-062 FR-1) */
+      hover: 0.2,
+      /** 진행 중 반복 한 바퀴 — 스켈레톤 반짝임(FE-REQ-062 FR-4). 로딩 표시에만 — 무한 반복은 진행 중에만(`motion.md` §4) */
+      loop: 1.5,
     },
     easing: {
       /** 들어올 때 — 빠르게 시작해 부드럽게 멈춘다 */
@@ -408,6 +405,8 @@ export const tokens = {
       move: [0.65, 0, 0.35, 1],
       /** 떨어질 때 — 중력처럼 점점 빨라진다(동전 · 화살) */
       fall: [0.55, 0, 1, 0.45],
+      /** 상태 전환(호버 면 · 글자색)과 차트 선 그리기 — CSS `ease` 와 같은 곡선(FE-REQ-062) */
+      standard: [0.25, 0.1, 0.25, 1],
     },
     spring: {
       /** 누름 복귀 · 칩 — 튀지 않는다 */
@@ -420,6 +419,8 @@ export const tokens = {
     /** 목록 항목이 차례로 들어올 때 간격(초). 8개 넘으면 나머지는 한꺼번에 */
     stagger: 0.04,
     staggerLimit: 8,
+    /** 목록 행이 차례로 들어올 때 간격(초) — 블록(`stagger`)보다 촘촘하다. 8행 넘으면 같이(FE-REQ-062 FR-3) */
+    staggerRow: 0.02,
     /** 누름 배율 */
     pressScale: 0.97,
   },

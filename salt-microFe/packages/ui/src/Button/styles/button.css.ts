@@ -1,5 +1,7 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const buttonVariants = recipe({
   base: {
@@ -9,17 +11,16 @@ export const buttonVariants = recipe({
     border: "none",
     cursor: "pointer",
     fontFamily: vars.fontFamily.base,
-    transition: vars.transitions.base,
+    transition: `${HOVER_TRANSITION}, ${PRESS_TRANSITION}`,
+    ...pressReducedMotion,
 
     selectors: {
       "&:disabled": {
         opacity: 0.5,
         cursor: "not-allowed",
       },
-      "&:active:not(:disabled)": {
-        transform: "translateY(1px)",
-        boxShadow: `inset 0 1px 2px ${vars.colors.shadow.md}`,
-      },
+      // 누름 = 0.97 (FE-REQ-062 FR-2 — 옛 아래로 1px · 안쪽 그림자를 버튼 · 칩 · 행 한 벌로)
+      [PRESS_SELECTOR]: pressActive,
     },
   },
 

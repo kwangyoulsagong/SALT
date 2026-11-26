@@ -93,7 +93,7 @@ export const planToggle = style({
 
 export const chevron = style({
   color: vars.colors.neutral[500],
-  transition: `transform ${vars.transitions.fast}`,
+  transition: `transform ${vars.motion.duration.instant} ${vars.motion.easing.move}`,
   "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
 });
 

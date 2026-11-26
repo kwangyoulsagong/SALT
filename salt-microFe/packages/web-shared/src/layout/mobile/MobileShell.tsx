@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { RouteMain } from "../RouteMain";
 import { MobileTabBar } from "./MobileTabBar";
 import { content, frame } from "./MobileShell.css";
 
@@ -9,7 +10,7 @@ import { content, frame } from "./MobileShell.css";
  */
 export const MobileShell = ({ children }: { children: ReactNode }) => (
   <div className={frame}>
-    <main className={content}>{children}</main>
+    <RouteMain className={content}>{children}</RouteMain>
     <MobileTabBar />
   </div>
 );

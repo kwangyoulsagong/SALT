@@ -19,7 +19,7 @@ export const overlayStyles = style({
   alignItems: "flex-end",
   justifyContent: "center",
   background: vars.colors.overlay.dark,
-  animation: `${fadeIn} ${vars.transitions.base}`,
+  animation: `${fadeIn} ${vars.motion.duration.base} ${vars.motion.easing.enter}`,
 
   "@media": {
     "(prefers-reduced-motion: reduce)": {
@@ -41,7 +41,7 @@ export const sheetStyles = style({
   background: vars.colors.background.white,
   boxShadow: vars.elevation.sheet,
   fontFamily: vars.fontFamily.base,
-  animation: `${slideUp} ${vars.transitions.slow}`,
+  animation: `${slideUp} ${vars.motion.duration.slow} ${vars.motion.easing.enter}`,
 
   "@media": {
     "(prefers-reduced-motion: reduce)": {

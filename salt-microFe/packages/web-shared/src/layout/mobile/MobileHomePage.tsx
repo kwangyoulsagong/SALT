@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import type { AppHomeVM, HomeDomain, HomeRecentItem, HomeSummaryCard, HomeUpcomingItem } from "@repo/core/home";
 import { MOBILE_PATHS, MOBILE_ROUTES, toMobileHref, type OfflineSnapshot } from "@repo/core/mobile";
+import { RolledText } from "@repo/ui/rolledText";
 import { ServiceIcon, type ServiceIconVariant } from "@repo/ui/serviceicon";
 
 import { serverBffRead } from "../../api/server";
@@ -62,7 +63,9 @@ const CardRow = ({ card }: { card: HomeSummaryCard }) => {
           <ServiceIcon variant={DOMAIN_ICON[card.domain]} />
         </span>
         <span className={s.rowMain}>
-          <span className={degraded || card.state === "empty" ? s.leadQuiet : s.lead}>{lead}</span>
+          <span className={degraded || card.state === "empty" ? s.leadQuiet : s.lead}>
+            {degraded || card.state === "empty" ? lead : <RolledText text={lead} />}
+          </span>
           <span className={s.rowSub}>{sub}</span>
         </span>
         <span className={s.pill}>{card.state === "empty" && card.action ? card.action : M.pill[card.domain]}</span>

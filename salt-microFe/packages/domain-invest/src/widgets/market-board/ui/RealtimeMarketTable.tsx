@@ -173,27 +173,43 @@ export const RealtimeMarketTable = ({
     return found ? overviewItemToPreviewSubject(found) : undefined;
   }, [selectedSymbol, items]);
 
+  /**
+   * 필터는 대기 · 실패 때도 그 자리에 있다(FE-REQ-062 FR-8) — 필터를 바꾸면 쿼리 키가 바뀌어 대기로 돌아가는데, 전에는 필터까지
+   * 스켈레톤으로 바뀌어 다시 마운트됐다(고른 면이 미끄러지지 못하고 필터가 깜빡였다, 2026-11-26 실측)
+   */
+  const filterTabs = (
+    <MarketFilterTabs
+      sort={filters.sort}
+      order={filters.order}
+      period={filters.period}
+      onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
+    />
+  );
+
   if (isPending) {
     // 문장 한 줄 대신 행 모양 스켈레톤 — 표가 들어올 자리를 미리 보인다 (FE-REQ-044 P-19)
     return (
-      <div role="status" aria-busy="true" aria-label={MARKET_MESSAGES.loading}>
-        <Skeleton lines={8} height={40} radius="base" />
-      </div>
+      <FlexBox direction="column">
+        {filterTabs}
+        <div role="status" aria-busy="true" aria-label={MARKET_MESSAGES.loading}>
+          <Skeleton lines={8} height={40} radius="base" />
+        </div>
+      </FlexBox>
     );
   }
 
   if (isError) {
-    return <StatusLine kind="error">{MARKET_MESSAGES.loadFailed}</StatusLine>;
+    return (
+      <FlexBox direction="column">
+        {filterTabs}
+        <StatusLine kind="error">{MARKET_MESSAGES.loadFailed}</StatusLine>
+      </FlexBox>
+    );
   }
 
   return (
     <FlexBox direction="column">
-      <MarketFilterTabs
-        sort={filters.sort}
-        order={filters.order}
-        period={filters.period}
-        onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
-      />
+      {filterTabs}
       <FlexBox justify="between" gap="2xl" className={splitLayout}>
         <div className={tablePane}>
           <ScrollTableContainer maxHeight="viewport" hideScrollbar>

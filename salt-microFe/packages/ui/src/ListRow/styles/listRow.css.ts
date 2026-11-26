@@ -1,6 +1,8 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const listRowStyles = recipe({
   base: {
@@ -20,9 +22,11 @@ export const listRowStyles = recipe({
     pressable: {
       true: {
         cursor: "pointer",
-        transition: vars.transitions.fast,
+        transition: `${HOVER_TRANSITION}, ${PRESS_TRANSITION}`,
+        ...pressReducedMotion,
 
         selectors: {
+          [PRESS_SELECTOR]: pressActive,
           "&:hover": {
             background: vars.colors.neutral[50],
           },

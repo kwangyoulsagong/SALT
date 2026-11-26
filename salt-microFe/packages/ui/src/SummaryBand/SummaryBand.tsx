@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { RolledText } from "../RolledText/RolledText";
+
 import {
   amountCard,
   amountLabel,
@@ -43,10 +45,13 @@ export interface SummaryBandProps {
  * 금액 요약 띠(`FE-REQ-060` FR-2) — 화면 맨 위 타일 가로 격자. 값 · 무엇을 보일지는 부르는 쪽(서버 값)이 정한다 — 이 컴포넌트는 숫자를 만들지 않는다.
  * 정의 목록(`dl`)이라 스크린리더가 "이름 · 값" 짝으로 읽는다
  */
+/** 주인공 금액은 바뀔 때 굴러간다(FE-REQ-062 FR-5) — 글자일 때만, 나머지 칸은 그대로 */
+const heroText = (value: ReactNode) => (typeof value === "string" ? <RolledText text={value} /> : value);
+
 const Tile = ({ item }: { item: SummaryBandItem }) => (
   <div className={tile}>
     <dt className={labelClass}>{item.label}</dt>
-    <dd className={item.hero ? `${valueClass} ${heroValue}` : valueClass}>{item.value}</dd>
+    <dd className={item.hero ? `${valueClass} ${heroValue}` : valueClass}>{item.hero ? heroText(item.value) : item.value}</dd>
     {item.hint ? <dd className={hintClass}>{item.hint}</dd> : null}
   </div>
 );
@@ -64,7 +69,7 @@ export const SummaryBand = ({ items, label, className, icon }: SummaryBandProps)
           {/* 읽는 순서는 이름 → 금액(dt · dd), 보이는 순서는 금액 위(휴대폰 금액 행과 같다) */}
           <div className={amountMain}>
             <dt className={amountLabel}>{lead.hint ? `${lead.label} · ${lead.hint}` : lead.label}</dt>
-            <dd className={amountValue}>{lead.value}</dd>
+            <dd className={amountValue}>{heroText(lead.value)}</dd>
           </div>
         </div>
         {rest.length > 0 ? (

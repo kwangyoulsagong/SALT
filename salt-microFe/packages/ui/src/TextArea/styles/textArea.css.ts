@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const wrapperStyles = style({
   display: "flex",
@@ -47,7 +48,7 @@ export const fieldStyles = recipe({
     display: "flex",
     width: "100%",
     background: vars.colors.background.white,
-    transition: vars.transitions.fast,
+    transition: HOVER_TRANSITION,
 
     selectors: {
       "&:focus-within": {

@@ -106,6 +106,8 @@
     "./signInGlass": "./src/SignInGlass/SignInGlass.tsx",
     "./enterReveal": "./src/Motion/enterReveal.css.ts",
     "./press": "./src/styles/press.ts",
+    "./transition": "./src/styles/transition.ts",
+    "./rolledText": "./src/RolledText/RolledText.tsx",
     "./statusToast": "./src/StatusToast/StatusToast.tsx"
   },
   "scripts": {

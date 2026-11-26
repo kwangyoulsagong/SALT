@@ -1,6 +1,7 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
 import { ON_MOBILE } from "@repo/core/mobile";
+import { growInX } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 /** 휴대폰(`/m`) 글자(`screen-mobile.md` §1 · `FE-REQ-060` 모바일 표 "목록 행") — 이름 · 금액 t5, 보조 t7 */
@@ -84,10 +85,10 @@ export const badge = style({ ...label, padding: "0 6px", borderRadius: "4px", ba
 
 /** 봉투 · 비율 막대 — 높이 4 · 표시 비율만(금액 계산 아님) */
 export const bar = style({ height: "4px", borderRadius: "2px", background: vars.colors.desk.line, overflow: "hidden", marginTop: "4px" });
-export const barFill = style({ height: "100%", background: vars.colors.neutral[600] });
+export const barFill = style({ height: "100%", background: vars.colors.neutral[600], ...growInX });
 
 /** 분류 비율 — 가로 막대 하나(도넛 대신, FR-4) */
-export const ratioBar = style({ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: vars.colors.desk.line });
+export const ratioBar = style({ display: "flex", height: "8px", borderRadius: "4px", overflow: "hidden", background: vars.colors.desk.line, ...growInX });
 /** 칸 색 — 회색 단계만(색으로 좋고 나쁨을 말하지 않는다). 칸 사이 1px 흰 틈 */
 /** 분류 막대 색 — 가계부 도메인 색 한 계열(진한 → 옅은, 2026-11-20 — 회색 단계가 밋밋했다). 다섯째부터는 같은 옅은 회색 */
 const RATIO_TONES = [vars.colors.domain.household, "#F08C4A", "#F5B183", "#F9D2B6", vars.colors.neutral[200]] as const;

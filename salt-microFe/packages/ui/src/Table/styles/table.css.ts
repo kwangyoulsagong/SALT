@@ -1,6 +1,7 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { globalStyle, style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 // Table Container
 export const tableContainerStyles = recipe({
@@ -205,10 +206,12 @@ globalStyle(`${rowHoverable}:hover > td`, {
   },
 });
 
+/** 면은 칸(`td`)이 칠한다 — 전환도 칸에(FE-REQ-062 FR-1, 옛 행 `transition: all` 은 칸 면을 따라가지 않았다) */
+globalStyle(`${rowHoverable} > td`, { transition: HOVER_TRANSITION });
+
 export const tableRowStyles = recipe({
   base: {
     borderBottom: `1px solid ${vars.colors.border.light}`,
-    transition: vars.transitions.fast,
 
     selectors: {
       "&:last-child": {

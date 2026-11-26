@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { enterReveal } from "@repo/ui/enterReveal";
+import { enterReveal, growInY } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE, card as sharedCard } from "@repo/web-shared/ui/surface.css";
@@ -239,7 +239,7 @@ export const sampleBadge = style({
 });
 
 export const sampleBars = style({ display: "flex", alignItems: "flex-end", gap: "3px", height: "96px", boxShadow: `inset 0 -1px 0 ${vars.colors.desk.line}` });
-export const sampleBar = style({ flex: 1, maxWidth: "14px", borderRadius: "3px 3px 0 0", background: vars.colors.neutral[200] });
+export const sampleBar = style({ flex: 1, maxWidth: "14px", borderRadius: "3px 3px 0 0", background: vars.colors.neutral[200], ...growInY });
 export const sampleDot = style({ flex: 1, maxWidth: "14px", height: "4px", borderRadius: "999px", background: vars.colors.neutral[200] });
 
 /** 사이드 도구 접기 — 오른쪽 셰브론, 열리면 아래로(2026-11-20) */
