@@ -16,3 +16,8 @@
 ## 2026-11-19 FR 대조 정리
 
 - v2 차이를 Changelog 에만 적고 머리 블록을 달지 않았다 — 본문(v1)을 먼저 읽으면 틀린다. Action: 개정 슬라이스는 머리 블록부터 단다
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 없음(이 몫 안)

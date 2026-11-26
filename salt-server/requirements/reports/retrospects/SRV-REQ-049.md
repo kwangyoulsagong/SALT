@@ -9,3 +9,8 @@
 
 - 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
 - **Action**: 없음(이 몫 안)
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표

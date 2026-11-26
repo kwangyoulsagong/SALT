@@ -50,3 +50,8 @@
 ## 2026-11-16 — 새 맥 이전 걸침
 
 - 회고 본문은 루트 `requirements/reports/retrospects/OPS-002-new-mac-setup.md`
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 없음(이 몫 안)

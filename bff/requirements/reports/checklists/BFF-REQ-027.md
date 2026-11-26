@@ -70,3 +70,9 @@
 ## 2026-11-20 `BFF-REQ-046` 홈 카드 미리보기가 걸침
 
 - `appPortfolioService.getPositionFlow` 선택 `timeout` 인자(기본값 그대로) — BFF `npm test` 통과 · 실경로 `/api/app/home` 94ms. 미충족: 없음(이 REQ 몫)
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: `coach-conversation.test.ts` — 실음 · 못 읽음(헤더 없음 · Last-Event-ID 유지) · `toWeeklyPlanFact` 경계 6 · `npm test` 622/622 · `npm run build`
+- 검증: 실스택: BFF 스트림 두 번 다 계획 문장
+- 미검증: 주간 계획 읽기가 모든 답 스트림에 한 번 붙는다(질문 종류는 서버가 고른다) — 지연 실측은 부하 없는 때 다시(루트 체크리스트 미검증 표)

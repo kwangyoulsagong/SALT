@@ -68,3 +68,9 @@
 | FR-113 | 충족 | 경계 표 시험 8(`conversationHistory.test.ts`) · 유스케이스 6(101번째 · 90일 · streaming 남김 · 남의 대화 · 실패해도 질문 · keep) · 실 DB: 질문 300 · 메시지 600 → 질문 100 · 메시지 200, 대화 수 다시 셈, 짝 잃은 답 0 · `npm run build` · `lint` · `test` 2025 · `test:layer-check` |
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: `coachConversation.test.ts` — 받은 계획 → 300,000원 문장 · 못 받음(null) · 안 받음 두 경우 "불러올 수 없어요" · 재료 호출 수에서 weeklyPlan 빠짐
+- 검증: 실스택: 헤더 실은 Express 스트림 · BFF 스트림 둘 다 "이번 주 적립 계획은 300,000원이에요 — 비트코인 150,000원 · 코스피 150,000원"
+- 미검증: 없음(이 몫 안)

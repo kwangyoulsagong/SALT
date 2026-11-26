@@ -60,3 +60,8 @@
 - Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로
 
 - 2026-11-21 걸침(`SRV-REQ-062`) — 할 일 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 없음(이 몫 안)

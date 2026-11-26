@@ -31,7 +31,7 @@ globs: salt-server/**, salt-platform/**
 | `content` | Kotlin `services/content`(2026-11-05 금융 팁 S2a — 새로 태어남 · 첫 서비스 간 구독자) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | ~~`notification`~~ Kotlin `services/notification`(2026-11-06 S2c — 첫 기존 컨텍스트 이전 · 옛 Express 삭제 `33e949e8`). 설정 주인 · 구독만 · 웹 푸시 보내기(2026-11-21 `SRV-REQ-062` — 기기 구독 표 · 회차) | `notification` | S2 | `SRV-REQ-048` |
 | `identity` | Kotlin `services/identity`(2026-11-06 S3a 셸 설정 · **2026-11-12 S3b 계정 · 초대 코드 · RS256 발급 · JWKS** — Express `auth` · `modules/user` 삭제. Express 는 검증만) | `identity` | S3 | `SRV-REQ-048` |
-| `portfolio` | `portfolio` · `plan`(2026-11-19 F003 v2 밴드 적립 — 금액 · 사람 기록만) | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
+| `portfolio` | `portfolio`(보유 · 거래 · 평가 — S4b~ 까지 Express) · **밴드 적립 Kotlin `services/portfolio`(2026-11-26 S4a — 옛 Express `plan` 삭제, 코치 대화의 주간 계획은 BFF 가 헤더 사실로)** | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
 | `market` | `market` · `news` + 수집 워커 | `market` | S5 | `SRV-REQ-049` FR-2 · 3 |
 | `coach` | `coach` · `modules/investment-insight` — 발행 창구만 Kotlin(`coach.outbox` Flyway · 행은 Express, 2026-11-06 S2c) | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
 | `forecast` | Python `salt-forecast` (이미 분리) | `forecast` | — | `ADR-004` · `ADR-007` |

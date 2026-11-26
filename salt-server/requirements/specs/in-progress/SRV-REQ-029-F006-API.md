@@ -270,3 +270,4 @@ type TransactionPreview = {
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | 답 링크 종류에 `plan`(밴드 적립 화면) · 빈 재료에 `weekly_plan` 더함(`feat/f006-coach-chat-redesign`) — Swagger 설명 갱신. 경로 · 모양 그대로 |
 | 2026-11-19 | FR-49 신설 — 메시지 목록 `keep` · 커서 400(Swagger 갱신). `feat/f006-coach-chat-history` |
+| 2026-11-26 | S4a(2026-11-26) — 답 스트림 `GET /api/coach/messages/:id/stream` 이 BFF 헤더 `X-Salt-Weekly-Plan`(JSON 한 줄 · 엄격 Zod · 2,000자 상한)을 읽는다. 틀리면 null(500 0). 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

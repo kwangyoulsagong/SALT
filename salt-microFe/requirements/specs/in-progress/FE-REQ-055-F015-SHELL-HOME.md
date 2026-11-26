@@ -83,3 +83,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 홈 카드(`HomeSummaryCardView`)의 웹뷰 목록 행 분기를 뺐다 — 같은 카드 계약을 `/m/home` 이 행으로 그린다(`@repo/web-shared/layout/mobile/home`). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 홈 요약 카드 표시만 바뀜(아이콘 판 · 알약 · 주인공 24) — BFF 값 · 링크 · 계측 그대로 |
 | 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 홈 카드 주인공 값이 바뀔 때 굴림(`RolledText` — 빈 카드 · 못 받은 카드는 글자 그대로) |
+| 2026-11-26 | S4a(2026-11-26) — 서비스 이름표 `portfolio` 두 곳(저장하는 것 "투자 적립" · 지워지는 것 "투자 적립 — 월 적립액 · 주마다 적립 계획 · 체크"). 모르는 키는 그리지 않아 빠지면 범위에서 조용히 사라진다. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

@@ -68,3 +68,8 @@
 - 새 FR 을 FR-8 · 9 로 매겼다가 이미 있는 번호와 겹쳤다(11-13 회고와 같은 실수) — 코드 주석을 쓰기 전에 스펙 FR 표 마지막 번호를 본다
 
 - 2026-11-21 걸침(`BFF-REQ-056`) — 할 일 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표

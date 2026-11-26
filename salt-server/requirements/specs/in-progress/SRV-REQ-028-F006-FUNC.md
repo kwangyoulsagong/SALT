@@ -273,3 +273,4 @@ created: 2026-09-09
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | **"이번 주 얼마 넣을까" 답을 밴드 적립 주간 계획으로**(`feat/f006-coach-chat-redesign`) — 전에는 `/plan` 이 생긴 뒤에도 "적립 계산은 아직 SALT에 없어요"라고 답했다. 재료 `weekly_plan`(plan 컨텍스트 주간 계획 — 코치는 import 하지 않고 조립이 끼운다) · 계획 있음 / 굳지 않음 / 안 정함 / 못 읽음 경계 시험 · 링크 `plan` · 빈 재료 `weekly_plan` |
 | 2026-11-19 | FR-113 신설 — 대화 보관 한도(질문 100 · 90일, 질문마다 정리 · 짝 보존). 사용자 2026-11-19 "무한 스크롤 해야한다 코치대화에 늘어나면 감당 안되니" · "대화도 어느정도 되면 날려버려야". `feat/f006-coach-chat-history` |
+| 2026-11-26 | S4a(2026-11-26) — 대화 답 재료 `weeklyPlan` 을 조립이 끼우던 포트에서 **요청마다 받은 사실**(`AnswerCoachMessage.execute(…, given)`)로. 못 받으면 그 문장만 "불러올 수 없어요"(옛 실패와 같은 문장 · gaps `weekly_plan`). 코치는 plan 주소 · 코드를 모른다. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

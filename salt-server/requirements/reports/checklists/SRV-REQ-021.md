@@ -34,3 +34,8 @@
 경로 다섯 p95(루트 슬라이스) — weekly 2.9 · settings 0.7 / PATCH 7.1 · complete 5.0 · monthly 1.0ms.
 
 남은 것: 없음(FR-29 를 같은 날 고침).
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — plan 유스케이스가 옮겨 간 자리. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

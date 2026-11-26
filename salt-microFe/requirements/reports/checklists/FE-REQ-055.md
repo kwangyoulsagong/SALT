@@ -172,3 +172,8 @@
 ## 2026-11-26 `FE-REQ-062` 걸침
 
 - [x] 홈 카드 주인공 값이 바뀔 때 굴림(`RolledText` — 빈 카드 · 못 받은 카드는 글자 그대로) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: `pnpm --filter web check-types` · `lint`(루트 체크리스트)
+- 미검증: 설정 화면 실화면(390 · 1280) — 문구 한 줄 추가라 루트 체크리스트 미검증 표

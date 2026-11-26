@@ -255,3 +255,4 @@ D9: *설정 = 한 화면. 적립 기본액만 편집, 밴드 임계값은 읽기
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-19 | F003 v2 순서 2 구현(`feat/f003-v2-s2-plan-server`) — `src/plan` 4층 · 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |
 | 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 남은 FR 없음(FR-77 은 v2 배분 읽기 전용으로 대체 · 실화면은 순서 3 에서 닫힘). in-progress → done |
+| 2026-11-26 | S4a 파일만 걸침 — plan 정책 · 경로가 Kotlin 으로 옮겨 간 자리(머리 주석). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

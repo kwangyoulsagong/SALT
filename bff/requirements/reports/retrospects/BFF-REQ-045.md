@@ -64,3 +64,8 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - 걸친 몫이 더하기뿐이라 이 REQ 의 판단은 바뀌지 않았다. Action: 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표
