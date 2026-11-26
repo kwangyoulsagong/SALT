@@ -128,3 +128,7 @@ DOM 범례 글자 리플로다 — 범례를 숨기면 0.12ms 로 돌아간다. 
 - `FE-REQ-049` 상세 재설계가 걸침 — 차트 확대 · 축소 · 되돌리기 버튼 폭 30 → 32(FR-10). 높이 28 은 기간 칩과 한 줄
 - 확인: `pnpm check-types` · `lint` · `test` · zone 5 운영 빌드 · 실화면 1920 · 1440 · 1280 · 1024 · 390 앱 UA(임시 소유자 계정) — 본문 `FE-REQ-049` 체크리스트 같은 날 절 · 루트 `requirements/specs/done/F000-detail-redesign-slice.md`
 - 미검증: 없음(이 REQ 몫)
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] 차트 처음 그리기 드러남 — `TradingChart` 기본 캔버스가 0.9초 동안 그림 칸 오른쪽을 덜 지우며 rAF(실측 첫 1초 그리기 9 → 56 뒤 멈춤 · 십자선은 오버레이만 그대로), `PreviewChart` 는 바깥 `<svg>` `clip-path` 를 넓힘(종목을 바꾸면 다시) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

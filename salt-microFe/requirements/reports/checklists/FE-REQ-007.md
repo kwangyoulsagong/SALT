@@ -298,3 +298,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 - `@repo/core/mobile` 에 휴대폰 표면 표지(`SURFACE_*` · `ON_MOBILE` · `MOBILE_ROOT`) · 휴대폰 주소 `MOBILE_ROUTES` · `toMobileHref`, 레지스트리 `mobileRedirects` 행 다섯 + `except` · `@repo/core/embed` 삭제(앱 웹뷰 UA 계약). zone 구조 · rewrites 무변경
 - 확인은 `FE-REQ-072` 체크리스트(390 · 360 휴대폰 UA 11화면 · main 과 나란히 데스크톱 11화면 · 영역 검증 · zone 여섯 운영 빌드)
 - 미충족: 없음(이 REQ 몫 변경은 위 한 줄)
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] 토큰 — 옛 `transitions`(속성 없이 쓰여 `transition: all`) 지움 · `motion.duration.hover` 0.2 · `loop` 1.5 · `easing.standard` · `staggerRow` 0.02 더함. zone 설정 · 레지스트리 변화 0 — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

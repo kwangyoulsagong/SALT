@@ -404,3 +404,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-20 시세 등락 기준 걸침
 
 - [x] 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 — 확인은 `salt-microFe` 짝 REQ 체크리스트(`SRV-REQ-061` · `FE-REQ-075`)
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] `FilterTabs` 고른 면이 새 칸으로 미끄러진다(세 변형 — `useSlidingIndicator`). 투자 표 필터 `segmented` 끝 모양 · 크기 그대로(변경 금지 목록) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

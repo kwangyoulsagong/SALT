@@ -264,6 +264,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-18 | 파일만 걸침(`feat/f006-alerts-screen`) — `@repo/ui` 필터 탭 미선택 글자색 `neutral.500` → `text.tertiary`(대비, `FE-REQ-047` FR-13). 탭 동작 무변경 |
 | 2026-11-19 | 파일만 걸침 — 뉴스 창 · 거래 시트를 나중에 받는 공용 훅 `useLazyComponent`(청크 실패면 화면 그대로 · 한 줄 `BOUNDARY_MESSAGES.lazyFailed`). 루트 `WEB-perf-req-close-slice.md` 판단 12 |
 | 2026-11-19 | `FE-REQ-047` 데스크톱 틀(`feat/fe-req-047-desktop-shell`)이 이 REQ 파일을 걸침 — 시세 화면 머리 · 표 탭 — 제목 18/700 h1 · 위 빈칸 제거 · 표 탭 `?tab=` 주소 · 뒤로 스크롤 복원. 표 · 세그먼트 필터(변경 금지)는 그대로 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): `FilterTabs` 고른 면이 새 칸으로 미끄러진다(세 변형 — `useSlidingIndicator`). 투자 표 필터 `segmented` 끝 모양 · 크기 그대로(변경 금지 목록) |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

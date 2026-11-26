@@ -158,3 +158,4 @@ source: 사용자 요구 "디자인 … 지금 솔직히 좀 이상해" · "주�
 | 2026-11-20 | `FE-REQ-074` 가 걸침(`feat/fe-req-074-mobile-tab-interiors`) — 글자 래칫 "appType 은 휴대폰 선택자 안에서만" 이 `MOBILE_ROOT`(`globalStyle` 앞머리 — `ON_MOBILE` 과 같은 표지)도 인정. 데스크톱 예산 수 변화 0 |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): `PageFrame` 에 `surface="cards"`(패널 자리 회색 판 · 사이드 선 없음 · 판 위 공용 패널 모서리 20 · 선 0) — 기존 `panel` · `white` 그대로 |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 2단계(하위 화면 · 팁 카드 판): `PageFrame` 카드 판 규칙 더함 — 폼 상자 · 선 카드 · 빈 목록 상자는 판 위 흰 카드 · 카드 안 선 없는 정보 상자, 판 위 대기 칸(`Skeleton` `data-skeleton`)은 흰 카드 모양. 기본 · 흰 면 틀은 그대로 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 필터 칩(`filter`) 고른 면 미끄러짐 — 끝 모양(파랑 글자 + 9% 면) 그대로 |

@@ -543,3 +543,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - 몫: FR-32 · 33 표가 한 탭에 — 값 · 조회 무변경
 - 확인: `FE-REQ-049` 체크리스트 같은 날 절(실화면 1440) · `pnpm turbo run lint check-types`(web · web-savings · web-household · web-investment · `@repo/ui` · `@repo/core` — 22 작업) · `pnpm turbo run test`(core 316 · ui 84 · web-shared 10 · domain-household 9 · web 10 · domain-savings 15) · BFF `npm test` 통과
 - 미검증: 좁은 폭 위아래 실화면 — `FE-REQ-049` 같은 날 절
+
+## 2026-11-26 `FE-REQ-062` 걸침
+
+- [x] 시세 표 필터를 대기 · 실패 분기 밖에 — 필터를 바꾸면 필터까지 스켈레톤으로 다시 마운트되던 것(깜빡임 · 미끄러짐 없음). 표 · 스켈레톤 · 실패 문장 그대로 — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`

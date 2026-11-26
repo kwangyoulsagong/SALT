@@ -110,3 +110,4 @@ source: 사용자 "데스크톱 그냥 홈 화면도 주식 말고 개편이 필
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-072` 가 걸침(`feat/fe-req-072-mobile-screens`) — 데스크톱 홈에서 웹뷰 목록 행 CSS · 본문 시작하기 카드(`OnboardingCard`)를 뺐다 — 휴대폰 홈은 `/m/home`. 데스크톱 홈 배치 무변경(main 비교 다른 줄 0). 루트 `requirements/specs/done/F019-s2-mobile-screens-slice.md` |
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 홈 카드 · 최근 기록 · 다가오는 일 = 카드 판 위 흰 카드(모서리 20 · 선 0) · 아이콘 판 44 · 주인공 24 · 회색 알약 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 홈 카드 날마다 막대 차오름을 공용 `growInY` 로(값 같음) · 주인공 금액이 바뀔 때 굴림(`RolledText`) |

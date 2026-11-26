@@ -143,6 +143,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-13 | F017 v4 1e 짝(`FE-REQ-064` · `BFF-REQ-052`) — 시장 `ui/index.ts`(머리 주인) — 원인 타임라인 `MoveCauseFlow` 내보냄(패널이 같은 칸을 그린다). 동작 변경은 그 자리뿐 |
 | 2026-11-17 | **F017 v4 순서 6 — 화면 정리**(`feat/f017-v4-s6-screen-cleanup`, 파일만 걸침) — 국내 상세 4블록 + 펼침(호가 · 투자자별 수급 · 소식 · 일정) — 판단 카드 · 왜 움직였나 카드 삭제(한 장 패널 안), 국내 차트에 틀리는 선(F017 v4 순서 6 · `FE-REQ-064` FR-12) |
 | 2026-11-17 | `QA-001` 짝(`feat/f008-slice24-s2-earnings-window` — 머리 주인 `KrStockDetail.tsx`): 국내 종목 머리 지표 14칸이 줄바꿈 흐름이라 둘째 줄부터 줄 첫 칸에도 세로 선 · 들여쓰기가 남아 열이 어긋났다(1440 · 1024 · 앱 웹뷰 375 · 360 — `QA-001` 실로그인에서 발견). 국내만 격자(4열 · 640 이하 2열, 줄 첫 칸 선 없음) — `SymbolHeader.css.ts` `statsGrid` · `gridStat`, 코인 머리(3칸 한 줄)는 `stats` 그대로 |
+| 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 시세 표 필터를 대기 · 실패 분기 밖에 — 필터를 바꾸면 필터까지 스켈레톤으로 다시 마운트되던 것(깜빡임 · 미끄러짐 없음). 표 · 스켈레톤 · 실패 문장 그대로 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc` · `a65d6abf`) — 국내 상세 단타 · 장기 전환 · 안내 문구 정정(국내 단타 채점 기준은 원장 채점 때)
   - `salt-microFe/packages/domain-invest/src/entities/market/api/useKrStockQueries.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)

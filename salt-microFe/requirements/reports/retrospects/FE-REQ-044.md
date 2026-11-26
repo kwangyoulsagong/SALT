@@ -100,3 +100,5 @@
 - 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음
 
 - 2026-11-21 걸침(`FE-REQ-073`): `Illustration` 장면 `addToHome`(공유 버튼 → 추가 메뉴 → 더하기) — 휴대폰 설치 안내 시트 — 새 할 일 없음
+
+- 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): `@repo/ui/enterReveal` 에 막대 차오름(`growInX` · `growInY`) · 행 등장(`enterRow`) · 차트 드러남(`chartReveal` — 바깥 `<svg>` `clip-path`) 더함, `enterReveal` 값 그대로. `useRolledNumber` 이징을 `Motion/bezier.ts` 로 나눔(값 같음). 버튼 · 아이콘 버튼 · 목록 행에 누름 0.97(옛 버튼 아래로 1px)

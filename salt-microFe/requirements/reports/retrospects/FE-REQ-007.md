@@ -162,3 +162,5 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-20 `FE-REQ-072` 가 걸침
 
 - `@repo/core/mobile` 에 휴대폰 표면 표지(`SURFACE_*` · `ON_MOBILE` · `MOBILE_ROOT`) · 휴대폰 주소 `MOBILE_ROUTES` · `toMobileHref`, 레지스트리 `mobileRedirects` 행 다섯 + `except` · `@repo/core/embed` 삭제(앱 웹뷰 UA 계약). zone 구조 · rewrites 무변경 — 앱 웹뷰 계약이 없어지며 같이 바뀌었다. 데스크톱 배치 변화는 main 비교로 0
+
+- 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 토큰 — 옛 `transitions`(속성 없이 쓰여 `transition: all`) 지움 · `motion.duration.hover` 0.2 · `loop` 1.5 · `easing.standard` · `staggerRow` 0.02 더함. zone 설정 · 레지스트리 변화 0
