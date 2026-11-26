@@ -116,7 +116,7 @@ export const bottom = style({
 });
 
 /**
- * 머리 52 — 투명(바탕 위), 왼쪽 로고 자리 · 오른쪽 계정(`screen-desktop.md` §1 실측).
+ * 머리 ~~52~~ **60**(2026-11-26 사용자 "헤더 사이 간격 더 늘려야" — 실측 52 에서 넓힘, `screen-desktop.md` §1) — 투명(바탕 위), 왼쪽 로고 자리 · 오른쪽 계정.
  *
  * `viewTransitionName` 은 쌓임 맥락을 만든다 — 그 안의 계정 메뉴(`zIndex: dropdown`)가 머리 밖으로 못 나가 아래 본문 카드에
  * 깔렸다(로그아웃을 누를 수 없었다, 2026-11-05 `FE-REQ-013` 확인 중 발견). 그래서 머리 자체를 본문 위에 둔다 — 하단 탭과 같은 규칙
@@ -128,8 +128,8 @@ export const header = style({
   alignItems: "center",
   gap: vars.space.sm,
   flexShrink: 0,
-  height: "52px",
-  padding: `0 ${vars.space.lg}`,
+  height: "60px",
+  padding: `0 ${vars.space.xl}`,
   viewTransitionName: VIEW_TRANSITION_NAMES.header,
   "@media": { [NARROW]: { display: "none" } },
 });
@@ -142,7 +142,8 @@ export const headerSpacer = style({ flex: 1 });
  */
 export const headerNav = style({
   display: "none",
-  "@media": { [FROM_TABLET]: { display: "flex", alignItems: "center", gap: "2px", marginLeft: vars.space.lg } },
+  // 메뉴 사이 8 · 로고와 24(2026-11-26 — 전 2 · 16 은 글자가 붙어 보였다)
+  "@media": { [FROM_TABLET]: { display: "flex", alignItems: "center", gap: vars.space.sm, marginLeft: vars.space.xl } },
 });
 
 /** 검색칸 자리 — 폭은 칸 컴포넌트가 정한다(실측 200 × 32) */
@@ -161,7 +162,8 @@ export const content = style({
  * `overflow` 를 걸지 않는다 — 걸면 안쪽 `position: sticky`(표 머리 · 미리보기 칸)가 패널에 갇힌다. 내비 없는 화면(`bare`)에는 없다
  */
 export const contentPanel = style({
-  margin: `0 ${vars.space.md} ${vars.space.md}`,
+  // 위 4 — 머리와 본문 패널이 붙어 보이지 않게(2026-11-26)
+  margin: `${vars.space.xs} ${vars.space.md} ${vars.space.md}`,
   borderRadius: vars.radius.medium,
   background: vars.colors.desk.panel,
   boxShadow: `inset 0 0 0 1px ${vars.colors.desk.line}`,
@@ -200,7 +202,7 @@ export const item = recipe({
       header: {
         flexDirection: "row",
         height: "36px",
-        padding: `${vars.space.sm} ${vars.space.md}`,
+        padding: `${vars.space.sm} 14px`,
         borderRadius: "9px",
         fontSize: vars.fontSizes.base,
         lineHeight: "20px",
