@@ -64,6 +64,16 @@ salt:
       vapid-private-key: ${PUSH_VAPID_PRIVATE_KEY:}
       subject: ${PUSH_SUBJECT:}
       public-origin: ${PUBLIC_ORIGIN:}
+  # 밴드 적립 설정(S4a) — 옛 Express env 이름 · 기본값 그대로. 배분 합 100 은 기동 때 확인
+  portfolio:
+    plan:
+      allocation-btc-pct: ${PLAN_ALLOCATION_BTC_PCT:50}
+      monthly-min-krw: ${PLAN_MONTHLY_MIN_KRW:10000}
+      monthly-max-krw: ${PLAN_MONTHLY_MAX_KRW:100000000}
+      execution-cap-multiple: ${PLAN_EXECUTION_CAP_MULTIPLE:10}
+      kimchi-high-pct: ${PLAN_KIMCHI_HIGH_PCT:3}
+      kimchi-low-pct: ${PLAN_KIMCHI_LOW_PCT:-2}
+      kimchi-max-age-days: ${PLAN_KIMCHI_MAX_AGE_DAYS:8}
   # 금융 팁 공개 플래그 — 법무 확인 기록 전엔 꺼짐(`SRV-REQ-047` 수용 기준 3). 기본값을 켜지 않는다
   content:
     public-enabled: ${CONTENT_PUBLIC:false}
@@ -89,6 +99,10 @@ salt:
       identity:
         username: svc_identity
         password: ${IDENTITY_DB_PASSWORD}
+      # portfolio — S4a(2026-11-26) 밴드 적립(plan). 보유 · 거래 · 평가는 S4b~ 까지 Express(SRV-REQ-049 FR-1)
+      portfolio:
+        username: svc_portfolio
+        password: ${PORTFOLIO_DB_PASSWORD}
       # coach 는 S6 까지 Express — 플랫폼은 아웃박스 릴레이만(SRV-REQ-048 FR-5, 서버 S2c)
       coach:
         username: svc_coach

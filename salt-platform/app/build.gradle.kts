@@ -32,6 +32,10 @@ dependencies {
     implementation(project(":services:identity:application"))
     implementation(project(":services:identity:infrastructure"))
     implementation(project(":services:identity:api"))
+    implementation(project(":services:portfolio:domain"))
+    implementation(project(":services:portfolio:application"))
+    implementation(project(":services:portfolio:infrastructure"))
+    implementation(project(":services:portfolio:api"))
     implementation(project(":services:coach:infrastructure"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")

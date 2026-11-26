@@ -93,7 +93,7 @@ class MyDataEndToEndTest : ContentHttp() {
 
     @Test
     fun `모든 표는 사람 행이거나 이유가 적힌 개인 데이터 아님이다 — 서비스마다 · identity 포함`() {
-        services() shouldContainExactlyInAnyOrder listOf("ping", "savings", "household", "content", "notification", "coach")
+        services() shouldContainExactlyInAnyOrder listOf("ping", "savings", "household", "content", "notification", "coach", "portfolio")
         for (source in sources) {
             withClue(source.service) { source.rows.uncovered().shouldBeEmpty() }
         }

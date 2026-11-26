@@ -18,6 +18,7 @@ object PlatformContainers {
     const val NOTIFICATION_PASSWORD = "notification-test-password"
     const val COACH_PASSWORD = "coach-test-password"
     const val IDENTITY_PASSWORD = "identity-test-password"
+    const val PORTFOLIO_PASSWORD = "portfolio-test-password"
     const val JWT_SECRET = "test-secret-at-least-32-bytes-long-0123456789"
 
     /** 웹 푸시 VAPID 시험 키 — 실행마다 새로(`SRV-REQ-062`) */
@@ -42,8 +43,9 @@ object PlatformContainers {
     private val postgresImage = System.getProperty("salt.test.postgres") ?: "postgres:14-alpine"
 
     val postgres: PostgreSQLContainer = PostgreSQLContainer(postgresImage).apply {
-        // 서비스 풀(5개씩) × 테스트 컨텍스트 수 — S2c 에 notification · coach 풀이 늘어 기본 100 을 넘었다(2026-11-06). 운영 DB 와 무관한 테스트 값
-        withCommand("postgres", "-c", "max_connections=300")
+        // 서비스 풀(5개씩) × 테스트 컨텍스트 수 — S2c 에 notification · coach 풀이 늘어 기본 100 을 넘었다(2026-11-06) · S4a 에 portfolio 풀이 늘어 300 을 넘었다(2026-11-26).
+        // 운영 DB 와 무관한 테스트 값
+        withCommand("postgres", "-c", "max_connections=500")
         withCopyFileToContainer(MountableFile.forHostPath("../db/roles.sql"), "/salt/roles.sql")
         start()
         val result = execInContainer(
@@ -51,12 +53,12 @@ object PlatformContainers {
             "-v", "ping_password=$PING_PASSWORD", "-v", "savings_password=$SAVINGS_PASSWORD",
             "-v", "household_password=$HOUSEHOLD_PASSWORD", "-v", "content_password=$CONTENT_PASSWORD",
             "-v", "notification_password=$NOTIFICATION_PASSWORD", "-v", "coach_password=$COACH_PASSWORD",
-            "-v", "identity_password=$IDENTITY_PASSWORD", "-f", "/salt/roles.sql",
+            "-v", "identity_password=$IDENTITY_PASSWORD", "-v", "portfolio_password=$PORTFOLIO_PASSWORD", "-f", "/salt/roles.sql",
         )
         check(result.exitCode == 0) { "roles.sql 실패: ${result.stderr}" }
-        // 권한 검사용 — 남의 스키마(portfolio — 아직 플랫폼에 없는 서비스, S4)에 표 하나. 플랫폼 서비스 스키마는 Flyway 가 쓰니 비워 둔다
-        // (content.probe → identity.probe(금융 팁 S2a 2026-11-05) → portfolio.probe(identity S3a 2026-11-06))
-        DriverManager.getConnection(jdbcUrl, username, password).use { it.createStatement().execute("CREATE TABLE portfolio.probe (id int)") }
+        // 권한 검사용 — 남의 스키마(market — 아직 플랫폼에 없는 서비스, S5)에 표 하나. 플랫폼 서비스 스키마는 Flyway 가 쓰니 비워 둔다
+        // (content.probe → identity.probe(금융 팁 S2a 2026-11-05) → portfolio.probe(identity S3a 2026-11-06) → market.probe(portfolio S4a 2026-11-26))
+        DriverManager.getConnection(jdbcUrl, username, password).use { it.createStatement().execute("CREATE TABLE market.probe (id int)") }
         // 예측이 주인인 뷰(적중 이력 · 물가 — `SRV-REQ-045` FR-6 · 10) — 운영과 같은 **Prisma 마이그레이션 파일**로 만든다(GRANT 까지).
         // 그 마이그레이션이 기대는 앞선 표(series_point)만 같은 모양으로 먼저. 데이터는 시험이 관리자 연결로 넣는다
         DriverManager.getConnection(jdbcUrl, username, password).use { c ->
@@ -66,11 +68,20 @@ object PlatformContainers {
                     "PRIMARY KEY (source, series_id, observed_at, available_at))",
             )
             c.createStatement().execute(java.io.File(FORECAST_MIGRATION).readText())
+            // 밴드 적립 뷰 둘 + svc_portfolio GRANT(S4a) — 운영과 같은 마이그레이션 파일 셋을 순서대로
+            BAND_MIGRATIONS.forEach { c.createStatement().execute(java.io.File(it).readText()) }
         }
     }
 
     /** forecast DDL 주인(Prisma, `db-contract.md` §2) — 경로가 바뀌면 시험이 깬다 */
     const val FORECAST_MIGRATION = "../../salt-server/prisma/migrations/20261118100000_forecast_personal_projection/migration.sql"
+
+    /** 밴드 적립 예측 표 · 뷰 · portfolio 권한(Prisma, S4a `SRV-REQ-049` FR-1) — 순서대로 */
+    val BAND_MIGRATIONS: List<String> get() = listOf(
+        "../../salt-server/prisma/migrations/20261119200000_forecast_accumulation_band/migration.sql",
+        "../../salt-server/prisma/migrations/20261119300000_forecast_accumulation_band_week/migration.sql",
+        "../../salt-server/prisma/migrations/20261126100000_forecast_band_grant_portfolio/migration.sql",
+    )
 
     /** 시험이 forecast 표에 값을 넣는 관리자 연결(서비스 계정은 뷰 SELECT 만) */
     fun admin(): java.sql.Connection = DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password)
@@ -86,6 +97,7 @@ object PlatformContainers {
         registry.add("salt.db.accounts.notification.password") { NOTIFICATION_PASSWORD }
         registry.add("salt.db.accounts.coach.password") { COACH_PASSWORD }
         registry.add("salt.db.accounts.identity.password") { IDENTITY_PASSWORD }
+        registry.add("salt.db.accounts.portfolio.password") { PORTFOLIO_PASSWORD }
         registry.add("salt.auth.jwt-secret") { JWT_SECRET }
         registry.add("salt.auth.legacy-hs-until") { LEGACY_HS_UNTIL }
         registry.add("salt.identity.signing-key") { SIGNING_KEY_PEM }

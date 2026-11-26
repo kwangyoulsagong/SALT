@@ -1,4 +1,4 @@
-package com.salt.identity.api
+package com.salt.support.web
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 인프로세스 요청 제한(고정 창) — 옛 Express `shared/presentation/rateLimit.ts` 와 같은 판단 · 같은 429 문구.
+ * 인프로세스 요청 제한(고정 창 — identity S3b 에서 생겨 S4a plan 이 같이 쓰며 support 로 옮김, 2026-11-26) — 옛 Express `shared/presentation/rateLimit.ts` 와 같은 판단 · 같은 429 문구.
  * 단일 프로세스 · 사용자 ≤10명이라 분산 저장소가 필요 없다. 키는 요청 주소 — BFF 뒤라 사실상 서버 전체 상한(옛것과 같은 처지, `OPS-001` 때 X-Forwarded-For).
  * 창 경계에서 최대 2배가 몰릴 수 있다(고정 창) — 목적은 무인증 경로가 무한정 불리지 않게 하는 것.
  */

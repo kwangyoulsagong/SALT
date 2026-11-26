@@ -2,7 +2,7 @@ package com.salt.identity
 
 import com.salt.app.SaltDbProperties
 import com.salt.identity.api.AuthController
-import com.salt.identity.api.FixedWindowLimit
+import com.salt.support.web.FixedWindowLimit
 import com.salt.identity.application.AcceptInviteCode
 import com.salt.identity.application.ArrangeHome
 import com.salt.identity.application.CheckInviteCode
