@@ -28,3 +28,8 @@
 - 2026-11-21 걸침(`FE-REQ-078`) — 할 일 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 근거 상세 분포 막대 차오름(`growInX`)
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 파일만 걸침 — 루트 회고 `F000-desktop-dashboard`
+- **Action**: 없음(이 몫 안)

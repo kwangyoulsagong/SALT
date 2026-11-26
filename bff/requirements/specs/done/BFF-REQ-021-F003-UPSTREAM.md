@@ -129,3 +129,4 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `monthlySummary` 호출 추가(B20), FR-7·8(설정 422 · `configured: false` 전달 — D9) 추가, 계약 의존 표에 설정·월 합계 필드 추가 |
 | 2026-11-19 | F003 v2 순서 3 구현(`feat/f003-v2-s3-plan-screen`) — 머리 블록(v2 차이). to-do → in-progress. 루트 `F003-v2-s3-plan-screen-slice.md` |
 | 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — 남은 FR 없음. in-progress → done |
+| 2026-11-26 | 파일만 걸침 — 주간 계획 경로를 홈이 같이 읽음(계약 무변경). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |

@@ -9,3 +9,8 @@
 ## 2026-11-19 FR 대조 정리
 
 - 호출 맵이 경로 하나로 줄어 UPSTREAM REQ 의 FR 절반이 대체가 됐다. Action 없음
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 파일만 걸침 — 루트 회고 `F000-desktop-dashboard`
+- **Action**: 없음(이 몫 안)

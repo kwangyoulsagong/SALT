@@ -105,4 +105,34 @@ export interface AppHomeVM {
   /** 다가오는 일 — 원천을 하나도 못 받았으면 null */
   upcoming: HomeUpcomingItem[] | null;
 }
+/** 홈 시장 칸 한 줄(`BFF-REQ-046` FR-14, 2026-11-26) — 무엇을 보일지는 BFF 가 고른다(국내 지수 둘 · 코인 대표 둘). 값은 서버 그대로 */
+export interface HomeMarketItem {
+  symbol: string;
+  name: string;
+  kind: "index" | "coin";
+  /** 지수는 로고가 없다 */
+  logoUrl: string | null;
+  currentPrice: number;
+  /** 전일 대비 등락률(%, 부호 포함) — 서버 값 */
+  changeRate: number;
+  /** 흐름 — 못 받았으면 null */
+  sparkline: number[] | null;
+  /** 상세 주소 — 지수는 상세가 없어 null */
+  href: string | null;
+}
+
+/** 다가오는 증시 일정 한 줄 — 국내 공개 일정. 이름표는 `@repo/core/coach` `EVENT_KIND_LABELS` */
+export interface HomeMarketEvent {
+  kind: "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+  eventAt: string;
+  daysUntil: number;
+}
+
+/** `GET /api/app/home/market` — 개인 기록이 없어도 늘 차는 홈 블록 */
+export interface HomeMarketVM {
+  items: HomeMarketItem[];
+  events: HomeMarketEvent[];
+  /** 국내 · 코인 중 하나라도 못 받았으면 true — 받은 것만 그린다 */
+  degraded: boolean;
+}
 // CONTRACT:END HomeSummaryCard

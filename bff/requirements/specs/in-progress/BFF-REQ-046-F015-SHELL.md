@@ -49,6 +49,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-9 | ✅ 옛 블록 응답(`portfolio` · `unreadNotifications` · `marketOverview`)을 바로 지웠다 — 소비처 0(웹은 이 경로를 부르지 않았다, 모바일 미착수) |
 | FR-12 | ✅ 2026-11-20 — `home-card.viewmodel.ts` 미리보기 조립 · `app-home.service.ts` 600ms 예산 · 공유 원천 한 번. 계약 블록 = `@repo/core/home/homeSummaryCard.ts`(글자 대조 시험 통과). 시험 `home-card-preview.test.ts` 13 |
 | FR-13 | ✅ 2026-11-20 — `home-feed.viewmodel.ts` · 700ms · 시험 `home-feed.test.ts` 6. 실경로 `/api/app/home` 데이터 있음 94ms |
+| FR-14 | **홈 시장 블록 `GET /api/app/home/market`**(2026-11-26) — 국내 지수 둘(서버 요약 순서) · 코인 대표 둘(대표 + 첫 칸) · 국내 공개 일정 셋. 값 · 순서는 원천 그대로 · 원천 하나가 실패하면 그 줄만 빠지고 `degraded`(200). 계약 `HomeMarketVM` = CONTRACT 블록(`@repo/core/home` 과 글자 대조) |
 | 추가 | 인증 거절(401)은 카드 degraded 로 덮지 않고 홈 401(`5b6d5320`) — 프론트 토큰 갱신 · 로그인 이동 |
 
 ## Acceptance Criteria
@@ -83,3 +84,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-20 | **FR-12 · 13 신설 · 충족**(`feat/fe-req-048-home-card-preview`) — 카드 미리보기 · 빈 카드 `action` · 홈 `recent` · `upcoming`. 필드 더하기만(BREAKING 0) · 계약 블록 `@repo/core/home` 같이. 미리보기 600ms · 둘째 줄 700ms 따로 — 카드 값 800ms 는 그대로. 짝 `BFF-REQ-027` · `047` · `048`(선택 `timeout` 인자). 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |
 | 2026-11-21 | 걸침 — 웹 푸시(`BFF-REQ-056`, `feat/f019-s4-web-push`): 이 REQ 머리의 알림 컨트롤러 · 경로 파일에 `/api/app/me/push` 셋. 알림 설정 계약(FR-8) 변화 0 |
 | 2026-11-26 | S4a(2026-11-26) — 내 데이터 서비스 목록에 `portfolio`(`/portfolio/me/data` — investment 다음). 지워지는 범위 · 저장하는 것 · 내보내기가 같은 목록으로 돈다. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |
+| 2026-11-26 | FR-14 신설 · 구현 — 홈 시장 블록(새 경로 · 계약 블록 추가, 기존 응답 무변경). 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |

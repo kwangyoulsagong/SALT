@@ -128,3 +128,15 @@ export const GOAL_MESSAGES = {
   } satisfies Record<CalculationState, string>,
 } as const;
 
+
+/** 목표 목록 왼쪽 칸 아래 두 블록(2026-11-26 — 사용자 "저축도 비어 있다"). 값은 서버 이정표 · 도달 구간 그대로, 화면은 막대 길이만 */
+export const GOAL_BOARD_MESSAGES = {
+  planTitle: "이번 달 계획 대비",
+  planCaption: (month: string) => `${formatMonth(month)} 넣은 돈과 월 계획`,
+  depositedOfPlan: (deposited: string, plan: string) => `${deposited} / ${plan}`,
+  noPlan: "월 계획 없음",
+  reachTitle: "도달 예상",
+  reachCaption: "목표마다 언제쯤 닿는지 — 구간은 지난 적립에서, 점은 월 계획대로일 때",
+  reachNone: "아직 그릴 구간이 없어요",
+  now: "지금",
+} as const;

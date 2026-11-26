@@ -14,6 +14,9 @@ import {
   GOAL_MESSAGES,
   GOAL_SUMMARY_FAILED,
   GOAL_SUMMARY_MESSAGES,
+  GOAL_BOARD_MESSAGES,
+  GoalPlanBars,
+  GoalReachTimeline,
   GoalRow,
   goalRows,
   goalSummaryItems,
@@ -81,6 +84,9 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
 
   const selectedId = resolveSelectedGoal(params?.get(GOAL_PARAM) ?? null, list);
   const selected = list.find((g) => g.id === selectedId) ?? null;
+  // 진행 중 목표만 견준다(다 찬 · 쉬는 목표는 계획 · 도달이 없다) — 없으면 전부
+  const activeOnly = list.filter((g) => g.status === "active");
+  const active = activeOnly.length > 0 ? activeOnly : list;
 
   return (
     <div className={s.board}>
@@ -89,18 +95,38 @@ export const GoalsBoard = ({ initialGoals, initialOverview }: { initialGoals: Sa
       {/* 때맞춘 팁 0~1장 — 결혼 · 주거 목표를 만들면 붙는 제도 한 줄(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
       <TimelyTip context={TimelyTipContext.Savings} />
       <div className={s.split}>
-        <section className={s.section} aria-labelledby="goals-list">
-          <div className={s.sectionHead}>
-            <h2 id="goals-list" className={s.sectionTitle}>
-              {M.list}
-            </h2>
-          </div>
-          <ul className={goalRows}>
-            {list.map((goal) => (
-              <GoalRow key={goal.id} goal={goal} selected={goal.id === selectedId} onSelect={selectGoal} />
-            ))}
-          </ul>
-        </section>
+        {/* 왼쪽 칸 — 목록 → 이번 달 계획 대비 → 도달 예상(2026-11-26 — 목록 아래가 통째로 비어 있었다). 값은 서버 이정표 · 구간 그대로 */}
+        <div className={s.column}>
+          <section className={s.section} aria-labelledby="goals-list">
+            <div className={s.sectionHead}>
+              <h2 id="goals-list" className={s.sectionTitle}>
+                {M.list}
+              </h2>
+            </div>
+            <ul className={goalRows}>
+              {list.map((goal) => (
+                <GoalRow key={goal.id} goal={goal} selected={goal.id === selectedId} onSelect={selectGoal} />
+              ))}
+            </ul>
+          </section>
+          <section className={s.section} aria-labelledby="goals-plan">
+            <div className={s.sectionHead}>
+              <h2 id="goals-plan" className={s.sectionTitle}>
+                {GOAL_BOARD_MESSAGES.planTitle}
+              </h2>
+              <span className={s.hint}>{GOAL_BOARD_MESSAGES.planCaption(list[0]!.milestone.month)}</span>
+            </div>
+            <GoalPlanBars goals={active} />
+          </section>
+          <section className={s.section} aria-labelledby="goals-reach">
+            <div className={s.sectionHead}>
+              <h2 id="goals-reach" className={s.sectionTitle}>
+                {GOAL_BOARD_MESSAGES.reachTitle}
+              </h2>
+            </div>
+            <GoalReachTimeline goals={active} currentMonth={list[0]!.milestone.month} />
+          </section>
+        </div>
         <section className={s.section} aria-labelledby="goals-preview">
           <div className={s.sectionHead}>
             <h2 id="goals-preview" className={s.sectionTitle}>

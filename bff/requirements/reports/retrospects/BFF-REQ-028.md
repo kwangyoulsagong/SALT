@@ -36,3 +36,8 @@
 ## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
 
 - 계약을 더하기만(선택 필드) — 옛 화면은 그대로 돈다
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 파일만 걸침 — 루트 회고 `F000-desktop-dashboard`
+- **Action**: 없음(이 몫 안)

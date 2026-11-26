@@ -56,3 +56,8 @@
 | FR-49 | 충족 | `@repo/core` 타입 · BFF 시험 · 프론트 타입 검사 |
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 파일만 걸침 — 코치 브리핑 경로를 홈이 같이 읽음(계약 무변경). 검증은 루트 체크리스트
+- 미검증: 없음(이 몫 안)

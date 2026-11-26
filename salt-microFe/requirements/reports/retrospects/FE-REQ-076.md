@@ -23,3 +23,8 @@
 - 할 일: 판 · 면을 바꾸면 768~1023 한 열 구간과 같은 열 폭을 같은 회차에
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 금액 카드(`SummaryBand`) 주인공 금액이 바뀔 때 굴림 — 실측 지출 45,000원 적기 뒤 199,500 → 244,500원 0.24초 15프레임
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 파일만 걸침 — 루트 회고 `F000-desktop-dashboard`
+- **Action**: 없음(이 몫 안)

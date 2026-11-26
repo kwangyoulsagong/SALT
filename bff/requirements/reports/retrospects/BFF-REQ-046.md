@@ -73,3 +73,8 @@
 
 - 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
 - **Action**: 이 몫은 루트 회고 Action 표
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 판단 · 실수는 루트 회고 `F000-desktop-dashboard`
+- **Action**: 이 몫은 루트 회고 Action 표

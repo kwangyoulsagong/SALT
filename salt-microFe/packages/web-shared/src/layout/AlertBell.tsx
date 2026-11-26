@@ -7,8 +7,8 @@ import { AppNavigationIcon } from "@repo/ui/app-navigation";
 
 import { useHasSession, useUnreadAlertCount } from "../api";
 import { ROUTES } from "../config";
-import { ZoneLink } from "../ui";
 import { badge, bell } from "./AlertBell.css";
+import { ChromeLink } from "./ChromeLink";
 import { ALERT_BELL_MESSAGES as MESSAGES } from "./messages";
 
 /**
@@ -30,13 +30,14 @@ export const AlertBell = () => {
   }, [pathname, signedIn, refetch]);
   if (signedIn !== true) return null;
   return (
-    <ZoneLink href={ROUTES.alerts} className={bell} aria-label={MESSAGES.label(count)}>
+    // 크롬 링크 — 다른 zone 에서 누르면 미리 그린 화면 · 대기 문구 없음 · 계측(전엔 `ZoneLink` 라 벨 칸에 "이동 중" 이 붙어 머리가 깨졌다, 2026-11-26)
+    <ChromeLink href={ROUTES.alerts} className={bell} aria-label={MESSAGES.label(count)}>
       <AppNavigationIcon name="bell" size={20} />
       {count > 0 ? (
         <span className={badge} aria-hidden="true">
           {MESSAGES.badge(count)}
         </span>
       ) : null}
-    </ZoneLink>
+    </ChromeLink>
   );
 };
