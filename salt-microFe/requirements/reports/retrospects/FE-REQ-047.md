@@ -80,3 +80,8 @@
 - 2026-11-20 걸침(`FE-REQ-076` 2단계): `PageFrame` 카드 판 규칙 더함 — 폼 상자 · 선 카드 · 빈 목록 상자는 판 위 흰 카드 · 카드 안 선 없는 정보 상자, 판 위 대기 칸(`Skeleton` `data-skeleton`)은 흰 카드 모양. 기본 · 흰 면 틀은 그대로 — 할 일 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 필터 칩(`filter`) 고른 면 미끄러짐 — 끝 모양(파랑 글자 + 9% 면) 그대로
+
+## 2026-11-26 — 사이드 위 끝 맞춤(`F000-desktop-dashboard` 2회차)
+
+- 사용자가 2000px 화면에서 잡았다 — 루트 회고 `F000-desktop-dashboard`
+- **Action**: 루트 회고 Action 표(정렬은 수치로)
