@@ -12,7 +12,12 @@ import {
 } from "./symbol-coach.viewmodel";
 import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
 import { CoachPanelContractError, toCoachPanelViewModel } from "./coach-panel.viewmodel";
-import { ExplanationContractError, toExplanationSentence, toExplanationViewModel } from "./explanation.viewmodel";
+import {
+  ExplanationContractError,
+  toExplanationHistoryViewModel,
+  toExplanationSentence,
+  toExplanationViewModel,
+} from "./explanation.viewmodel";
 import { createSseParser } from "../utils/sse.util";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
@@ -45,6 +50,12 @@ const PANEL_TIMEOUT_MS = 400;
  * 생성 자체는 수 초~수십 초(로컬 CLI 45초 상한)
  */
 const EXPLAIN_STREAM_IDLE_MS = 30_000;
+/**
+ * 지난 날 해설(`BFF-REQ-057`) — 저장본 읽기 + 일봉 한 번. 화면 아래 칸이고 누를 때만 부르니 패널과 같은 400ms
+ */
+const EXPLANATION_HISTORY_TIMEOUT_MS = 400;
+/** 지난 날 몇 벌 — 서버 상한(14)과 같다. 화면이 안 보내면 서버 기본(7) */
+const EXPLANATION_HISTORY_MAX_DAYS = 14;
 
 /** 화면이 받는 해설 스트림 이벤트 — 서버 이름 그대로, 몸은 뷰모델로 검사한 것만 */
 export type ExplainStreamEvent =
@@ -105,6 +116,38 @@ export class AppAICoachService {
       return toCoachPanelViewModel((response.data as BackendEnvelope<unknown>).data);
     } catch (error) {
       if (error instanceof CoachPanelContractError) throw new AppError("coach_panel_unavailable", 502);
+      throw error;
+    }
+  }
+
+  /**
+   * 지난 날 해설 — 그날 저장 원문 그대로 · 등락률은 서버 일봉 계산(`BFF-REQ-057`). 지금 데이터로 다시 쓰지 않는다.
+   * 모양이 깨졌으면 502(지어낸 문장 0) · 빈 목록은 정상 · 조회라 1회 재시도
+   */
+  async getExplanationHistory(
+    token: string,
+    query: { symbol?: unknown; mode?: unknown; days?: unknown },
+    signal?: AbortSignal,
+  ) {
+    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
+    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
+    if (query.mode !== "scalp" && query.mode !== "long_term") {
+      throw new AppError("mode 는 scalp · long_term", 400, true, "INVALID_MODE");
+    }
+    const days = typeof query.days === "string" && /^\d{1,2}$/.test(query.days) ? Number(query.days) : null;
+    if (days !== null && (days < 1 || days > EXPLANATION_HISTORY_MAX_DAYS)) {
+      throw new AppError(`days 는 1~${EXPLANATION_HISTORY_MAX_DAYS}`, 400, true, "INVALID_DAYS");
+    }
+    const path =
+      `/ai-coach/explanation/history?symbol=${encodeURIComponent(symbol)}&mode=${query.mode}` + (days ? `&days=${days}` : "");
+    const response = await retryOnceOnGet(
+      () => backendApi.proxyAuthRequest("GET", path, token, undefined, { timeout: EXPLANATION_HISTORY_TIMEOUT_MS, signal }),
+      signal,
+    );
+    try {
+      return toExplanationHistoryViewModel((response.data as BackendEnvelope<unknown>).data);
+    } catch (error) {
+      if (error instanceof ExplanationContractError) throw new AppError("explanation_history_unavailable", 502);
       throw error;
     }
   }

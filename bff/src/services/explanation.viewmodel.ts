@@ -103,3 +103,70 @@ export const toExplanationViewModel = (raw: unknown): ExplanationViewModel => {
     disclaimer: typeof raw.disclaimer === "string" ? raw.disclaimer : "",
   };
 };
+
+/** 지난 날 해설 한 벌의 판정 — 서버 `ModeDecisionAction` 넷 */
+export type ExplanationDayAction = "review_short_opportunity" | "review_accumulation" | "wait" | "avoid";
+const DAY_ACTIONS: readonly ExplanationDayAction[] = ["review_short_opportunity", "review_accumulation", "wait", "avoid"];
+
+/**
+ * 지난 날 해설 한 벌(`BFF-REQ-057`) — 그날 저장한 **원문 그대로**. 지금 데이터로 다시 쓰지 않는다(사후 지식 0).
+ * 등락률은 서버가 일봉으로 계산한 값(%) — 화면은 표시만
+ */
+export interface ExplanationDayViewModel {
+  /** KST 날짜 `YYYY-MM-DD` */
+  tradeDay: string;
+  generatedAt: string;
+  action: ExplanationDayAction;
+  provider: ExplanationProvider;
+  sentences: ExplanationSentence[];
+  /** 그날 종가의 전일 대비 % — 일봉이 없으면 `null` */
+  dayChangeRate: number | null;
+  /** 그날 종가 → 지금 가격 % — 없으면 `null` */
+  changeSinceRate: number | null;
+}
+
+export interface ExplanationHistoryViewModel {
+  symbol: string;
+  mode: "scalp" | "long_term";
+  disclaimer: string;
+  /** 최신 먼저 · 오늘(KST) 이전만. 비어 있어도 정상(아직 쌓인 날이 없다) */
+  days: ExplanationDayViewModel[];
+}
+
+const rate = (v: unknown, field: string): number | null => {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== "number" || !Number.isFinite(v)) throw new ExplanationContractError(field);
+  return v;
+};
+
+const toExplanationDay = (raw: unknown): ExplanationDayViewModel => {
+  if (!isObject(raw)) throw new ExplanationContractError("day");
+  const tradeDay = str(raw.tradeDay, "day.tradeDay");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tradeDay)) throw new ExplanationContractError("day.tradeDay");
+  if (!DAY_ACTIONS.includes(raw.action as ExplanationDayAction)) throw new ExplanationContractError("day.action");
+  if (!PROVIDERS.includes(raw.provider as ExplanationProvider)) throw new ExplanationContractError("day.provider");
+  if (!Array.isArray(raw.sentences) || raw.sentences.length === 0) throw new ExplanationContractError("day.sentences");
+  return {
+    tradeDay,
+    generatedAt: str(raw.generatedAt, "day.generatedAt"),
+    action: raw.action as ExplanationDayAction,
+    provider: raw.provider as ExplanationProvider,
+    // 성적 · 틀렸던 때 칸은 지금 값이라 지난 날에 싣지 않는다 — 서버가 이미 빼지만 한 번 더
+    sentences: raw.sentences.map(toExplanationSentence).filter((s) => s.section !== "track" && s.section !== "miss"),
+    dayChangeRate: rate(raw.dayChangeRate, "day.dayChangeRate"),
+    changeSinceRate: rate(raw.changeSinceRate, "day.changeSinceRate"),
+  };
+};
+
+/** 지난 날 해설 목록 — 모양이 깨졌으면 `ExplanationContractError`(502). 빈 `days` 는 정상 */
+export const toExplanationHistoryViewModel = (raw: unknown): ExplanationHistoryViewModel => {
+  if (!isObject(raw)) throw new ExplanationContractError("history");
+  if (raw.mode !== "scalp" && raw.mode !== "long_term") throw new ExplanationContractError("history.mode");
+  if (!Array.isArray(raw.days)) throw new ExplanationContractError("history.days");
+  return {
+    symbol: str(raw.symbol, "history.symbol"),
+    mode: raw.mode,
+    disclaimer: typeof raw.disclaimer === "string" ? raw.disclaimer : "",
+    days: raw.days.map(toExplanationDay),
+  };
+};
