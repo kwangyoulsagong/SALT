@@ -60,6 +60,9 @@ export const split = style({
   "@media": { [WIDE]: { gridTemplateColumns: "minmax(0, 1fr) 360px" } },
 });
 
+/** 왼쪽 칸 — 목록 · 계획 대비 · 도달 예상을 쌓는다(2026-11-26) */
+export const column = style({ display: "flex", flexDirection: "column", gap: "24px", minWidth: 0 });
+
 /** 묶음 = 카드 판 위 흰 카드(`FE-REQ-076` FR-7 — 목표 목록 · 고른 목표) */
 export const section = style([card, { gap: "8px" }]);
 export const sectionHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minHeight: "32px" });
