@@ -146,3 +146,5 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | `getPanel` — 한 콜 · 400ms · 재시도 1 · 502/401 시험 3 | 충족 | 주인 REQ 체크리스트 |
+
+- 2026-11-26 — 코치 서비스 · 컨트롤러에 지난 날 해설 중계 `GET /api/app/ai-coach/explanation/history` 추가(`BFF-REQ-057`) — 이 REQ 의 업스트림 규칙(재시도 · 취소) 그대로

@@ -9,7 +9,7 @@ import { SCENES, type IllustrationScene } from "./scenes";
 import { illustrationStyles } from "./styles/illustration.css";
 
 export type { IllustrationScene } from "./scenes";
-export type IllustrationSize = "sm" | "md" | "lg";
+export type IllustrationSize = "xs" | "sm" | "md" | "lg";
 
 export interface IllustrationProps {
   scene: IllustrationScene;

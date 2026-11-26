@@ -5,6 +5,7 @@ import type { CoachUseCases } from "../application/api";
 import { MoveCardNotFoundError } from "../domain";
 import {
   coachFeedbackSchema,
+  explanationHistoryQuerySchema,
   explanationQuerySchema,
   moveSummaryQuerySchema,
   generateCoachSchema,
@@ -118,6 +119,17 @@ export class AICoachController {
       const { symbol, mode } = explanationQuerySchema.parse(req.query);
       const result = await this.useCases.getSymbolExplanation.execute(symbol, mode);
       return ResponseUtil.success(res, result, "AI Coach Explanation Success");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 지난 날 해설 — 저장 원문 그대로 · 그날 · 그 뒤 등락(`SRV-REQ-063` FR-4). LLM 0 */
+  explanationHistory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { symbol, mode, days } = explanationHistoryQuerySchema.parse(req.query);
+      const result = await this.useCases.listSymbolExplanationHistory.execute(symbol, mode, days);
+      return ResponseUtil.success(res, result, "AI Coach Explanation History Success");
     } catch (error) {
       next(error);
     }

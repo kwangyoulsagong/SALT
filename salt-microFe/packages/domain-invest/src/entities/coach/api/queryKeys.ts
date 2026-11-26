@@ -16,6 +16,8 @@ export const coachQueryKeys = {
    * 한 장 패널(F017 v4 1d) — 칸 일곱이 한 응답. 거래를 저장하면 내 기준이 바뀌니 `plans` 와 같이 버린다
    */
   panel: (symbol: string) => ["coach", "panel", symbol] as const,
+  /** 지난 날 해설 — 그날 원문은 바뀌지 않고 "그 뒤 등락"만 움직인다. 사용자 행동으로 버리지 않는다 */
+  explanationHistory: (symbol: string, mode: "scalp" | "long_term") => ["coach", "explanation-history", symbol, mode] as const,
   /** 패널 전체 — 매입가 숨김을 바꾸면 모든 종목 패널의 내 기준이 바뀐다 */
   panelAll: () => ["coach", "panel"] as const,
   /** 주요 사건(거시 일정) · 과거 반응. 배치가 하루 1회 만든다 */

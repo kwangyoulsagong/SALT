@@ -167,3 +167,5 @@
 ## 2026-11-14 — 2b '최근' 칸
 
 - 시험 506/506 · build
+
+- 2026-11-26 — 코치 경로에 `/explanation/history` 추가 — 해설 뷰모델 `toExplanationSentence` 재사용(`BFF-REQ-057`)

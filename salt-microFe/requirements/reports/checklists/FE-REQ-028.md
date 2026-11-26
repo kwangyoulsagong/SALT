@@ -204,3 +204,5 @@
 
 - 코치 경로 표에 `panelLayout` 한 줄 · 쿼리 키 한 줄
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+- 2026-11-26 — 코치 엔드포인트에 지난 날 해설 조회 추가(`FE-REQ-079` · `useExplanationHistory`)

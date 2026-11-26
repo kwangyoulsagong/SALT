@@ -35,6 +35,8 @@ export const EXPLANATION_EVIDENCE_LABEL = {
   sentiment: "시장 심리",
   whaleBuy: "고래 매수 대금(원)",
   whaleSell: "고래 매도 대금(원)",
+  /** 닫힌 일봉 흐름 한 줄(`SRV-REQ-063` FR-2) — 판단 바로 뒤에 둔다(근거 상한에 잘리지 않게) */
+  recentFlow: "최근 흐름",
 } as const;
 
 /** 서버 스키마의 옛 상한 그대로 — 모델이 받는 양을 바꾸지 않는다 */
@@ -72,6 +74,8 @@ export interface ExplanationMaterials {
   sentiment: CoachSentiment | undefined;
   whale: { buyAmountKRW: number; sellAmountKRW: number; count: number };
   news: CoachSymbolArticle[];
+  /** 최근 흐름 한 줄 값(`recentFlowText`) — 닫힌 일봉이 모자라면 없다 */
+  recentFlow?: string | null;
 }
 
 /**
@@ -88,6 +92,7 @@ export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanat
   const label = EXPLANATION_EVIDENCE_LABEL;
   const evidence: CoachExplanationInput["evidence"] = [
     { label: label.judgment, value: clip(m.judgment.headline || m.judgment.label) },
+    ...(m.recentFlow ? [{ label: label.recentFlow, value: clip(m.recentFlow) }] : []),
     ...m.judgment.reasons.map((reason) => ({ label: label.reason, value: clip(reason) })),
     ...m.judgment.risks.map((risk) => ({ label: label.risk, value: clip(risk) })),
   ];

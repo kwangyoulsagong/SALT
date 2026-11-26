@@ -47,6 +47,21 @@ export class AppAICoachController {
     }
   };
 
+  /** 지난 날 해설(`BFF-REQ-057`) — 화면이 떠나면 서버 호출도 끊는다 */
+  explanationHistory = async (req: Request, res: Response, next: NextFunction) => {
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+    try {
+      const data = await appAICoachService.getExplanationHistory(req.token!, req.query, aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
   /**
    * 해설 스트림(SSE, F017 v4 1f · `BFF-REQ-052` FR-7) — 압축 · 버퍼링 끔 · 15초 ping(`streaming-sse.md` §5).
    * 화면이 떠나면 서버 연결도 끊는다(생성은 서버가 끝까지 — 저장용). 헤더 전 실패(400 · 401 · 서버 4xx)는 오류 미들웨어로

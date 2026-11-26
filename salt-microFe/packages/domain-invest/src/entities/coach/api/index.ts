@@ -14,3 +14,4 @@ export * from "./useCoachPanel";
 export * from "./useCoachConversationHistory";
 export * from "./useCoachBriefing";
 export * from "./usePanelLayout";
+export * from "./useExplanationHistory";

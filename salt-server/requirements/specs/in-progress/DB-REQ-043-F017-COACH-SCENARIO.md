@@ -83,3 +83,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — 코치 공개 API 조립 파일에 패널 배치 유스케이스 둘. 이 REQ 동작 무변경 |
 | 2026-11-19 | 코치 조립 의존(`CoachDependencies`)에 주간 계획 소스 한 줄(`feat/f006-coach-chat-redesign`) — 표 · 뷰 변경 0 |
 | 2026-11-26 | S4a 파일만 걸침 — coach 조립 의존 한 줄 삭제. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |
+| 2026-11-26 | `explanation_snapshot` 보존 — 최근 5벌 + 최근 30일은 KST 날마다 마지막 한 벌(`SRV-REQ-063` FR-3). 스키마 변경 0 |

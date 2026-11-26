@@ -196,3 +196,5 @@
 
 - 파일만 걸침 — coach 조립 의존 한 줄 삭제. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
 - 미검증: 없음(이 몫 안)
+
+- 2026-11-26 — `explanation_snapshot` 보존 — 최근 5벌 + 최근 30일은 KST 날마다 마지막 한 벌(`SRV-REQ-063` FR-3). 스키마 변경 0

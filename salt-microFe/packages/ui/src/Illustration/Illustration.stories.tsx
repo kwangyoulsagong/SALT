@@ -49,6 +49,7 @@ export const AllSizes: Story = {
   args: { scene: "candles" },
   render: () => (
     <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
+      <Illustration scene="candles" size="xs" />
       <Illustration scene="candles" size="sm" />
       <Illustration scene="candles" size="md" />
       <Illustration scene="candles" size="lg" />

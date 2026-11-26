@@ -123,6 +123,69 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/ai-coach/explanation/history:
+   *   get:
+   *     summary: 지난 날 해설 — 날마다 마지막 저장본 원문 그대로
+   *     description: |
+   *       `SRV-REQ-063` FR-4. 오늘(KST) 이전 날만 · 최신 날 먼저 · 최근 30일 안. LLM 을 부르지 않고 다시 만들지 않는다(사후 지식 0).
+   *       '얼마나 믿을까' · '틀렸던 때' 문장(track · miss)은 지금 값이라 뺀다. 빗나간 날도 고르지 않고 다 준다.
+   *       `dayChangeRate` = 그날 종가의 전 봉 대비 % · `changeSinceRate` = 그날 종가 → 지금 가격 % (서버 계산, 없으면 null). 시장 층 — 사람마다 같은 답
+   *     tags: [AI Coach]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: query, name: symbol, required: true, schema: { type: string, example: "005930" } }
+   *       - { in: query, name: mode, required: true, schema: { type: string, enum: [scalp, long_term] } }
+   *       - { in: query, name: days, required: false, description: "돌려줄 날 수(기본 7 · 최대 14)", schema: { type: integer, minimum: 1, maximum: 14 } }
+   *     responses:
+   *       200:
+   *         description: 지난 날 해설
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     mode: { type: string, enum: [scalp, long_term] }
+   *                     disclaimer: { type: string }
+   *                     days:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           tradeDay: { type: string, format: date, description: KST 날짜 }
+   *                           generatedAt: { type: string, format: date-time }
+   *                           action: { type: string, enum: [review_short_opportunity, review_accumulation, wait, avoid] }
+   *                           provider: { type: string, enum: [local_claude, local_codex, gemini] }
+   *                           dayChangeRate: { type: number, nullable: true }
+   *                           changeSinceRate: { type: number, nullable: true }
+   *                           sentences:
+   *                             type: array
+   *                             items:
+   *                               type: object
+   *                               properties:
+   *                                 section: { type: string, enum: [modeReasoning, keyDrivers, risks, newsSummary] }
+   *                                 text: { type: string }
+   *                                 citations:
+   *                                   type: array
+   *                                   items:
+   *                                     type: object
+   *                                     properties:
+   *                                       id: { type: string }
+   *                                       label: { type: string }
+   *                                       at: { type: string, format: date-time, nullable: true }
+   *                                       url: { type: string, nullable: true }
+   *       400: { description: 요청 검증 실패 }
+   *       401: { description: 인증 필요 }
+   */
+  router.get("/explanation/history", controller.explanationHistory);
+
+  /**
+   * @swagger
    * /api/ai-coach/profile:
    *   get:
    *     summary: AI 투자 코치 프로필 조회

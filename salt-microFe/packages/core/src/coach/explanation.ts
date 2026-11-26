@@ -37,3 +37,34 @@ export interface SymbolExplanation {
   sentences: ExplanationSentence[];
   disclaimer: string;
 }
+
+/** 지난 날 해설의 그날 판정 — 서버 `ModeDecisionAction` 넷 */
+export type ExplanationDayAction = "review_short_opportunity" | "review_accumulation" | "wait" | "avoid";
+
+/**
+ * 지난 날 해설 한 벌 — BFF `GET /api/app/ai-coach/explanation/history`(`BFF-REQ-057` · `FE-REQ-079`).
+ * 정의 원본은 `bff/src/services/explanation.viewmodel.ts` `ExplanationDayViewModel`.
+ * 그날 저장한 **원문 그대로**다 — 지금 데이터로 다시 쓰지 않는다. 등락률(%)은 서버가 일봉으로 계산한 값, 화면은 표시만
+ */
+export interface ExplanationDay {
+  /** KST 날짜 `YYYY-MM-DD` */
+  tradeDay: string;
+  /** 그 해설을 만든 시각(ISO) — "몇 시 기준"으로 보인다 */
+  generatedAt: string;
+  action: ExplanationDayAction;
+  provider: ExplainProvider;
+  /** 성적 · 틀렸던 때 칸은 없다(지금 값이라) */
+  sentences: ExplanationSentence[];
+  /** 그날 종가의 전일 대비 % · 일봉이 없으면 `null` */
+  dayChangeRate: number | null;
+  /** 그날 종가 → 지금 가격 % · 없으면 `null` */
+  changeSinceRate: number | null;
+}
+
+export interface ExplanationHistory {
+  symbol: string;
+  mode: "scalp" | "long_term";
+  disclaimer: string;
+  /** 최신 먼저 · 오늘(KST) 이전만. 빈 배열 = 아직 쌓인 날이 없다 */
+  days: ExplanationDay[];
+}

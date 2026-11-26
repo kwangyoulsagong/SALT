@@ -26,7 +26,7 @@ import { MODE_DECISION_RULE_VERSION, type ModeDecisionAction } from "./modeDecis
  */
 
 /** 프롬프트(`explanationPrompt.ts`) · 검증기(`explanationTemplate.ts` `verifyExplanation`)가 바뀌면 올린다 — 지문이 바뀌어 다시 만든다 */
-export const EXPLANATION_PROMPT_VERSION = "explain-prompt@4"; // @4 2026-11-18 — 원인 단계 '없음'이면 원인 줄은 서버 문장(SRV-REQ-060 FR-6) · @3 2026-11-14 — 회사 사정 재료(F017 v4 2b+ FR-16)
+export const EXPLANATION_PROMPT_VERSION = "explain-prompt@5"; // @5 2026-11-26 — 최근 흐름 재료 · 오늘 등락을 흐름과 함께(SRV-REQ-063 FR-2) · @4 2026-11-18 — 원인 단계 '없음'이면 원인 줄은 서버 문장(SRV-REQ-060 FR-6) · @3 2026-11-14 — 회사 사정 재료(F017 v4 2b+ FR-16)
 export const EXPLANATION_VERIFIER_VERSION = "explain-verifier@5"; // @5 2026-11-18 — 입력이 말하지 않은 "마감" · 서버 원인 줄 · 빈 주의 칸(SRV-REQ-060 FR-4~6) · @4 2026-11-14 회사 사정 인용(③')
 
 /** 지문에 넣는 뉴스 수 — 맨 위 몇 건이 바뀌면 다시 만든다(뒤쪽 순서 변화로 매번 다시 만들지 않게) */
@@ -42,6 +42,18 @@ export const EXPLANATION_PREVIOUS_MAX_AGE_MS: Record<CoachMode, number> = {
 
 /** 종목 · 모드당 남기는 스냅샷 수 — 이전 단(previous)은 맨 위 하나만 쓴다. 나머지는 대조용 */
 export const EXPLANATION_SNAPSHOT_KEEP = 5;
+
+/**
+ * 지난 날 해설(`SRV-REQ-063` FR-3 · 4) — 이 기간은 KST 날마다 마지막 한 벌을 정리에서 남긴다(위 5벌과 별개).
+ * 5벌만 남기면 하루 한 벌씩 쌓여도 5일 뒤엔 지워져 "어제 판단이 맞았나"를 볼 수 없다
+ */
+export const EXPLANATION_HISTORY_DAYS = 30;
+/** 지난 날 해설 목록 한 번에 돌려주는 날 수 — 기본 · 상한 */
+export const EXPLANATION_HISTORY_DEFAULT = 7;
+export const EXPLANATION_HISTORY_MAX = 14;
+
+/** 해설의 거래일 — KST 달력 날짜(`YYYY-MM-DD`). 지문 · 지난 날 목록이 같은 경계를 쓴다 */
+export const explanationTradeDay = (at: Date): string => new Date(at.getTime() + 9 * 3_600_000).toISOString().slice(0, 10);
 
 /** 배치 한 회차의 생성 상한 — LLM 은 순서대로 하나씩(로컬 CLI 동시 상한을 다 쓰지 않게). 남은 종목은 다음 회차 */
 export const EXPLANATION_BATCH_MAX_PER_RUN = 12;
@@ -87,6 +99,11 @@ export interface ExplanationFingerprintInput {
   caveatReasons: readonly string[];
   /** 뉴스 제목 — 맨 위 `EXPLANATION_FINGERPRINT_NEWS` 건만 */
   newsTitles: readonly string[];
+  /**
+   * 거래일(`explanationTradeDay`) — **날이 바뀌면 판단이 같아도 다시 만든다**(`SRV-REQ-063` FR-1). 넣기 전에는 판정 · 관측이
+   * 같으면 −9.87% 날에도 지문이 같아 그날 해설이 없었고, 며칠 전 해설이 '최신'으로 보였다(2026-11-25 삼성전자)
+   */
+  tradeDay: string;
 }
 
 /**
@@ -105,6 +122,7 @@ export const explanationFingerprint = (input: ExplanationFingerprintInput): stri
         [...input.observations].map((o) => [o.item, observationSide(o)]).sort(),
         [...input.caveatReasons].sort(),
         input.newsTitles.slice(0, EXPLANATION_FINGERPRINT_NEWS),
+        input.tradeDay,
       ])
     )
     .digest("hex");
@@ -122,6 +140,7 @@ const EVIDENCE_ID: Record<string, { id: string; label: string }> = {
   [EXPLANATION_EVIDENCE_LABEL.sentiment]: { id: "sentiment", label: "시장 심리" },
   [EXPLANATION_EVIDENCE_LABEL.whaleBuy]: { id: "whale", label: "대량 체결" },
   [EXPLANATION_EVIDENCE_LABEL.whaleSell]: { id: "whale", label: "대량 체결" },
+  [EXPLANATION_EVIDENCE_LABEL.recentFlow]: { id: "recent-flow", label: "최근 흐름(일봉)" },
 };
 
 /**

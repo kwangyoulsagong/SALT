@@ -62,6 +62,7 @@ import { GenerateMoveSummaries } from "../GenerateMoveSummaries";
 import { GetMoveSummary } from "../GetMoveSummary";
 import { MoveSummaryDemand } from "../lib/moveSummaryDemand";
 import { GetSymbolExplanation } from "../GetSymbolExplanation";
+import { ListSymbolExplanationHistory } from "../ListSymbolExplanationHistory";
 import { ExplanationDemand } from "../lib/explanationDemand";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
@@ -224,6 +225,8 @@ export interface CoachUseCases {
   recordFeedback: RecordCoachFeedback;
   /** 해설 읽기 — 저장값만, 4단(F017 v2 단계 3 · `SRV-REQ-053` FR-3) */
   getSymbolExplanation: GetSymbolExplanation;
+  /** 지난 날 해설 — 저장 원문 그대로(`SRV-REQ-063` FR-4) */
+  listSymbolExplanationHistory: ListSymbolExplanationHistory;
   /** 해설 스냅샷 배치 — 워커가 부른다. 지문이 바뀐 종목만 LLM(FR-3 ②) */
   generateExplanationSnapshots: GenerateExplanationSnapshots;
   /** 오늘 등락 한 줄(③) 읽기 — 저장값과 지금 카드 대조만, LLM 0(F016 단계 D · `SRV-REQ-052`) */
@@ -356,6 +359,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     news: deps.news,
     judgments: deps.judgments,
     backtestJudgments: deps.backtestJudgments ?? null,
+    closes: deps.forecasts,
   };
   const explanationDemand = new ExplanationDemand();
   const moveSummaryDemand = new MoveSummaryDemand();
@@ -419,6 +423,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     updateProfile: new UpdateCoachProfile(deps.profiles),
     recordFeedback: new RecordCoachFeedback(deps.insights),
     getSymbolExplanation,
+    listSymbolExplanationHistory: new ListSymbolExplanationHistory({ store: deps.explanations, market: deps.market, closes: deps.forecasts }),
     generateExplanationSnapshots: new GenerateExplanationSnapshots({
       ...explanationMaterials,
       explainer: deps.explainer,

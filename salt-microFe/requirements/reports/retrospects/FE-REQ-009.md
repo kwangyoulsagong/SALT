@@ -258,3 +258,5 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-20 `FE-REQ-072` 가 걸침
 
 - 레이어 규칙에 도메인 패키지 `mobile` 레이어(pages 의 형제 · `mobile-pages` 차단 · 레지스트리 여섯) · 위젯 `goal-tools` · 배럴 밖 입구 다섯 — 앱 웹뷰 계약이 없어지며 같이 바뀌었다. 데스크톱 배치 변화는 main 비교로 0
+
+- 2026-11-26 — 레이어 규칙 표에 feature 슬라이스 `browse-explanation-days` 등록(`FE-REQ-079`)

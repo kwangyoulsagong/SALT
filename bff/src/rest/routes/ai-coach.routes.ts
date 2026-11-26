@@ -18,5 +18,8 @@ router.get("/check", appAICoachController.tradeCheck);
 router.get("/panel", appAICoachController.panel);
 // 해설 스트림(SSE) — 저장본이 없을 때 패널이 연다(F017 v4 1f · `BFF-REQ-052` FR-7) — 서버 `/api/coach/explain/stream`
 router.get("/explain/stream", appAICoachController.explainStream);
+// 지난 날 해설 — 그날 저장 원문 + 그날 · 그 뒤 등락(`BFF-REQ-057`) — 서버 `/api/ai-coach/explanation/history`.
+// 옛 `/explanation`(은퇴 410)보다 이 라우터가 먼저라 하위 경로가 410 에 걸리지 않는다
+router.get("/explanation/history", appAICoachController.explanationHistory);
 
 export default router;

@@ -441,8 +441,16 @@ export interface ExplanationSnapshotStore {
   find(symbol: string, mode: CoachMode, fingerprint: string): Promise<ExplanationSnapshotRecord | null>;
   /** 같은 (종목, 모드, 지문)이 이미 있으면 아무것도 하지 않는다 — 두 회차가 겹쳐도 오류 0(ON CONFLICT DO NOTHING) */
   save(record: ExplanationSnapshotRecord): Promise<boolean>;
-  /** 종목 · 모드마다 최근 `keep` 벌만 남긴다 */
-  prune(symbol: string, mode: CoachMode, keep: number): Promise<number>;
+  /**
+   * 종목 · 모드마다 최근 `keep` 벌 + 최근 `historyDays` 일은 KST 날마다 마지막 한 벌을 남기고 지운다(`SRV-REQ-063` FR-3).
+   * 한 문장(행마다 지우지 않는다)
+   */
+  prune(symbol: string, mode: CoachMode, keep: number, historyDays: number): Promise<number>;
+  /**
+   * 지난 날 해설 — `since` 뒤 KST 날마다 마지막 한 벌, 최신 날 먼저 `limit` 개(`SRV-REQ-063` FR-4). `before` 날(KST, 그날 포함 안 함)
+   * 이전만 — 오늘 것은 패널이 이미 보인다. 저장 원문 그대로(다시 만들지 않는다 — 사후 지식이 섞인다)
+   */
+  listDaily(symbol: string, mode: CoachMode, opts: { since: Date; before: Date; limit: number }): Promise<ExplanationSnapshotRecord[]>;
 }
 
 /**

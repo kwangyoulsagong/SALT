@@ -173,3 +173,5 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f843104e`) — FR-40 계약 가드: 꼬리표 배열 없음 · 결함 꼬리표 없이 빈 실패사례면 `null`, 3종 결함은 보인다
   - `bff/src/rest/routes/proxy.routes.ts` — `POST /api/auth/guest` 통과
+
+- 2026-11-26 — 코치 서비스 · 컨트롤러에 지난 날 해설 중계 `GET /api/app/ai-coach/explanation/history` 추가(`BFF-REQ-057`) — 이 REQ 의 업스트림 규칙(재시도 · 취소) 그대로

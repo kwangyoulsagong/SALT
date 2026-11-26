@@ -84,3 +84,5 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 ## F017 v4 1d 짝 (2026-11-13)
 
 - 배운 것 없음 — 짝 변경(주인 `BFF-REQ-052`)
+
+- 2026-11-26 — 코치 서비스 · 컨트롤러에 지난 날 해설 중계 `GET /api/app/ai-coach/explanation/history` 추가(`BFF-REQ-057`) — 이 REQ 의 업스트림 규칙(재시도 · 취소) 그대로

@@ -105,3 +105,5 @@
 
 - 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
 - **Action**: 없음(이 몫 안)
+
+- 2026-11-26 — `explanation_snapshot` 보존 — 최근 5벌 + 최근 30일은 KST 날마다 마지막 한 벌(`SRV-REQ-063` FR-3). 스키마 변경 0
