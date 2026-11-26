@@ -176,4 +176,5 @@
 ## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
 
 - 검증: `pnpm --filter web check-types` · `lint`(루트 체크리스트)
-- 미검증: 설정 화면 실화면(390 · 1280) — 문구 한 줄 추가라 루트 체크리스트 미검증 표
+- 검증: 실화면 `/settings` 1280 · 1024(이 트리 dev · 임시 계정) — 두 패널에 "투자 적립" · 넘침 0 · 콘솔 오류 0
+- 미검증: 휴대폰 `/m` — 그 패널이 `/m` 에 없다

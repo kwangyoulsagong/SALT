@@ -20,7 +20,7 @@ portfolio 서비스는 Express 에서 market · coach · 내 데이터가 프로
 | REQ | 이번 몫(S4a) | 남는 몫 |
 |---|---|---|
 | `SRV-REQ-049` | FR-1 중 밴드 적립 — Kotlin `services/portfolio`(네 층 · `/api/plan` 다섯 경로) · FR-7 옛 Express `src/plan` 삭제 | FR-1 보유 · 거래 · 평가(S4b~) · FR-2~6(S5~S7) |
-| `DB-REQ-036` | 부록 portfolio — `plan_settings` · `weekly_plan_executions` 주인 Prisma → Flyway(`portfolio.V1__baseline`) · `svc_portfolio` 로그인 · 예측 밴드 뷰 둘 SELECT | portfolio 거래 · 보유 표(S4b) |
+| `DB-REQ-036` | 부록 portfolio — `plan_settings` · `weekly_plan_executions` 주인 Prisma → Flyway(`portfolio.V1__baseline`) · 옛 public 표 drop(덤프 `~/salt-backups/…`) · `svc_portfolio` 로그인 · 예측 밴드 뷰 둘 SELECT | portfolio 거래 · 보유 표(S4b) |
 | `SRV-REQ-028` · `SRV-REQ-029` | 코치 답 재료 `weeklyPlan` — 조립이 끼우던 포트 → 요청마다 받은 사실(`X-Salt-Weekly-Plan` 헤더) | — |
 | `BFF-REQ-027` | 답 스트림 열기 전 `GET /plan/weekly` → 칸만 골라 헤더(400ms 예산 · 실패면 안 싣는다) | — |
 | `BFF-REQ-045` | 라우팅 표 `/plan` · `/portfolio/me/data` · `/portfolio/me/data-classification` → platform | — |
