@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { HOUSEHOLD_CATEGORY_LABEL, labelOf } from "@repo/core/labels";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 
@@ -65,8 +67,8 @@ export const HomeRecentList = ({ items }: { items: HomeRecentItem[] | null }) =>
   </section>
 );
 
-/** 다가오는 일 — 매달 나가는 돈 예정 · 목표 기한(날짜 순, 고르기는 BFF) */
-export const HomeUpcomingList = ({ items }: { items: HomeUpcomingItem[] | null }) => (
+/** 다가오는 일 — 매달 나가는 돈 예정 · 목표 기한(날짜 순, 고르기는 BFF). `extra` = 아래에 붙는 증시 일정(2026-11-26 — 기록이 없어도 차는 줄) */
+export const HomeUpcomingList = ({ items, extra }: { items: HomeUpcomingItem[] | null; extra?: ReactNode }) => (
   <section className={panel} aria-labelledby="home-upcoming-title">
     <div className={panelHead}>
       <h2 id="home-upcoming-title" className={panelTitle}>
@@ -84,5 +86,6 @@ export const HomeUpcomingList = ({ items }: { items: HomeUpcomingItem[] | null }
         ))}
       </ul>
     )}
+    {extra}
   </section>
 );

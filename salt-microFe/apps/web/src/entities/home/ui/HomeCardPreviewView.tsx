@@ -16,6 +16,7 @@ import {
   ghostName,
   ghostTrend,
   previewBox,
+  previewLarge,
   progressList,
   progressName,
   progressRow,
@@ -30,14 +31,16 @@ const BAR_MIN_PERCENT = 4;
 interface HomeCardPreviewViewProps {
   domain: HomeDomain;
   preview: HomeCardPreview;
+  /** `large` = 대시보드 큰 칸(2026-11-26) — 같은 그림을 키운다 */
+  size?: "card" | "large";
 }
 
 /**
  * 카드 미리보기 — **표시 전용**(`FE-REQ-048` FR-12). 값은 BFF 가 준 서버 숫자 그대로이고, 화면은 칸 높이 · 선 모양으로만 늘이고 줄인다.
  * 그림은 이름(`label`)을 갖고, 그림만 보고 끝나는 사람이 없게 아래 한 줄(`caption`)도 글로 둔다. 색은 도메인 색(막대 · 진척)
  */
-export const HomeCardPreviewView = ({ domain, preview }: HomeCardPreviewViewProps) => (
-  <div className={`${previewBox} ${domainAccent[domain]}`}>
+export const HomeCardPreviewView = ({ domain, preview, size = "card" }: HomeCardPreviewViewProps) => (
+  <div className={`${previewBox} ${domainAccent[domain]} ${size === "large" ? previewLarge : ""}`}>
     {preview.kind === "trend" ? (
       <>
         <Sparkline points={preview.points} label={preview.label} area width={480} height={72} strokeWidth={2} className={trend} />
@@ -93,8 +96,8 @@ const GHOST_BARS = [30, 52, 18, 64, 40, 0, 72, 26, 48, 58, 22, 80, 36, 44];
 const GHOST_TREND = [40, 46, 42, 55, 51, 60, 57, 66, 63, 72];
 const GHOST_PROGRESS = [0.72, 0.38];
 
-export const HomeCardGhostPreview = ({ domain }: { domain: HomeDomain }) => (
-  <div className={`${previewBox} ${ghost}`} aria-hidden="true">
+export const HomeCardGhostPreview = ({ domain, size = "card" }: { domain: HomeDomain; size?: "card" | "large" }) => (
+  <div className={`${previewBox} ${ghost} ${size === "large" ? previewLarge : ""}`} aria-hidden="true">
     <span className={ghostBadge}>{HOME_CARD_MESSAGES.sample}</span>
     {domain === "invest" ? (
       <Sparkline points={GHOST_TREND} label="" tone="neutral" area width={480} height={72} strokeWidth={2} className={ghostTrend} />

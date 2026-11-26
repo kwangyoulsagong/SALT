@@ -1,6 +1,6 @@
 import { PageFrame } from "@repo/web-shared/ui/frame";
 
-import { HomeBriefing, QuickActions } from "@/widgets/home-briefing";
+import { HomeAlertsSide, HomeBriefing, QuickActions } from "@/widgets/home-briefing";
 import { OnboardingSideRow } from "@/widgets/onboarding-flow";
 
 import { HOME_PAGE_MESSAGES } from "../model/messages";
@@ -11,13 +11,15 @@ import { HOME_PAGE_MESSAGES } from "../model/messages";
  *
  * **위젯 둘을 나란히 놓는 것은 `pages` 의 일이다.** `home-briefing` 안에서 `onboarding-flow` 를 부르면 같은 레이어의 다른 슬라이스를
  * 직접 import 하는 것이다(`layered-architecture.md`). 머리 프로필 · 벨은 zone 공용 `AppShell` 이 놓는다.
- * 휴대폰은 `/m/home`(`FE-REQ-072`) — 이 화면에 휴대폰 분기가 없다
+ * 휴대폰은 `/m/home`(`FE-REQ-072`) — 이 화면에 휴대폰 분기가 없다.
+ * 2026-11-26 대시보드(`FE-REQ-048` FR-14~18 — 사용자 "카드 몇 장으로는 대시보드가 아니다"): 본문 = 숫자 띠 + 3단 격자, 사이드에 최근 알림을 더했다
  */
 export const HomePage = () => (
   <PageFrame title={HOME_PAGE_MESSAGES.heading} side={
       <>
         <OnboardingSideRow />
         <QuickActions />
+        <HomeAlertsSide />
       </>
     } sideLabel={HOME_PAGE_MESSAGES.sideLabel} surface="cards">
     <HomeBriefing />

@@ -54,7 +54,14 @@ export const previewBox = style({
   gap: vars.space.xs,
   height: `${PREVIEW_HEIGHT}px`,
   minWidth: 0,
+  // 진척 목록은 줄 수만큼 — 고정 높이에 바닥 정렬하면 큰 칸 위가 빈다(2026-11-26 대시보드)
+  selectors: { "&:has(> ul)": { height: "auto", justifyContent: "flex-start" } },
 });
+
+/** 대시보드 큰 칸(2026-11-26) — 같은 그림을 키운다(카드 칸 88 → 168). 값 · 색 · 예시 규칙은 그대로 */
+export const PREVIEW_LARGE_HEIGHT = 168;
+export const previewLarge = style({ height: `${PREVIEW_LARGE_HEIGHT}px` });
+globalStyle(`${previewLarge} svg`, { maxHeight: `${PREVIEW_LARGE_HEIGHT - 24}px` });
 
 /** 흐름선 — 칸 폭에 맞춰 늘인다(viewBox 비율 유지) */
 export const trend = style({ display: "block", width: "100%", height: "auto", maxHeight: "72px", overflow: "visible" });
