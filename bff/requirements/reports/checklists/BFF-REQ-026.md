@@ -124,3 +124,5 @@
 
 - 코치 API 파일에 패널 배치 읽기 함수
 - 미충족: 없음(이 REQ 몫 변경 0) · 근거 루트 체크리스트 `requirements/reports/checklists/F006-pc-panel-grid.md`
+
+- 2026-11-26 — 코치 컨트롤러에 지난 날 해설 경로 추가(`BFF-REQ-057`) — 예산 400ms · 조회 1회 재시도

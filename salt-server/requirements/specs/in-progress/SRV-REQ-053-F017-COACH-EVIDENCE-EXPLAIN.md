@@ -132,3 +132,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-18 | `SRV-REQ-060` 짝(`feat/srv-req-060-explain-reason-line`) — `explanationGate.test.ts`(머리 주인) · 원인 칸(FR-16): 입력이 말하지 않은 "마감" 거름 · 규칙 주의가 없으면 주의 칸을 비움(내부 문구 0) · 원인 단계 '없음'이면 원인 줄은 서버 문장(`fixedCauseLine`, 모델이 원인을 다시 말하면 버림). 프롬프트 @4 · 검증기 @5 |
 | 2026-11-18 | F006 포지션 1단계 짝(`feat/f006-position-overview`) — 이 REQ 머리의 `salt-server/src/market/application/api/index.ts` 에 공개 API `dailyClosesSince` 를 더했다. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F006-position-overview-slice.md` |
 | 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |
+| 2026-11-26 | 해설 지문에 거래일 · 재료에 최근 흐름 · 보존 30일 날마다 1 · 지난 날 읽기 경로(`SRV-REQ-063`) — 4단 · 요청 경로 LLM 0 그대로 |

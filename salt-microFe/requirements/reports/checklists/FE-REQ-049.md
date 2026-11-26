@@ -147,3 +147,7 @@
 ## 2026-11-26 `FE-REQ-062` 걸침
 
 - [x] 상세 한 장 패널 비교 막대 차오름(`growInX`) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`
+
+## 2026-11-26 `FE-REQ-079` 걸침
+
+- [x] 해설 문장 CSS 등장 → `animation: none` · `explainTitleGroup` — 실화면 1280 · 390 넘침 0 · 페이지 오류 0(측정은 `checklists/FE-REQ-079.md` FR-6)

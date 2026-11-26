@@ -242,3 +242,5 @@
 
 - 파일만 걸침 — identity 요청 제한 부품을 support 로 옮김(FixedWindowLimit · @Qualifier). 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
 - 미검증: 없음(이 몫 안)
+
+- 2026-11-26 — 코치 포트 파일에 해설 스냅샷 `listDaily` · `prune(…, historyDays)` 추가(`SRV-REQ-063`) — identity 와 무관, 파일 머리 주인이라 기록

@@ -360,3 +360,4 @@ type ExplainResult =
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `GetCoachDetail.ts`(머리 주인) — 추천 조립을 `application/lib/recommendationCard.ts` 로 옮겨 대화와 같이 쓴다(동작 변경 0 — 같은 함수 본문 · 기존 상세 시험 전부 통과). 주인 `SRV-REQ-028` |
 | 2026-11-19 | 상세 병렬 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `GetCoachDetail.ts` 에서 변동성 · 추천 카드 두 await 를 `Promise.all` 로. 응답 계약 변경 0. 실측 coach detail 쿼리 11 · 서버 p95 5.0ms. 주인 `SRV-REQ-027` FR-30. 루트 `WEB-perf-req-close-slice.md` |
 | 2026-11-20 | 시세 등락 기준 바로잡기(`fix/crypto-change-basis`, `SRV-REQ-061` · `FE-REQ-075`)가 걸침 — 업비트 등락 · 고저는 당일(오전 9시) 전일 종가 대비라 "24시간" 이름표 · 프롬프트 줄 · 주석을 "전일 대비 · 당일"로. 값 · 계약 필드 이름 변화 0 |
+| 2026-11-26 | 해설 사실에 근거 '최근 흐름'(닫힌 일봉) 추가 — 서버가 조립하는 원칙 그대로(`SRV-REQ-063` FR-2) |

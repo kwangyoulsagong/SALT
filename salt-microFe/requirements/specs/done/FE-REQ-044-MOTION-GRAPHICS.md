@@ -138,6 +138,7 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | P-38 | 실시간 기준 시각 점(`RealtimeAsOf`) | 연결 중 숨 쉬는 점 | B ✅ |
 | P-39 | 페이지 카드(홈 · 투자 · 상세 · 리포트) | 차례 등장(FR-33) | C ✅ |
 | P-40 | 온보딩 단계 본문 | 옆으로 밀림(FR-36) | A ✅ |
+| P-41 | 한 장 패널 AI 해설 상자(`entities/coach` `ExplainBox`) | 머리 `Illustration coachBubble` `xs`(48) · 문장은 **보일 때** 차례 등장(`whileInView` once · 30% — 패널 맨 아래라 그릴 때 재생하면 사용자가 내려왔을 땐 끝나 있었다) · 날을 바꾸면 다시 | 2026-11-26 `FE-REQ-079` FR-6 ✅ |
 
 이미 있는 애니메이션(설명 스트림 · 예측 팬차트 · 사건 카드 · 가격 틱 · 등락률 깜빡임 · 스켈레톤 · 스피너 · 토스트 · 모달)은
 **다시 만들지 않는다.** 길이는 토큰과 **값이 같은 것만** 토큰으로 옮겼다(900ms → scene · 400ms → slow · 240ms → base, 5곳).
@@ -189,3 +190,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — 로그인 화면 문구 import 자리만 `@repo/web-shared/layout/sign-in` 으로 |
 | 2026-11-21 | 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `Illustration` 장면 `addToHome`(공유 버튼 → 추가 메뉴 → 더하기) — 휴대폰 설치 안내 시트 |
 | 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): `@repo/ui/enterReveal` 에 막대 차오름(`growInX` · `growInY`) · 행 등장(`enterRow`) · 차트 드러남(`chartReveal` — 바깥 `<svg>` `clip-path`) 더함, `enterReveal` 값 그대로. `useRolledNumber` 이징을 `Motion/bezier.ts` 로 나눔(값 같음). 버튼 · 아이콘 버튼 · 목록 행에 누름 0.97(옛 버튼 아래로 1px) |
+| 2026-11-26 | 걸침 — `FE-REQ-079` FR-6(`feat/ai-commentary-history`): `Illustration` 크기 `xs`(48px) + 스토리 · 배치표 P-41(해설 상자 머리 그림 · 문장 보일 때 재생). 장면 · 다른 크기 값 그대로 |

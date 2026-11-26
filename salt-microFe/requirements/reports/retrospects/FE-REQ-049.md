@@ -71,3 +71,5 @@
 - 2026-11-20 걸침(`FE-REQ-076` 2단계): 목표 상세 고정 열 묶음을 흰 카드로(`asideBlock`) · 저울 링크 · 완료 문장도 카드 — 상세 틀 `DetailTabs` · 패널 순서 그대로 — 할 일 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 상세 한 장 패널 비교 막대 차오름(`growInX`)
+
+- 2026-11-26 걸침(`FE-REQ-079` FR-6): 해설 문장 등장을 CSS 에서 `whileInView` 로 옮기며 전역 목록 행 등장(`main ul > li`)이 겹치지 않게 `animation: none` — 같은 자리에 등장 둘이면 둘 다 꺼야 하는지 먼저 본다. 할 일 없음

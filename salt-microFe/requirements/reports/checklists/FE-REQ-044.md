@@ -234,3 +234,7 @@
 ## 2026-11-26 `FE-REQ-062` 걸침
 
 - [x] `@repo/ui/enterReveal` 에 막대 차오름(`growInX` · `growInY`) · 행 등장(`enterRow`) · 차트 드러남(`chartReveal` — 바깥 `<svg>` `clip-path`) 더함, `enterReveal` 값 그대로. `useRolledNumber` 이징을 `Motion/bezier.ts` 로 나눔(값 같음). 버튼 · 아이콘 버튼 · 목록 행에 누름 0.97(옛 버튼 아래로 1px) — 실화면 1440 15화면 · 390 4화면 · 줄인 모션 — 측정은 `checklists/FE-REQ-062.md`
+
+## 2026-11-26 `FE-REQ-079` 걸침
+
+- [x] `Illustration` `xs`(48px) + 스토리 · 배치표 P-41 — `build-storybook` 통과 · 실화면 1280 · 390 머리 그림 48×38 · `aria-hidden` · opacity 1(측정은 `checklists/FE-REQ-079.md` FR-6)

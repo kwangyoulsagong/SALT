@@ -72,3 +72,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-13 | **F017 v4 순서 1f**(`feat/f017-v4-s1d-coach-panel`) FR-7 **done** — `GET /api/app/ai-coach/explain/stream` 중계(`openAuthStream` GET · 조용한 시간 30초 · 압축 없음 · `X-Accel-Buffering: no` · 15초 ping). 이벤트마다 뷰모델 검사 — 깨진 문장은 버림 · 깨진 한 벌은 `error {code}` · 서버 error 는 코드만. 화면이 떠나면 서버 연결도 끊음(생성은 서버가 끝까지) |
 | 2026-11-14 | F017 v4 2d — 패널 `company`: `reason` 대신 `brief`(사실 칸 · 출처 주소 검사) · 해설 뷰모델 `safeUrl` 공유 |
 | 2026-11-14 | F017 v4 2b — 회사 사정 `recent` 칸(오늘이 아닌 창 안 사실) |
+| 2026-11-26 | 코치 경로에 `/explanation/history` 추가 — 해설 뷰모델 `toExplanationSentence` 재사용(`BFF-REQ-057`) |
