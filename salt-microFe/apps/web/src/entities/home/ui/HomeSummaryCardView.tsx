@@ -1,4 +1,5 @@
 import { HOME_CARD_PILL_LABEL } from "@repo/core/labels";
+import { RolledText } from "@repo/ui/rolledText";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 
 import { NavChevron, ZoneLink } from "@repo/web-shared/ui/frame";
@@ -72,7 +73,7 @@ const HeroValue = ({ item, empty }: { item: HomeCardValue | null; empty: boolean
   item ? (
     <div className={hero}>
       <dt className={label}>{item.label}</dt>
-      <dd className={empty ? emptyValue : heroValue}>{item.value}</dd>
+      <dd className={empty ? emptyValue : heroValue}>{empty ? item.value : <RolledText text={item.value} />}</dd>
     </div>
   ) : null;
 

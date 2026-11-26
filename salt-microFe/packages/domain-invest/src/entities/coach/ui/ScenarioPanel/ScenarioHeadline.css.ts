@@ -1,5 +1,6 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
+import { growInX } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 import { ON_MOBILE } from "@repo/core/mobile";
 
@@ -102,6 +103,7 @@ export const oddsPct = style({ fontWeight: vars.fontWeights.semibold, color: var
 
 /** 2분할 막대 — 오른 몫 · 안 오른 몫(높이 6 · 사이 2) */
 export const split = style({
+  ...growInX,
   display: "flex",
   gap: "2px",
   height: "6px",
@@ -191,8 +193,8 @@ export const trackRow = style({
 export const trackBar = style({ height: "6px", borderRadius: "3px", background: vars.colors.neutral[200], overflow: "hidden" });
 
 export const trackFill = styleVariants({
-  model: { height: "100%", background: vars.colors.neutral[700] },
-  baseline: { height: "100%", background: vars.colors.neutral[400] },
+  model: { height: "100%", background: vars.colors.neutral[700], ...growInX },
+  baseline: { height: "100%", background: vars.colors.neutral[400], ...growInX },
 });
 
 /** 빌려 온 기간 안내 · 결함 단 문장 */

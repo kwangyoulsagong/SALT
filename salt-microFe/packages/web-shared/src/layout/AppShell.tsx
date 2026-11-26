@@ -5,6 +5,7 @@ import { appContent } from "./NarrowScreenNotice.css";
 import { AlertBell } from "./AlertBell";
 import { NarrowScreenNotice } from "./NarrowScreenNotice";
 import { ProfileMenu } from "./ProfileMenu";
+import { RouteMain } from "./RouteMain";
 import { SpeculationRules } from "./SpeculationRules";
 import { ZoneNavigation } from "./ZoneNavigation";
 
@@ -46,7 +47,7 @@ export const AppShell = ({
             <ProfileMenu />
           </>
         } headerNav={headerNav} headerSearch={headerSearch}>
-        <main className={appContent}>{children}</main>
+        <RouteMain className={appContent}>{children}</RouteMain>
       </ZoneNavigation>
       <NarrowScreenNotice />
       <SpeculationRules />

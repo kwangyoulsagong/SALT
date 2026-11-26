@@ -1,6 +1,7 @@
 import { globalStyle, keyframes, style, styleVariants } from "@vanilla-extract/css";
 
 import { ON_MOBILE, MOBILE_ROOT } from "@repo/core/mobile";
+import { growInX } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 import { nameChip } from "./ScenarioHeadline.css";
@@ -153,7 +154,7 @@ export const compareTrack = style({ height: "8px", borderRadius: "4px", backgrou
 export const compareFill = styleVariants({
   self: { background: vars.colors.text.primary },
   baseline: { background: vars.colors.neutral[400] },
-}, (tone) => [{ display: "block", height: "100%", borderRadius: "4px" }, tone]);
+}, (tone) => [{ display: "block", height: "100%", borderRadius: "4px", ...growInX }, tone]);
 export const compareValue = style({ textAlign: "right", fontWeight: vars.fontWeights.semibold, fontVariantNumeric: "tabular-nums", color: vars.colors.text.primary });
 
 // AI 해설 상자

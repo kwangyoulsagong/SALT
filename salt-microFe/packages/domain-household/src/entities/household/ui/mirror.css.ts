@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
+import { growInY } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -21,7 +22,7 @@ export const when = style({ alignSelf: "center", fontSize: "12px", lineHeight: "
 
 export const barCell = style({ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: "2px", height: "40px" });
 
-export const bar = style({ width: "100%", minHeight: "2px", borderRadius: "3px 3px 0 0", background: vars.colors.neutral[600] });
+export const bar = style({ width: "100%", minHeight: "2px", borderRadius: "3px 3px 0 0", background: vars.colors.neutral[600], ...growInY });
 
 export const score = style({ fontSize: "11px", lineHeight: "12px", color: vars.colors.text.tertiary });
 

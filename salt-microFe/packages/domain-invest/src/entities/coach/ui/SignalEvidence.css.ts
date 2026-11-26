@@ -2,6 +2,7 @@ import { globalStyle, style } from "@vanilla-extract/css";
 
 import { MOBILE_ROOT } from "@repo/core/mobile";
 
+import { growInX } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@repo/web-shared/ui/surface.css";
@@ -65,6 +66,7 @@ export const barFill = style({
   borderRadius: "6px",
   background: vars.colors.text.primary,
   opacity: 0.4,
+  ...growInX,
 });
 
 export const barCount = style({

@@ -1,5 +1,6 @@
 import { createVar, globalStyle, style, styleVariants } from "@vanilla-extract/css";
 
+import { growInY } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 /** 도메인 색 — 데스크톱 홈 미리보기와 같은 짝(진한 색 = 오늘 · 채움, 옅은 색 = 나머지 막대 · 트랙) */
@@ -25,7 +26,7 @@ export const bars = style({
   height: "56px",
   boxShadow: `inset 0 -1px 0 ${vars.colors.neutral[200]}`,
 });
-const barBase = { flex: 1, minWidth: 0, borderRadius: "3px 3px 0 0" } as const;
+const barBase = { flex: 1, minWidth: 0, borderRadius: "3px 3px 0 0", ...growInY } as const;
 export const bar = style([barBase, { background: toneSoft }]);
 export const barLast = style([barBase, { background: tone }]);
 export const barFuture = style({ flex: 1, minWidth: 0, height: 0 });
