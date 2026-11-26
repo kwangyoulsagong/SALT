@@ -115,7 +115,7 @@ const riskView = (): RiskBudgetView =>
   }) as unknown as RiskBudgetView;
 
 const sources = (over: Partial<Record<keyof CoachAnswerSources, () => Promise<unknown>>> = {}) => {
-  const calls = { riskBudget: 0, profitPlans: 0, behavior: 0, card: 0, weeklyPlan: 0 };
+  const calls = { riskBudget: 0, profitPlans: 0, behavior: 0, card: 0 };
   const wrap = <K extends keyof CoachAnswerSources>(key: K, fallback: () => Promise<unknown>) =>
     ({
       execute: async () => {
@@ -130,41 +130,48 @@ const sources = (over: Partial<Record<keyof CoachAnswerSources, () => Promise<un
       profitPlans: wrap("profitPlans", async () => ({ plans: [] })),
       behavior: wrap("behavior", async () => ({ status: "stable", warnings: [], evidence: { transactionCount: 9 } }) as unknown as BehaviorCoachView),
       card: wrap("card", async () => null),
-      weeklyPlan: wrap("weeklyPlan", async () => ({
-        configured: true,
-        totalKrw: 300_000,
-        items: [
-          { asset: "btc" as const, amountKrw: 150_000, fixed: true },
-          { asset: "kospi" as const, amountKrw: 150_000, fixed: true },
-        ],
-      })),
     } satisfies CoachAnswerSources,
   };
 };
 
 const T0 = new Date("2026-11-18T09:00:00Z");
 
+/** BFF 가 답 스트림 헤더로 싣는 이번 주 계획(서버 S4a — plan 이 Kotlin portfolio 로 옮겨 감) */
+const WEEKLY = {
+  configured: true,
+  totalKrw: 300_000,
+  items: [
+    { asset: "btc" as const, amountKrw: 150_000, fixed: true },
+    { asset: "kospi" as const, amountKrw: 150_000, fixed: true },
+  ],
+};
+
 describe("코치 대화 — 이번 주 얼마(2026-11-19 밴드 적립 주간 계획)", () => {
-  it("적립 칩은 주간 계획만 읽는다(+ 사고팔기 카드) · 위험 예산 0 · 적립 화면 링크", async () => {
+  it("적립 칩은 받은 주간 계획만 쓴다(+ 사고팔기 카드) · 위험 예산 0 · 적립 화면 링크", async () => {
     const store = new MemoryStore();
     const { sources: src, calls } = sources();
     const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "weekly_amount" });
-    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
+    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId, { weeklyPlan: WEEKLY });
     assert.ok(!("failed" in result));
-    assert.deepEqual(calls, { riskBudget: 0, profitPlans: 0, behavior: 0, card: 1, weeklyPlan: 1 });
+    assert.deepEqual(calls, { riskBudget: 0, profitPlans: 0, behavior: 0, card: 1 });
     assert.match(result.answer.sentences.join(" "), /이번 주 적립 계획은 300,000원이에요/);
     assert.deepEqual(result.answer.links, [{ kind: "plan" }]);
   });
 
-  it("주간 계획을 못 읽으면 그 문장만 불러올 수 없어요(500 아님)", async () => {
-    const store = new MemoryStore();
-    const { sources: src } = sources({ weeklyPlan: async () => { throw new Error("db"); } });
-    const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "weekly_amount" });
-    const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
-    assert.ok(!("failed" in result));
-    assert.match(result.answer.sentences.join(" "), /불러올 수 없어요/);
-    assert.deepEqual(result.answer.gaps, ["weekly_plan"]);
-  });
+  for (const [name, given] of [
+    ["BFF 가 못 읽음(null)", { weeklyPlan: null }],
+    ["사실을 안 받음", {}],
+  ] as const) {
+    it(`주간 계획 ${name} → 그 문장만 불러올 수 없어요(500 아님)`, async () => {
+      const store = new MemoryStore();
+      const { sources: src } = sources();
+      const asked = await new AskCoach(store, () => T0).execute("u1", { conversationId: null, content: null, chip: "weekly_amount" });
+      const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId, given);
+      assert.ok(!("failed" in result));
+      assert.match(result.answer.sentences.join(" "), /불러올 수 없어요/);
+      assert.deepEqual(result.answer.gaps, ["weekly_plan"]);
+    });
+  }
 });
 
 describe("코치 대화 — 묻기 · 답", () => {
@@ -175,7 +182,7 @@ describe("코치 대화 — 묻기 · 답", () => {
     const result = await new AnswerCoachMessage(store, src, undefined, () => T0).execute("u1", asked.messageId);
     assert.ok(!("failed" in result));
     assert.equal(result.answer.intent, "risk_check");
-    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 0, behavior: 0, card: 0, weeklyPlan: 0 }, "위험 답에는 추천 카드를 끼우지 않는다");
+    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 0, behavior: 0, card: 0 }, "위험 답에는 추천 카드를 끼우지 않는다");
     assert.match(result.answer.sentences.join(" "), /BTC가 70%로 정해 둔 상한 60%를 넘었어요/);
 
     const list = await new ListCoachMessages(store, new FailStaleCoachAnswers(store, () => T0)).execute("u1", asked.conversationId, 20, null);
@@ -355,7 +362,7 @@ describe("오늘의 브리핑(FR-21)", () => {
     };
     const { sources: src, calls } = sources({ profitPlans: async () => plans, card: async () => renderableCard() });
     const result = await new GetCoachBriefing(src, undefined, () => T0).execute("u1");
-    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 1, behavior: 0, card: 1, weeklyPlan: 0 });
+    assert.deepEqual(calls, { riskBudget: 1, profitPlans: 1, behavior: 0, card: 1 });
     assert.equal(result.generatedAt.toISOString(), T0.toISOString());
     assert.equal(result.card?.symbol, "BTC");
     const text = result.sentences.join(" ");

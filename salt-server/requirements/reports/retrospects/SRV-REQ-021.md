@@ -15,3 +15,8 @@
 ## 2026-11-19 FR-29 고침
 
 - 형식 검사(DTO)만 있고 "오늘"이 필요한 판정(미래 달)은 빠졌다 — 시계가 필요한 거절은 DTO 가 아니라 유스케이스에 두고, 경계 시험에 시간대 경계(KST 월말 15:00Z)를 넣는다
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 없음(이 몫 안)

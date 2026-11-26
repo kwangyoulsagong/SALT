@@ -40,3 +40,8 @@
 실화면(순서 3)은 `FE-REQ-022` 체크리스트에서 닫혔다.
 
 미충족 — 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — plan 정책 · 경로가 Kotlin 으로 옮겨 간 자리(머리 주석). 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

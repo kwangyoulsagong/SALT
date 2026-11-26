@@ -294,3 +294,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-18 | F006 포지션 2단계 짝(`feat/f006-position-trades`, 파일만 걸침) — `salt-server/src/shared/infrastructure/prisma.ts` — 연결 고르기(`routedClient`)에 **열린 트랜잭션** 맥락을 더했다(`runInTransaction`). 화면 · 배치 풀 나눔은 그대로(시험 `prismaRouting.test.ts` 한 줄 더함) |
 | 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`, 파일만 걸침) — `salt-server/src/app.ts` 에 `/api/plan` 경로 한 줄. 이 REQ 의 동작 변경 0. 루트 `F003-v2-s2-plan-server-slice.md` |
 | 2026-11-19 | 생성 기록 보존 짝(`feat/web-perf-close`, 파일만 걸침) — 이 REQ 머리의 `coach/application/GenerateCoachRecommendation.ts` 가 생성이 끝날 때마다 90일 지난 `coach_generation_logs` 를 지운다(`COACH_GENERATION_LOG_KEEP_DAYS` · 실패해도 생성 계속). 스키마 · 마이그레이션 변경 0. 주인 `DB-REQ-020` FR-41 · 42 · `SRV-REQ-027` FR-24. 루트 `WEB-perf-req-close-slice.md` |
+| 2026-11-26 | S4a 파일만 걸침 — Express app.ts 경로 등록 한 줄 삭제. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

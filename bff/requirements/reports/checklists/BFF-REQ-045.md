@@ -98,3 +98,8 @@
 ## 2026-11-19 F003 v2 순서 3(파일 걸침)
 
 - `rest/app.ts` 에 `/api/app/plan` 한 줄 — 라우팅 스위치 무변경(서버 `/plan` 은 legacy) — 영역 검증 전체 pass(`pnpm check-types` · `lint` · `test` · BFF `npm test` · 투자 · 셸 zone 빌드)
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: 실스택: `/api/app/plan/*` 다섯 경로가 platform 으로 · Express `/api/plan/weekly` 404
+- 미검증: 없음(이 몫 안)

@@ -51,3 +51,8 @@
 | FR-49 | 충족 | 유스케이스 시험(keep) · 실응답 `keep {questions:100, days:90}` · Swagger 400 · keep 설명 |
 
 루트 `requirements/specs/done/F006-coach-chat-history-slice.md` · 미검증 표는 그 슬라이스 체크리스트
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: `weeklyPlanHeader.test.ts` 경계 11(맞는 모양 · 설정 전 · 없음 · 빈 글자 · JSON 아님 · 모르는 자산 · 소수 · 모르는 키 · 자산 셋 · 헤더 둘 · 길이)
+- 미검증: 없음(이 몫 안)

@@ -17,6 +17,8 @@ import { zip, type ZipEntry } from "../utils/zip.util";
 /** 지우는 순서 — 투자(Express, 결과 · 거래)부터, 알림은 다른 서비스가 지우는 동안 들어온 것까지 끝에 */
 export const MY_DATA_SERVICES = [
   { service: "investment", path: "/investment/me/data" },
+  // 밴드 적립 — 서버 S4a(2026-11-26)에 Kotlin portfolio 로. 보유 · 거래는 S4b 까지 위 investment(Express)
+  { service: "portfolio", path: "/portfolio/me/data" },
   { service: "household", path: "/household/me/data" },
   { service: "savings", path: "/savings/me/data" },
   { service: "content", path: "/content/me/data" },

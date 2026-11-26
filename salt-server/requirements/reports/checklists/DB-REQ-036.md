@@ -107,3 +107,10 @@
 
 - 주인 표 portfolio +2 · 합계 고침 · 교차 스키마 조인 0(plan 은 `forecast` 뷰만 `$queryRaw`) · 사용자 FK 0
 - 미충족: 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 검증: 로컬 운영 DB: `svc_portfolio` LOGIN · 뷰 둘 SELECT t · 원본 표 f · Flyway V1 성공 · 가져오기 대조 0 · 0 두 번(멱등) · 덤프 6 항목
+- 검증: 시험: 서비스 계정으로 `market.probe` · `forecast.accumulation_band` 권한 오류 · 뷰 둘 읽힘(`PortfolioPlanEndToEndTest`)
+- 검증: 옛 public 표 drop 적용(덤프 `~/salt-backups/2026-11-26-public-plan-tables-before-drop.dump` · 복원 시험 · `migrate deploy`)
+- 미검증: 없음(이 몫 안)

@@ -106,11 +106,6 @@ import { createInvestmentRouter } from "./market/presentation/investment.routes"
 import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
 import { createKrStockRouter } from "./market/presentation/krStock.routes";
 import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
-import { createPlanApplication } from "./plan/application/api";
-import { PrismaBandReader } from "./plan/infrastructure/PrismaBandReader";
-import { PrismaExecutionStore } from "./plan/infrastructure/PrismaExecutionStore";
-import { PrismaPlanSettingsStore } from "./plan/infrastructure/PrismaPlanSettingsStore";
-import { createPlanRouter } from "./plan/presentation/plan.routes";
 import { env } from "./shared/config/env";
 import { logger } from "./shared/config/logger";
 
@@ -347,8 +342,6 @@ const moveCauseAdapter = new MoveCauseAdapter(market.api);
 const coach = createCoachApplication({
   // 코치 대화(F006 C절)
   conversations: new PrismaCoachConversationStore(),
-  // 대화 "이번 주 얼마 넣을까" — 밴드 적립(portfolio 서비스의 `plan`)의 주간 계획을 좁혀 끼운다. 부를 때 평가라 아래 선언 순서와 무관(2026-11-19)
-  weeklyPlan: { execute: (userId) => plan.useCases.getWeeklyPlan.execute(userId) },
   // PC 패널 배치(F006 A절)
   panelLayouts: new PrismaPanelLayoutStore(),
   profiles: new PrismaCoachProfileStore(),
@@ -446,36 +439,12 @@ export const contextUseCases = {
 };
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
-/**
- * `plan`(F003 v2 · portfolio 서비스의 컨텍스트 — `ADR-006` §1) — 다른 컨텍스트를 읽지 않는다. 배수 · 성적 · 실패 사례는 예측 뷰,
- * 금액만 여기서. 설정값은 env 한 곳.
- */
-const plan = createPlanApplication({
-  settings: new PrismaPlanSettingsStore(),
-  executions: new PrismaExecutionStore(),
-  bands: new PrismaBandReader(),
-  tx: { run: (fn) => runInTransaction(fn) },
-  config: {
-    allocation: [
-      { asset: "btc", pct: env.PLAN_ALLOCATION_BTC_PCT },
-      { asset: "kospi", pct: 100 - env.PLAN_ALLOCATION_BTC_PCT },
-    ],
-    monthlyMinKrw: env.PLAN_MONTHLY_MIN_KRW,
-    monthlyMaxKrw: env.PLAN_MONTHLY_MAX_KRW,
-    executionCapMultiple: env.PLAN_EXECUTION_CAP_MULTIPLE,
-    kimchiHighPct: env.PLAN_KIMCHI_HIGH_PCT,
-    kimchiLowPct: env.PLAN_KIMCHI_LOW_PCT,
-    kimchiMaxAgeDays: env.PLAN_KIMCHI_MAX_AGE_DAYS,
-  },
-});
-
 export const contextRouters = {
   news: createNewsRouter(news.useCases, env.FORECAST_OWNER_EMAILS),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
   krStock: createKrStockRouter(market.useCases.krStock, market.useCases.getKrMarketSchedule),
   portfolio: createPortfolioRouter(portfolio.useCases),
-  plan: createPlanRouter(plan.useCases),
   aiCoach: createAICoachRouter(coach.useCases),
   behaviorCoach: createBehaviorCoachRouter(coach.useCases),
   profitPlan: createProfitPlanRouter(coach.useCases),

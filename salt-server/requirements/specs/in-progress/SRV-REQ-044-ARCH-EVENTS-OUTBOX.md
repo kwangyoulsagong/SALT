@@ -57,3 +57,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음 — identity 는 S3a 발행 0(아웃박스 표만 · `UserRegistered` 는 S3b FR-9) |
 | 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): 플랫폼 `application.yml`(머리 주인) — identity 설정 · 공개 경로 여섯 · 옛 HS 끝 시각. 이벤트 `identity.UserRegistered` 첫 발행(계약 파일 · 스키마 검사 · 아웃박스 같은 트랜잭션) |
 | 2026-11-21 | 걸침 — 웹 푸시(`SRV-REQ-062`, `feat/f019-s4-web-push`): 플랫폼 `application.yml`(머리 주인)에 `salt.notification.push.*`(기본 꺼짐). 아웃박스 · 이벤트 변화 0 |
+| 2026-11-26 | S4a 파일만 걸침 — application.yml(portfolio 계정 · PLAN_* 설정). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

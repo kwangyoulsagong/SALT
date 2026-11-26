@@ -87,3 +87,8 @@
 | 없음 | — | — |
 
 - 2026-11-21 걸침(`SRV-REQ-062`): `application.yml` 푸시 설정 — `./gradlew check` 통과 · 아웃박스 시험 그대로
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — application.yml(portfolio 계정 · PLAN_* 설정). 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

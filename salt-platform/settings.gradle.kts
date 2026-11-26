@@ -50,6 +50,10 @@ include(
     "services:identity:application",
     "services:identity:infrastructure",
     "services:identity:api",
+    "services:portfolio:domain",
+    "services:portfolio:application",
+    "services:portfolio:infrastructure",
+    "services:portfolio:api",
     "services:coach:infrastructure",
     "app",
 )

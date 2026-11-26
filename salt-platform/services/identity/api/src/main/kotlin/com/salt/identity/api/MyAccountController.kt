@@ -6,6 +6,7 @@ import com.salt.identity.application.ExportAccount
 import com.salt.identity.application.IssueEraseGrant
 import com.salt.identity.domain.PersonalTable
 import com.salt.support.web.ApiResponse
+import com.salt.support.web.FixedWindowLimit
 import com.salt.support.web.AuthenticatedUser
 import com.salt.support.web.EraseGrants
 import io.swagger.v3.oas.annotations.Operation
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,7 +42,7 @@ class MyAccountController(
     private val grant: IssueEraseGrant,
     private val delete: DeleteAccount,
     private val grants: EraseGrants,
-    private val grantLimit: FixedWindowLimit,
+    @param:Qualifier("identityEraseGrantLimit") private val grantLimit: FixedWindowLimit,
     private val classify: ClassifyAccountData,
 ) {
     data class GrantRequest(@field:NotNull(message = MISSING) @field:Size(min = 1, max = 200, message = "비밀번호를 입력해 주세요") val password: String?)

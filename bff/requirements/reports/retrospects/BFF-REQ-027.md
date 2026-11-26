@@ -44,3 +44,8 @@
 ## 2026-11-20 `BFF-REQ-046` 홈 카드 미리보기가 걸침
 
 - 기본값을 그대로 둔 선택 인자 하나 — 기존 소비처 동작 무변경. Action 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표

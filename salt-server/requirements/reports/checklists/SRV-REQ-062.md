@@ -21,3 +21,8 @@
 | Apple(`web.push.apple.com`) · Mozilla 실제 왕복 | 이 맥엔 Chrome 만 — Safari 웹앱 푸시는 휴대폰 설치 앱 | `QA-001` Q-9(사용자 iPhone) |
 | 운영 키 · `PUBLIC_ORIGIN` | 배포 환경이 없다 | `OPS-001` 배포 때 비밀 저장소에 |
 | 경계 변이(위반 import) | 새 모듈 의존 추가 0 — 기존 서비스 안 | 다음 서비스 추가 때 |
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 시험 컨테이너(PlatformContainers) 계정 · 예측 마이그레이션. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

@@ -82,3 +82,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-19 | F003 v2 순서 3(`feat/f003-v2-s3-plan-screen`, 루트 `F003-v2-s3-plan-screen-slice.md`)이 이 REQ 의 파일을 걸침 — 홈 투자 카드 `note` 에 적립 한 줄(서버 `totalKrw`, 600ms · 매입가 숨김 질문 우선) — 카드 계약 모양 무변경. 이 REQ 의 FR 은 그대로 |
 | 2026-11-20 | **FR-12 · 13 신설 · 충족**(`feat/fe-req-048-home-card-preview`) — 카드 미리보기 · 빈 카드 `action` · 홈 `recent` · `upcoming`. 필드 더하기만(BREAKING 0) · 계약 블록 `@repo/core/home` 같이. 미리보기 600ms · 둘째 줄 700ms 따로 — 카드 값 800ms 는 그대로. 짝 `BFF-REQ-027` · `047` · `048`(선택 `timeout` 인자). 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |
 | 2026-11-21 | 걸침 — 웹 푸시(`BFF-REQ-056`, `feat/f019-s4-web-push`): 이 REQ 머리의 알림 컨트롤러 · 경로 파일에 `/api/app/me/push` 셋. 알림 설정 계약(FR-8) 변화 0 |
+| 2026-11-26 | S4a(2026-11-26) — 내 데이터 서비스 목록에 `portfolio`(`/portfolio/me/data` — investment 다음). 지워지는 범위 · 저장하는 것 · 내보내기가 같은 목록으로 돈다. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

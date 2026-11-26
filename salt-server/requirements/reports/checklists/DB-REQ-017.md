@@ -390,3 +390,8 @@
 - `coach/application/GenerateCoachRecommendation.ts`(머리 주인) — 생성마다 `pruneBefore`(90일). 시험 `generateCoachLogging.test.ts` 둘(성공 · 실패 모두 지움 · 지우기 실패가 생성을 막지 않음) · 실 DB(100일 전 1건만 지움)
 - 미충족: 없음(이 REQ 몫 변경 0)
 - 근거: 루트 슬라이스 `requirements/specs/done/WEB-perf-req-close-slice.md` 검증 절
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — Express app.ts 경로 등록 한 줄 삭제. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

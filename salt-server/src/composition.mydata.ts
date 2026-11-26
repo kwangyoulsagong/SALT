@@ -13,7 +13,6 @@ import { LLM_INPUTS } from "./coach/domain";
 import { COACH_USER_ROWS } from "./coach/infrastructure/userRows";
 import { MARKET_USER_ROWS } from "./market/infrastructure/userRows";
 import { NEWS_USER_ROWS } from "./news/infrastructure/userRows";
-import { PLAN_USER_ROWS } from "./plan/infrastructure/userRows";
 import { PORTFOLIO_USER_ROWS } from "./portfolio/infrastructure/userRows";
 import { DomainError, ErrorKind } from "./shared/domain";
 import prisma from "./shared/infrastructure/prisma";
@@ -38,7 +37,6 @@ const DORMANT_USER_ROWS: readonly UserRowSet[] = [
 export const INVESTMENT_USER_ROWS: readonly UserRowSet[] = [
   ...COACH_USER_ROWS,
   ...PORTFOLIO_USER_ROWS,
-  ...PLAN_USER_ROWS,
   ...MARKET_USER_ROWS,
   ...NEWS_USER_ROWS,
   ...DORMANT_USER_ROWS,

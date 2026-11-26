@@ -191,3 +191,8 @@
 
 - 코치 조립 의존(`CoachDependencies`)에 주간 계획 소스 한 줄(`feat/f006-coach-chat-redesign`) — 표 · 뷰 변경 0
 - 확인은 `FE-REQ-030` 체크리스트 2026-11-19 코치 대화 재설계 절
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — coach 조립 의존 한 줄 삭제. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

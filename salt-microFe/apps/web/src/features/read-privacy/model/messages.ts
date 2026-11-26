@@ -13,6 +13,7 @@ export const PRIVACY_MESSAGES = {
   storedHeading: "저장하는 것",
   services: {
     investment: "투자",
+    portfolio: "투자 적립",
     household: "가계부",
     savings: "저축",
     content: "금융 팁",

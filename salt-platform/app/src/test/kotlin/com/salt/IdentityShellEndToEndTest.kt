@@ -96,7 +96,7 @@ class IdentityShellEndToEndTest : ContentHttp() {
         val pg = PlatformContainers.postgres
         val error = runCatching {
             DriverManager.getConnection(pg.jdbcUrl, "svc_identity", PlatformContainers.IDENTITY_PASSWORD).use {
-                it.createStatement().executeQuery("SELECT * FROM portfolio.probe")
+                it.createStatement().executeQuery("SELECT * FROM market.probe")
             }
         }.exceptionOrNull() as? SQLException
         error?.sqlState shouldBe "42501"

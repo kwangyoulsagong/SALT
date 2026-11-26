@@ -62,3 +62,8 @@
 
 - 몫: `compose.yaml` identity env 3개 · 호스트 포트 env
 - 검증: 루트 체크리스트 `requirements/reports/checklists/OPS-002-new-mac-setup.md` — 이 REQ 의 기존 항목은 다시 열지 않음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 플랫폼 시험(권한 표본 portfolio.probe → market.probe · 연결 상한 300 → 500). 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

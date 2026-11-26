@@ -29,3 +29,8 @@
 | FR-16 | 충족 | `src/plan/domain/policy/monthlySummary.ts:23` |
 
 미충족 — 없음
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — plan 표 등급 주석 · DDL 이 Flyway 로. 검증은 루트 체크리스트(`./gradlew check` · Express · BFF 시험)
+- 미검증: 없음(이 몫 안)

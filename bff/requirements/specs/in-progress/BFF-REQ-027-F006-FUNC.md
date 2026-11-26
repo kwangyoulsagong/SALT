@@ -224,3 +224,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 2026-11-19 | 코치 답 링크 목록 `COACH_LINK_KINDS` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 모르는 종류는 여전히 거른다(시험) |
 | 2026-11-19 | FR-113 신설 — 틀린 커서 400 · `keep` 검증 전달. `feat/f006-coach-chat-history` |
 | 2026-11-20 | `BFF-REQ-046` FR-12 홈 카드 미리보기(`feat/fe-req-048-home-card-preview`)가 이 REQ 파일을 걸침 — `appPortfolioService.getPositionFlow` 에 선택 `timeout` 인자(기본값 그대로 — 홈 미리보기 예산 600ms 용). 경로 · 응답 무변경. 루트 `requirements/specs/in-progress/F000-home-dashboard-slice.md` |
+| 2026-11-26 | S4a(2026-11-26) — 답 스트림 열기 전 `GET /plan/weekly`(Kotlin portfolio, 400ms) → 자산 · 금액 · 굳음만 골라 `X-Salt-Weekly-Plan` 헤더. 못 읽거나 모양이 틀리면 안 싣는다(답은 서버가 "불러올 수 없어요"). 화면 계약 무변경. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

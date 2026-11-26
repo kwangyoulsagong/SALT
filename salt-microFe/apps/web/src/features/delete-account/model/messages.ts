@@ -8,6 +8,7 @@ export const DELETE_ACCOUNT_MESSAGES = {
   scopeLabel: "지워지는 것",
   scope: {
     investment: "투자 — 거래 · 보유 · 관심 종목 · 코치 기록 · 계획",
+    portfolio: "투자 적립 — 월 적립액 · 주마다 적립 계획 · 체크",
     household: "가계부 — 지출 · 감정 · 급여 · 예산 · 반복 · 챌린지 · 사람 장부",
     savings: "저축 — 목표 · 적립 · 실물 단위",
     content: "금융 팁 — 퀴즈 답 · 닫은 팁",

@@ -246,3 +246,4 @@ type TrackRecord = {
 | 2026-11-19 | F003 v2 순서 2 — 경로 다섯 구현 · 머리 블록(실제 계약). to-do → in-progress. 루트 `F003-v2-s2-plan-server-slice.md` |
 | 2026-11-19 | FR 대조 정리(`WEB-perf-req-close-slice.md`) — BFF 짝 · 화면은 순서 3 에서 닫힘. FR-29(미래 달 400) 하나가 남아 in-progress 유지 |
 | 2026-11-19 | FR-29 고침 — 오지 않은 달 400 `PLAN_MONTH_IN_FUTURE`(KST 경계 · 변이 시험). 남은 FR 없음 → done |
+| 2026-11-26 | S4a 파일만 걸침 — plan 유스케이스가 옮겨 간 자리. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

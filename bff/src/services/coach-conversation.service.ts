@@ -165,6 +165,39 @@ const requireId = (value: unknown, code: string): string => {
 };
 
 /** 답 스트림이 조용해도 되는 시간 — 서버는 규칙 답이라 곧 끝난다. 재료 셋을 읽는 몇 초 + 여유 */
+/**
+ * 코치 답의 "이번 주 얼마 넣을까" 재료 — Kotlin portfolio `GET /plan/weekly` 를 읽어 칸만 골라 JSON 한 줄로(서버 S4a `SRV-REQ-049` FR-1).
+ * 금액은 옮기기만(반올림 · 계산 0). 못 읽거나 모양이 틀리면 null — 헤더를 안 싣고 서버가 그 문장만 "불러올 수 없어요"로 답한다.
+ * 첫 토큰 예산(1s) 안에서 끝나게 짧은 예산 — 넘기면 계획 없이 연다(답 전체를 기다리게 하지 않는다)
+ */
+export const WEEKLY_PLAN_HEADER = "X-Salt-Weekly-Plan";
+export const WEEKLY_PLAN_FACT_TIMEOUT_MS = 400;
+
+export const toWeeklyPlanFact = (data: unknown): string | null => {
+  const d = data as { configured?: unknown; totalKrw?: unknown; items?: unknown } | null;
+  if (!d || typeof d.configured !== "boolean" || !Array.isArray(d.items)) return null;
+  if (d.totalKrw !== null && !Number.isInteger(d.totalKrw)) return null;
+  const items: Array<{ asset: string; amountKrw: number | null; fixed: boolean }> = [];
+  for (const raw of d.items as Array<{ asset?: unknown; amountKrw?: unknown; fixed?: unknown }>) {
+    if ((raw?.asset !== "btc" && raw?.asset !== "kospi") || typeof raw.fixed !== "boolean") return null;
+    if (raw.amountKrw !== null && !Number.isInteger(raw.amountKrw)) return null;
+    items.push({ asset: raw.asset, amountKrw: raw.amountKrw as number | null, fixed: raw.fixed });
+  }
+  return JSON.stringify({ configured: d.configured, totalKrw: d.totalKrw, items });
+};
+
+const weeklyPlanFact = async (token: string): Promise<string | null> => {
+  try {
+    const response = await backendApi.proxyAuthRequest("GET", "/plan/weekly", token, undefined, { timeout: WEEKLY_PLAN_FACT_TIMEOUT_MS });
+    const fact = toWeeklyPlanFact((response.data as { data?: unknown } | undefined)?.data);
+    if (!fact) logger.warn("코치 답 재료 — 이번 주 적립 계획 모양이 틀려 싣지 않는다");
+    return fact;
+  } catch (error) {
+    logger.warn("코치 답 재료 — 이번 주 적립 계획을 못 읽어 싣지 않는다", { reason: (error as Error)?.message });
+    return null;
+  }
+};
+
 const ANSWER_STREAM_IDLE_MS = 30_000;
 
 /**
@@ -263,7 +296,10 @@ export const coachConversationService = {
     await backendApi.proxyAuthRequest("DELETE", `/coach/conversations/${id}`, token);
   },
 
-  /** 답 스트림 — 이벤트마다 모양을 좁혀 옮긴다. 화면이 끊으면 `signal` 로 서버까지 끊는다(`streaming-sse.md` §4) */
+  /**
+   * 답 스트림 — 이벤트마다 모양을 좁혀 옮긴다. 화면이 끊으면 `signal` 로 서버까지 끊는다(`streaming-sse.md` §4).
+   * 열기 전에 이번 주 적립 계획을 읽어 헤더 사실로 싣는다(서버 S4a — plan 이 Kotlin portfolio 라 코치가 직접 못 읽는다, `bff-architecture.md` §5)
+   */
   async streamAnswer(
     token: string,
     messageId: unknown,
@@ -272,11 +308,15 @@ export const coachConversationService = {
     signal?: AbortSignal
   ): Promise<void> {
     const id = requireId(messageId, "INVALID_MESSAGE_ID");
+    const weekly = await weeklyPlanFact(token);
+    const headers: Record<string, string> = {};
+    if (lastEventId && /^\d{1,4}$/.test(lastEventId)) headers["Last-Event-ID"] = lastEventId;
+    if (weekly) headers[WEEKLY_PLAN_HEADER] = weekly;
     const upstream = await backendApi.openAuthStream(`/coach/messages/${id}/stream`, token, undefined, {
       method: "GET",
       timeout: ANSWER_STREAM_IDLE_MS,
       signal,
-      headers: lastEventId && /^\d{1,4}$/.test(lastEventId) ? { "Last-Event-ID": lastEventId } : undefined,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
     });
     const parse = createSseParser(({ event, data, id: eventId }) => {
       let body: unknown;

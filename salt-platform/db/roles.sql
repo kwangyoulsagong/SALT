@@ -2,7 +2,8 @@
 --
 --   psql -v ON_ERROR_STOP=1 -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" \
 --        -v household_password="$HOUSEHOLD_DB_PASSWORD" -v content_password="$CONTENT_DB_PASSWORD" \
---        -v notification_password="$NOTIFICATION_DB_PASSWORD" -v coach_password="$COACH_DB_PASSWORD" -f db/roles.sql
+--        -v notification_password="$NOTIFICATION_DB_PASSWORD" -v coach_password="$COACH_DB_PASSWORD" \
+--        -v identity_password="$IDENTITY_DB_PASSWORD" -v portfolio_password="$PORTFOLIO_DB_PASSWORD" -f db/roles.sql
 --
 -- - 스키마 주인 = 서비스 계정 → 자기 스키마에만 DDL(Flyway) · DML. 남의 스키마는 USAGE 가 없어 SELECT 도 권한 오류
 -- - 아직 플랫폼에서 돌지 않는 서비스는 NOLOGIN — 그 서비스가 옮겨 오는 단계에 `ALTER ROLE … LOGIN PASSWORD` 한 줄
@@ -41,3 +42,7 @@ ALTER ROLE svc_coach LOGIN PASSWORD :'coach_password';
 
 -- 서버 S3a(`SRV-REQ-048` FR-1 · 2, 2026-11-06) — identity 가 플랫폼에서 셸 설정 표로 태어나 로그인을 연다. 사용자 · 초대 코드 표는 S3b 까지 public(Express auth)
 ALTER ROLE svc_identity LOGIN PASSWORD :'identity_password';
+
+-- 서버 S4a(`SRV-REQ-049` FR-1, 2026-11-26) — portfolio 가 밴드 적립(plan)으로 플랫폼에 옮겨 와 로그인을 연다. 보유 · 거래 표는 S4b 까지 public(Express).
+-- 예측 밴드 뷰 둘 SELECT 는 forecast DDL 주인(Prisma `20261126100000_forecast_band_grant_portfolio`)이 준다 — 여기서 주지 않는다(주인 한 곳)
+ALTER ROLE svc_portfolio LOGIN PASSWORD :'portfolio_password';

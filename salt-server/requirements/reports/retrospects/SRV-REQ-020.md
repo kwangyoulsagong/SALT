@@ -13,3 +13,8 @@
 ## 2026-11-19 FR 대조 정리
 
 - 미충족 칸에 "실화면(순서 3)"을 적어 두고 순서 3 이 끝난 뒤 지우지 않았다. Action: 슬라이스를 닫을 때 앞 순서 REQ 체크리스트의 미충족 줄을 grep 한다
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 파일만 걸침 — 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 없음(이 몫 안)

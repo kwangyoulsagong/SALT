@@ -98,3 +98,8 @@
 - 2026-11-20 걸침(`FE-REQ-076` 1단계): 홈 요약 카드 표시만 바뀜(아이콘 판 · 알약 · 주인공 24) — BFF 값 · 링크 · 계측 그대로 — 할 일 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 홈 카드 주인공 값이 바뀔 때 굴림(`RolledText` — 빈 카드 · 못 받은 카드는 글자 그대로)
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표

@@ -41,3 +41,4 @@ source: requirements/specs/in-progress/F003-v2-band-accumulation-global-plan.md
 |---|---|
 | 2026-11-19 | 신규 · FR-1~7 done(`feat/f003-v2-s1-band-forecast`). 사전등록 @1 → @2(신선도 결함). 코스피 PER 이익 고정 추정의 약점(8월 18.6 → 9월 11.4 분기 갱신 점프)을 화면 "추정" 표시로 |
 | 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`) — FR-6: 행에 `bands`(사전등록 밴드 표, 끝 줄 below null) · 서버가 읽는 주별 뷰 `v_accumulation_band_week`(DDL 서버 Prisma `20261119300000`). 판정 · 검산 무변경 |
+| 2026-11-26 | S4a 파일만 걸침 — 밴드 뷰 계약 그대로 읽는 자리(JooqBandReader). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

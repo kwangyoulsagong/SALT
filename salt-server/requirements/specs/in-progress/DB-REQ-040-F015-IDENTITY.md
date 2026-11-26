@@ -56,3 +56,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-18 | F006 대화 2단계 짝(`feat/f006-coach-conversation-s2`) — `schema.prisma`(머리 주인)에 `CoachMessage.cardPayload` · `insightId` · `InvestmentInsight.coachMessages` 관계(주인 `DB-REQ-021`). identity 표 변경 0 |
 | 2026-11-19 | 파일만 걸침(`feat/f006-pc-panel-grid`) — `schema.prisma` 에 `PanelLayout` 모델 추가(이 REQ 표 무변경). 이 REQ 동작 무변경 |
 | 2026-11-19 | F003 v2 순서 2 짝(`feat/f003-v2-s2-plan-server`, 파일만 걸침) — `salt-server/prisma/schema.prisma` 에 plan 모델 둘. 이 REQ 의 동작 변경 0. 루트 `F003-v2-s2-plan-server-slice.md` |
+| 2026-11-26 | S4a 파일만 걸침 — Prisma schema 모델 둘 삭제. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

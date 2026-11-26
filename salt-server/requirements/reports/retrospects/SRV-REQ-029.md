@@ -28,3 +28,8 @@
 ## 2026-11-19 — 대화 보관 한도 · 지난 대화 무한 스크롤(`feat/f006-coach-chat-history`)
 
 - 숫자(100 · 90)를 화면 문구에 박지 않고 응답에 실었다 — 상한을 바꾸면 서버 상수 하나
+
+## 2026-11-26 — 서버 S4a 밴드 적립 → Kotlin portfolio(`MONEY-S4a-portfolio-plan`, `feat/srv-req-049-s4-portfolio`)
+
+- 판단 · 실수는 루트 회고 `MONEY-S4a-portfolio-plan`
+- **Action**: 이 몫은 루트 회고 Action 표

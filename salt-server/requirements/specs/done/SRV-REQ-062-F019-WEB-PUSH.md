@@ -52,3 +52,4 @@ source: "사용자 2026-11-21 \"새 브랜치 파고 다음 파이프라인 진�
 |---|---|
 | 2026-11-21 | 버그 검증 — 고친 넷: 곡선 밖 키가 회차를 멈춰 같은 회차 남의 푸시를 잃던 것 · 기기 상한 없음(증폭) · 알림 뒤 끈 도메인에도 보냄 · 기기 하나의 오류가 회차를 멈춤. 시험 + 변이 4/4 잡힘 |
 | 2026-11-21 | 신규 · **done**(`feat/f019-s4-web-push`). 짝 `DB-REQ-046` · `BFF-REQ-056` · `FE-REQ-078`. 루트 `requirements/specs/done/F019-s4-web-push-slice.md` |
+| 2026-11-26 | S4a 파일만 걸침 — 시험 컨테이너(PlatformContainers) 계정 · 예측 마이그레이션. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |

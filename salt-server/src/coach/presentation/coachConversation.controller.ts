@@ -59,6 +59,33 @@ const toMessageView = (message: CoachMessageRecord) => ({
   createdAt: message.createdAt.toISOString(),
 });
 
+/**
+ * 이번 주 적립 계획 사실(서버 S4a `SRV-REQ-049` FR-1) — plan 이 Kotlin portfolio 로 옮겨 가 BFF 가 원천을 읽어 이 헤더에 JSON 으로 싣는다
+ * (`msa-services.md` §5). 형식이 틀리거나 없으면 null — 답은 그 문장만 "불러올 수 없어요"(500 으로 올리지 않는다).
+ */
+export const WEEKLY_PLAN_HEADER = "x-salt-weekly-plan";
+export const weeklyPlanFactSchema = z
+  .object({
+    configured: z.boolean(),
+    totalKrw: z.number().int().nullable(),
+    items: z
+      .array(
+        z.object({ asset: z.enum(["btc", "kospi"]), amountKrw: z.number().int().nullable(), fixed: z.boolean() }).strict(),
+      )
+      .max(2),
+  })
+  .strict();
+
+export const weeklyPlanFromHeader = (raw: string | string[] | undefined) => {
+  if (typeof raw !== "string" || raw.length === 0 || raw.length > 2_000) return null;
+  try {
+    const parsed = weeklyPlanFactSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+};
+
 /** 실패 때 화면이 빈 채로 남지 않게 함께 보내는 서버 문장(FR-6) */
 const FALLBACK_TEXT = "지금은 답을 만들지 못했어요. 같은 질문을 다시 보내면 처음부터 계산해요.";
 
@@ -99,7 +126,9 @@ export class CoachConversationController {
     // 답을 먼저 만든다(규칙 — 수백 ms). 남의 · 없는 메시지면 헤더 전에 404 JSON 으로
     let result: Awaited<ReturnType<CoachUseCases["answerCoachMessage"]["execute"]>>;
     try {
-      result = await this.useCases.answerCoachMessage.execute(userId, messageId);
+      result = await this.useCases.answerCoachMessage.execute(userId, messageId, {
+        weeklyPlan: weeklyPlanFromHeader(req.headers[WEEKLY_PLAN_HEADER]),
+      });
     } catch (error) {
       release();
       return next(error);
