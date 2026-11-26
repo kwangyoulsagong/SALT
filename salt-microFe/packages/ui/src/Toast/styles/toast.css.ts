@@ -34,7 +34,7 @@ export const toastStyles = recipe({
     fontSize: vars.typography.t6.fontSize,
     lineHeight: vars.typography.t6.lineHeight,
     pointerEvents: "auto",
-    animation: `${slideIn} ${vars.transitions.base}`,
+    animation: `${slideIn} ${vars.motion.duration.base} ${vars.motion.easing.enter}`,
 
     "@media": {
       "(prefers-reduced-motion: reduce)": {

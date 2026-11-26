@@ -1,4 +1,5 @@
 import { style } from "@vanilla-extract/css";
+import { chartReveal } from "../../Motion/enterReveal.css";
 import { vars } from "../../styles/tokens.css";
 
 export const previewChartWrapper = style({
@@ -21,3 +22,6 @@ export const tooltipBase = style({
   whiteSpace: "nowrap",
   border: `1px solid ${vars.colors.background.tertiary} `,
 });
+
+/** 처음 그릴 때 봉이 왼쪽부터 드러난다(FE-REQ-062 FR-7) */
+export const previewReveal = style(chartReveal);

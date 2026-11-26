@@ -2,21 +2,37 @@ import { keyframes, style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
 
-/** opacity만 바꾼다. 배경 gradient 이동은 paint 비용이 크다. */
-const pulse = keyframes({
-  "0%, 100%": { opacity: 1 },
-  "50%": { opacity: 0.45 },
+/**
+ * 반짝임 한 줄 (FE-REQ-062 FR-4) — 칸 안의 밝은 띠 하나가 왼쪽에서 오른쪽으로 지나간다.
+ * 배경 위치(`background-position`)를 옮기면 매 프레임 칠한다 — 띠는 `::after` 한 장이고 **`transform` 만** 움직인다.
+ * 칸 밖으로 나간 띠는 `overflow: hidden` 이 자른다. 줄인 모션이면 띠 없이 옅은 면 그대로(멈춘 회색 칸도 "기다리는 중"으로 읽힌다).
+ */
+const sweep = keyframes({
+  from: { transform: "translateX(-100%)" },
+  to: { transform: "translateX(100%)" },
 });
 
 export const skeletonStyles = recipe({
   base: {
+    position: "relative",
     display: "block",
+    overflow: "hidden",
     background: vars.colors.neutral[100],
-    animation: `${pulse} 1.4s ease-in-out infinite`,
+
+    selectors: {
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        inset: 0,
+        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent)",
+        transform: "translateX(-100%)",
+        animation: `${sweep} ${vars.motion.duration.loop} ${vars.motion.easing.standard} infinite`,
+      },
+    },
 
     "@media": {
       "(prefers-reduced-motion: reduce)": {
-        animation: "none",
+        selectors: { "&::after": { display: "none" } },
       },
     },
   },

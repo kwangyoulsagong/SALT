@@ -1,5 +1,7 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const iconButtonStyles = recipe({
   base: {
@@ -11,9 +13,11 @@ export const iconButtonStyles = recipe({
     border: "none",
     borderRadius: vars.radius.button.md,
     cursor: "pointer",
-    transition: vars.transitions.fast,
+    transition: `${HOVER_TRANSITION}, ${PRESS_TRANSITION}`,
+    ...pressReducedMotion,
 
     selectors: {
+      [PRESS_SELECTOR]: pressActive,
       "&:disabled": {
         opacity: 0.4,
         cursor: "not-allowed",

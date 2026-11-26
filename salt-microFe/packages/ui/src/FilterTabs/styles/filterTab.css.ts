@@ -131,6 +131,33 @@ export const tabButton = recipe({
 });
 
 /**
+ * `FilterTabs` 의 고른 면이 새 칸으로 미끄러진다 (FE-REQ-062 FR-8) — 세 변형 다. 끝 모습은 고른 칸 자신의 면과 같다
+ * (변경 금지인 투자 표 필터 `segmented` 도 끝 상태는 그대로 — 옮겨 가는 과정만 생긴다).
+ */
+export const filterSliding = style({ position: "relative" });
+
+export const filterThumb = recipe({
+  base: { position: "absolute", left: 0, pointerEvents: "none" },
+  variants: {
+    variant: {
+      segmented: { top: "2px", bottom: "2px", borderRadius: vars.radius.base, background: vars.colors.background.white },
+      chip: { top: 0, bottom: 0, borderRadius: "7px", background: CHIP_FILL },
+      filter: { top: 0, bottom: 0, borderRadius: "7px", background: vars.colors.desk.accentFill },
+    },
+    animated: {
+      true: {
+        transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.move}`,
+        "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
+      },
+      false: {},
+    },
+  },
+});
+
+globalStyle(`${filterSliding}[data-sliding="true"] > button`, { position: "relative", zIndex: 1 });
+globalStyle(`${filterSliding}[data-sliding="true"] > button[aria-pressed="true"]`, { background: "transparent" });
+
+/**
  * `SegmentedControl` 의 흰 알약이 새 칸으로 미끄러진다 (FE-REQ-044 P-31).
  * 측정 전에는 고른 칸 자신의 흰 면이 보이고, 측정 뒤에는 그 면을 비우고 알약 하나가 옮겨 간다.
  */

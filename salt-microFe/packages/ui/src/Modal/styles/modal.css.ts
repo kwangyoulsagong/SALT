@@ -21,7 +21,7 @@ export const overlayStyles = style({
   justifyContent: "center",
   padding: vars.space.lg,
   background: vars.colors.overlay.dark,
-  animation: `${fadeIn} ${vars.transitions.base}`,
+  animation: `${fadeIn} ${vars.motion.duration.base} ${vars.motion.easing.enter}`,
 
   "@media": {
     "(prefers-reduced-motion: reduce)": {
@@ -40,7 +40,7 @@ export const panelStyles = recipe({
     background: vars.colors.background.white,
     boxShadow: vars.elevation.lg,
     fontFamily: vars.fontFamily.base,
-    animation: `${popIn} ${vars.transitions.base}`,
+    animation: `${popIn} ${vars.motion.duration.base} ${vars.motion.easing.enter}`,
 
     "@media": {
       "(prefers-reduced-motion: reduce)": {

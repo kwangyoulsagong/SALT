@@ -19,6 +19,7 @@ import { type BaseFrame, drawBase } from "./engine/drawBase";
 import { type Crosshair, drawOverlay } from "./engine/drawOverlay";
 import { formatCompact, formatPrice, formatSignedPercent } from "./engine/format";
 import { computeLayout } from "./engine/layout";
+import { revealHiddenWidth } from "./engine/reveal";
 import { buildSeries, type ChartSeries, extremaIndices, VOLUME_AVERAGE_PERIOD } from "./engine/series";
 import { movingAverageColor } from "./engine/theme";
 import { formatFullTime } from "./engine/time";
@@ -155,6 +156,8 @@ export const TradingChart = memo(
     const legendIndexRef = useRef<number | null>(null);
 
     const layout = useMemo(() => computeLayout(0, height), [height]);
+    /** 첫 그리기 드러남(FE-REQ-062 FR-7) — 시작 시각 · 끝났나. 실시간 봉 갱신 · 십자선은 다시 돌리지 않는다 */
+    const revealRef = useRef<{ start: number | null; done: boolean }>({ start: null, done: false });
 
     const flush = useCallback(() => {
       const pending = pendingRef.current;
@@ -182,6 +185,22 @@ export const TradingChart = memo(
         baseDrawsRef.current += 1;
         // 측정용 — 십자선 이동이 기본 캔버스를 다시 그리지 않는지 밖에서 센다(REQ 수용 기준)
         if (rootRef.current) rootRef.current.dataset.baseDraws = String(baseDrawsRef.current);
+        const reveal = revealRef.current;
+        if (!reveal.done && s.length > 0) {
+          const now = performance.now();
+          if (reveal.start === null) {
+            reveal.start = now;
+            reveal.done = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          }
+          const hidden = reveal.done ? 0 : revealHiddenWidth(now - reveal.start, currentLayout.plotWidth);
+          if (hidden > 0) {
+            // 그림 칸 오른쪽만 지운다 — 가격 축 · 시간 축은 처음부터 보인다. 다음 프레임에 덜 지운 그림을 다시
+            base.clearRect(currentLayout.plotWidth - hidden, 0, hidden, currentLayout.timeAxisTop);
+            pending.base = true;
+          } else {
+            reveal.done = true;
+          }
+        }
       }
       pending.overlay = false;
       // 범례는 프레임당 한 번만 — 이벤트마다 React 커밋을 만들지 않는다
@@ -200,6 +219,7 @@ export const TradingChart = memo(
         inputs.intraday,
         inputs.timeZoneOffsetMinutes,
       );
+      if (pending.base && !pending.raf) pending.raf = requestAnimationFrame(flush);
     }, [height]);
 
     const schedule = useCallback(
@@ -282,6 +302,7 @@ export const TradingChart = memo(
       }
       vpRef.current = defaultViewport();
       pinnedRef.current = false;
+      revealRef.current = { start: null, done: false };
       setCrosshair(null);
       schedule(true);
     }, [resetKey, schedule, setCrosshair]);

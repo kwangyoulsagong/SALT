@@ -72,6 +72,8 @@ import { vars } from "@repo/ui/tokens";
 | --- | --- | --- | --- |
 | `@repo/ui/card` | `Card` | `padding`, `elevation`, `bordered`, `className` | `packages/ui/src/Card/Card.tsx` |
 | `@repo/ui/numberText` | `NumberText` | `value`, `unit`, `signed`, `tone`, `size`, `weight` | `packages/ui/src/NumberText/NumberText.tsx` |
+| `@repo/ui/rolledText` | `RolledText` | `text`(포맷된 금액 글자 — 바뀔 때만 굴림, `FE-REQ-062` FR-5) | `packages/ui/src/RolledText/RolledText.tsx` |
+| `@repo/ui/transition` | `HOVER_TRANSITION`, `FADE_TRANSITION` | 바뀌는 속성만 적은 상태 전환 문자열(`FE-REQ-062` FR-1) | `packages/ui/src/styles/transition.ts` |
 | `@repo/ui/listRow` | `ListRow` | `title`, `caption`, `leading`, `trailingTop`, `trailingBottom`, `onPress`, `chevron`, `divider` | `packages/ui/src/ListRow/ListRow.tsx` |
 | `@repo/ui/keyValueList` | `KeyValueList` | `items`, `columns` | `packages/ui/src/KeyValueList/KeyValueList.tsx` |
 | `@repo/ui/badge` | `Badge` | `tone`, `size`, `leading` | `packages/ui/src/Badge/Badge.tsx` |
@@ -210,7 +212,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 
 ## Storybook 커버리지
 
-대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AppNavigation`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `RadarChart`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
+대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AppNavigation`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `RolledText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `RadarChart`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
 
 story가 없는 것: `Header`, `Icon`, `InputField`, `RadioButton`, `ServiceIcon`, `ServiceWrapper`, `StarIcon`, `Wrapper`. 이 중 `Header`·`InputField`·`RadioButton`은 각각 `AppBar`·`TextField`·`Checkbox`/`Toggle`로 대체 가능하다.
 

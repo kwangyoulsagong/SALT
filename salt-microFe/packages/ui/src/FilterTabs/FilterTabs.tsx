@@ -1,4 +1,7 @@
-import { tabButton, filterContainer } from "./styles/filterTab.css";
+"use client";
+
+import { useSlidingIndicator } from "../Motion/useSlidingIndicator";
+import { filterContainer, filterSliding, filterThumb, tabButton } from "./styles/filterTab.css";
 
 type FilterOption = { label: string; value: string };
 
@@ -41,8 +44,19 @@ export const FilterTabs = ({
   label,
   variant = "segmented",
 }: Props) => {
+  // 고른 면이 새 칸으로 미끄러진다(FE-REQ-062 FR-8) — `SegmentedControl` 과 같은 훅. 측정 전(서버 HTML)엔 칸 자신의 면
+  const thumb = useSlidingIndicator<HTMLDivElement>(value, '[aria-pressed="true"]');
   return (
-    <div className={filterContainer({ variant })} role="group" aria-label={label}>
+    <div
+      ref={thumb.containerRef}
+      className={`${filterContainer({ variant })} ${filterSliding}`}
+      data-sliding={thumb.sliding}
+      role="group"
+      aria-label={label}
+    >
+      {thumb.sliding ? (
+        <span aria-hidden="true" className={filterThumb({ variant, animated: thumb.animated })} style={thumb.indicatorStyle} />
+      ) : null}
       {options.map((opt) => (
         <button
           key={opt.value}

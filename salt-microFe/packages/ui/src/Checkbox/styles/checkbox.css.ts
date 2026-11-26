@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const wrapperStyles = style({
   display: "inline-flex",
@@ -39,7 +40,7 @@ export const boxStyles = recipe({
     border: `1.5px solid ${vars.colors.border.default}`,
     background: vars.colors.background.white,
     color: vars.colors.text.white,
-    transition: vars.transitions.fast,
+    transition: HOVER_TRANSITION,
 
     selectors: {
       // native input의 focus visible을 박스로 옮긴다. 제거하지 않는다.

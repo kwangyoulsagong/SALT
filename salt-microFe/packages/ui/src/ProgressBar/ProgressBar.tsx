@@ -31,7 +31,12 @@ export interface ProgressBarProps {
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
-const toPercent = (value: number) => `${(clamp(value) * 100).toFixed(2)}%`;
+/** 채움은 트랙 폭 그대로 — 시작 위치는 `translateX`(자기 폭 = 트랙 폭 기준 %), 길이는 `scaleX`(FE-REQ-062 FR-6) */
+const toTransform = (start: number, value: number) => {
+  const from = clamp(start);
+  const length = Math.min(clamp(value), 1 - from);
+  return `translateX(${(from * 100).toFixed(2)}%) scaleX(${length.toFixed(4)})`;
+};
 
 export const ProgressBar = ({
   value = 0,
@@ -56,13 +61,16 @@ export const ProgressBar = ({
         className={`${trackStyles} ${className || ""}`}
         style={{ height }}
       >
-        {segments.map((segment, index) => (
-          <div
-            key={index}
-            className={fillStyles({ tone: segment.tone || "brand" })}
-            style={{ width: toPercent(segment.value) }}
-          />
-        ))}
+        {segments.map((segment, index) => {
+          const start = segments.slice(0, index).reduce((sum, previous) => sum + clamp(previous.value), 0);
+          return (
+            <div
+              key={index}
+              className={fillStyles({ tone: segment.tone || "brand" })}
+              style={{ transform: toTransform(start, segment.value) }}
+            />
+          );
+        })}
       </div>
     );
   }
@@ -77,7 +85,7 @@ export const ProgressBar = ({
       className={`${trackStyles} ${className || ""}`}
       style={{ height }}
     >
-      <div className={fillStyles({ tone })} style={{ width: toPercent(value) }} />
+      <div className={fillStyles({ tone })} style={{ transform: toTransform(0, value) }} />
     </div>
   );
 };

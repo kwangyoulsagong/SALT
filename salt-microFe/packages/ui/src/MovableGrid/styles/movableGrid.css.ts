@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { HOVER_TRANSITION } from "../../styles/transition";
 
 export const containerStyles = style({
   position: "relative",
@@ -104,7 +105,7 @@ export const splitterStyles = recipe({
         position: "absolute",
         borderRadius: vars.radius.full,
         background: "transparent",
-        transition: `background ${vars.transitions.fast}`,
+        transition: HOVER_TRANSITION,
       },
     },
   },

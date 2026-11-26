@@ -26,7 +26,7 @@ export const trackStyles = recipe({
     border: "none",
     borderRadius: vars.radius.full,
     cursor: "pointer",
-    transition: `background ${vars.transitions.base}, ${PRESS_TRANSITION}`,
+    transition: `background-color ${vars.motion.duration.base} ${vars.motion.easing.standard}, ${PRESS_TRANSITION}`,
     ...pressReducedMotion,
 
     selectors: {
@@ -60,7 +60,7 @@ export const thumbStyles = recipe({
     borderRadius: vars.radius.full,
     background: vars.colors.background.white,
     boxShadow: vars.elevation.sm,
-    transition: `transform ${vars.transitions.base}`,
+    transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.enter}`,
 
     "@media": {
       "(prefers-reduced-motion: reduce)": {
