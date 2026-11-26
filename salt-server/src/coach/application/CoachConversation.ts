@@ -52,17 +52,22 @@ export interface CoachAnswerSources {
   behavior: { execute(userId: string): Promise<BehaviorCoachView> };
   /** 가장 최근 저장 추천을 3종 게이트를 지난 카드로(`ReadConversationCard`) — 코치 상세와 같은 조립 */
   card: { execute(userId: string): Promise<ConversationCard | null> };
-  /**
-   * 이번 주 적립 계획 — 밴드 적립(`plan`, portfolio 서비스) 주간 계획의 좁힌 모양. 코치는 `plan` 을 import 하지 않는다 — 조립(`composition.ts`)이
-   * 끼운다(서비스가 갈라지면 이 자리만 원격 호출로, `msa-services.md`). 2026-11-19
-   */
-  weeklyPlan: {
-    execute(userId: string): Promise<{
-      configured: boolean;
-      totalKrw: number | null;
-      items: Array<{ asset: "btc" | "kospi"; amountKrw: number | null; fixed: boolean }>;
-    }>;
-  };
+}
+
+/**
+ * 이번 주 적립 계획 — 밴드 적립(`plan`, portfolio 서비스) 주간 계획의 좁힌 모양. 서버 S4a(`SRV-REQ-049` FR-1, 2026-11-26)에 plan 이
+ * Kotlin portfolio 로 옮겨 가 **BFF 가 원천(`GET /api/plan/weekly`)을 읽어 답 스트림 요청에 사실로 싣는다**(`msa-services.md` §5 "남의 값으로
+ * 내가 계산한다"). 코치는 plan 의 주소도 코드도 모른다
+ */
+export interface WeeklyPlanSource {
+  configured: boolean;
+  totalKrw: number | null;
+  items: Array<{ asset: "btc" | "kospi"; amountKrw: number | null; fixed: boolean }>;
+}
+
+/** 요청과 함께 받은 사실 — 없으면(`undefined`) 또는 BFF 가 못 읽었으면(`null`) 그 재료는 "불러올 수 없어요" */
+export interface CoachGivenFacts {
+  weeklyPlan?: WeeklyPlanSource | null;
 }
 
 const SELL_STATUSES = new Set<SellPlanFacts["status"]>([
@@ -202,6 +207,7 @@ export class AnswerCoachMessage {
   async execute(
     userId: string,
     messageId: string,
+    given: CoachGivenFacts = {},
   ): Promise<CoachAnswerResult | { failed: string }> {
     const message = await this.store.findMessage(userId, messageId);
     if (!message || message.role !== "assistant")
@@ -225,7 +231,7 @@ export class AnswerCoachMessage {
       visibleQuestion(content),
       chipOf(content),
     );
-    const { facts, card } = await this.gather(userId, ANSWER_MATERIALS[intent]);
+    const { facts, card } = await gatherFacts(this.sources, userId, ANSWER_MATERIALS[intent], this.log, given);
     const answer = composeCoachAnswer(intent, facts);
     if (answer.dropped > 0)
       this.log(
@@ -258,14 +264,6 @@ export class AnswerCoachMessage {
       };
     return { failed: winner?.errorCode ?? "LLM_ERROR" };
   }
-
-  private async gather(
-    userId: string,
-    materials: readonly string[],
-  ): Promise<{ facts: CoachAnswerFacts; card: ConversationCard | null }> {
-    const facts = await gatherFacts(this.sources, userId, materials, this.log);
-    return facts;
-  }
 }
 
 /** 카드 실패와 "추천 없음"을 가른다 — 실패는 `"unavailable"`(문장이 그렇게 말한다), 없음은 `null`(문장 없음) */
@@ -276,6 +274,7 @@ const gatherFacts = async (
   userId: string,
   materials: readonly string[],
   log: (message: string) => void,
+  given: CoachGivenFacts = {},
 ): Promise<{ facts: CoachAnswerFacts; card: ConversationCard | null }> => {
   const want = new Set(materials);
   const fail = (name: string) => (error: unknown) =>
@@ -296,8 +295,9 @@ const gatherFacts = async (
           return UNAVAILABLE_CARD as typeof UNAVAILABLE_CARD;
         })
       : Promise.resolve(undefined),
+    // 받은 사실 — 못 받았으면 null(문장은 "불러올 수 없어요"). 원천 실패를 500 으로 올리지 않는 것은 옛 settle 과 같다
     want.has("weekly_plan")
-      ? settle(() => sources.weeklyPlan.execute(userId), fail("weekly_plan"))
+      ? Promise.resolve(given.weeklyPlan ?? (fail("weekly_plan")(new Error("not given")), null))
       : Promise.resolve(undefined),
   ]);
   const facts: CoachAnswerFacts = {

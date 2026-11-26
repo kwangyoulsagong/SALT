@@ -168,18 +168,6 @@ const envSchema = z.object({
   PORTFOLIO_NEWS_DAYS: z.coerce.number().int().positive().default(7),
   /** 평가금 흐름이 수량 복원에 읽는 거래 상한 — 넘으면 `degraded`(수기 입력이라 수백 건 이하) */
   PORTFOLIO_TIMELINE_LIMIT: z.coerce.number().int().positive().default(5000),
-  /**
-   * 밸류에이션 밴드 적립(F003 v2 · `SRV-REQ-020` FR-70~72 · FR-41 · FR-52) — 코드 상수 0.
-   * 배분은 BTC 몫(%)만 받고 코스피 = 100 − BTC(v2 기본 50:50, 사용자 읽기 전용). 월 적립액 1만 ~ 1억(제안값, Open Question).
-   * 실행 상한 = 그 자산 주간 기본액 × 10. 김프 +3% 이상 높음 · −2% 이하 낮음 · 예측 결정일 값이라 8일 넘으면 숨김
-   */
-  PLAN_ALLOCATION_BTC_PCT: z.coerce.number().min(0).max(100).default(50),
-  PLAN_MONTHLY_MIN_KRW: z.coerce.number().int().positive().default(10_000),
-  PLAN_MONTHLY_MAX_KRW: z.coerce.number().int().positive().default(100_000_000),
-  PLAN_EXECUTION_CAP_MULTIPLE: z.coerce.number().positive().default(10),
-  PLAN_KIMCHI_HIGH_PCT: z.coerce.number().default(3),
-  PLAN_KIMCHI_LOW_PCT: z.coerce.number().default(-2),
-  PLAN_KIMCHI_MAX_AGE_DAYS: z.coerce.number().int().positive().default(8),
   /** 요약 태그 `wide_move` 임계(전일 대비 변동률 %, 절댓값 — 코인도 업비트 전일 종가 대비) */
   MARKET_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
   /**

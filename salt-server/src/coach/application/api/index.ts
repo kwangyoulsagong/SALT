@@ -125,8 +125,6 @@ import { logger } from "../../../shared/config/logger";
  */
 
 export interface CoachDependencies {
-  /** 이번 주 적립 계획(대화 "이번 주 얼마 넣을까" 답 재료) — `plan` 컨텍스트를 조립이 끼운다(코치는 `plan` 을 모른다) */
-  weeklyPlan: CoachAnswerSources["weeklyPlan"];
   profiles: CoachProfileStore;
   insights: CoachInsightStore;
   market: MarketProbe;
@@ -341,7 +339,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     profitPlans: listProfitPlans,
     behavior: getBehaviorCoach,
     card: new ReadConversationCard(deps.insights, { market: deps.market, recommendations: deps.recommendations }),
-    weeklyPlan: deps.weeklyPlan,
   };
   const buildMonthlyReview = new BuildMonthlyReview(
     deps.monthlyReviews,
