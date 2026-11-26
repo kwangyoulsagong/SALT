@@ -125,3 +125,8 @@
 
 - 판단 · 실수는 루트 회고 `F000-desktop-dashboard`
 - **Action**: 이 몫은 루트 회고 Action 표
+
+## 2026-11-26 — 알림 벨 zone 간 이동 결함(`F000-desktop-dashboard` 3회차)
+
+- 벨을 만들 때(2026-11-18 F006) 탭 링크의 세 가지를 몰랐다 — 규칙이 `AppTabLink` 주석에만 있었다. 경로만 받는 크롬 링크 한 벌 + 기계 검사로 바꿨다
+- **Action**: `done-checklist.md` §1 행 · `chromeLink.test.ts`

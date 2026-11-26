@@ -90,3 +90,8 @@ written: 2026-10-27
 - 아래 붙이기를 `justify-content: flex-end` 로 하면 넘칠 때 위가 잘려 스크롤이 안 된다 — 첫 자식 `margin-top: auto` 로
 
 - 2026-11-20 걸침(`FE-REQ-076` 1단계): 알림 화면 `/alerts` 을 카드 판(`PageFrame surface="cards"`) 위 카드로 — 목록 · 문구 · 동작 그대로 — 할 일 없음
+
+## 2026-11-26 — 알림 벨 zone 간 이동 결함(`F000-desktop-dashboard` 3회차)
+
+- 파일만 걸침 수준의 수정(벨 링크) — 판단 · 실수는 `FE-REQ-054` · 루트 회고
+- **Action**: 없음(이 몫 안)

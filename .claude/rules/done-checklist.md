@@ -40,6 +40,7 @@
 | Swagger 주석 YAML 이 깨져(응답 키 중복) 경로 파일이 문서에서 조용히 빠짐 — 부팅 로그에만(국내 주식 경로 넷 열흘, 2026-11-19) | `salt-server` `swagger.test.ts`(`failOnErrors`) | `npm test` |
 | 데스크톱 글자 크기 사이값(20 · 16 · 15 …)이 화면마다 늘어남 — 규칙 문서만으로 211곳(2026-11-19 `FE-REQ-047` FR-3) | `@repo/ui` `fontSizeBudget.test.ts` 영역별 래칫(늘면 실패 · 줄면 기준을 낮춤) | `pnpm test` |
 | 속성 없는 전환(`vars.transitions` — 브라우저가 `all` 로 읽음, 180곳) · `width` · `height` 전환 · SVG 안 변형 드러남이 매 프레임 레이아웃(2026-11-26 `FE-REQ-062`) | `@repo/ui` `motionBudget.test.ts`(바뀌는 속성만 · 레이아웃 속성 0) · 움직임은 트레이스 레이아웃 횟수를 전환 끈 상태와 나란히 | `pnpm test` |
+| 공용 크롬(머리 · 탭 · 벨)의 zone 을 넘는 링크가 일반 `ZoneLink` — 대기 문구가 벨 칸에 붙어 머리가 깨지고 미리 그리기 없이 새로 뜸(2026-11-26 투자 → 알림) | `@repo/web-shared` `chromeLink.test.ts` — 크롬은 `ChromeLink` 한 벌 | `pnpm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

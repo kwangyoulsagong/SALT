@@ -182,3 +182,8 @@
 
 - 검증: `@repo/ui` test · `build-storybook` 통과 · 실화면 셸 · 저축 1440 · 1280 · 1024 넘침 0
 - 미검증: 투자 zone 머리(메뉴 줄) 실화면 — 같은 공용 머리라 셸 · 저축에서 확인, 투자 zone 운영 빌드는 다음 재빌드 때
+
+## 2026-11-26 — 알림 벨 zone 간 이동 결함(`F000-desktop-dashboard` 3회차)
+
+- 검증: 운영 빌드 · 투자 · 저축 · 가계부에서 벨 누름 → 대기 문구 0 · 벨 폭 36 그대로 · prerender 표지 있음 · `/alerts` 도착 · 셸 안은 soft 이동 · 페이지 오류 0 · `chromeLink.test.ts`(변이: 벨에 `ZoneLink` 넣으면 실패) · web-shared test 42
+- 미검증: prerender **활성화** 자체 — DevTools 세션이 붙으면 Chrome 이 prerender 를 끈다(`microfrontend.md` §5). 표지 · 규칙까지 확인 · 탭과 같은 장치라 탭 실측(적중 10/10)을 따른다

@@ -169,3 +169,8 @@
 | 390 앱 UA | 이번은 데스크톱 | `FE-REQ-060` 4단계 앱 웹뷰 |
 
 - 2026-11-20 걸침(`FE-REQ-076` 1단계): 알림 화면 `/alerts` 을 카드 판(`PageFrame surface="cards"`) 위 카드로 — 목록 · 문구 · 동작 그대로 — 검증은 `checklists/FE-REQ-076.md`
+
+## 2026-11-26 — 알림 벨 zone 간 이동 결함(`F000-desktop-dashboard` 3회차)
+
+- 검증: 운영 빌드 투자 · 저축 · 가계부 → 벨: 대기 문구 0 · 폭 36 그대로 · prerender 표지 · `/alerts` 도착 · 페이지 오류 0 · `chromeLink.test.ts`
+- 미검증: prerender 활성화 자체(DevTools 가 붙으면 끈다 — `FE-REQ-054` 체크리스트)

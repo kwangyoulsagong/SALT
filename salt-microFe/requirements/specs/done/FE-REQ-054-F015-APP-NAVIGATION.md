@@ -79,3 +79,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-20 | 파일만 걸침 — `ADR-012`(RN 폐기 → 휴대폰 PWA `/m`): 이 REQ 파일의 주석 · 문서에서 지운 RN REQ 참조를 `ADR-012` 로 바꿨다(`apps/mobile` 레이어 규칙 · 훅 시험 케이스는 뺐다). 동작 변경 0. 루트 `requirements/specs/done/F019-s0-decision-slice.md` |
 | 2026-11-20 | `FE-REQ-071` 짝(휴대폰 PWA zone) — `zoneNextConfig` 대상에 `mobile` 을 적음(코드 변화 없음) |
 | 2026-11-26 | 머리 52 → 60 · 좌우 16 → 24 · 메뉴 사이 2 → 8 · 링크 좌우 12 → 14 · 본문 패널 위 4(사용자 "헤더 사이 간격 더 늘려야"). 레일 · 하단 탭 무변경. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |
+| 2026-11-26 | **알림 벨 결함** — 벨이 일반 `ZoneLink` 라 다른 zone 에서 누르면 벨 칸에 "이동 중…" 이 붙어 머리가 깨지고 미리 그리기 없이 새로 떴다(사용자 "투자에서 알림 누르면 이동 중이 깨져 보여 · 새로 보여"). 크롬 링크 한 벌 `ChromeLink`(경로만 — prerender 표지 · 대기 문구 끔 · 계측) · `AppTabLink` 도 그것으로 · 기계 검사 `chromeLink.test.ts`. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |
