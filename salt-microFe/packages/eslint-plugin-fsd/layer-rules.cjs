@@ -91,6 +91,8 @@ const REGISTRY = {
     // 사기 전 · 팔기 전 점검 — 방향 전환 · 펼침(F017 v2 단계 2 `FE-REQ-064` FR-3, 2026-11-11). 숫자 · 문장은 서버
     "check-trade-odds",
     "stream-explanation",
+    // 해설 지난 날 보기 — 날짜 이동 · 그날 원문 · 그날 · 그 뒤 등락(`FE-REQ-079`, 2026-11-26). 숫자는 서버
+    "browse-explanation-days",
     "regenerate-coach",
     "record-transaction",
     // 저축 적립 — 단건 · 여러 목표 나눠 넣기(`FE-REQ-056` FR-4, 2026-11-03)

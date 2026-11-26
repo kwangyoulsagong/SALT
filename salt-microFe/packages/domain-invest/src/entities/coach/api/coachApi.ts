@@ -11,6 +11,7 @@ import type {
   SymbolEventsResult,
   RiskBudgetResult,
   CoachPanel,
+  ExplanationHistory,
   TradePlanListResult,
   TradeCheckResult,
   TradeCheckSide,
@@ -92,6 +93,20 @@ export const coachApi = {
    * 한 장 패널 (`GET /api/app/ai-coach/panel`, F017 v4 1d) — 칸마다 단 · 상태. 칸 하나가 깨져도 200(그 칸만 결함).
    * 머리가 깨졌으면 BFF 502 — 화면은 패널 자리에 한 줄
    */
+  /**
+   * 지난 날 해설(`GET /api/app/ai-coach/explanation/history`, `FE-REQ-079`) — 오늘 이전 거래일, 최신 먼저.
+   * 모양이 깨졌으면 BFF 502 — 화면은 오늘 해설만 그대로 둔다
+   */
+  explanationHistory: async (
+    symbol: string,
+    mode: "scalp" | "long_term",
+    signal?: AbortSignal,
+  ): Promise<ExplanationHistory> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.explanationHistory(symbol, mode)}`, { signal });
+    if (!response.ok) throw await readApiError(response, "explanation history");
+    return ((await response.json()) as AppEnvelope<ExplanationHistory>).data;
+  },
+
   panel: async (symbol: string, signal?: AbortSignal): Promise<CoachPanel> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.panel(symbol)}`, { signal });
     if (!response.ok) throw await readApiError(response, "coach");

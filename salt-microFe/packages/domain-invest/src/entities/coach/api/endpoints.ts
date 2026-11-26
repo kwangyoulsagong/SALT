@@ -16,6 +16,9 @@ export const COACH_ENDPOINTS = {
   generationStatus: "/api/app/coach/generation-status",
   /** 한 장 패널 — 시나리오 · 점검 · 원인 · 회사 사정 · 성적 · 해설 · 내 기준 한 콜(F017 v4 1d · `BFF-REQ-052` FR-6) */
   panel: (symbol: string) => `/api/app/ai-coach/panel?symbol=${encodeURIComponent(symbol)}`,
+  /** 지난 날 해설 — 그날 저장 원문 + 그날 · 그 뒤 등락(`FE-REQ-079` · `BFF-REQ-057`) */
+  explanationHistory: (symbol: string, mode: "scalp" | "long_term") =>
+    `/api/app/ai-coach/explanation/history?symbol=${encodeURIComponent(symbol)}&mode=${mode}`,
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
   events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-9) */

@@ -9,6 +9,8 @@ export const illustrationStyles = recipe({
   },
   variants: {
     size: {
+      /** 빽빽한 패널 머리 한 칸(48 — AI 해설 상자, `FE-REQ-079` FR-6) */
+      xs: { width: "48px" },
       sm: { width: "96px" },
       md: { width: "160px" },
       lg: { width: "220px" },

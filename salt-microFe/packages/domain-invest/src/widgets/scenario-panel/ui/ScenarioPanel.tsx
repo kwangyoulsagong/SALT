@@ -23,6 +23,7 @@ import {
   useSymbolCoach,
 } from "@/entities/coach";
 import { MoveCauseFlow, useKrChart, useMarketChart, useMarketChartPreview } from "@/entities/market";
+import { ExplanationDays } from "@/features/browse-explanation-days";
 import { TradeCheckCard } from "@/features/check-trade-odds";
 import { StreamedExplanation } from "@/features/stream-explanation";
 import { usePanelHorizonParam } from "@/features/switch-coach-mode";
@@ -60,7 +61,7 @@ interface ScenarioPanelProps {
  * 한 장 패널 — 종목 상세 AI 칸을 한 장으로(F017 v4 순서 1e · `FE-REQ-064` FR-8~11 · 시안 `pm/docs/2026-11-13-one-panel-research.html` §6).
  *
  * 위에서 아래: 머리(이름 · AI · 출처 · 기준 시각) → 기간 탭 → 큰 숫자 · 막대 → 부채꼴 → 줄 여섯
- * (보통은 = 사기 전 · 팔기 전 점검 · 왜 움직였나 = 원인 → 근거 → 결과 · 회사 사정 · 지금의 판단 · 틀리는 때 · 성적) → AI 해설 → 내 기준.
+ * (보통은 = 사기 전 · 팔기 전 점검 · 왜 움직였나 = 원인 → 근거 → 결과 · 회사 사정 · 지금의 판단 · 틀리는 때 · 성적) → AI 해설(지난 날 보기 `FE-REQ-079`) → 내 기준.
  * 순서 6(`FE-REQ-064` FR-12): 상세의 판단 카드 · 왜 움직였나 카드 · 성적표가 이 안으로 들어왔다 — 기간 탭은 URL(`?horizon=`)이라 차트 위 틀리는 선과 같은 기간
  *
  * - 데이터는 BFF 한 콜(`useCoachPanel`). 칸마다 `status` — 한 칸이 결함이어도 나머지는 그린다
@@ -145,8 +146,11 @@ export const ScenarioPanel = ({ symbol, asset, className }: ScenarioPanelProps) 
 
       {mode.explanation.view ? (
         // 최신 AI 저장본이면 그대로, 아니면 스트림(F017 v4 1f) — 기간 탭이 모드를 바꾸면 새로 연다
+        // 지난 날 보기(`FE-REQ-079`) — 오늘은 스트림 그대로, 지난 날을 고르면 그날 원문. 기간 탭이 모드를 바꾸면 오늘로 돌아온다
         <div className={explainWide}>
-          <StreamedExplanation key={mode.mode} symbol={symbol} mode={mode.mode} stored={mode.explanation.view} />
+          <ExplanationDays key={mode.mode} symbol={symbol} mode={mode.mode}>
+            <StreamedExplanation symbol={symbol} mode={mode.mode} stored={mode.explanation.view} />
+          </ExplanationDays>
         </div>
       ) : (
         <StatusLine kind="error">{M.explainDefect}</StatusLine>

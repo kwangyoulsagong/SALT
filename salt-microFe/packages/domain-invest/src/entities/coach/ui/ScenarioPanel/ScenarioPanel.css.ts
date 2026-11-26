@@ -167,6 +167,8 @@ export const explain = style({
   background: "rgba(13,25,74,.03)",
 });
 export const explainHead = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" });
+/** 머리 그림(코치 말풍선 xs) + 제목 */
+export const explainTitleGroup = style({ display: "inline-flex", alignItems: "center", gap: "6px" });
 export const explainTitle = style({
   fontSize: "13px",
   lineHeight: "20px",
@@ -180,19 +182,15 @@ export const explainTitle = style({
 export const explainSub = style([label, { color: vars.colors.neutral[700] }]);
 export const sentences = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" });
 
-/** 한 문장씩 등장 — 240ms · transform · opacity(`motion.md` §3 duration.base · easing.enter). 줄인 모션이면 바로 */
-const rise = keyframes({ from: { opacity: 0, transform: "translateY(6px)" }, to: { opacity: 1, transform: "none" } });
+/** 문장 한 줄 — 등장은 `ExplainBox` 가 보일 때 한 번(`m.li` · `FE-REQ-079` FR-6). 줄인 모션은 앱 `MotionConfig reducedMotion="user"` 가 끈다 */
 export const sentence = style({
   margin: 0,
   fontSize: "13px",
   lineHeight: "22px",
   color: vars.colors.text.primary,
   wordBreak: "keep-all",
-  animationName: rise,
-  animationDuration: vars.motion.duration.base,
-  animationTimingFunction: vars.motion.easing.enter,
-  animationFillMode: "both",
-  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+  // 전역 목록 행 등장(`globals.css` ROWS — 그려질 때 재생)에서 빠진다 — 등장 주인은 보일 때 재생하는 `m.li` 하나
+  animation: "none",
 });
 
 /**
