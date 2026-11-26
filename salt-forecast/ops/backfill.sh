@@ -44,4 +44,13 @@ if kr_backtest_ready; then
   # 판단 과거 검산을 원장에 — 성공하면 위 조건(행 없음)이 닫혀 다시 돌지 않는다. 실패하면 다음 시에 셋 다 다시
   (cd "${SALT_DEV_ROOT:-..}/salt-server" && npm run -s judgments:kr-backtest -- --write) || { echo "[$(ts)] judgments:kr-backtest 실패"; rc=1; }
 fi
+
+# 4) 종목 판단 과거 검산(signal-skill@1 — 코인 장기 · 코인 단타 · 국내 단타) — 7일마다 다시. 등록상 만기가 실행 전에 온 판단만 넣어
+#    실행이 늦을수록 표본이 는다. 손으로만 돌려 열흘 묵자 코인 장기 피하기가 판단 날 9 < 10 에 머물러 3종 결함 10 → 16(2026-11-26).
+#    지우기 + 넣기가 한 트랜잭션이라 실패하면 이전 그대로 · 다음 시에 다시. 몇 분
+if [[ $(psql salt_db -Atqf ops/signal-skill-stale.sql 2>/dev/null) == 1 ]]; then
+  echo "[$(ts)] 판단 과거 검산 다시 — 마지막 쓰기가 7일 넘었다"
+  (setopt pipefail; cd "${SALT_DEV_ROOT:-..}/salt-server" && npm run -s judgments:signal-skill -- --write | tail -1) \
+    || { echo "[$(ts)] judgments:signal-skill 실패"; rc=1; }
+fi
 exit $rc
