@@ -201,11 +201,11 @@ export const HomeKpiStrip = ({ cards, plan }: HomeKpiStripProps) => (
 export const HomeChartBlock = ({ card, title, emptyText, labelledBy }: { card: HomeSummaryCard; title: string; emptyText: string; labelledBy: string }) => (
   <HomeBlock title={title} icon={HOME_DOMAIN_ICON[card.domain]} href={card.href} labelledBy={labelledBy}>
     {card.state === "ok" && card.preview ? (
-      <HomeCardPreviewView domain={card.domain} preview={card.preview} size={card.preview.kind === "progress" ? "card" : "large"} />
+      <HomeCardPreviewView domain={card.domain} preview={card.preview} size={card.preview.kind === "progress" ? "auto" : "large"} />
     ) : (
       <>
         <p className={empty}>{card.state === "degraded" ? M.unavailable : emptyText}</p>
-        <HomeCardGhostPreview domain={card.domain} size="large" />
+        <HomeCardGhostPreview domain={card.domain} size={card.domain === "savings" ? "auto" : "large"} />
       </>
     )}
   </HomeBlock>

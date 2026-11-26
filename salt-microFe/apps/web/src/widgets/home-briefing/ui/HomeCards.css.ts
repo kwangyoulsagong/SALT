@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -41,6 +41,12 @@ export const wide = style({
 export const cell = style({ minWidth: 0, display: "flex", flexDirection: "column" });
 
 export const fill = style({ flex: 1, display: "flex", flexDirection: "column" });
+
+/**
+ * 같은 줄 칸은 아래 끝이 맞는다 — 칸 안 흰 카드가 줄 높이를 채운다(2026-11-26 사용자 "배치 정렬이 맞아 보이냐" — 카드가 내용 높이에서 멈춰
+ * 지출 흐름 · 저축 목표, 시장 · 코치 브리핑의 아래 끝이 달랐다). 격자는 `stretch`, 칸은 세로 flex, 카드는 남은 높이를 다 갖는다
+ */
+globalStyle(`${cell} > *, ${wide} > *, ${fill} > *`, { flex: "1 1 auto" });
 
 /** 대기 칸 */
 export const skeletonKpi = style({ minHeight: "108px" });
