@@ -8,9 +8,10 @@ export interface RolledTextProps {
   text: string;
 }
 
-const Rolled = ({ parsed }: { parsed: ParsedAmount }) => {
+const Rolled = ({ text, parsed }: { text: string; parsed: ParsedAmount }) => {
   const shown = useRolledNumber(parsed.value);
-  return <>{formatAmount(parsed, shown)}</>;
+  // 멈춰 있을 때는 받은 글자 그대로 — 중간값만 만든 모양이다(서버 HTML 과 글자 하나까지 같다)
+  return <>{shown === parsed.value ? text : formatAmount(parsed, shown)}</>;
 };
 
 /**
@@ -20,5 +21,5 @@ const Rolled = ({ parsed }: { parsed: ParsedAmount }) => {
  */
 export const RolledText = ({ text }: RolledTextProps) => {
   const parsed = parseAmount(text);
-  return parsed ? <Rolled parsed={parsed} /> : <>{text}</>;
+  return parsed ? <Rolled text={text} parsed={parsed} /> : <>{text}</>;
 };

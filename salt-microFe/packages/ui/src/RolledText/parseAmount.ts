@@ -8,6 +8,8 @@ export interface ParsedAmount {
   sign: "" | "−" | "-";
   value: number;
   rest: string;
+  /** 받은 글자에 천 단위 쉼표가 있었나 — 없으면("2027년") 중간값에도 넣지 않는다 */
+  grouped: boolean;
 }
 
 const PATTERN = /^([−-]?)(\d{1,3}(?:,\d{3})*|\d+)(?![\d.])([^]*)$/;
@@ -17,10 +19,12 @@ export const parseAmount = (text: string): ParsedAmount | null => {
   if (!match) return null;
   const value = Number(match[2]!.replaceAll(",", ""));
   if (!Number.isSafeInteger(value)) return null;
-  return { sign: match[1] as ParsedAmount["sign"], value, rest: match[3] ?? "" };
+  return { sign: match[1] as ParsedAmount["sign"], value, rest: match[3] ?? "", grouped: match[2]!.includes(",") };
 };
 
 const grouping = new Intl.NumberFormat("ko-KR");
 
-export const formatAmount = ({ sign, rest }: ParsedAmount, value: number): string =>
-  `${value === 0 ? "" : sign}${grouping.format(Math.round(value))}${rest}`;
+export const formatAmount = ({ sign, rest, grouped }: ParsedAmount, value: number): string => {
+  const whole = Math.round(value);
+  return `${whole === 0 ? "" : sign}${grouped ? grouping.format(whole) : String(whole)}${rest}`;
+};
