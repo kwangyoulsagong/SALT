@@ -84,3 +84,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-20 | 걸침 — `FE-REQ-076` 1단계(데스크톱 카드 판): 홈 요약 카드 표시만 바뀜(아이콘 판 · 알약 · 주인공 24) — BFF 값 · 링크 · 계측 그대로 |
 | 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 홈 카드 주인공 값이 바뀔 때 굴림(`RolledText` — 빈 카드 · 못 받은 카드는 글자 그대로) |
 | 2026-11-26 | S4a(2026-11-26) — 서비스 이름표 `portfolio` 두 곳(저장하는 것 "투자 적립" · 지워지는 것 "투자 적립 — 월 적립액 · 주마다 적립 계획 · 체크"). 모르는 키는 그리지 않아 빠지면 범위에서 조용히 사라진다. 루트 `requirements/specs/in-progress/MONEY-S4a-portfolio-plan-slice.md` |
+| 2026-11-26 | 파일만 걸침 — 셸 홈 카드 슬라이스 파일 머리. 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |

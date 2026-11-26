@@ -53,3 +53,4 @@ source: 사용자 "웹뷰 배치를 PWA로 전환" · ADR-012
 | 2026-11-21 | 걸침 — `FE-REQ-073`(`feat/fe-req-073-mobile-offline-install`): `MobileSheetAction` 오프라인이면 막힘 + 이유 한 줄 · 저축 · 가계부 · 홈이 한 벌을 저장하고 받기 실패 자리에 그린다 |
 | 2026-11-21 | 걸침 — `FE-REQ-078`(`feat/f019-s4-web-push`): 휴대폰 홈 맨 아래 설치 안내 다음에 알림 칸(`MobilePushCard`). 다른 칸 변화 0 |
 | 2026-11-26 | 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 근거 상세 분포 막대 차오름(`growInX`) |
+| 2026-11-26 | 파일만 걸침 — 홈 미리보기 컴포넌트 파일 머리(휴대폰 홈 무변경). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |

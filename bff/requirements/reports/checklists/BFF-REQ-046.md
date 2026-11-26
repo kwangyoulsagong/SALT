@@ -131,3 +131,8 @@
 
 - 검증: `app-my-data.test.ts`(범위 · 내보내기 아홉 곳) · 실스택 `/me/data-scope` · `/me/privacy` 에 portfolio · 계정 삭제 응답 portfolio 3행
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 검증: `app-home-market.test.ts` 6(지수만 · 중복 제거 · 상한 · 대표 없음 · 일정 상한 · 원천 실패 · 꺼진 국내) · `npm test` 628/628 · `npm run build` · 실서버 재시작 · 무토큰 401
+- 미검증: 없음(이 몫 안)

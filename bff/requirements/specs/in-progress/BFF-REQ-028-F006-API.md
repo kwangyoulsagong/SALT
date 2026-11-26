@@ -233,3 +233,4 @@ type SettingsViewModel = {
 | 2026-11-19 | 정리 — 남은 FR 대조(루트 `WEB-perf-req-close-slice.md`). 홈 · 3탭 · 알림 · 온보딩 · 설정 FR 에 대체 근거, 남은 것은 LLM 경로 · 앱. in-progress 유지 |
 | 2026-11-19 | 프론트 계약 `CoachAnswerLinkKind` 에 `plan` 더함(`feat/f006-coach-chat-redesign`) — 서버 · BFF · 화면 같은 PR |
 | 2026-11-19 | FR-49 신설 — 계약 `keep` · `INVALID_CURSOR`. 프론트 `@repo/core/coach` 같은 이름. `feat/f006-coach-chat-history` |
+| 2026-11-26 | 파일만 걸침 — 코치 브리핑 경로를 홈이 같이 읽음(계약 무변경). 이 REQ 의 동작 변경 0. 루트 `requirements/specs/in-progress/F000-desktop-dashboard-slice.md` |

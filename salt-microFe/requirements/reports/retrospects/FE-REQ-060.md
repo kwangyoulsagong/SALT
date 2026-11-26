@@ -62,3 +62,8 @@
 - 2026-11-20 걸침(`FE-REQ-076` 2단계): 하위 화면 틀(뒤로 + 이동 경로 · 2단)은 그대로 두고 면만 카드 판 — 도구 화면 `toolCard` · `toolEmpty` 가 판 위에선 흰 카드 — 할 일 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 가계부 봉투 · 분류 비율 막대 차오름 · 날마다 막대 버튼 호버 전환(`all: unset` 이 지우던 것) · 진척 막대 `scaleX`
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 판단 · 실수는 루트 회고 `F000-desktop-dashboard`
+- **Action**: 이 몫은 루트 회고 Action 표

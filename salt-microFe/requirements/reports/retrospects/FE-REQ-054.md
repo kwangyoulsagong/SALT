@@ -120,3 +120,8 @@
 - 다른 기능이 이 파일을 지나갔다 — 이 REQ 의 동작은 바뀌지 않았다. Action 없음
 
 - 2026-11-26: 걸침 — `FE-REQ-062`(`feat/fe-req-062-interaction-motion`): 같은 zone 안 이동 본문 투명도(`RouteMain`)를 더함 — zone 을 넘는 이동은 문서 간 전환 그대로(첫 마운트는 움직이지 않는다)
+
+## 2026-11-26 — 데스크톱 홈 대시보드 · 저축 목록 채우기 · 머리 간격(`F000-desktop-dashboard`, `feat/fe-home-desktop-polish`)
+
+- 판단 · 실수는 루트 회고 `F000-desktop-dashboard`
+- **Action**: 이 몫은 루트 회고 Action 표
