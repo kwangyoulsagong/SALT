@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PreflightMode } from "../../domain";
+import { EXPLANATION_HISTORY_DEFAULT, EXPLANATION_HISTORY_MAX, PreflightMode } from "../../domain";
 
 /**
  * `coach` 의 요청 스키마.
@@ -57,6 +57,11 @@ export const explanationQuerySchema = z.object({
   mode: coachModeSchema,
 });
 
+/** 지난 날 해설(`SRV-REQ-063` FR-4) — 날 수 기본 7 · 상한 14(`EXPLANATION_HISTORY_DEFAULT` · `_MAX`) */
+export const explanationHistoryQuerySchema = explanationQuerySchema.extend({
+  days: z.coerce.number().int().min(1).max(EXPLANATION_HISTORY_MAX).default(EXPLANATION_HISTORY_DEFAULT),
+});
+
 /**
  * 주문 전 계산 입력.
  *
@@ -102,6 +107,7 @@ export const moveSummaryQuerySchema = z
   .refine((q) => q.asset !== "kr" || /^\d{6}$/.test(q.symbol), { message: "국내 종목 코드는 6자리 숫자", path: ["symbol"] });
 
 export type ExplanationQueryDto = z.infer<typeof explanationQuerySchema>;
+export type ExplanationHistoryQueryDto = z.infer<typeof explanationHistoryQuerySchema>;
 export type TradePreflightDto = z.infer<typeof tradePreflightSchema>;
 export type ProfitPlanQueryDto = z.infer<typeof profitPlanQuerySchema>;
 export type SignalPerformanceQueryDto = z.infer<

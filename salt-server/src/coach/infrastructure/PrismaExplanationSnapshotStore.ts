@@ -62,16 +62,45 @@ export class PrismaExplanationSnapshotStore implements ExplanationSnapshotStore 
     return count > 0;
   }
 
-  async prune(symbol: string, mode: CoachMode, keep: number): Promise<number> {
-    // 한 문장 — 남길 것을 고르고 나머지를 지운다(행마다 지우지 않는다)
+  async prune(symbol: string, mode: CoachMode, keep: number, historyDays: number): Promise<number> {
+    // 한 문장 — 남길 것(최근 keep 벌 ∪ 최근 historyDays 일의 날마다 마지막 한 벌)을 고르고 나머지를 지운다.
+    // generated_at 은 timestamptz — KST 날짜는 `AT TIME ZONE 'Asia/Seoul'`(세션 시간대와 무관). 인덱스 (symbol, mode, generated_at desc) 안에서 끝난다
     return prisma.$executeRaw`
       DELETE FROM explanation_snapshot
       WHERE symbol = ${symbol} AND mode = ${mode}
         AND id NOT IN (
-          SELECT id FROM explanation_snapshot
-          WHERE symbol = ${symbol} AND mode = ${mode}
-          ORDER BY generated_at DESC
-          LIMIT ${keep}
+          (SELECT id FROM explanation_snapshot
+           WHERE symbol = ${symbol} AND mode = ${mode}
+           ORDER BY generated_at DESC
+           LIMIT ${keep})
+          UNION
+          (SELECT DISTINCT ON ((generated_at AT TIME ZONE 'Asia/Seoul')::date) id FROM explanation_snapshot
+           WHERE symbol = ${symbol} AND mode = ${mode}
+             AND generated_at >= now() - make_interval(days => ${historyDays}::int)
+           ORDER BY (generated_at AT TIME ZONE 'Asia/Seoul')::date, generated_at DESC)
         )`;
+  }
+
+  async listDaily(
+    symbol: string,
+    mode: CoachMode,
+    opts: { since: Date; before: Date; limit: number }
+  ): Promise<ExplanationSnapshotRecord[]> {
+    // 날마다 마지막 한 벌 — DISTINCT ON 은 날 오름차순으로만 고를 수 있어 바깥에서 최신 날 먼저 다시 정렬한다
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT * FROM (
+        SELECT DISTINCT ON ((generated_at AT TIME ZONE 'Asia/Seoul')::date)
+          id, symbol, mode, fingerprint, action, source, provider, sentences, verifier,
+          facts_hash AS "factsHash", generated_at AS "generatedAt"
+        FROM explanation_snapshot
+        WHERE symbol = ${symbol} AND mode = ${mode}
+          -- 열은 timestamptz — ISO 문자열(Z)을 timestamptz 로 그대로 비교한다(세션 시간대 Asia/Seoul 과 무관)
+          AND generated_at >= ${opts.since.toISOString()}::timestamptz
+          AND generated_at < ${opts.before.toISOString()}::timestamptz
+        ORDER BY (generated_at AT TIME ZONE 'Asia/Seoul')::date, generated_at DESC
+      ) d
+      ORDER BY "generatedAt" DESC
+      LIMIT ${opts.limit}`;
+    return rows.map(toRecord);
   }
 }

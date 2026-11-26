@@ -2,7 +2,12 @@ import {
   assembleExplanationFacts,
   EXPLANATION_NEWS_MAX,
   explanationFingerprint,
+  explanationTradeDay,
+  recentFlow,
+  recentFlowText,
+  RECENT_FLOW_HIGH_BARS,
   type CoachExplanationInput,
+  type ForecastReader,
   type CoachMode,
   type MarketProbe,
   type NewsProbe,
@@ -16,7 +21,12 @@ export interface ExplanationMaterialsDeps {
   news: NewsProbe;
   judgments: SymbolJudgmentStore;
   backtestJudgments: SymbolJudgmentStore | null;
+  /** 닫힌 일봉 — 최근 흐름 재료(`SRV-REQ-063` FR-2). 없으면(테스트 · 예측 뷰 없음) 흐름 없이 */
+  closes?: Pick<ForecastReader, "dailyCloses"> | null;
 }
+
+/** 최근 흐름에 읽는 일봉 창 — 20거래일 + 연휴 여유(달력 일) */
+const RECENT_FLOW_LOOKBACK_DAYS = RECENT_FLOW_HIGH_BARS * 2;
 
 export interface PreparedExplanation {
   symbol: string;
@@ -47,16 +57,26 @@ export interface ExplanationBase {
   materials: SymbolJudgmentMaterials;
   judged: ReturnType<typeof judgeSymbol>;
   news: Awaited<ReturnType<NewsProbe["recentForSymbol"]>>;
+  /** 닫힌 일봉 종가(오래된 → 최근) — 읽기 실패 · 포트 없음이면 빈 배열(흐름 없이 간다) */
+  closes: { openTime: Date; close: number }[];
 }
 
 export const loadExplanationBase = async (deps: ExplanationMaterialsDeps, rawSymbol: string): Promise<ExplanationBase> => {
   const symbol = rawSymbol.toUpperCase();
-  const [materialsBySymbol, news] = await Promise.all([
+  const from = new Date(Date.now() - RECENT_FLOW_LOOKBACK_DAYS * 86_400_000);
+  const [materialsBySymbol, news, closes] = await Promise.all([
     collectJudgmentMaterials(deps.market, [symbol]),
     deps.news.recentForSymbol(symbol, EXPLANATION_NEWS_MAX).catch(() => []),
+    // 흐름은 문장 재료지 판단 재료가 아니다 — 못 읽으면 흐름 없이(뉴스와 같다)
+    deps.closes
+      ? deps.closes
+          .dailyCloses([symbol], from)
+          .then((bars) => (bars.get(symbol) ?? []).map((b) => ({ openTime: b.openTime, close: Number(b.close) })))
+          .catch(() => [])
+      : Promise.resolve([]),
   ]);
   const materials = materialsBySymbol.get(symbol)!;
-  return { symbol, materials, judged: judgeSymbol(symbol, materials, false), news };
+  return { symbol, materials, judged: judgeSymbol(symbol, materials, false), news, closes };
 };
 
 export const prepareExplanationMode = async (
@@ -65,7 +85,7 @@ export const prepareExplanationMode = async (
   mode: CoachMode,
   now: Date
 ): Promise<PreparedExplanation> => {
-  const { symbol, materials, judged, news } = base;
+  const { symbol, materials, judged, news, closes } = base;
   const decision = mode === "scalp" ? judged.scalp : judged.longTerm;
   const view = await attachJudgmentTrack(
     deps.judgments,
@@ -88,6 +108,10 @@ export const prepareExplanationMode = async (
     sentiment: materials.sentiment,
     whale: { buyAmountKRW: judged.whaleBuy, sellAmountKRW: judged.whaleSell, count: materials.whales.length },
     news,
+    recentFlow: (() => {
+      const flow = recentFlow({ closes, currentPrice: materials.quote?.currentPrice ?? 0, now });
+      return flow ? recentFlowText(flow) : null;
+    })(),
   });
 
   const fingerprint = explanationFingerprint({
@@ -96,6 +120,7 @@ export const prepareExplanationMode = async (
     observations: view.observations,
     caveatReasons: view.caveats.map((c) => c.reason),
     newsTitles: (input?.news ?? []).map((n) => n.title),
+    tradeDay: explanationTradeDay(now),
   });
 
   return { symbol, mode, view, input, fingerprint };

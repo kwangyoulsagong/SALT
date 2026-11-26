@@ -2,6 +2,7 @@ import { logger } from "../../../shared/config/logger";
 
 import {
   EXPLANATION_PROMPT_VERSION,
+  EXPLANATION_HISTORY_DAYS,
   EXPLANATION_SNAPSHOT_KEEP,
   EXPLANATION_VERIFIER_VERSION,
   citeSentence,
@@ -198,7 +199,7 @@ export const generateExplanation = async (
       factsHash: explanationFactsHash(input),
       generatedAt,
     });
-    await deps.store.prune(prepared.symbol, prepared.mode, EXPLANATION_SNAPSHOT_KEEP);
+    await deps.store.prune(prepared.symbol, prepared.mode, EXPLANATION_SNAPSHOT_KEEP, EXPLANATION_HISTORY_DAYS);
     return true;
   } catch (error) {
     // 원인 원문은 싣지 않는다 — 모델 응답이 섞일 수 있다(`ddd-infrastructure.md` §6)

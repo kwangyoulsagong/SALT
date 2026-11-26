@@ -37,6 +37,7 @@ const fpBase: ExplanationFingerprintInput = {
   observations: [obs("rsi", 48), obs("change24h", 1.2, -3, 3)],
   caveatReasons: [],
   newsTitles: ["a", "b", "c"],
+  tradeDay: "2026-11-25",
 };
 
 describe("explanationFingerprint — 판단이 의미 있게 바뀔 때만 바뀐다", () => {
@@ -51,6 +52,8 @@ describe("explanationFingerprint — 판단이 의미 있게 바뀔 때만 바�
     ["모드가 다름", { mode: "long_term" }, true],
     ["꼬리표가 붙음", { caveatReasons: ["stale_inputs"] }, true],
     ["맨 위 뉴스가 바뀜", { newsTitles: ["z", "b", "c"] }, true],
+    // SRV-REQ-063 FR-1 — 판정 · 관측이 같아도 날이 바뀌면 그날 해설을 만든다(11-25 삼성전자 −9.87% 날 해설 0)
+    ["거래일이 바뀜(판정 · 관측 같음)", { tradeDay: "2026-11-26" }, true],
   ];
   for (const [name, patch, changes] of table) {
     it(`${name} → ${changes ? "바뀜" : "같음"}`, () => {
