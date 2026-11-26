@@ -23,7 +23,7 @@ const exportOf = (service: string) => ({ data: { data: { service, tables: [{ nam
 describe("내 데이터 — 내보내기", () => {
   afterEach(() => mock.restoreAll());
 
-  it("서비스 여덟 곳(identity + 일곱)을 읽어 zip — README · all.json · 서비스/표.csv · zip 이 실제로 풀린다", async () => {
+  it("서비스 아홉 곳(identity + 여덟)을 읽어 zip — README · all.json · 서비스/표.csv · zip 이 실제로 풀린다", async () => {
     const seen: string[] = [];
     mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
       seen.push(`${m} ${url}`);
@@ -37,7 +37,7 @@ describe("내 데이터 — 내보내기", () => {
     execFileSync("unzip", ["-tq", join(dir, "x.zip")]);
     execFileSync("unzip", ["-q", join(dir, "x.zip"), "-d", join(dir, "out")]);
     assert.match(readFileSync(join(dir, "out", "README.txt"), "utf8"), /비밀번호/);
-    assert.equal(JSON.parse(readFileSync(join(dir, "out", "all.json"), "utf8")).services.length, 8);
+    assert.equal(JSON.parse(readFileSync(join(dir, "out", "all.json"), "utf8")).services.length, MY_DATA_SERVICES.length + 1);
     assert.equal(readFileSync(join(dir, "out", "savings", "t.csv"), "utf8"), '﻿id,memo\r\n1,"a,""b""\n줄"\r\n');
   });
 
@@ -126,7 +126,7 @@ describe("내 데이터 — 계정 삭제", () => {
 
 describe("내 데이터 — 지워지는 범위", () => {
   it("지우는 순서 그대로 · 기술 서비스(코치 아웃박스 · 종단 확인) 제외 · 계정 마지막", () => {
-    assert.deepEqual(MY_DATA_SCOPE, ["investment", "household", "savings", "content", "notification", "identity"]);
+    assert.deepEqual(MY_DATA_SCOPE, ["investment", "portfolio", "household", "savings", "content", "notification", "identity"]);
     const order = MY_DATA_SERVICES.map((s) => s.service);
     const shown = MY_DATA_SCOPE.slice(0, -1);
     assert.deepEqual([...shown].sort((a, b) => order.indexOf(a as never) - order.indexOf(b as never)), shown);

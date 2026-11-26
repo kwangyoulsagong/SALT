@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { backendApi } from "../backend-api.service";
-import { coachConversationService, toCoachCard, toCoachMessage, toLinks, type CoachStreamEvent } from "../coach-conversation.service";
+import {
+  coachConversationService,
+  toCoachCard,
+  toCoachMessage,
+  toLinks,
+  toWeeklyPlanFact,
+  WEEKLY_PLAN_HEADER,
+  type CoachStreamEvent,
+} from "../coach-conversation.service";
 import { createSseParser } from "../../utils/sse.util";
 
 /** 코치 대화 중계(F006 C절 · `BFF-REQ-027` · `028`) — 모양 좁히기 · 이벤트 계약 · 재연결 id */
@@ -12,7 +20,41 @@ const MID = "11111111-2222-4333-8444-555555555555";
 const sse = (...blocks: string[]) => Readable.from(blocks);
 
 describe("coachConversationService.streamAnswer", () => {
+  // 주간 계획 재료는 기본으로 못 읽음 — 시험이 실제 서버를 부르지 않게. 싣는 경우는 아래 시험이 따로 바꾼다
+  beforeEach(() => {
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw new Error("no server in tests");
+    });
+  });
   afterEach(() => mock.restoreAll());
+
+  it("이번 주 적립 계획을 읽으면 칸만 골라 헤더로 · 못 읽으면 싣지 않고 연다(서버 S4a)", async () => {
+    mock.restoreAll();
+    const weekly = mock.method(backendApi, "proxyAuthRequest", async () => ({
+      data: { data: { configured: true, totalKrw: 450000, items: [{ asset: "btc", amountKrw: 300000, fixed: true, basis: { x: 1 } }, { asset: "kospi", amountKrw: 150000, fixed: false }], streak: {} } },
+    }) as never);
+    const calls: unknown[][] = [];
+    mock.method(backendApi, "openAuthStream", async (...args: unknown[]) => {
+      calls.push(args);
+      return sse() as never;
+    });
+    await coachConversationService.streamAnswer("t", MID, undefined, () => undefined);
+    assert.deepEqual(weekly.mock.calls[0].arguments.slice(0, 2), ["GET", "/plan/weekly"]);
+    assert.deepEqual((calls[0][3] as { headers: Record<string, string> }).headers, {
+      [WEEKLY_PLAN_HEADER]: '{"configured":true,"totalKrw":450000,"items":[{"asset":"btc","amountKrw":300000,"fixed":true},{"asset":"kospi","amountKrw":150000,"fixed":false}]}',
+    });
+
+    mock.restoreAll();
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw new Error("timeout");
+    });
+    mock.method(backendApi, "openAuthStream", async (...args: unknown[]) => {
+      calls.push(args);
+      return sse() as never;
+    });
+    await coachConversationService.streamAnswer("t", MID, "2", () => undefined);
+    assert.deepEqual((calls[1][3] as { headers: unknown }).headers, { "Last-Event-ID": "2" }, "못 읽으면 헤더 없이 — 답은 서버가 '불러올 수 없어요'");
+  });
 
   it("start · delta(id 그대로) · done 을 옮기고 Last-Event-ID 를 서버로", async () => {
     const calls: unknown[][] = [];
@@ -206,4 +248,18 @@ describe("메시지 목록 — 커서 · 보관 한도(BFF-REQ-028 · 2026-11-19
       assert.equal((await coachConversationService.listMessages("t", CONV, {})).keep, null);
     }
   });
+});
+
+describe("toWeeklyPlanFact — 코치 답 재료 좁히기(금액은 옮기기만)", () => {
+  const table: Array<[string, unknown, boolean]> = [
+    ["맞는 모양", { configured: true, totalKrw: 1000, items: [{ asset: "btc", amountKrw: 1000, fixed: true }] }, true],
+    ["설정 전", { configured: false, totalKrw: null, items: [{ asset: "btc", amountKrw: null, fixed: false }] }, true],
+    ["null", null, false],
+    ["소수 금액", { configured: true, totalKrw: 1.5, items: [] }, false],
+    ["모르는 자산", { configured: true, totalKrw: 1, items: [{ asset: "eth", amountKrw: 1, fixed: true }] }, false],
+    ["fixed 없음", { configured: true, totalKrw: 1, items: [{ asset: "btc", amountKrw: 1 }] }, false],
+  ];
+  for (const [name, data, ok] of table) {
+    it(`${name} → ${ok ? "싣는다" : "null"}`, () => assert.equal(toWeeklyPlanFact(data) !== null, ok));
+  }
 });
